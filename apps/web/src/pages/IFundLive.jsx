@@ -66,7 +66,7 @@ export default function IFundLive() {
 function EventCard({ event }) {
   const when = event.scheduled_at ? new Date(event.scheduled_at) : null;
   return <article className="rounded-xl border border-border p-4">
-    <h4 className="font-semibold">{event.title}</h4>
+    <h4 className="font-semibold"><Link className="text-primary underline" to={`/live/${encodeURIComponent(event.id)}`}>{event.title}</Link></h4>
     {event.description && <p className="mt-2 whitespace-pre-wrap break-words text-sm text-muted-foreground">{event.description}</p>}
     {when && <p className="mt-2 text-sm"><time dateTime={event.scheduled_at}>{when.toLocaleString()}</time></p>}
     {event.campaign_id && <Link className="mt-3 inline-block text-sm text-primary underline" to={`/campaign/${encodeURIComponent(event.campaign_id)}`}>View related campaign</Link>}
