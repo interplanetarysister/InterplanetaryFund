@@ -452,3 +452,29 @@ test("the shared runtime skill policy explicitly preserves external audience rea
     assert.match(instructions, /backend verification/);
   }
 });
+
+
+test("mixed onboarding and fundraising delegation cannot bypass campaign verification", async () => {
+  const routed = binding({
+    name: "routeAgentTask",
+    roles: ["chief_of_staff"],
+    effect: "write",
+    verifyReceipt: async () => true,
+    invoke: async () => ({ dispatched: true }),
+  });
+  const registry = createToolRegistry({
+    bindings: [routed],
+    authorize: async () => scope("chief_of_staff"),
+  });
+  for (const objective of [
+    "Invite the external campaign owner to register and bring the campaign to IFund, then solicit donations for their external campaign",
+    "Run IFund platform growth marketing and promote this unlinked external campaign",
+  ]) {
+    await assert.rejects(
+      registry.invoke("chief_of_staff", "routeAgentTask", {
+        mode: "dispatch", target_agent: "outreach_agent", objective,
+      }, {}),
+      /verified IFund campaign/,
+    );
+  }
+});
