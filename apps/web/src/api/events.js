@@ -22,7 +22,7 @@ export const ITEM_COLUMNS = [
   "starting_bid_cents","checkout_provider","checkout_url","status","created_at","updated_at",
 ].join(",");
 export const ACTIVITY_COLUMNS = [
-  "id","event_id","event_owner_id","item_id","user_id","activity_type","status",
+  "id","event_id","item_id","user_id","activity_type","status",
   "quantity","reported_amount_cents","reported_currency","external_reference",
   "reported_at","created_at","updated_at",
 ].join(",");
@@ -260,7 +260,7 @@ export async function saveOwnerEventItem(client, eventId, input, { id = null } =
   const { data, error } = await client.from("ifund_event_items")
     .update(payload).eq("id", id).eq("event_id", eventId).eq("owner_id", owner)
     .select(ITEM_COLUMNS).maybeSingle();
-  if (error || !data || data.owner_id !== owner || data.event_id !== eventId)
+  if (error || !data || data.event_id !== eventId)
     throw new Error("The event item could not be updated.");
   await sessionUnchanged(client, owner);
   return data;
@@ -274,21 +274,6 @@ export async function listMyEventActivity(client, { limit = 100 } = {}) {
   if (error || !Array.isArray(data) || data.some(row => row?.user_id !== owner || !UUID.test(row?.id || ""))) {
     throw new Error("Your event activity could not be loaded.");
   }
-  await sessionUnchanged(client, owner);
-  return data;
-}
-
-export async function listOwnerEventActivity(client, eventId, { limit = 100 } = {}) {
-  if (!UUID.test(eventId || "")) throw new Error("Invalid event reference.");
-  const owner = await verifiedMember(client);
-  const { data: event, error: eventError } = await client.from("ifund_events")
-    .select("id,owner_id").eq("id", eventId).eq("owner_id", owner).maybeSingle();
-  if (eventError || !event || event.owner_id !== owner) throw new Error("Event not found for your account.");
-  const { data, error } = await client.from("ifund_event_registrations")
-    .select(ACTIVITY_COLUMNS).eq("event_id", eventId).eq("event_owner_id", owner)
-    .order("created_at", { ascending: false }).limit(Math.min(200, Math.max(1, limit)));
-  if (error || !Array.isArray(data) || data.some(row => row?.event_owner_id !== owner || row?.event_id !== eventId))
-    throw new Error("Event attendance could not be loaded.");
   await sessionUnchanged(client, owner);
   return data;
 }
@@ -316,9 +301,9 @@ export async function recordEventActivity(client, {
     throw new Error("The external reference is too long.");
   const owner = await verifiedMember(client);
   const { data: event, error: eventError } = await client.from("ifund_events")
-    .select("id,owner_id,status,visibility,checkout_url")
+    .select("id,status,visibility,checkout_url")
     .eq("id", eventId).eq("status", "published").eq("visibility", "public").maybeSingle();
-  if (eventError || !event || event.owner_id === owner)
+  if (eventError || !event)
     throw new Error("Only another organizer's published public event can be added to your activity.");
   let item = null;
   if (itemId) {
@@ -332,7 +317,6 @@ export async function recordEventActivity(client, {
     throw new Error("This event does not have an external checkout link to report against.");
   const row = {
     event_id: eventId,
-    event_owner_id: event.owner_id,
     item_id: itemId,
     user_id: owner,
     activity_type: activityType,
