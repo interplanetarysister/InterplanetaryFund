@@ -87,6 +87,11 @@ test("complete and section responses are bounded and cannot introduce extra tool
     storyOutput(JSON.stringify({ ...suggestion, titles: ["one"] })),
   );
   assert.throws(() => storyOutput("not json"));
+  assert.throws(() => storyOutput({ response: { ...suggestion, story: "x".repeat(999) } }));
+  assert.equal(storyOutput({ response: { ...suggestion, story: "x".repeat(1000) } }).story.length, 1000);
+  assert.equal(storyOutput({ response: { ...suggestion, story: "x".repeat(2500) } }).story.length, 2500);
+  assert.throws(() => storyOutput({ response: { ...suggestion, story: "x".repeat(2501) } }));
+  assert.equal(storyOutput({ response: { section: "Short factual rewrite." } }, true).section, "Short factual rewrite.");
   assert.throws(() =>
     storyOutput(JSON.stringify({ ...suggestion, story: "x".repeat(12001) })),
   );
