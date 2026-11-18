@@ -55,8 +55,9 @@ function normalizedProviderUrl(value, provider, optional = false) {
   catch { throw new Error("Enter a valid HTTPS checkout link from the selected provider."); }
   const allowed = PROVIDER_HOSTS[provider];
   const hostOk = allowed.some(host => parsed.hostname === host || parsed.hostname.endsWith("." + host));
+  const rawAuthority = raw.match(/^https:\/\/([^/?#]+)/i)?.[1] || "";
   if (parsed.protocol !== "https:" || !hostOk || parsed.username || parsed.password ||
-      parsed.port || parsed.hostname.includes("..")) {
+      parsed.port || rawAuthority.includes(":") || parsed.hostname.includes("..")) {
     throw new Error("That link does not match the selected supported checkout provider.");
   }
   return { checkout_url: parsed.toString(), checkout_provider: provider };
