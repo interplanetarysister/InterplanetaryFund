@@ -171,7 +171,7 @@ export default function EditCampaign() {
         <textarea id="campaign-summary" aria-label="Short description" rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
           onChange={(e) => change("summary", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
-      <p className="text-sm text-muted-foreground">Full story format: 2–3 paragraphs separated by a blank line, each containing 3–5 complete sentences.</p>
+      <p className="text-sm text-muted-foreground">Tell your story in your own words. No minimum length or fixed paragraph structure is required; include only facts you are comfortable sharing.</p>
       <label className="block font-semibold">Your story
         <textarea id="campaign-story" aria-label="Your story" rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
           onChange={(e) => change("story", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
