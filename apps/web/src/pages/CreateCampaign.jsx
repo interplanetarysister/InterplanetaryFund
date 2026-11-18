@@ -492,6 +492,22 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         setError("Your account changed while editing. Copy any unsaved changes, then reload the campaign editor before saving.");
         return;
       }
+      // New untitled campaigns may be saved locally without weakening server
+      // validation. This remains owner-scoped and explicitly browser-only.
+      if (status === "draft" && !form.title.trim() && !campaignId.current) {
+        const localFormSaved=rememberBrowserCampaign(sessionStorage,ownerId,form,
+          {writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed},
+          {allowBlankOverwrite:userEditedDraft.current});
+        const localSetupSaved=rememberWizard(sessionStorage,ownerId,null,
+          wizardSnapshot(wizardSaveStep.current??step));
+        if (!localFormSaved || !localSetupSaved) {
+          setError("Browser-only draft storage is unavailable. No account draft was created; copy your work before leaving.");
+          return false;
+        }
+        setBrowserSaved(true);
+        setProgressNotice("Untitled draft saved in this browser tab only. Add a title to save it to your account.");
+        return true;
+      }
       const problems = validateCampaignForm(form, { publish: status === "active" });
       if (problems.length) { setError(problems[0]); return; }
       const scope=ownerScope.current;
@@ -553,7 +569,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Three-step campaign creation progress" className="space-y-3">
       <ol className="grid grid-cols-3 gap-2">{WIZARD_STEPS.slice(1).map((label,index)=><li key={label} aria-current={step===index+1?"step":undefined}><button type="button" disabled={disabled||index+1>step} onClick={()=>advanceWizard(index+1)} className={"min-h-12 w-full rounded-xl border p-2 text-xs sm:p-3 sm:text-sm "+(step===index+1?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol>
-      <p className="text-xs text-muted-foreground">Three essential steps. Save privately at any point; publishing requires a verified account.</p>
+      <p className="text-xs text-muted-foreground">Three essential steps. Save at any point; untitled drafts stay in this browser until you add a title.</p>
       <button type="button" disabled={disabled} onClick={()=>{if(step===0)advanceWizard(aiReturnStep.current);else{aiReturnStep.current=step;advanceWizard(0);}}} className="min-h-11 text-sm font-medium text-primary underline underline-offset-4 disabled:opacity-50">{step===0?"Return to campaign editor":"Optional AI preparation and writing preferences"}</button>
     </nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
@@ -693,7 +709,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </fieldset>
     </form>
       {error && <p role="alert" className="text-destructive">{error}</p>}
-      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
+      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">{ownerId?"Untitled draft saved in this browser tab only. It has not been uploaded. Add a title and save to your account before leaving this device.":"Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked."}</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`} className="underline">{savedStatus==="active"?"View published campaign":"Reopen saved draft"}</Link></p>}
 
     {step===2&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
