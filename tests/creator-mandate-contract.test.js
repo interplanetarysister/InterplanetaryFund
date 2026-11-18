@@ -349,6 +349,12 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /active mandate and separate creator publication scope are required/);
   assert.match(externalDestination, /ifund_block_managed_campaign_publication/);
   assert.match(externalDestination, /ifund_public_managed_external_destinations/);
+  assert.match(externalDestination, /m\.identity_verified_at is not null/);
+  assert.match(externalDestination, /m\.full_control_acknowledged is true/);
+  assert.match(externalDestination, /m\.ai_all_features_acknowledged is true/);
+  assert.match(externalDestination, /m\.creator_authority_confirmed is true/);
+  assert.match(externalDestination, /d\.provider_owner_verified_by is not null/);
+  assert.match(externalDestination, /d\.compliance_checked_by is not null/);
   assert.match(externalDestination, /creator-approved direct-provider destination/);
   assert.match(publicData, /ifund_public_managed_external_destinations/);
   assert.match(publicData, /external_donation_url/);
