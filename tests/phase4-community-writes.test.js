@@ -5,7 +5,7 @@ import { routeCommunityWrite } from '../worker/communityWrites.js';
 
 const env = {
   MIGRATION_API_PREVIEW: 'enabled',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fake_for_tests',
 };
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
