@@ -110,7 +110,11 @@ function campaignScopedRequest(name, input) {
     const platformGrowth = /(?:ifund|platform).{0,100}(?:platform marketing|market|growth|new[- ]user|acquisition|awareness|signup|registration|recruit)|(?:platform marketing|new[- ]user acquisition|acquire new users).{0,100}(?:ifund|platform)/i.test(objective);
     const fundraising = /fundrais|donat|donor|supporter|solicit/.test(objective);
     const campaignWork = /campaign/.test(objective) && /manage|refine|write|story|strategy|publish|promot|outreach|market|support/.test(objective);
-    return !onboardingOnly && (fundraising || (campaignWork && !platformGrowth));
+    // A mixed instruction is not an onboarding-only or platform-only task.
+    // Never let a benign phrase cancel campaign-specific fundraising work.
+    const externalCampaignAction = /(?:external|outside|unlinked|unregistered).{0,120}campaign|campaign.{0,120}(?:external|outside|unlinked|unregistered)/.test(objective)
+      && /manage|refine|write|story|strategy|publish|promot|outreach|market|support|solicit/.test(objective);
+    return fundraising || externalCampaignAction || (campaignWork && !onboardingOnly && !platformGrowth);
   }
   return false;
 }
