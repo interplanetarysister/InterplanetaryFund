@@ -38,6 +38,7 @@ create table if not exists public.ifund_events (
     checkout_url is null or (
       checkout_url ~* '^https://([a-z0-9-]+\.)*(eventbrite\.com|paypal\.com|paypal\.me|32auctions\.com|auctria\.com|givesmart\.com|givebutter\.com|zeffy\.com|betterunite\.com|onecause\.com)(/|[?#]|$)'
       and checkout_url !~ '[[:space:]]'
+      and char_length(checkout_url) <= 2048
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
       and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
@@ -88,6 +89,7 @@ create table if not exists public.ifund_event_items (
     checkout_url is null or (
       checkout_url ~* '^https://([a-z0-9-]+\.)*(eventbrite\.com|paypal\.com|paypal\.me|32auctions\.com|auctria\.com|givesmart\.com|givebutter\.com|zeffy\.com|betterunite\.com|onecause\.com)(/|[?#]|$)'
       and checkout_url !~ '[[:space:]]'
+      and char_length(checkout_url) <= 2048
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
       and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
