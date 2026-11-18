@@ -361,7 +361,7 @@ export async function cancelEventActivity(client, activityId) {
   if (!UUID.test(activityId || "")) throw new Error("Invalid event activity reference.");
   const owner = await verifiedMember(client);
   const { data, error } = await client.from("ifund_event_registrations")
-    .update({ status: "cancelled", updated_at: new Date().toISOString() })
+    .update({ status: "cancelled" })
     .eq("id", activityId).eq("user_id", owner).eq("status", "active")
     .select(ACTIVITY_COLUMNS).maybeSingle();
   if (error || !data || data.user_id !== owner || data.status !== "cancelled")
