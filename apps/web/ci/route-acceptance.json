@@ -415,6 +415,26 @@
       "owner": "frontend"
     },
     {
+      "route": "/events",
+      "role": "public",
+      "component": "Events",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
+    },
+    {
+      "route": "/events/:id",
+      "role": "public",
+      "component": "Events",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
+    },
+    {
       "route": "/finances",
       "role": "member",
       "component": "FinanceDashboard",
@@ -458,6 +478,16 @@
       "route": "/fundraising-partners",
       "role": "public",
       "component": "FundraisingPartners",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/fundraising-tips",
+      "role": "public",
+      "component": "FundraisingTips",
       "source_status": "not_verified",
       "source_evidence": "",
       "behavior_evidence": "",
@@ -695,6 +725,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/planetary-impact",
+      "role": "public",
+      "component": "AdminSustainability",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+data"
+    },
+    {
       "route": "/plans",
       "role": "public",
       "component": "PublicSubscriptionPlans",
@@ -785,6 +825,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/shorts",
+      "role": "public",
+      "component": "OrbitShorts",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/OrbitShorts.jsx; apps/web/src/lib/videoLinks.js; apps/web/src/lib/shortsFeed.js",
+      "behavior_evidence": "apps/web/tests/orbit-shorts.test.js; apps/web/tests/orbit-shorts-render.test.js; apps/web/tests/video-links.test.js; synthetic desktop/phone interaction evidence in branch review continuation",
+      "backend_evidence": "Uses only existing public campaign projections and moderated public social RPC; private records are never queried.",
+      "owner": "frontend"
+    },
+    {
       "route": "/social",
       "role": "public",
       "component": "SocialRoute",
@@ -862,16 +912,6 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
-    },
-    {
-      "route": "/shorts",
-      "role": "public",
-      "component": "OrbitShorts",
-      "source_status": "source_ready",
-      "source_evidence": "apps/web/src/pages/OrbitShorts.jsx; apps/web/src/lib/videoLinks.js; apps/web/src/lib/shortsFeed.js",
-      "behavior_evidence": "apps/web/tests/orbit-shorts.test.js; apps/web/tests/orbit-shorts-render.test.js; apps/web/tests/video-links.test.js; synthetic desktop/phone interaction evidence in branch review continuation",
-      "backend_evidence": "Uses only existing public campaign projections and moderated public social RPC; private records are never queried.",
       "owner": "frontend"
     }
   ]
