@@ -128,16 +128,34 @@ export default function Events() {
   const [showCreator,setShowCreator]=useState(false);
   const [showItemForm,setShowItemForm]=useState(false);
   const [saving,setSaving]=useState(false);
-  const [loading,setLoading]=useState(true);
+  const [listLoading,setListLoading]=useState(true);
+  const [detailLoading,setDetailLoading]=useState(Boolean(eventId));
+  const [authRevision,setAuthRevision]=useState(0);
+  const authGeneration=useRef(0);
+  const listGeneration=useRef(0);
+  const detailGeneration=useRef(0);
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const [search,setSearch]=useState("");
   const [busy,setBusy]=useState("");
 
+  useEffect(()=>{
+    const {data:{subscription}}=client.auth.onAuthStateChange(()=>{
+      authGeneration.current++;listGeneration.current++;detailGeneration.current++;
+      setUser(null);setOwnedEvents([]);setActivity([]);setCampaigns([]);
+      setEvent(null);setItems([]);setShowCreator(false);setShowItemForm(false);
+      setEditingEventId(null);setEditingItemId(null);
+      setAuthRevision(value=>value+1);
+    });
+    return ()=>subscription.unsubscribe();
+  },[client]);
   const reload=useCallback(async()=>{
-    setLoading(true);setError("");
+    const generation=++listGeneration.current;
+    const identityGeneration=authGeneration.current;
+    setListLoading(true);setError("");
     try {
       const [events,auth]=await Promise.all([listPublicEvents(client),client.auth.getUser()]);
+      if(generation!==listGeneration.current||identityGeneration!==authGeneration.current)return;
       setPublicEvents(events);
       const current=auth.data?.user||null;setUser(current);
       if(current?.email_confirmed_at&&!current.is_anonymous){
@@ -146,42 +164,43 @@ export default function Events() {
           listMyEventActivity(client).catch(()=>[]),
           listMyCampaigns(client).catch(()=>[]),
         ]);
+        if(generation!==listGeneration.current||identityGeneration!==authGeneration.current)return;
         setOwnedEvents(owned);setActivity(mine);setCampaigns(ownCampaigns);
       } else {setOwnedEvents([]);setActivity([]);setCampaigns([]);}
-    } catch {setError("Fundraising events could not be loaded. Refresh to try again.");}
-    finally {setLoading(false);}
+    } catch {if(generation===listGeneration.current&&identityGeneration===authGeneration.current)setError("Fundraising events could not be loaded. Refresh to try again.");}
+    finally {if(generation===listGeneration.current)setListLoading(false);}
   },[client]);
-  useEffect(()=>{reload();},[reload]);
+  useEffect(()=>{reload();return()=>{listGeneration.current++;};},[reload,authRevision]);
   useEffect(()=>{
     if(!eventId&&createFromLink&&user?.email_confirmed_at&&!user.is_anonymous){
       setForm(blankEvent());setEditingEventId(null);setShowCreator(true);
     }
   },[eventId,createFromLink,user?.id]);
 
-  const detailGeneration=useRef(0);
   const loadDetail=useCallback(async()=>{
     const generation=++detailGeneration.current;
-    if(!eventId){setEvent(null);setItems([]);return;}
+    const identityGeneration=authGeneration.current;
+    if(!eventId){setEvent(null);setItems([]);setDetailLoading(false);return;}
     setEvent(null);setItems([]);setOwnedEvents([]);
-    setLoading(true);setError("");setNotice("");
+    setDetailLoading(true);setError("");setNotice("");
     try{
       const row=await getEvent(client,eventId);
       if(!row)throw new Error("This event is not available.");
-      if(generation!==detailGeneration.current)return;
+      if((generation!==detailGeneration.current||identityGeneration!==authGeneration.current))return;
       setEvent(row);
       const [eventItems,auth,ownRows]=await Promise.all([
         listEventItems(client,eventId),client.auth.getUser(),listOwnerEvents(client).catch(()=>[]),
       ]);
-      if(generation!==detailGeneration.current)return;
+      if((generation!==detailGeneration.current||identityGeneration!==authGeneration.current))return;
       setItems(eventItems);setOwnedEvents(ownRows);
       const current=auth.data?.user||null;setUser(current);
       const isOwnEvent=Boolean(current?.id && ownRows.some(row=>row.id===eventId && row.owner_id===current.id));
       if(current?.id&&current.email_confirmed_at&&!current.is_anonymous){
         const myRows=await listMyEventActivity(client).catch(()=>[]);
-        if(generation!==detailGeneration.current)return;
+        if((generation!==detailGeneration.current||identityGeneration!==authGeneration.current))return;
         setActivity(myRows);
       }
-      if(generation!==detailGeneration.current)return;
+      if((generation!==detailGeneration.current||identityGeneration!==authGeneration.current))return;
       if(isOwnEvent){
         setForm({
           title:row.title,description:row.description||"",event_type:row.event_type,
@@ -192,9 +211,9 @@ export default function Events() {
           status:row.status==="published"?"published":"draft",visibility:row.visibility||"public",
         });
       }
-    }catch(cause){if(generation===detailGeneration.current)setError(cause?.message||"This event could not be loaded.");}
-    finally{if(generation===detailGeneration.current)setLoading(false);}
-  },[client,eventId]);
+    }catch(cause){if((generation===detailGeneration.current&&identityGeneration===authGeneration.current))setError(cause?.message||"This event could not be loaded.");}
+    finally{if((generation===detailGeneration.current&&identityGeneration===authGeneration.current))setDetailLoading(false);}
+  },[client,eventId,authRevision]);
   useEffect(()=>{loadDetail();return()=>{detailGeneration.current++;};},[loadDetail]);
 
   const filteredEvents=useMemo(()=>{
@@ -286,7 +305,7 @@ export default function Events() {
     const hasRsvp=myEventActivity.some(row=>row.activity_type==="rsvp");
     return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
       <Link to="/events" className="inline-flex min-h-10 items-center gap-2 text-sm text-primary underline"><ArrowLeft size={16}/>All events</Link>
-      {loading?<p role="status">Loading event…</p>:error&&!event?<p role="alert" className="rounded-xl border border-destructive/40 p-4">{error}</p>:event&&<>
+      {detailLoading?<p role="status">Loading event…</p>:error&&!event?<p role="alert" className="rounded-xl border border-destructive/40 p-4">{error}</p>:event&&<>
         <header className="rounded-2xl border border-border bg-card p-5 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <span className="rounded-full border border-border px-3 py-1 text-xs font-medium">{EVENT_LABELS[event.event_type]||"Fundraising event"}</span>
@@ -390,7 +409,7 @@ export default function Events() {
 
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-semibold">Upcoming fundraisers</h2><p className="text-sm text-muted-foreground">Event information published by IFund members.</p></div><input aria-label="Search events" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search events or locations" className="min-h-11 w-full max-w-sm rounded-xl border border-border bg-background px-3 text-sm"/></div>
-      {loading?<p role="status" className="py-8 text-sm text-muted-foreground">Loading upcoming events…</p>:error?<p role="alert" className="rounded-xl border border-destructive/40 p-4 text-sm">{error}</p>:filteredEvents.length===0?<div className="rounded-2xl border border-dashed border-border p-8 text-center"><CalendarDays className="mx-auto mb-3" size={28}/><p className="font-semibold">No published upcoming events yet</p><p className="mt-1 text-sm text-muted-foreground">Create an event for your fundraiser and share its event page.</p></div>:<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{filteredEvents.map(row=><EventCard key={row.id} event={row} onOpen={()=>navigate("/events/"+row.id)}/>)}</div>}
+      {listLoading?<p role="status" className="py-8 text-sm text-muted-foreground">Loading upcoming events…</p>:error?<p role="alert" className="rounded-xl border border-destructive/40 p-4 text-sm">{error}</p>:filteredEvents.length===0?<div className="rounded-2xl border border-dashed border-border p-8 text-center"><CalendarDays className="mx-auto mb-3" size={28}/><p className="font-semibold">No published upcoming events yet</p><p className="mt-1 text-sm text-muted-foreground">Create an event for your fundraiser and share its event page.</p></div>:<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{filteredEvents.map(row=><EventCard key={row.id} event={row} onOpen={()=>navigate("/events/"+row.id)}/>)}</div>}
     </section>
 
     {user?.email_confirmed_at&&!user?.is_anonymous&&activeMine.length>0&&<section className="space-y-3"><h2 className="text-xl font-semibold">Your event activity</h2><div className="space-y-2">{activeMine.slice(0,8).map(row=><div key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
