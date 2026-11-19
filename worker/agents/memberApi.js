@@ -1,3 +1,4 @@
+import { mayUseFutureInternalAI } from "../../apps/web/src/lib/internalAIConsent.mjs";
 export const SUPABASE_ORIGIN = "https://ssibsfmtodgximseeqsv.supabase.co";
 export const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -77,6 +78,21 @@ export async function memberApi(request, env, fetcher = fetch) {
     user,
     jwt: bearer.slice(7),
     rpc: (name, body = {}) => upstream("/rest/v1/rpc/" + name, body),
+    async futureInternalAIPermission(capability, required = true) {
+      // Server-side read using the requester's verified JWT and owner-scoped
+      // filter. An unknown future action never inherits an existing grant.
+      let preferences;
+      try {
+        preferences = await upstream("/rest/v1/ifund_ai_permission_preferences?select=owner_id,allow_future_internal_ai_assistance&owner_id=eq." + user.id);
+      } catch (error) {
+        if (!required) return false;
+        throw error;
+      }
+      const allowed = Array.isArray(preferences) && preferences.length === 1 &&
+        mayUseFutureInternalAI({ user, preferences: preferences[0], capability });
+      if (!allowed && required) fail(403, "Enable private AI assistance in My Account before asking the team.");
+      return allowed;
+    },
     async aiPermission(kind, required = true) {
       if (!["campaign", "outreach"].includes(kind))
         fail(503, "AI permission could not be verified.");

@@ -16,13 +16,19 @@ const request=(question,opts={})=>new Request("https://ifund.test/api/agents/tea
   method:"POST",headers:{Authorization:"Bearer good.token", "content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent:"auto",...opts})
 });
-function mockBackend({quota=true,active=true,permission=true}={}){
+function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false}={}){
   const calls=[];
   const fetcher=async(url,options={})=>{
     calls.push([url,options.method]);
     if(url.endsWith("/auth/v1/user"))return Response.json({id:UID,email_confirmed_at:"2026-11-01T00:00:00Z",is_anonymous:false});
     if(url.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(active);
-    if(url.includes("/ifund_ai_permission_preferences?"))return Response.json([{allow_ai_campaign_drafts:permission}]);
+    if(url.includes("/ifund_ai_permission_preferences?")){
+      if(url.includes("allow_future_internal_ai_assistance")) return Response.json([{
+        owner_id:foreignOwner?"33333333-3333-4333-8333-333333333333":UID,
+        allow_future_internal_ai_assistance:futureAI
+      }]);
+      return Response.json([{allow_ai_campaign_drafts:permission}]);
+    }
     if(url.endsWith("/rpc/ifund_reserve_agent_question"))
       return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:"daily_limit",limit:20});
     if(url.endsWith("/rpc/ifund_complete_agent_question"))
@@ -119,4 +125,25 @@ test("failed provider inference releases the pending question reservation",async
   assert.equal(response.status,503);
   assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_release_agent_question")));
   assert.equal(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")),false);
+});
+
+test("future internal AI default authorizes owner-scoped advisory answers but not revoked or foreign owners",async()=>{
+  const granted=mockBackend({permission:false,futureAI:true});
+  const yes=await routeTeamQuestion(request("Help me improve my fundraising campaign idea"),env,granted.fetcher);
+  assert.equal(yes.status,200);
+  assert.ok(granted.calls.some(([url])=>url.includes("allow_future_internal_ai_assistance")));
+  const foreign=mockBackend({permission:false,futureAI:true,foreignOwner:true});
+  assert.equal((await routeTeamQuestion(request("Help me improve my fundraising campaign idea"),env,foreign.fetcher)).status,403);
+  assert.equal(foreign.calls.some(([url])=>url.includes("/rpc/ifund_reserve_agent_question")),false);
+  const revoked=mockBackend({permission:false,futureAI:false});
+  assert.equal((await routeTeamQuestion(request("Help me improve my fundraising campaign idea"),env,revoked.fetcher)).status,403);
+});
+
+test("team questions use only read-only recommendation permission, not external actions",()=>{
+  const gateway=readFileSync(new URL("../worker/agents/teamQuestion.js",import.meta.url),"utf8");
+  const member=readFileSync(new URL("../worker/agents/memberApi.js",import.meta.url),"utf8");
+  assert.match(gateway,/futureInternalAIPermission\("recommendation", false\)/);
+  assert.match(member,/mayUseFutureInternalAI\(\{ user, preferences: preferences\[0\], capability \}\)/);
+  assert.match(member,/owner_id=eq\." \+ user\.id/);
+  assert.doesNotMatch(gateway,/futureInternalAIPermission\("(?:publish|send|payment|withdraw)"/);
 });
