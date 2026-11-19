@@ -16,7 +16,7 @@ export const TRAINING_ROLES = Object.freeze({
 // Role discovery is not a capability grant. Mixed-topic requests require a
 // coordinating agent, regardless of which specialists are involved.
 export const TRAINING_ROUTE_RULES = Object.freeze([
-  {target:"orbit",keywords:["budget","spending","expenses","expense","cost breakdown","fees","how funds","funds will be spent","donation allocation"]},
+  {target:"orbit",keywords:["budget","spending","expenses","expense","cost","costs","cost breakdown","fees","how funds","funds will be spent","donation allocation"]},
   {target:"story",keywords:["story","narrative","empathy","rewrite","headline","fundraising appeal","tell my story"]},
   {target:"link",keywords:["oauth","connect","linked account","account permissions","connection repair","provider authorization"]},
   {target:"forge",keywords:["measure","attribution","conversion","analytics","referral","performance tracking","donations came from"]},
