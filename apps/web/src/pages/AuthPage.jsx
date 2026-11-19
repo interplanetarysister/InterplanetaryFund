@@ -463,6 +463,17 @@ export default function AuthPage({ mode = "login" }) {
             <OAuthButtons
               returnTo={afterLogin}
               onError={setError}
+              onBeforeStart={isRegister ? () => {
+                const address = email.trim();
+                if (!legalReviewed || !legalAgreed || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)) {
+                  throw new Error("Review the signup agreement and enter the same email address you use with the social sign-in provider.");
+                }
+                // Match both the legal decision and each AI preference to the
+                // verified provider email after the callback. Never infer consent
+                // for an unrelated existing account.
+                rememberSignupAgreement(sessionStorage, address);
+                rememberSignupAIChoices(sessionStorage, address, signupAIChoices);
+              } : undefined}
               disabled={busy}
             />
           )}
