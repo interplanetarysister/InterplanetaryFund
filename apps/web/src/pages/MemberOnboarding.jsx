@@ -106,7 +106,7 @@ export default function MemberOnboarding() {
       </form>
       <section className="space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-7">
         <h2 className="text-xl font-semibold">2. Review or revoke AI drafting assistance</h2>
-        <p className="text-sm text-muted-foreground">During email signup, private AI campaign and outreach drafting assistance is enabled by default unless you uncheck it. To revoke either preference now or later, open My Profile → Manage iFund Permissions → AI assistance, switch it off, and save. iFund cannot automatically post, connect external accounts, contact others, or perform financial actions for you; those require separate approval.</p>
+        <p className="text-sm text-muted-foreground">During email signup, current and future private AI drafting, analysis and recommendations are enabled by default unless you uncheck them. To revoke either preference now or later, open My Profile → Manage iFund Permissions → AI assistance, switch it off, and save. iFund cannot automatically post, connect external accounts, contact others, or perform financial actions for you; those require separate approval.</p>
         <Link className={buttonClass} to="/permissions">Manage iFund Permissions</Link>
       </section>
       <section className="space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-7">
