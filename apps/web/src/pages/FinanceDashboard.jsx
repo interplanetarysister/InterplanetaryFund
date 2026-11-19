@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import AdminFinance from "@/pages/AdminFinance";
 import { authClient } from "@/api/auth";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
-import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { formatUsdCents } from "@/lib/formatUsdCents.mjs";
+const FinanceDataGrid = lazy(() => import("@/components/finance/FinanceDataGrid"));
 import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 import WithdrawalFeeEstimator from "@/components/agents/WithdrawalFeeEstimator";
 import OwnerRefundTrends from "@/components/agents/OwnerRefundTrends";
@@ -80,11 +81,11 @@ export default function FinanceDashboard() {
             .map(row=>({name:row.campaign_title||"Campaign",value:Number(row.raised_cents),label:cents(row.raised_cents)}))}
             title="Verified campaign donations by owned campaign" valueText={cents(totalRaised)+" verified received"} />
           <p className="text-sm text-muted-foreground">Verified received amounts are in cents from the owner finance RPC; sandbox test payments, unverified pledges and platform support are excluded.</p>
-          <FinanceDataGrid rows={state.owned} label="Owner campaigns sorted by verified captures"
+          <Suspense fallback={<p role="status" className="rounded-xl border border-border p-4 text-sm text-muted-foreground">Loading verified campaign table…</p>}><FinanceDataGrid rows={state.owned} label="Owner campaigns sorted by verified captures"
             columns={[{field:"campaign_title",headerName:"Campaign",minWidth:230},
               {field:"campaign_status",headerName:"Status",minWidth:130},
               {field:"raised_cents",headerName:"Verified captured",minWidth:175,valueFormatter:({value})=>formatUsdCents(value)},
-              {field:"captured_payments",headerName:"Captures",minWidth:135}]} />
+              {field:"captured_payments",headerName:"Captures",minWidth:135}]} /></Suspense>
         </>}
       </section>
       <section className="rounded-2xl border border-border bg-card p-5">
