@@ -17,12 +17,11 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '24'
       - name: Install dependencies from real npm registry
         run: npm ci --no-audit --no-fund
       - name: Verify npm lock resolution is reproducible
         run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           git diff --exit-code -- package-lock.json package.json
       - name: Unit tests
         run: npm test
