@@ -17,7 +17,7 @@ const env = {
 const suggestion = {
   titles: ["A", "B", "C", "D", "E"],
   summaries: ["A summary", "B summary"],
-  story: "A factual story.",
+  story: "A factual story with organizer-supplied facts and clear needs. ".repeat(26).trim(),
   image_prompt: "A mission-specific image.",
 };
 const request = (
@@ -493,4 +493,14 @@ test("valid multilingual wording fits bounded HTTP input without a model call", 
     }),
   );
   assert.equal(res.status, 200);
+});
+
+test("AI-generated complete story has bounded output; owner section rewrite is not length-gated", () => {
+  assert.equal(storyOutput({ response: suggestion }).story.length >= 1000, true);
+  assert.equal(storyOutput({ response: suggestion }).story.length <= 2500, true);
+  for (const story of ["Too short.", "A".repeat(999), "A".repeat(2501)]) {
+    assert.throws(() => storyOutput({ response: { ...suggestion, story } }), /incomplete draft/);
+  }
+  assert.equal(storyOutput({ response: { section: "A concise owner-approved rewrite." } }, true).section,
+    "A concise owner-approved rewrite.");
 });
