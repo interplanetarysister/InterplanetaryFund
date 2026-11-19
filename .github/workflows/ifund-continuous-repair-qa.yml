@@ -1,19 +1,7 @@
 name: IFund continuous source repair QA
-# Source-only automatic regression gate for the existing integration branch.
+# Source-only regression gate, manually dispatched on an approved commit.
 # No cloud credentials, no writes, no builds, no deploys, no Base44 changes.
 on:
-  push:
-    branches:
-      - feature/route-completion-20261113
-    paths:
-      - '.github/workflows/ifund-continuous-repair-qa.yml'
-      - 'worker/agents/teamContext.js'
-      - 'worker/agents/teamContext.redaction.test.mjs'
-      - 'workers/ifund-payments/worker.js'
-      - 'workers/ifund-payments/subscription-refund-boundary.test.mjs'
-      - 'tests/team-context*.test.js'
-      - 'tests/*refund*.test.js'
-      - 'tests/credential-url-encoding-matrix.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -33,7 +21,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Parse actual worker code
         run: |
           set -euo pipefail
