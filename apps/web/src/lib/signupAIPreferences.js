@@ -1,7 +1,7 @@
 // Explicit choices selected on the registration screen are scoped to one verified
 // email account. Future features and all external OAuth grants remain separate.
 export const SIGNUP_AI_CHOICES_KEY = "ifund-signup-ai-interest-v1";
-const ALLOWED = ["allow_ai_campaign_drafts", "allow_ai_outreach_drafts", "interested_in_future_automation"];
+const ALLOWED = ["allow_ai_campaign_drafts", "allow_ai_outreach_drafts", "allow_future_internal_ai_assistance", "interested_in_future_automation"];
 const DAY_MS = 86400000;
 
 export function rememberSignupAIChoices(storage, email, choices, at = Date.now()) {

@@ -7,7 +7,7 @@ import { startNativeOAuthSignIn } from "@/lib/nativeOAuth";
 
 // Rendered only when at least one provider is configured for this build, so a
 // deployment without social sign-in shows no dead controls.
-export default function OAuthButtons({ returnTo, onError, disabled = false }) {
+export default function OAuthButtons({ returnTo, onError, onBeforeStart, disabled = false }) {
   const native = isNativeBundle();
   const nativeOAuthVerified = import.meta.env.VITE_NATIVE_OAUTH_VERIFIED === "1";
   // Apple Guideline 4.8 requires a privacy-protecting equivalent when social
@@ -35,6 +35,8 @@ export default function OAuthButtons({ returnTo, onError, disabled = false }) {
     if (busy || disabled) return;
     setBusy(provider.id);
     onError?.("");
+    try { await onBeforeStart?.(provider); }
+    catch (error) { setBusy(""); onError?.(error?.message || "Finish registration details before connecting."); return; }
     const result = native
       ? await startNativeOAuthSignIn({
           auth: authClient().auth, provider: provider.id,
