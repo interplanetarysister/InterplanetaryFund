@@ -15,33 +15,11 @@ import ScrollableNav from "@/components/ScrollableNav";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
+import { pageTitle } from "@/lib/routeTitles.mjs";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
-
-const PAGE_TITLES = {
-  "/admin": "Administration",
-  "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
-  "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
-  "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
-  "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
-  "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
-  "/campaigns": "My Campaigns",
-  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact", "/planetary-impact": "Planetary Impact",
-};
-function pageTitle(pathname) {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
-  if (pathname.startsWith("/campaign/")) return "Campaign";
-  if (pathname.startsWith("/campaigns/")) return "Edit Campaign";
-  if (pathname.startsWith("/u/")) return "Member Profile";
-  if (pathname.startsWith("/blogs/")) return "IFund Story";
-  if (pathname.startsWith("/help/")) return "Help Article";
-  if (pathname.startsWith("/community/")) return "Community";
-  if (pathname.startsWith("/institutions/")) return "Institution";
-  return "Interplanetary Fund";
-}
 
 // Order follows the tasks people do: explore, create, connect, then manage.
 // Keep a single destination per section and preserve existing authorization gates.
