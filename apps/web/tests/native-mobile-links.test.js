@@ -7,7 +7,7 @@ const ID = "11111111-1111-4111-8111-111111111111";
 const site = "https://interplanetaryfund.com";
 
 test("public native app links accept exact canonical public destinations", () => {
-  for (const path of ["/", "/discover", "/atlas", "/campaign/" + ID]) {
+  for (const path of ["/", "/discover", "/atlas", "/events", "/events/" + ID, "/campaign/" + ID]) {
     assert.equal(safeNativePublicRoute(site + path), path);
   }
 });
@@ -24,6 +24,12 @@ test("native links refuse secret tokens, admin routes and any noncanonical websi
     site + "/campaign/" + ID + "#access_token=secret",
     site + "/campaign/%2e%2e/admin",
     site + "/campaign/" + ID + "/extra",
+    site + "/events/" + ID + "/extra",
+    site + "/events/not-a-uuid",
+    site + "/events/" + ID + "?code=secret",
+    site + "/events/" + ID + "#access_token=secret",
+    site + "/events/%2e%2e/admin",
+    site + "/events/../../admin",
     site + "/campaign/../../admin",
     site + "/social/post/example",
     site + "/blogs/example",
@@ -42,4 +48,10 @@ test("native public links use the real App plugin and install before routing", (
   assert.match(module, /addListener\("appUrlOpen"/);
   assert.match(module, /safeNativePublicRoute\(raw\)/);
   assert.match(main, /installNativePublicLinks\(\)/);
+  const scope = JSON.parse(readFileSync(new URL("../../mobile/ci/store-scope.json", import.meta.url), "utf8"));
+  const mobile = readFileSync(new URL("../src/MobileStoreApp.jsx", import.meta.url), "utf8");
+  for (const route of ["/events", "/events/:id"]) {
+    assert.ok(scope.routes.includes(route), "Missing approved native event route " + route);
+    assert.ok(mobile.includes('<Route path="' + route + '"'), "Unregistered native event screen " + route);
+  }
 });
