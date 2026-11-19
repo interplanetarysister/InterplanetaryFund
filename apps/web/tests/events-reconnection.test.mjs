@@ -83,3 +83,10 @@ test("restored public routes retain an Explore back-navigation destination", () 
     assert.equal(owningNavigationTab(route, true), "/discover", route);
   }
 });
+
+test("event management requires an owner-matching row after account changes", () => {
+  const page = read("../src/pages/Events.jsx");
+  assert.match(page, /row\.id===eventId\s*&&\s*row\.owner_id===current\.id/);
+  assert.match(page, /row\.id===event\.id\s*&&\s*row\.owner_id===user\.id/);
+  assert.doesNotMatch(page, /ownedEvents\.some\(row=>row\.id===event\.id\)\)/);
+});
