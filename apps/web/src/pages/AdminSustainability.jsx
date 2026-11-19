@@ -21,7 +21,7 @@ export default function AdminSustainability() {
   useEffect(() => {
     let active = true;
     setState({ phase: "loading", campaigns: [], error: "" });
-    listActiveCampaigns({ limit: 500 })
+    listActiveCampaigns({ limit: 500, category: "environment" })
       .then(rows => {
         if (!active) return;
         if (!Array.isArray(rows)) throw Error("Public campaign data could not be verified.");
@@ -47,11 +47,28 @@ export default function AdminSustainability() {
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-2">
-      <h1 className="text-3xl font-bold">Planet impact and sustainability</h1>
+      <h1 className="text-3xl font-bold">Planetary Impact</h1>
       <p className="text-sm text-muted-foreground">
         Read-only overview of published environmental campaigns. Public campaign fundraising totals are not evidence of provider-verified payments or measured environmental outcomes. No estimated carbon savings or volunteer impact is presented as fact.
       </p>
     </header>
+    <section aria-labelledby="infrastructure-heading" className="space-y-4 rounded-2xl border border-emerald-500/30 bg-card p-5 sm:p-7">
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-500">Our infrastructure choices</p>
+        <h2 id="infrastructure-heading" className="text-2xl font-semibold">Building a better Internet with Cloudflare</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">Interplanetary Fund uses Cloudflare Pages and Workers for web hosting and edge services. We selected infrastructure from a provider that publishes its environmental footprint and renewable-energy commitments. These are Cloudflare's company-wide disclosures, not independently measured carbon savings attributable to Interplanetary Fund.</p>
+      </div>
+      <dl className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border p-4"><dt className="text-sm font-semibold">100% renewable-energy matching</dt><dd className="mt-2 text-xs leading-relaxed text-muted-foreground">Cloudflare reports matching electricity used by its operations with renewable-energy purchases. This does not imply carbon-free electricity every hour.</dd></div>
+        <div className="rounded-xl border border-border p-4"><dt className="text-sm font-semibold">31,000 metric tons CO₂e</dt><dd className="mt-2 text-xs leading-relaxed text-muted-foreground">Cloudflare's 2025 Impact Report records investments in verified projects totaling approximately 31,000 metric tons CO₂e for historical network emissions before its first renewable-energy purchase in 2018.</dd></div>
+        <div className="rounded-xl border border-border p-4"><dt className="text-sm font-semibold">Public emissions reporting</dt><dd className="mt-2 text-xs leading-relaxed text-muted-foreground">Cloudflare publishes company-wide emissions inventories and has committed to science-aligned reduction targets.</dd></div>
+      </dl>
+      <p className="text-xs leading-relaxed text-muted-foreground">Transparency note: Renewable-energy certificates and offsets are accounting instruments; they do not eliminate all physical emissions. iFund's own complete operational footprint, including third-party services and end-user devices, has not been independently quantified. No verified iFund-specific carbon savings are claimed.</p>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <a className="min-h-11 inline-flex items-center text-primary underline underline-offset-4" href="https://www.cloudflare.com/impact/" target="_blank" rel="noopener noreferrer">Cloudflare environmental commitments</a>
+        <a className="min-h-11 inline-flex items-center text-primary underline underline-offset-4" href="https://www.cloudflare.com/press/press-releases/2025/cloudflare-publishes-fifth-annual-impact-report/" target="_blank" rel="noopener noreferrer">2025 Impact Report announcement</a>
+      </div>
+    </section>
     {state.phase === "loading" && <p role="status">Checking published environmental campaigns…</p>}
     {state.phase === "error" && <section className="space-y-3 rounded-xl border border-destructive/40 p-5" role="alert">
       <p>{state.error}</p>
@@ -60,7 +77,7 @@ export default function AdminSustainability() {
     {state.phase === "ready" && <>
       <dl className="grid gap-4 sm:grid-cols-3">
         {[
-          ["Published environmental campaigns", stats.total.toLocaleString()],
+          ["Environmental campaigns in recent results", stats.total.toLocaleString()],
           ["Campaigns opting into the public Atlas", stats.publiclyMapped.toLocaleString()],
           ["Publicly reported fundraising", stats.verifiedRaisedCents === null ? "Unavailable" : currency.format(stats.verifiedRaisedCents / 100)],
         ].map(([label,value]) => <div key={label} className="rounded-2xl border border-border bg-card p-5">
@@ -81,7 +98,7 @@ export default function AdminSustainability() {
               <span className="text-sm font-medium">{moneyCents(c.raised_amount) !== null ? currency.format(moneyCents(c.raised_amount) / 100) : "Funding unavailable"}</span>
             </li>)}</ul>}
       </section>
-      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published campaigns in the canonical public API. The public campaign API does not independently establish provider verification, refunds, payment environment or attribution. Treat displayed fundraising as reported campaign data, not confirmed gifts. Environmental outcomes require separately validated measurements.</p>
+      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published environmental campaigns in the canonical public API. Counts are limited to this result window, not all historical environmental campaigns. The public campaign API does not independently establish provider verification, refunds, payment environment or attribution. Treat displayed fundraising as reported campaign data, not confirmed gifts. Environmental outcomes require separately validated measurements.</p>
     </>}
   </main>;
 }
