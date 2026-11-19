@@ -4,11 +4,13 @@ import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { payoutIdentity } from "@/lib/guestAccess";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
+import { needsLayoutMainLandmark } from "@/lib/routeMainLandmark.mjs";
 
 // Client gating is UX only: the Supabase RLS policies remain authoritative.
 // Never infer acceptance from a checkbox toggle, metadata or an auth session.
 export default function MemberAccess({ children }) {
   const location = useLocation();
+  const Gate = needsLayoutMainLandmark(location.pathname) ? "div" : "main";
   const [state, setState] = useState({ phase: "loading", user: null });
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -152,24 +154,24 @@ export default function MemberAccess({ children }) {
     return <Fragment key={state.user.id}>{children}</Fragment>;
   if (state.phase === "loading")
     return (
-      <main role="status" className="mx-auto max-w-2xl p-8">
+      <Gate role="status" className="mx-auto max-w-2xl p-8">
         Verifying account access…
-      </main>
+      </Gate>
     );
   if (state.phase === "login")
     return (
-      <main className="mx-auto max-w-2xl space-y-4 p-8">
+      <Gate className="mx-auto max-w-2xl space-y-4 p-8">
         <h1 className="text-2xl font-semibold">Register an email account to create content</h1>
         <p>Anonymous visitors can browse freely. Creating campaigns, posting, or saving private account content requires confirmed email signup. Two-factor authentication is not required here; it is requested before the first withdrawal.</p>
         <div className="flex flex-wrap gap-4">
           <Link to={loginTarget} className="underline">Create an email account</Link>
           <Link to={"/login?returnTo=" + encodeURIComponent(safeReturnTo(requested))} className="underline">Sign in</Link>
         </div>
-      </main>
+      </Gate>
     );
   if (state.phase === "error")
     return (
-      <main role="alert" className="mx-auto max-w-2xl space-y-4 p-8">
+      <Gate role="alert" className="mx-auto max-w-2xl space-y-4 p-8">
         <h1 className="text-2xl font-semibold">
           Account verification unavailable
         </h1>
@@ -180,10 +182,10 @@ export default function MemberAccess({ children }) {
         <Link to="/help" className="underline">
           Get help
         </Link>
-      </main>
+      </Gate>
     );
   return (
-    <main className="mx-auto max-w-2xl space-y-5 px-5 py-10">
+    <Gate className="mx-auto max-w-2xl space-y-5 px-5 py-10">
       <h1 className="text-3xl font-semibold">Review the member agreement</h1>
       <p>
         Before accessing private fundraising tools, please review the current
@@ -238,6 +240,6 @@ export default function MemberAccess({ children }) {
           {busy ? "Confirming…" : "Agree and continue"}
         </button>
       </form>
-    </main>
+    </Gate>
   );
 }
