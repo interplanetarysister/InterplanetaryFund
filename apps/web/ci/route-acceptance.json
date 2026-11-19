@@ -488,10 +488,10 @@
       "route": "/fundraising-tips",
       "role": "public",
       "component": "FundraisingTips",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/FundraisingTips.jsx; apps/web/src/App.jsx public /fundraising-tips lazy route; apps/web/src/components/Layout.jsx public navigation; apps/web/tests/fundraising-tips-route.test.mjs (2/2 executed source contracts)",
+      "behavior_evidence": "Cloudflare preview 000bc1e1-34f0-4a5d-9f89-69ae7ff49263 browser-rendered route content and absence of unfinished Live link; successful production deployment 1cdd3f35-ca01-4c1d-9d85-9aee1bf5eb51 (63 root, 888 web tests, Pages Functions compiled); browser-rendered live https://interplanetaryfund.com/fundraising-tips with guide heading and first step",
+      "backend_evidence": "No backend access; public static guidance route only",
       "owner": "frontend+qa"
     },
     {
