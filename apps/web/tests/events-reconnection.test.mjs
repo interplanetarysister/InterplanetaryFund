@@ -61,3 +61,17 @@ test("external event checkout accepts official links but rejects unsafe destinat
     ["https://eventbrite.com/e/benefit", "paypal"],
   ]) assert.equal(validateExternalCheckout(url, provider).valid, false, url);
 });
+
+test("planetary impact filters environmental campaigns before the public row limit", () => {
+  const page = read("../src/pages/AdminSustainability.jsx");
+  const api = read("../src/api/publicData.js");
+  const start = api.indexOf("export async function listActiveCampaigns(");
+  const end = api.indexOf("export async function getCampaignDetail(", start);
+  assert.ok(start >= 0 && end > start, "public campaign function exists");
+  const fn = api.slice(start, end);
+  assert.match(page, /listActiveCampaigns\(\{ limit: 500, category: "environment" \}\)/);
+  assert.match(fn, /category === "environment"/);
+  assert.match(fn, /query = query\.eq\("category", "environment"\)/);
+  assert.ok(fn.indexOf('query.eq("category", "environment")') < fn.indexOf(".limit(max)"));
+  assert.match(fn, /throw new Error\("Unsupported public campaign category filter\."/);
+});
