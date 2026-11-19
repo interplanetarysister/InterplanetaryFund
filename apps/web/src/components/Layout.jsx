@@ -29,7 +29,7 @@ const PAGE_TITLES = {
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
-  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
+  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/live": "IFund Live", "/fundraising-tips": "Fundraising Tips", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
@@ -54,6 +54,7 @@ const navSections = [
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/shorts", label: "Orbit Shorts", icon: Radio },
+      { to: "/live", label: "IFund Live", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
   { to: "/institutions", label: "Opportunities", icon: Building2 },
     ],
@@ -75,6 +76,11 @@ const navSections = [
       { to: "/social", label: "Social Feed", icon: Radio },
       { to: "/community", label: "Public Discussions", icon: Users },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
+  { to: "/live", label: "IFund Live", icon: Radio },
+  { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
+  { to: "/fundraising-tips", label: "Fundraising Tips", icon: BookOpen },
+      { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
+      { to: "/fundraising-tips", label: "Fundraising Tips", icon: BookOpen },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
           { to: "/communications", label: "ECHO Drafts", icon: MessageSquare },
       { to: "/inbox", label: "Inbox", icon: MailOpen },

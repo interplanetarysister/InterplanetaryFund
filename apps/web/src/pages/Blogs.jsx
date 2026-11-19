@@ -41,6 +41,8 @@ export default function Blogs({ news = false }) {
       <Link to="/news" aria-current={news ? "page" : undefined}>Newscaster</Link>
       <Link to="/my-blog">My Blog</Link>
       <Link to="/social">IFund Social</Link>
+      <Link to="/fundraising-tips">Fundraising Tips</Link>
+      <Link to="/live">IFund Live</Link>
     </nav>
     {author && <Link to="/blogs" className="text-primary underline">See all stories</Link>}
     {result.loading && <p role="status">Loading stories…</p>}

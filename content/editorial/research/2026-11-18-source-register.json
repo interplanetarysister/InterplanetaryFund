@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-18",
+  "status": "reviewed_public_sources_not_deployment_proof",
+  "research_sources": [
+    {
+      "url": "https://support.gofundme.com/hc/en-us/articles/13163352843931-Four-key-actions-for-your-GoFundMe-fundraiser",
+      "subject": "story photo sharing and updates",
+      "publisher": "GoFundMe"
+    },
+    {
+      "url": "https://support.gofundme.com/hc/en-us/articles/12553895153563-How-to-post-a-GoFundMe-update",
+      "subject": "campaign updates",
+      "publisher": "GoFundMe"
+    },
+    {
+      "url": "https://candid.org/blogs/digital-storytelling-to-inspire-and-attract-funders-in-a-time-of-crisis/",
+      "subject": "digital storytelling and transparency",
+      "publisher": "Candid"
+    },
+    {
+      "url": "https://github.com/interplanetarysister/InterplanetaryFund/tree/feature/ifund-writer-live-20261118",
+      "subject": "IFund feature branch only",
+      "publisher": "GitHub"
+    }
+  ],
+  "restrictions": [
+    "Do not assert branch code is deployed",
+    "Do not assert live broadcaster service exists",
+    "All output remains draft until official review and delivery verification"
+  ],
+  "outputs": [
+    "news",
+    "blog",
+    "social",
+    "image concept",
+    "short video storyboard"
+  ]
+}
