@@ -109,6 +109,12 @@ assert(!mobileSource.includes('import App from "@/App"') &&
 assert(mobileEntrypoint.includes("MobileStoreApp") &&
   mobileEntrypoint.includes("installNativeApiTransport()"),
   "Store entrypoint must load scoped, connected app");
+assert(mobileEntrypoint.includes("installNativePublicLinks()"),
+  "Native store entrypoint must register the reviewed public link handler");
+assert(scope.routes.includes("/events") && scope.routes.includes("/events/:id") &&
+  mobileSource.includes('<Route path="/events"') &&
+  mobileSource.includes('<Route path="/events/:id"'),
+  "Fundraising events must be declared and registered on the native store app");
 const mobileCss = read("apps/web/src/mobile.css");
 assert(mobileEntrypoint.includes('import "./mobile.css"') &&
   !mobileEntrypoint.includes('import "./index.css"') &&
