@@ -19,7 +19,14 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
-    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') return routeTeamQuestion(request, env);
+    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
+      // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
+      // The local route remains fail-closed when inference is not configured.
+      if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') {
+        return env.IFUND_AGENT_SERVICE.fetch(request);
+      }
+      return routeTeamQuestion(request, env);
+    }
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
     if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
