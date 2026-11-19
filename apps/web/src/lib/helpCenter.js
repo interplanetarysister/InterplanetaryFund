@@ -30,14 +30,17 @@ export function helpArticlePath(slug) {
   return "/help/" + encodeURIComponent(slug);
 }
 export function helpTopicForPath(pathname = "") {
-  if (/connections|\/connect\b|\/admin\/integrations/.test(pathname)) return "Connections & Publishing";
-  if (/withdrawals|ledger|giving/.test(pathname)) return "Money & Withdrawals";
-  if (/campaign|\/create/.test(pathname)) return "Campaigns";
-  if (/subscriptions/.test(pathname)) return "Subscriptions";
-  if (/agents|\/mission/.test(pathname)) return "AI Assistance";
-  if (/\/community|\/social|\/blogs/.test(pathname)) return "Community";
-  if (/founding-members/.test(pathname)) return "Getting Started";
-  if (/profile|\/devices/.test(pathname)) return "Account & Security";
+  const path = String(pathname || "").toLowerCase();
+  if (/^\/(?:plans|subscriptions)(?:\/|$)/.test(path)) return "Subscriptions";
+  if (/^\/(?:finances|withdrawals|ledger|giving)(?:\/|$)|^\/admin\/finance(?:\/|$)/.test(path)) return "Money & Withdrawals";
+  if (/^\/(?:donors|engagement)(?:\/|$)/.test(path)) return "Donations";
+  if (/^\/(?:connections|connect|communications|publication|my-blog)(?:\/|$)|^\/admin\/(?:integrations|studio)(?:\/|$)/.test(path)) return "Connections & Publishing";
+  if (/^\/(?:campaign|campaigns|create|strategy|fundraising-partners)(?:\/|$)/.test(path)) return "Campaigns";
+  if (/^\/(?:agents|ai-images|mission|analytics)(?:\/|$)/.test(path)) return "AI Assistance";
+  if (/^\/(?:community|social|blogs|blog|news|shorts)(?:\/|$)/.test(path)) return "Community";
+  if (/^\/(?:profile|my-profile|devices|permissions|preferences|login|register|forgot-password|reset-password|delete-account|onboarding|auth)(?:\/|$)/.test(path)) return "Account & Security";
+  if (/^\/(?:terms|privacy|health-privacy)(?:\/|$)/.test(path)) return "Legal & Policies";
+  if (/^\/(?:founding-members|download|dashboard)(?:\/|$)/.test(path)) return "Getting Started";
   return "";
 }
 export function helpPathForLocation(pathname) {
