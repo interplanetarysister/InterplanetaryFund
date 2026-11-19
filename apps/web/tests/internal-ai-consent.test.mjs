@@ -40,3 +40,15 @@ test("signup discloses default and account permissions can revoke without third 
   assert.match(sql,/add column if not exists allow_future_internal_ai_assistance boolean not null default false/);
   assert.doesNotMatch(sql,/update\s+public\.ifund_ai_permission_preferences\s+set\s+allow_future_internal_ai_assistance\s*=\s*true/i);
 });
+
+test("social signup preserves the selected default and legal agreement only for matched verified identity",()=>{
+  const signup=read("../src/pages/AuthPage.jsx");
+  const oauthButtons=read("../src/components/auth/OAuthButtons.jsx");
+  const callback=read("../src/pages/AuthCallback.jsx");
+  assert.match(signup,/onBeforeStart=\{isRegister \?/);
+  assert.match(signup,/rememberSignupAgreement\(sessionStorage, address\)/);
+  assert.match(signup,/rememberSignupAIChoices\(sessionStorage, address, signupAIChoices\)/);
+  assert.match(oauthButtons,/await onBeforeStart\?\.\(provider\)/);
+  assert.match(callback,/finalizeSignupAgreement\(authClient\(\), user, sessionStorage\)/);
+  assert.match(callback,/if \(accepted\) await finalizeSignupAIChoices/);
+});
