@@ -35,7 +35,9 @@ export default function AgentsTeam() {
   const [questionBusy,setQuestionBusy]=useState(false);
   const [gateway,setGateway]=useState({status:"loading",configured:false});
   const [membership,setMembership]=useState({status:"loading",active:false,ownerId:null});
+  const [aiPermission,setAiPermission]=useState({status:"loading",allowed:false,ownerId:null});
   const membershipActive=Boolean(user?.id && membership.ownerId===user.id && membership.status==="ready" && membership.active);
+  const aiPermissionGranted=Boolean(user?.id && aiPermission.ownerId===user.id && aiPermission.status==="ready" && aiPermission.allowed);
   const requestRef=useRef({generation:0,controller:null});
   useEffect(()=>{
     const controller=new AbortController();
@@ -68,6 +70,27 @@ export default function AgentsTeam() {
     return()=>{active=false;};
   },[user?.id]);
   useEffect(()=>{
+    let active=true;
+    const owner=user?.id||null;
+    setAiPermission({status:owner?"loading":"signed-out",allowed:false,ownerId:owner});
+    if(!owner)return()=>{active=false;};
+    const client=authClient();
+    client.from("ifund_ai_permission_preferences")
+      .select("owner_id,allow_ai_campaign_drafts,allow_future_internal_ai_assistance")
+      .eq("owner_id",owner).maybeSingle()
+      .then(async ({data,error})=>{
+        if(error)throw error;
+        const identity=await client.auth.getUser();
+        if(!active)return;
+        const matching=identity?.data?.user?.id===owner &&
+          identity.data.user.email_confirmed_at && identity.data.user.is_anonymous!==true;
+        const allowed=Boolean(matching && data?.owner_id===owner &&
+          (data.allow_ai_campaign_drafts===true || data.allow_future_internal_ai_assistance===true));
+        setAiPermission({status:matching?"ready":"unavailable",allowed,ownerId:owner});
+      }).catch(()=>{if(active)setAiPermission({status:"unavailable",allowed:false,ownerId:owner});});
+    return()=>{active=false;};
+  },[user?.id]);
+  useEffect(()=>{
     requestRef.current.generation++;
     requestRef.current.controller?.abort();
     setAgentReply(null);setQuestionError("");setQuestionBusy(false);
@@ -81,6 +104,7 @@ export default function AgentsTeam() {
     if(questionBusy || agentQuestion.trim().length<8) return;
     if(!gateway.configured){setQuestionError("Direct AI questions are not yet enabled here. Use the available specialist tools.");return;}
     if(!membershipActive){setQuestionError("An active verified AI membership is needed for direct agent answers.");return;}
+    if(!aiPermissionGranted){setQuestionError("Enable campaign drafting or private AI assistance under My Profile → Manage iFund Permissions → AI assistance before asking a specialist.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
     requestRef.current.controller?.abort();
@@ -139,8 +163,11 @@ export default function AgentsTeam() {
         {gateway.configured&&membership.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI membership…</p>}
         {gateway.configured&&membership.status==="ready"&&!membershipActive&&<p role="status" className="text-sm">Free specialist matching is available. <Link to="/subscriptions" className="text-primary underline">See verified AI plans</Link> for direct answers.</p>}
         {gateway.configured&&membership.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI membership could not be verified. No paid question was sent.</p>}
+        {gateway.configured&&membershipActive&&aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your saved AI permissions…</p>}
+        {gateway.configured&&membershipActive&&aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI permission could not be verified. No question was sent.</p>}
+        {gateway.configured&&membershipActive&&aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Direct AI questions are disabled in your saved permissions. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> and save to use the agent team.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
-        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membershipActive}
+        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membershipActive || !aiPermissionGranted}
           className="min-h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
@@ -155,8 +182,8 @@ export default function AgentsTeam() {
         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{agentReply.answer}</p>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and campaign AI permission. This does not authorize outside posting.</p>
-      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
+      <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
+      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
     <div aria-label="IFund agents" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
