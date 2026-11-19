@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
+import { LayoutDashboard, Compass, CalendarDays, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
@@ -22,17 +22,18 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
   "/admin": "Administration",
-  "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
+  "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
+  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
-  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
+  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact", "/planetary-impact": "Planetary Impact",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (pathname.startsWith("/events/")) return "Fundraising Event";
   if (pathname.startsWith("/campaign/")) return "Campaign";
   if (pathname.startsWith("/campaigns/")) return "Edit Campaign";
   if (pathname.startsWith("/u/")) return "Member Profile";
@@ -53,8 +54,10 @@ const navSections = [
       { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
+      { to: "/events", label: "Fundraising Events", icon: CalendarDays },
       { to: "/shorts", label: "Orbit Shorts", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
+      { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/institutions", label: "Opportunities", icon: Building2 },
     ],
   },
@@ -94,6 +97,7 @@ const navSections = [
       { to: "/profile", label: "My Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
       { to: "/plans", label: "Plans", icon: CreditCard },
+      { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
       { to: "/help", label: "Help Center", icon: CircleHelp },
     ],
   },
@@ -120,10 +124,12 @@ const navItems = navSections.flatMap((s) => s.items);
 const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
+  { to: "/events", label: "Fundraising Events", icon: CalendarDays },
   { to: "/create", label: "Create a campaign", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/social", label: "Social Feed", icon: Radio },
   { to: "/globe", label: "Global Globe", icon: Globe2 },
+  { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/news", label: "IFund Newscaster", icon: Radio },
   { to: "/help", label: "Help Center", icon: CircleHelp },
 ];
