@@ -33,7 +33,7 @@ jobs:
           set -euo pipefail
           npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
           node -e "const fs=require('fs'),p=require('./package.json'),l=require('./package-lock.json');if(l.name!==p.name||l.lockfileVersion<3||Object.keys(p.dependencies).some(k=>l.packages[''].dependencies[k]!==p.dependencies[k])||Object.keys(p.devDependencies).some(k=>l.packages[''].devDependencies[k]!==p.devDependencies[k]))process.exit(1)"
-          git diff --exit-code -- apps/mobile/package.json apps/mobile/package-lock.json
+          git -C ../.. diff --exit-code -- apps/mobile/package.json apps/mobile/package-lock.json
       - name: Preserve validated lock for review
         uses: actions/upload-artifact@v4
         with:
