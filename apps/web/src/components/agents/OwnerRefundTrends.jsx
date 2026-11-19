@@ -1,6 +1,6 @@
 import {useEffect,useState} from "react";
 import {authClient} from "@/api/auth";
-import {formatUsdCents} from "@/components/finance/FinanceDataGrid";
+import {formatUsdCents} from "@/lib/formatUsdCents.mjs";
 
 const money=value=>value==null?"Unavailable":formatUsdCents(value);
 export default function OwnerRefundTrends(){
