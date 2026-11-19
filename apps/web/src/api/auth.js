@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { isCanonicalSupabaseUrl } from "../lib/canonicalSupabaseUrl.mjs";
 
-const REF = "ssibsfmtodgximseeqsv";
 let client;
 export function authClient() {
   const url = import.meta.env.VITE_SUPABASE_URL;
@@ -8,7 +8,7 @@ export function authClient() {
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     import.meta.env.VITE_SUPABASE_ANON_KEY;
   try {
-    if (!key || new URL(url).hostname !== REF + ".supabase.co") throw Error();
+    if (typeof key !== "string" || !key.trim() || !isCanonicalSupabaseUrl(url)) throw Error();
   } catch {
     throw new Error(
       "Authentication is not configured for the canonical IFund project.",
