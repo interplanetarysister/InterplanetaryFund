@@ -16,6 +16,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
 import { pageTitle } from "@/lib/routeTitles.mjs";
+import { needsLayoutMainLandmark } from "@/lib/routeMainLandmark.mjs";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
@@ -283,7 +284,7 @@ export default function Layout() {
 
       <MobileBottomNav user={user} onNavigate={() => setOpen(false)} />
 
-      <main id="main-content" tabIndex={-1} data-page-scroll className="ifund-experience ifund-stage flex-1 min-h-0 w-full min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 overflow-x-hidden overflow-y-auto overscroll-y-contain bg-background text-foreground">
+      <div id="main-content" tabIndex={-1} role={needsLayoutMainLandmark(pathname) ? "main" : undefined} aria-label={needsLayoutMainLandmark(pathname) ? title : undefined} data-page-scroll className="ifund-experience ifund-stage flex-1 min-h-0 w-full min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 overflow-x-hidden overflow-y-auto overscroll-y-contain bg-background text-foreground">
         <div className="ifund-workspace-bar hidden md:flex sticky top-0 z-20 items-center justify-between gap-3 px-4 py-3 sm:px-7">
           <div className="flex items-center gap-3 min-w-0">
             <span className="ifund-page-icon" aria-hidden="true"><PageIcon className="w-5 h-5" strokeWidth={1.85} /></span>
@@ -322,7 +323,7 @@ export default function Layout() {
         <BackToTop />
         {!pathname.startsWith("/campaign/") && !pathname.startsWith("/campaigns/") && <PlatformSupportHostedButton />}
         <div><LegalFooter /></div>
-      </main>
+      </div>
     </div>
   );
 }
