@@ -46,3 +46,17 @@ test("dynamic public pages and account UI receive a main landmark only when nece
     assert.equal(needsLayoutMainLandmark(path),false,path);
   }
 });
+
+test("member and admin auth gates do not duplicate the layout main landmark",()=>{
+  for(const gate of ["MemberAccess","AdminAccess","SuperAdminAccess"]){
+    const code=readFileSync(new URL("../src/components/auth/"+gate+".jsx",import.meta.url),"utf8");
+    assert.match(code,/const Gate = needsLayoutMainLandmark\(/,gate);
+    assert.match(code,/<Gate/,gate);
+    assert.doesNotMatch(code,/<main\b/,gate);
+    assert.match(code,/<\/Gate>/,gate);
+  }
+  assert.equal(needsLayoutMainLandmark("/profile"),true);
+  assert.equal(needsLayoutMainLandmark("/agents"),true);
+  assert.equal(needsLayoutMainLandmark("/onboarding"),false);
+  assert.equal(needsLayoutMainLandmark("/hackathon/tracker"),false);
+});
