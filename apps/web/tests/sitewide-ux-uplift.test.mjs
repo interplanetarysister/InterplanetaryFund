@@ -17,7 +17,7 @@ test("all lazy routes have a visible, accessible branded loading fallback", () =
 
 test("shared application provides accessible skip navigation and stable page identity", () => {
   assert.match(layout, /href="#main-content"/);
-  assert.match(layout, /<main id="main-content" tabIndex=\{-1\} data-page-scroll/);
+  assert.match(layout, /<div id="main-content" tabIndex=\{-1\} role=\{needsLayoutMainLandmark/);
   assert.match(layout, /useReducedMotion/);
   assert.match(layout, /opacity: 0, y: 8/);
   assert.doesNotMatch(layout, /opacity: 0, x: "100%"/);
