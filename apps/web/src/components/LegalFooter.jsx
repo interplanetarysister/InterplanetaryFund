@@ -16,6 +16,8 @@ export default function LegalFooter() {
         <Link to="/health-privacy" className="hover:text-foreground transition-colors">Health Privacy</Link>
         <span>·</span>
         <Link to="/help" className="hover:text-foreground transition-colors">Help & Legal</Link>
+        <span>·</span>
+        <Link to="/download" className="hover:text-foreground transition-colors">Get the app</Link>
       </div>
       © 2026 <Link to="/help/copyright-and-intellectual-property"
         className="underline underline-offset-2 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"

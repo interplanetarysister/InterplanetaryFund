@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
-import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp, Download } from "lucide-react";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
@@ -74,6 +74,10 @@ export default function Home() {
               </>
             )}
           </div>
+          <Link to="/download" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-slate-950/75 px-5 py-3 text-sm font-semibold text-cyan-100 transition-colors hover:border-cyan-200 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+            <Download className="h-4 w-4" aria-hidden="true" /> Get the IFund app
+          </Link>
+          <p className="mt-2 text-xs text-slate-300">Install the web app on iPhone, Android, or desktop.</p>
           <div className="mt-7 mx-auto max-w-md rounded-2xl border border-cyan-400/30 bg-slate-950/65 px-5 py-5 text-center">
             <p className="text-lg font-semibold text-white">Be here from the beginning.</p>
             <p className="mt-1 mb-4 text-sm text-slate-300">Create a free Interplanetary Fund account to follow campaigns, share ideas and start building a fundraiser.</p>
