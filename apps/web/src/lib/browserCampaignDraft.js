@@ -216,11 +216,14 @@ function rememberBrowserCampaignUnsafe(storage, ownerId, form, brief, { allowBla
     if (parsed?.version !== 2 || parsed.owner_id !== ownerId ||
         !parsed.form || typeof parsed.form !== "object" || Array.isArray(parsed.form)) return false;
   }
-  storage.setItem(key, JSON.stringify({
+  const expected = JSON.stringify({
     version: 2, owner_id: ownerId,
     form: campaignForm(form), writing_brief: writingBrief(brief),
-  }));
-  return true;
+  });
+  storage.setItem(key, expected);
+  // Some storage adapters silently discard writes without throwing.
+  // Never report autosave success until the exact owner-scoped bytes persist.
+  return storage.getItem(key) === expected;
 }
 
 function forgetBrowserCampaignUnsafe(storage, ownerId) {
@@ -231,13 +234,17 @@ function forgetBrowserCampaignUnsafe(storage, ownerId) {
     try { record = JSON.parse(raw); } catch { return false; }
     if (record?.version !== 2 || record.owner_id !== ownerId) return false;
     storage.removeItem(key);
+    if (storage.getItem(key) !== null) return false;
   }
   // Only clear the old single-slot record if it belongs to this owner.
   const legacy = storage.getItem(KEY);
   if (legacy) {
     let record;
     try { record = JSON.parse(legacy); } catch { return false; }
-    if (record?.version === 2 && record.owner_id === ownerId) storage.removeItem(KEY);
+    if (record?.version === 2 && record.owner_id === ownerId) {
+      storage.removeItem(KEY);
+      if (storage.getItem(KEY) !== null) return false;
+    }
   }
   return true;
 }
