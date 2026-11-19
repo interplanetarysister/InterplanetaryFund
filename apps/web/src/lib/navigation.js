@@ -4,7 +4,7 @@ export const AUTH_TABS = Object.freeze(['/','/discover','/create','/social','/pr
 export const PUBLIC_TABS = AUTH_TABS;
 const PREFIXES=Object.freeze({
   '/':['/','/dashboard'],
-  '/discover':['/discover','/campaign','/globe','/shorts','/institutions'],
+  '/discover':['/discover','/campaign','/globe','/shorts','/institutions','/events','/fundraising-tips','/planetary-impact'],
   '/create':['/create','/campaigns','/fundraising-partners'],
   '/social':['/social','/community','/blogs','/news'],
   '/profile':['/profile','/u','/my-blog','/devices','/giving','/following','/subscriptions','/plans','/withdrawals','/ledger','/agents','/mission'],
