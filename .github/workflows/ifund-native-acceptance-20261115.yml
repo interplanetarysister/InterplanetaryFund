@@ -37,7 +37,6 @@ jobs:
       - name: Compile separate Android debug APK and unsigned AAB
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add android
           node scripts/verify-android-sdk.mjs
@@ -82,7 +81,6 @@ jobs:
       - name: Compile independent iOS Simulator app (no App Store signing)
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add ios
           ruby -e 'require "xcodeproj"' || gem install xcodeproj -v 1.27.0 --no-document
