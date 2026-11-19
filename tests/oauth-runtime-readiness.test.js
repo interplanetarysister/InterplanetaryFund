@@ -133,3 +133,28 @@ test('admin readiness copy identifies the Pages Function and separates provider 
   assert.match(page, /provider credentials and member consent are checked separately/);
   assert.doesNotMatch(page, /missing Cloudflare Worker bindings/);
 });
+
+test('OAuth runtime and status deny valid but foreign Supabase projects without contacting them', async () => {
+  const foreign = { ...validEnv, SUPABASE_URL: 'https://another-project.supabase.co' };
+  const requirements = oauthRuntimeRequirements(foreign);
+  assert.equal(requirements.find(item => item.name === 'SUPABASE_URL').configured, false);
+  assert.ok(requirements.every(item => !Object.hasOwn(item, 'value')));
+  for (const value of [
+    'https://ssibsfmtodgximseeqsv.supabase.co.evil.example',
+    'https://SSIBSFMTODGXIMSEEQSV.supabase.co',
+    'https://ssibsfmtodgximseeqsv.supabase.co/path',
+    'https://another-project.supabase.co',
+  ]) {
+    assert.equal(oauthRuntimeRequirements({ ...validEnv, SUPABASE_URL: value })
+      .find(item => item.name === 'SUPABASE_URL').configured, false, value);
+  }
+  const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
+    headers: { 'sec-fetch-site': 'same-origin' },
+  });
+  const result = await routeOAuthRequest(request, foreign,
+    () => assert.fail('Foreign-project auth request must not be dispatched'));
+  assert.equal(result.status, 503);
+  const payload = await result.json();
+  assert.equal(payload.enabled, false);
+  assert.equal(payload.runtime.find(item => item.name === 'SUPABASE_URL').configured, false);
+});
