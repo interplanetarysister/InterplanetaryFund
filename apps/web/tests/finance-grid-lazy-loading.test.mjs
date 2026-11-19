@@ -17,6 +17,16 @@ test("public Atlas and private finance pages load the large AG Grid bundle on de
   assert.match(read("../src/components/agents/OwnerRefundTrends.jsx"),/from "@\/lib\/formatUsdCents\.mjs"/);
 });
 
+test("Atlas leaves AG Grid unloaded for zero rows and offers honest empty-state actions",()=>{
+  const source=read("../src/pages/Atlas.jsx");
+  assert.match(source,/gridRows\.length \? <Suspense/);
+  assert.match(source,/No campaign locations to display yet/);
+  assert.match(source,/No campaigns match your search/);
+  assert.match(source,/Clear search/);
+  assert.match(source,/to=\{scope==="mine"\?"\/create":"\/discover"\}/);
+  assert.doesNotMatch(source,/No campaign locations[\s\S]*?fake|example campaigns/i);
+});
+
 test("verified currency formatter stays independent of visualization libraries",()=>{
   const source=read("../src/lib/formatUsdCents.mjs");
   assert.doesNotMatch(source,/ag-grid|react|document\.|window\./i);
