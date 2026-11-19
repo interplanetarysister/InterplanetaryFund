@@ -93,7 +93,10 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     api=await memberApi(request,env,fetcher);
     const active = await api.rpc("ifund_current_account_is_active");
     if (active !== true) fail(403,"An active account is required to ask the team.");
-    await api.aiPermission("campaign");
+    const campaignAI = await api.aiPermission("campaign", false);
+    const internalAI = await api.futureInternalAIPermission("recommendation", false);
+    if (!campaignAI && !internalAI) fail(403,
+      "Enable private AI assistance in My Account before asking the team.");
     const raw=await readJsonBody(request,8000);
     const input=validateTeamQuestion(raw);
     const hashData=JSON.stringify({question:input.question,agent:input.selected});
