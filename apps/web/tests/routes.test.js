@@ -15,7 +15,9 @@ test("implemented pages do not import Base44 client", () => {
 });
 test("auth client targets one canonical Supabase project", () => {
  const auth = file("../src/api/auth.js");
- assert.match(auth, /ssibsfmtodgximseeqsv/);
+ const canonical = file("../src/lib/canonicalSupabaseUrl.mjs");
+ assert.match(canonical, /https:\/\/ssibsfmtodgximseeqsv\.supabase\.co/);
+ assert.match(auth, /isCanonicalSupabaseUrl\(url\)/);
  assert.match(auth, /VITE_SUPABASE_PUBLISHABLE_KEY/);
  assert.doesNotMatch(auth, /service_role|SUPABASE_SERVICE_ROLE_KEY/);
 });
