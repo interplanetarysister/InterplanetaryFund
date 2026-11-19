@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '24'
       - name: Confirm Capacitor 8 build Xcode is supported
         run: |
           xcodebuild -version
@@ -45,7 +45,6 @@ jobs:
       - name: Prepare separate iOS project
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add ios
           ruby -e 'require "xcodeproj"' || gem install xcodeproj -v 1.27.0 --no-document

@@ -1,10 +1,7 @@
 name: IFund independent native candidates — QA only
-# One source-scoped run on introduction. No store submission, no payments.
-# This workflow deliberately builds existing feature source at immutable SHA.
+# Explicit owner-triggered candidate QA against the exact checked-out commit.
+# Never auto-run on merge; no store submission, payments, or Base44 changes.
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/ifund-native-acceptance-20261115.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,10 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: e8961a3e75f09f5784c06066f470f0eea68b11e6
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -40,7 +37,6 @@ jobs:
       - name: Compile separate Android debug APK and unsigned AAB
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add android
           node scripts/verify-android-sdk.mjs
@@ -65,10 +61,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: e8961a3e75f09f5784c06066f470f0eea68b11e6
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Verify independent iOS identity and SDK
         run: |
           node apps/mobile/scripts/verify-mobile.mjs --candidate
@@ -85,7 +81,6 @@ jobs:
       - name: Compile independent iOS Simulator app (no App Store signing)
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add ios
           ruby -e 'require "xcodeproj"' || gem install xcodeproj -v 1.27.0 --no-document
