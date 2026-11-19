@@ -29,12 +29,12 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <div className="max-w-md mx-auto px-4 py-16 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+        <section role="alert" aria-labelledby="ifund-route-error-heading" className="mx-auto my-8 max-w-lg rounded-2xl border border-destructive/30 bg-card px-5 py-12 text-center text-foreground shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
             <AlertTriangle className="w-6 h-6" />
           </div>
-          <h2 className="font-display text-xl text-stone-900 mb-1">This page hit a snag</h2>
-          <p className="text-sm text-stone-500 mb-5">
+          <h2 id="ifund-route-error-heading" className="font-display mb-2 text-xl font-bold">This page could not finish loading</h2>
+          <p className="mb-5 text-sm text-muted-foreground">
             {isAssetLoadFailure(this.state.error)
               ? "A page update could not load. Refresh to fetch the current version, or return home."
               : "This part of the application could not load. Try again or return home."}
@@ -48,12 +48,14 @@ export default class ErrorBoundary extends React.Component {
             </button>
             <a
               href="/"
-              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 px-4 h-10 min-h-[44px] text-sm font-medium text-stone-600"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-medium text-foreground"
             >
               <Home className="w-4 h-4" /> Home
             </a>
           </div>
-        </div>
+          <p className="mt-5 text-xs text-muted-foreground">Your saved work is not intentionally changed by this error screen. If retrying fails, visit the Help Center.</p>
+          <a href="/help" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline">Visit Help Center</a>
+        </section>
       );
     }
     return this.props.children;
