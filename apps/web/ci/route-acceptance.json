@@ -485,6 +485,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/fundraising-tips",
+      "role": "public",
+      "component": "FundraisingTips",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+qa"
+    },
+    {
       "route": "/giving",
       "role": "public",
       "component": "Navigate",
