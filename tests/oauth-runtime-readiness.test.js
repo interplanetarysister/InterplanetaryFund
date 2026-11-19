@@ -158,3 +158,25 @@ test('OAuth runtime and status deny valid but foreign Supabase projects without 
   assert.equal(payload.enabled, false);
   assert.equal(payload.runtime.find(item => item.name === 'SUPABASE_URL').configured, false);
 });
+
+test('OAuth disconnect refuses noncanonical Supabase endpoints without contacting them', async () => {
+  const request = new Request('https://interplanetaryfund.com/api/oauth/google/disconnect', {
+    method: 'POST',
+    headers: {
+      origin: 'https://interplanetaryfund.com',
+      authorization: 'Bearer test-member-token',
+    },
+  });
+  for (const url of [
+    'https://another-project.supabase.co',
+    'https://ssibsfmtodgximseeqsv.supabase.co.evil.example',
+    'https://SSIBSFMTODGXIMSEEQSV.supabase.co',
+    'https://ssibsfmtodgximseeqsv.supabase.co/path',
+  ]) {
+    const result = await routeOAuthRequest(request, {
+      ...validEnv, SUPABASE_URL: url,
+    }, () => assert.fail('A foreign Supabase project must not receive a member token.'));
+    assert.equal(result.status, 503, url);
+    assert.deepEqual(await result.json(), { error: 'Connection management is unavailable.' });
+  }
+});
