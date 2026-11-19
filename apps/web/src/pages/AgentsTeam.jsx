@@ -177,26 +177,28 @@ export default function AgentsTeam() {
       <p className="mt-3 text-sm font-medium">Specialty: {TRAINING_ROLES[selected]?.skill}</p>
       <p className="mt-1 text-sm text-muted-foreground">Can help with: {TRAINING_ROLES[selected]?.handles.join(", ")}. Consults: {TRAINING_ROLES[selected]?.consult.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>
       <p role="status" className="mt-4 text-sm text-muted-foreground">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
-      {selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
-      {["polaris", "forge", "echo", "link"].includes(selected) && <div className="mt-4 space-y-4">
+      {!user && <p className="mt-3 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to open private agent workspaces. Agent identities and specialties are public.</p>}
+      {user && selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
+      {user && ["polaris", "forge", "echo", "link"].includes(selected) && <div className="mt-4 space-y-4">
         <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold" aria-expanded={showService}
           onClick={() => setShowService(value => !value)}>{showService ? "Close saved specialist workspace" : "Open saved specialist workspace"}</button>
         {showService && <SpecialistServiceWorkspace key={selected+":"+(selection.campaignId||"account")} identity={selected} initialCampaignId={selection.campaignId}/>}
       </div>}
-      {workspace && <div className="mt-4">
+      {user && workspace && <div className="mt-4">
         {selected === "story" ?
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
           <Link className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold" to={agentToolHref(selected,selection.campaignId)}>Open related tool: {workspace.tool}</Link>}
       </div>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
-    <EditorialAgentQueue />
-    <TeamConversationHistory />
+    {user && <EditorialAgentQueue />}
+    {user && <TeamConversationHistory />}
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Available AI writing workspace</h2>
-      <p className="mt-2 text-sm text-muted-foreground">The existing Story Agent can create private campaign writing suggestions. Standalone specialist chat is still undergoing individual verification.</p>
-      <button type="button" className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
-      {showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
+      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission.</p>
+      <button type="button" disabled={!user} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
+      {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
+      {user && showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
     </section>
   </div>;
 }
