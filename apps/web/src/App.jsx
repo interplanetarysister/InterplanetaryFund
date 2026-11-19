@@ -6,6 +6,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import PlatformSupportHostedButton from "./components/payments/PlatformSupportHostedButton";
 import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { browserPageTitle } from "@/lib/routeTitles.mjs";
 import MemberAccess from "@/components/auth/MemberAccess";
 import AdminAccess from "@/components/auth/AdminAccess";
 import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
@@ -200,6 +201,15 @@ function AppRoutes() {
   </Routes>{(["/", "/about", "/terms", "/privacy", "/health-privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
 }
 
+// One location source updates tab identities for standalone and layout routes.
+function RouteTitleSync() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    document.title = browserPageTitle(pathname);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   useEffect(() => {
     // Follow the device until someone explicitly picks a theme. Never override
@@ -216,6 +226,6 @@ function App() {
     window.addEventListener("ifund-theme-changed", apply);
     return () => { mq.removeEventListener("change", apply); window.removeEventListener("ifund-theme-changed", apply); };
   }, []);
-  return <ErrorBoundary><Router><ScrollToTop /><AppRoutes /></Router></ErrorBoundary>;
+  return <ErrorBoundary><Router><RouteTitleSync /><ScrollToTop /><AppRoutes /></Router></ErrorBoundary>;
 }
 export default App;
