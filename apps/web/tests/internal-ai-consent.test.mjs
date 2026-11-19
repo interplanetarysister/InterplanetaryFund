@@ -31,7 +31,7 @@ test("signup discloses default and account permissions can revoke without third 
   const signupService=read("../src/lib/signupAIPreferences.js");
   const sql=read("../../../supabase/migrations/20261119110000_ifund_future_internal_ai_assistance_preference.sql");
   assert.match(signup,/allow_future_internal_ai_assistance:true/);
-  assert.match(signup,/To decline, uncheck either option before signup/);
+  assert.match(signup,/To decline any of these options, uncheck them before signup/);
   assert.match(signup,/financial actions.*separate authorization/);
   assert.match(setting,/uncheck the option here and select Save AI preferences/);
   assert.match(setting,/allow_future_internal_ai_assistance: false/);
