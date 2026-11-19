@@ -6,11 +6,13 @@ import NativeConnectivityBanner from "./components/native/NativeConnectivityBann
 import ErrorBoundary from "./components/ErrorBoundary";
 import { installNativeApiTransport } from "./lib/nativeApi.js";
 import { installNativePublicLinks } from "./lib/nativeLinks.js";
+import { installNativeAuthLinks } from "./lib/nativeAuthLinks.js";
 
 // Scoped native HTTP and app links must initialize before React mounts.
 // The canonical website uses its separate main.jsx and App.jsx unchanged.
 installNativeApiTransport();
 installNativePublicLinks();
+installNativeAuthLinks();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <ErrorBoundary><NativeConnectivityBanner/><MobileStoreApp/></ErrorBoundary>
