@@ -17,7 +17,7 @@ export default function AuthPage({ mode = "login" }) {
   const [searchParams] = useSearchParams();
   const afterLogin = safeReturnTo(searchParams.get("returnTo"));
   const [legalReviewed, setLegalReviewed] = useState(false);
-  const [signupAIChoices,setSignupAIChoices] = useState({allow_ai_campaign_drafts:false,allow_ai_outreach_drafts:false,interested_in_future_automation:false});
+  const [signupAIChoices,setSignupAIChoices] = useState({allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,interested_in_future_automation:false});
   const [legalAgreed, setLegalAgreed] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
   const [guestError, setGuestError] = useState("");
@@ -351,8 +351,8 @@ export default function AuthPage({ mode = "login" }) {
               </label>
             )}
             {isRegister && !confirmationPending && <fieldset className="space-y-3 rounded-xl border border-cyan-400/30 p-4">
-              <legend className="px-1 font-semibold">Your iFund AI choices (optional)</legend>
-              <p className="text-xs text-slate-300">Choose what help you may want. Every option is off by default. These are preliminary preferences, not authorization to publish or connect accounts. After email verification, your selected AI drafting preferences are saved to your account and can be changed under My Profile → Manage iFund Permissions. New features and every external provider will ask for separate permission when ready.</p>
+              <legend className="px-1 font-semibold">AI assistance included with your account — you control it</legend>
+              <p className="text-xs text-slate-300">When you sign up, iFund enables private AI campaign-drafting and outreach-drafting assistance for your own account by default. To decline, uncheck either option before signup. To revoke later, go to My Profile → Manage iFund Permissions → AI assistance and turn the option off, then save. The selected preferences are recorded only after your email is verified. This does not allow iFund or its owner to impersonate you, access external accounts, publish or send messages, handle payments, or represent other people. Those actions require separate authorization.</p>
               {[
                 ["allow_ai_campaign_drafts","Help me prepare campaign drafts"],
                 ["allow_ai_outreach_drafts","Help me prepare outreach drafts"],
