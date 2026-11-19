@@ -25,6 +25,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const HealthPrivacy = lazy(() => import("./pages/HealthPrivacy"));
 const Help = lazy(() => import("./pages/Help"));
+const FundraisingTips = lazy(() => import("./pages/FundraisingTips"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AgentsTeam = lazy(() => import("./pages/AgentsTeam"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
@@ -185,6 +186,7 @@ function AppRoutes() {
       <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
+      <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
       <Route path="/admin/*" element={<PageNotFound />} />
 
