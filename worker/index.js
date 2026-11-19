@@ -8,6 +8,7 @@ import { routeImageStudio } from './imageStudio.js';
 import { routeImageImprove } from './imageImprove.js';
 import { routeGeocodeCity } from './geocodeCity.js';
 import { strategyRoute } from './agents/strategy.js';
+import { routeTeamQuestion } from './agents/teamQuestion.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
@@ -18,6 +19,10 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
+    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
+      if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') return env.IFUND_AGENT_SERVICE.fetch(request);
+      return routeTeamQuestion(request, env);
+    }
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
     if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
