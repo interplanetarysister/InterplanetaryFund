@@ -41,8 +41,16 @@ test("member analytics is discoverable without exposing administrator links", ()
     "member analytics must remain account-protected rather than administrator-only");
 });
 
-test("working aliases retain existing permission and financial boundaries", () => {
-  assert.ok(route("/mission")?.includes("<MemberAccess><AgentsTeam"));
+test("working aliases keep public agent identity and private financial boundaries", () => {
+  for (const path of ["/mission", "/agents"]) {
+    assert.ok(route(path)?.includes("<AgentsTeam />"), path + " must expose the read-only agent directory");
+    assert.doesNotMatch(route(path) || "", /MemberAccess/, "public agent identities do not require registration");
+  }
+  const team = page("AgentsTeam");
+  assert.match(team, /\{user && <EditorialAgentQueue \/>/, "member editorial queue stays protected");
+  assert.match(team, /\{user && <TeamConversationHistory \/>/, "private team history stays protected");
+  assert.match(team, /\{user && showWriting &&/, "private writing remains member-scoped");
+  assert.match(team, /\{user && selected === "nexus"/, "owner briefing remains member-scoped");
   assert.ok(route("/donors")?.includes("<MemberAccess><CampaignEngagement"));
   assert.ok(route("/analytics")?.includes("<MemberAccess><AnalyticsCenter"));
   assert.ok(route("/connect")?.includes('to="/connections"'));
