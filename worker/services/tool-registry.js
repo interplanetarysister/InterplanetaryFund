@@ -96,11 +96,30 @@ function eligibleScope(role, scope) {
         scope.plan_level >= policy.min_plan_level)
   );
 }
+function campaignScopedRequest(name, input) {
+  if (typeof input.campaign_id === "string" && input.campaign_id.trim()) return true;
+  if (name === "sendCommunication") return true;
+  if (name === "manageAgentContentDraft") {
+    const target = [input.content_type, input.target_type, input.kind, input.content_kind]
+      .filter((x) => typeof x === "string").join(" ").toLowerCase();
+    return /campaign|fundrais|donor|supporter|campaign.?update/.test(target);
+  }
+  if (name === "routeAgentTask" && input.mode === "dispatch") {
+    const objective = typeof input.objective === "string" ? input.objective.toLowerCase() : "";
+    const onboardingOnly = /(?:invite|onboard).{0,100}(?:owner|organizer).{0,100}(?:register|join|bring|import|link).{0,100}ifund|(?:register|import|link).{0,100}(?:campaign|owner|organizer).{0,100}ifund/i.test(objective);
+    const platformGrowth = /(?:ifund|platform).{0,100}(?:platform marketing|market|growth|new[- ]user|acquisition|awareness|signup|registration|recruit)|(?:platform marketing|new[- ]user acquisition|acquire new users).{0,100}(?:ifund|platform)/i.test(objective);
+    const fundraising = /fundrais|donat|donor|supporter|solicit/.test(objective);
+    const campaignWork = /campaign/.test(objective) && /manage|refine|write|story|strategy|publish|promot|outreach|market|support/.test(objective);
+    return !onboardingOnly && (fundraising || (campaignWork && !platformGrowth));
+  }
+  return false;
+}
 // Bindings are trusted code/configuration. Every invocation still requires a
 // fresh backend owner, consent, capability and provider authorization check.
 export function createToolRegistry({
   bindings,
   authorize,
+  verifyCampaignAssociation,
   clock = () => Date.now(),
 }) {
   if (typeof authorize !== "function")
@@ -248,6 +267,22 @@ export function createToolRegistry({
           normalized.target_agent === role)
       )
         throw Error("Choose an allowed specialist.");
+      if (campaignScopedRequest(name, normalized)) {
+        const campaignId = normalized.campaign_id;
+        if (
+          typeof campaignId !== "string" ||
+          !campaignId.trim() ||
+          typeof verifyCampaignAssociation !== "function" ||
+          (await verifyCampaignAssociation({
+            campaign_id: campaignId,
+            owner_id: scope.owner_id,
+            role,
+            requestContext,
+            scope,
+          })) !== true
+        )
+          throw Error("A verified IFund campaign linked to this account is required for campaign support.");
+      }
       if (!available(b)) throw Error("This tool needs fresh verification.");
       const result = await b.invoke({ input: normalized, scope });
       if (
