@@ -37,7 +37,7 @@ export function helpTopicForPath(pathname = "") {
   if (/^\/(?:connections|connect|communications|publication|my-blog)(?:\/|$)|^\/admin\/(?:integrations|studio)(?:\/|$)/.test(path)) return "Connections & Publishing";
   if (/^\/(?:campaign|campaigns|create|strategy|fundraising-partners)(?:\/|$)/.test(path)) return "Campaigns";
   if (/^\/(?:agents|ai-images|mission|analytics)(?:\/|$)/.test(path)) return "AI Assistance";
-  if (/^\/(?:community|social|blogs|blog|news|shorts)(?:\/|$)/.test(path)) return "Community";
+  if (/^\/(?:community|social|blogs|blog|news|shorts|publications)(?:\/|$)/.test(path)) return "Community";
   if (/^\/(?:profile|my-profile|devices|permissions|preferences|login|register|forgot-password|reset-password|delete-account|onboarding|auth)(?:\/|$)/.test(path)) return "Account & Security";
   if (/^\/(?:terms|privacy|health-privacy)(?:\/|$)/.test(path)) return "Legal & Policies";
   if (/^\/(?:founding-members|download|dashboard)(?:\/|$)/.test(path)) return "Getting Started";
