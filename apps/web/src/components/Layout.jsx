@@ -22,7 +22,7 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
   "/admin": "Administration",
-  "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
+  "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
   "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
@@ -96,7 +96,9 @@ const navSections = [
       { to: "/profile", label: "My Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
       { to: "/plans", label: "Plans", icon: CreditCard },
-      { to: "/help", label: "Help Center", icon: CircleHelp },
+      { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
+      { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
+  { to: "/help", label: "Help Center", icon: CircleHelp },
     ],
   },
   {
