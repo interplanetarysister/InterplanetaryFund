@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, MapPin, Plus, Ticket, XCircle } from "lucide-react";
 import { authClient } from "@/api/auth";
@@ -158,23 +158,30 @@ export default function Events() {
     }
   },[eventId,createFromLink,user?.id]);
 
+  const detailGeneration=useRef(0);
   const loadDetail=useCallback(async()=>{
+    const generation=++detailGeneration.current;
     if(!eventId){setEvent(null);setItems([]);return;}
+    setEvent(null);setItems([]);setOwnedEvents([]);
     setLoading(true);setError("");setNotice("");
     try{
       const row=await getEvent(client,eventId);
       if(!row)throw new Error("This event is not available.");
+      if(generation!==detailGeneration.current)return;
       setEvent(row);
       const [eventItems,auth,ownRows]=await Promise.all([
         listEventItems(client,eventId),client.auth.getUser(),listOwnerEvents(client).catch(()=>[]),
       ]);
+      if(generation!==detailGeneration.current)return;
       setItems(eventItems);setOwnedEvents(ownRows);
       const current=auth.data?.user||null;setUser(current);
       const isOwnEvent=Boolean(current?.id && ownRows.some(row=>row.id===eventId && row.owner_id===current.id));
       if(current?.id&&current.email_confirmed_at&&!current.is_anonymous){
         const myRows=await listMyEventActivity(client).catch(()=>[]);
+        if(generation!==detailGeneration.current)return;
         setActivity(myRows);
       }
+      if(generation!==detailGeneration.current)return;
       if(isOwnEvent){
         setForm({
           title:row.title,description:row.description||"",event_type:row.event_type,
@@ -185,10 +192,10 @@ export default function Events() {
           status:row.status==="published"?"published":"draft",visibility:row.visibility||"public",
         });
       }
-    }catch(cause){setError(cause?.message||"This event could not be loaded.");}
-    finally{setLoading(false);}
+    }catch(cause){if(generation===detailGeneration.current)setError(cause?.message||"This event could not be loaded.");}
+    finally{if(generation===detailGeneration.current)setLoading(false);}
   },[client,eventId]);
-  useEffect(()=>{loadDetail();},[loadDetail]);
+  useEffect(()=>{loadDetail();return()=>{detailGeneration.current++;};},[loadDetail]);
 
   const filteredEvents=useMemo(()=>{
     const unique=new Map();
