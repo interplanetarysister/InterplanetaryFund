@@ -227,20 +227,30 @@ export default function Events() {
   },[publicEvents,ownedEvents,search]);
 
   async function submitEvent(status=form.status) {
+    const identityGeneration=authGeneration.current;
+    const ownerId=user?.id;
+    if(!ownerId||!user?.email_confirmed_at||user.is_anonymous){
+      setError("Sign in with a verified account before saving an event.");
+      return;
+    }
     setSaving(true);setError("");setNotice("");
     try {
       const payload={...form,status,campaign_id:form.campaign_id||null};
       if(payload.starts_at)payload.starts_at=new Date(payload.starts_at).toISOString();
       if(payload.ends_at)payload.ends_at=new Date(payload.ends_at).toISOString();
       const saved=await saveOwnerEvent(client,payload,{id:editingEventId});
+      if(identityGeneration!==authGeneration.current)return;
+      const {data:{user:verifiedUser}}=await client.auth.getUser();
+      if(identityGeneration!==authGeneration.current||verifiedUser?.id!==ownerId)return;
       setEvent(saved);
       setNotice(status==="published"?"Your event is published.":"Your event draft was saved.");
       setEditingEventId(saved.id);
       setShowCreator(false);
       await reload();
+      if(identityGeneration!==authGeneration.current)return;
       navigate("/events/"+saved.id,{replace:true});
-    }catch(cause){setError(cause?.message||"The event could not be saved.");}
-    finally{setSaving(false);}
+    }catch(cause){if(identityGeneration===authGeneration.current)setError(cause?.message||"The event could not be saved.");}
+    finally{if(identityGeneration===authGeneration.current)setSaving(false);}
   }
 
   async function submitItem(e) {
