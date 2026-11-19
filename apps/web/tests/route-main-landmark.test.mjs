@@ -26,7 +26,7 @@ test("all component-backed layout routes expose exactly one expected main landma
       .map(x=>x[1]).find(n=>imports.has(n));
     if(!name)continue; // redirect-only aliases have no independent screen
     const module=imports.get(name);
-    const code=readFileSync(new URL(module.replace("./","../src/"),import.meta.url),"utf8");
+    const code=readFileSync(new URL(module.replace("./","../src/")+".jsx",import.meta.url),"utf8");
     const hasOwnMain=/<main\b/.test(code);
     const concrete=path.replace(/:[\w]+/g,"sample");
     assert.equal(needsLayoutMainLandmark(concrete),!hasOwnMain,
