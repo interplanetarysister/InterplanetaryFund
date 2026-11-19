@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/api/auth";
 import { isNativeBundle } from "@/lib/nativeApi";
+import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 
 const PLAN_NAMES={
@@ -121,7 +122,7 @@ export default function Subscriptions(){
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Your subscription</h2>
       {statusLoad==="loading"?<p role="status" className="mt-2 text-sm text-muted-foreground">Checking verified subscription status…</p>:
-      statusLoad==="unavailable"?<p role="alert" className="mt-2 text-sm text-amber-600">Your subscription status could not be verified. Existing paid access has not been changed. Sign in again or retry.</p>:
+      statusLoad==="unavailable"?<div role="alert" className="mt-2 space-y-3 text-sm text-amber-600"><p>Your subscription status could not be verified. Existing paid access has not been changed. Checkout is paused until account status is confirmed.</p><button type="button" disabled={busy!==""} onClick={()=>refresh().catch(e=>setError(e.message))} className="min-h-11 rounded-xl border border-current px-4 py-2 font-semibold disabled:opacity-50">Retry subscription verification</button></div>:
       !status?<p className="mt-2 text-sm text-muted-foreground">No paid subscription is recorded for this account.</p>:
         <div className="mt-3 space-y-2 text-sm">
           <p><strong>{PLAN_NAMES[status.tier]||status.tier}</strong> · {status.interval} · <span className="capitalize">{status.status}</span></p>
@@ -138,17 +139,18 @@ export default function Subscriptions(){
     <section className="grid gap-4 sm:grid-cols-2">
       {plans.map(plan=>{
         const name=PLAN_NAMES[plan.tier]||plan.tier;
-        const available=plan.available===true;
+        const available=plan.available===true&&plan.verified===true;
+        const canBegin=canStartVerifiedSubscription({plan,status,statusLoad,busy,native});
         return <article key={plan.tier+plan.interval} className="rounded-2xl border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">{name}</h2>
           <p className="mt-1 text-sm capitalize text-muted-foreground">{plan.interval}</p>
-          <p className="mt-4 text-3xl font-bold">${(plan.amount_cents/100).toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
+          <p className="mt-4 text-3xl font-bold">{verifiedSubscriptionPrice(plan)}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
           <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>PayPal recurring billing</div>
-          <button type="button" disabled={native||!available||busy!==""||!!status&&["active","pending","past_due","approval_pending"].includes(status.status)}
+          <button type="button" disabled={!canBegin}
             onClick={()=>subscribe(plan)}
             className="mt-5 min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
-              native?"Unavailable in the mobile app":available?"Subscribe with PayPal":"Provider verification pending"}
+              native?"Unavailable in the mobile app":!available?"Provider verification pending":statusLoad!=="ready"?"Verify account status first":canBegin?"Subscribe with PayPal":"Subscription already pending or active"}
           </button>
         </article>;
       })}
