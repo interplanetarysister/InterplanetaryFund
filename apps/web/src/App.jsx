@@ -128,8 +128,8 @@ function AppRoutes() {
       <Route path="/institutions" element={<Institutions />} />
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
-      <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
-      <Route path="/mission" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/agents" element={<AgentsTeam />} />
+      <Route path="/mission" element={<AgentsTeam />} />
       <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
