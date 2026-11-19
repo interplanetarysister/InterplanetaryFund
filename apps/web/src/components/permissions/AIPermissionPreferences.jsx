@@ -65,7 +65,7 @@ export default function AIPermissionPreferences() {
   }
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-labelledby="ai-permission-heading">
     <h2 id="ai-permission-heading" className="text-xl font-semibold">iFund AI permissions</h2>
-    <p className="text-sm text-muted-foreground">These choices govern what assistance you want iFund to prepare. They never authorize third-party posting, account access, payment activity, or future features. Those require separate, explicit provider-specific approval when available.</p>
+    <p className="text-sm text-muted-foreground">Private campaign and outreach drafting assistance is offered by default when you sign up, unless you decline either checkbox. To revoke it, uncheck the option here and select Save AI preferences. Saved changes take effect for new drafts and do not authorize third-party posting, account access, messages, payment activity, or future features. Those require separate, explicit approval.</p>
     {phase === "loading" && <p role="status">Loading saved AI preferences…</p>}
     {phase === "error" && <p role="alert">Could not read your saved preferences. <button type="button" className="underline" onClick={()=>setRetry(n=>n+1)}>Retry</button></p>}
     {(phase === "ready" || phase === "saving") && <form className="space-y-4" onSubmit={save}>
