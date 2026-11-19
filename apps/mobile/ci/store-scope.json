@@ -52,6 +52,9 @@
   ],
   "allowed_features": [
     "canonical_live_campaign_reads",
+    "public_fundraising_event_discovery",
+    "account_scoped_event_rsvp",
+    "self_reported_external_event_activity",
     "canonical_authenticated_owner_records",
     "native_share_sheet",
     "on_device_readiness_checklist",
