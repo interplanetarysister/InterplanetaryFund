@@ -145,6 +145,7 @@ export default function Events() {
       setUser(null);setOwnedEvents([]);setActivity([]);setCampaigns([]);
       setEvent(null);setItems([]);setShowCreator(false);setShowItemForm(false);
       setEditingEventId(null);setEditingItemId(null);
+      setSaving(false);setBusy("");setError("");setNotice("");
       setAuthRevision(value=>value+1);
     });
     return ()=>subscription.unsubscribe();
@@ -253,51 +254,83 @@ export default function Events() {
     finally{if(identityGeneration===authGeneration.current)setSaving(false);}
   }
 
+  // A mutation may resolve after sign-out, account switch, or route change.
+  // Never commit its response to a different account's screen.
+  async function verifiedMutationOwner(ownerId, generation) {
+    if (!ownerId || generation !== authGeneration.current) return false;
+    try {
+      const { data, error: authError } = await client.auth.getUser();
+      return !authError && generation === authGeneration.current &&
+        data?.user?.id === ownerId && Boolean(data.user.email_confirmed_at) &&
+        !data.user.is_anonymous;
+    } catch { return false; }
+  }
+
   async function submitItem(e) {
-    e.preventDefault();if(!event)return;
+    e.preventDefault();
+    const ownerId=user?.id, generation=authGeneration.current, targetEvent=event?.id;
+    if(!targetEvent||!ownerId||!ownedEvents.some(row=>row.id===targetEvent&&row.owner_id===ownerId)||
+       !await verifiedMutationOwner(ownerId,generation))return;
     setSaving(true);setError("");setNotice("");
     try{
-      const saved=await saveOwnerEventItem(client,event.id,{
+      const saved=await saveOwnerEventItem(client,targetEvent,{
         ...itemForm,
         estimated_value_cents:toCents(itemForm.estimated_value),
         starting_bid_cents:toCents(itemForm.starting_bid),
       },{id:editingItemId});
+      if(!await verifiedMutationOwner(ownerId,generation))return;
       setItems(current=>[saved,...current.filter(item=>item.id!==saved.id)]);
       setItemForm(blankItem());setEditingItemId(null);setShowItemForm(false);
       setNotice("The event item was saved.");
-    }catch(cause){setError(cause?.message||"The event item could not be saved.");}
-    finally{setSaving(false);}
+    }catch(cause){if(await verifiedMutationOwner(ownerId,generation))setError(cause?.message||"The event item could not be saved.");}
+    finally{if(generation===authGeneration.current)setSaving(false);}
   }
 
   async function joinEvent(activityType="rsvp",itemId=null) {
-    if(!user?.email_confirmed_at||user.is_anonymous){navigate("/login?returnTo="+encodeURIComponent("/events/"+event.id));return;}
+    const targetEvent=event?.id, ownerId=user?.id, generation=authGeneration.current;
+    if(!ownerId||!user?.email_confirmed_at||user.is_anonymous){
+      navigate("/login?returnTo="+encodeURIComponent("/events/"+targetEvent));return;
+    }
+    if(!targetEvent||!await verifiedMutationOwner(ownerId,generation))return;
     setBusy(activityType+(itemId||""));setError("");setNotice("");
     try{
       const reported=activityType==="external_purchase_reported";
       const cents=reported?toCents(amount):null;
       const row=await recordEventActivity(client,{
-        eventId:event.id,itemId,activityType,quantity:1,
+        eventId:targetEvent,itemId,activityType,quantity:1,
         reportedAmountCents:cents,reportedCurrency:"USD",
       });
+      if(!await verifiedMutationOwner(ownerId,generation))return;
       setActivity(current=>[row,...current.filter(item=>item.id!==row.id)]);
       setNotice(reported?"Your external purchase was added to your event activity as self-reported. It is not an IFund receipt or verified payment.":"You're on the attendee list. Your RSVP is saved to your account.");
-    }catch(cause){setError(cause?.message||"Your event activity could not be saved.");}
-    finally{setBusy("");}
+    }catch(cause){if(await verifiedMutationOwner(ownerId,generation))setError(cause?.message||"Your event activity could not be saved.");}
+    finally{if(generation===authGeneration.current)setBusy("");}
   }
 
   async function cancelActivity(row) {
+    const ownerId=user?.id,generation=authGeneration.current;
+    if(!await verifiedMutationOwner(ownerId,generation))return;
     setBusy(row.id);setError("");setNotice("");
-    try{await cancelEventActivity(client,row.id);setActivity(current=>current.map(item=>item.id===row.id?{...item,status:"cancelled"}:item));setNotice("Your event activity was cancelled.");}
-    catch(cause){setError(cause?.message||"The activity could not be cancelled.");}
-    finally{setBusy("");}
+    try{
+      await cancelEventActivity(client,row.id);
+      if(!await verifiedMutationOwner(ownerId,generation))return;
+      setActivity(current=>current.map(item=>item.id===row.id?{...item,status:"cancelled"}:item));
+      setNotice("Your event activity was cancelled.");
+    }catch(cause){if(await verifiedMutationOwner(ownerId,generation))setError(cause?.message||"The activity could not be cancelled.");}
+    finally{if(generation===authGeneration.current)setBusy("");}
   }
 
   async function changeEventStatus(status) {
-    if(!event)return;
+    const targetEvent=event?.id,ownerId=user?.id,generation=authGeneration.current;
+    if(!targetEvent||!ownedEvents.some(row=>row.id===targetEvent&&row.owner_id===ownerId)||
+       !await verifiedMutationOwner(ownerId,generation))return;
     setBusy("event-status");setError("");setNotice("");
-    try{const updated=await updateOwnerEventStatus(client,event.id,status);setEvent(updated);setNotice("Event status updated.");await reload();}
-    catch(cause){setError(cause?.message||"Event status could not be updated.");}
-    finally{setBusy("");}
+    try{
+      const updated=await updateOwnerEventStatus(client,targetEvent,status);
+      if(!await verifiedMutationOwner(ownerId,generation))return;
+      setEvent(updated);setNotice("Event status updated.");await reload();
+    }catch(cause){if(await verifiedMutationOwner(ownerId,generation))setError(cause?.message||"Event status could not be updated.");}
+    finally{if(generation===authGeneration.current)setBusy("");}
   }
 
   async function editItem(item) {
