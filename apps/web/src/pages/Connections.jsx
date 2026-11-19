@@ -184,6 +184,8 @@ export default function Connections() {
 
   function choosePlatform(platform) {
     setParams({connect:platform.id});
+    if (typeof window !== "undefined" && typeof document !== "undefined")
+      window.requestAnimationFrame(() => document.getElementById("connection-details")?.scrollIntoView({behavior:"smooth",block:"start"}));
   }
   async function manage(operation) {
     if (!selectedOAuth || !ownerVerified || busyLock.current || (operation!=="disconnect" && !canStart)) return;
@@ -232,6 +234,20 @@ export default function Connections() {
       setRefreshKey(i=>i+1);
     } catch(cause) { if(validScope(scope))setError(cause.message || "Could not save the link. Try again."); }
     finally { if(validScope(scope)){busyLock.current=false;setBusy("");} }
+  }
+  async function copyManualCampaignLink() {
+    const campaign=campaigns.find(row=>row.id===pairedCampaign && row.status==="active");
+    if(!campaign || !user?.id) {
+      setError("Choose a published campaign you own before copying a public link."); return;
+    }
+    try {
+      const {data,error:issue}=await authClient().auth.getUser();
+      if(issue || data?.user?.id!==user.id) throw Error("Your account changed. Reload connections.");
+      if(typeof navigator==="undefined" || !navigator.clipboard?.writeText)
+        throw Error("Copy is unavailable in this browser. Use your campaign's Share action.");
+      await navigator.clipboard.writeText("https://interplanetaryfund.com/campaign/"+encodeURIComponent(campaign.id));
+      setError("");setNotice("Verified public campaign link copied. Paste it into your own post on "+selected.name+".");
+    }catch(cause){setError(cause?.message||"Unable to copy the public campaign link.");}
   }
   async function removeLink() {
     if (!ownerVerified || !savedId || busyLock.current) return;
@@ -299,6 +315,25 @@ export default function Connections() {
       <Link to="/profile" className={BUTTON}>Back to profile</Link>
     </header>
 
+    <section aria-labelledby="connections-quickstart" className="space-y-4 rounded-3xl border border-border bg-card p-5 sm:p-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Get connected</p>
+        <h2 id="connections-quickstart" className="mt-2 text-xl font-semibold">Three steps to share with confidence</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Start with one account. Choose a secure provider sign-in when available, or save its public profile link. Then decide exactly how iFund may help you share.</p>
+      </div>
+      <ol className="grid gap-3 sm:grid-cols-3">
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">01 · Select</p><h3 className="mt-2 font-semibold">Choose an account</h3><p className="mt-1 text-sm text-muted-foreground">Pick the platform you already use. Provider login is available only when securely verified.</p></li>
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">02 · Authorize</p><h3 className="mt-2 font-semibold">Connect or save a link</h3><p className="mt-1 text-sm text-muted-foreground">A public profile link is not permission to post. OAuth authorization is separate.</p></li>
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">03 · Choose control</p><h3 className="mt-2 font-semibold">Manual or draft assistance</h3><p className="mt-1 text-sm text-muted-foreground">You decide what gets shared. Automatic publishing needs additional destination-specific verification.</p></li>
+      </ol>
+      <div className="flex flex-wrap gap-3">
+        <a href="#connection-details" className={PRIMARY}>Set up {selected.name}</a>
+        <Link to="/agents" className={BUTTON}>Ask the LINK agent</Link>
+        <Link to="/subscriptions" className={BUTTON}>Compare free and paid services</Link>
+      </div>
+      <p className="text-xs text-muted-foreground">Free: save public links and select manual/draft/review preferences. Paid memberships do not independently unlock external platform publishing permissions.</p>
+    </section>
+
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Connection overview">
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Actively connected</p><p className="mt-1 text-3xl font-bold tabular-nums">{connected.length}</p></div>
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Available to add</p><p className="mt-1 text-3xl font-bold tabular-nums">{readyToAdd}</p></div>
@@ -364,6 +399,7 @@ export default function Connections() {
         <ol className="mt-3 space-y-2 text-sm">{instructions.map((step,i)=><li className="flex gap-3" key={i}><span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i+1}</span><span>{step}</span></li>)}</ol>
       </div>
       <div className="flex flex-wrap gap-3">
+        {!canStart && selectedOAuth && !isLinked && <p role="status" className="w-full text-sm text-muted-foreground">Secure linking is not yet configured for this provider. You can still follow verified public-link instructions when supported.</p>}
         {canStart && <button type="button" className={PRIMARY} disabled={Boolean(busy)||loading} onClick={()=>manage("start")}>
           <ShieldCheck size={17}/>{busy==="start"?"Opening sign-in…":isLinked?"Reconnect securely":"Connect securely"}
         </button>}
@@ -374,6 +410,39 @@ export default function Connections() {
           <RefreshCw size={16}/>{busy==="refresh"?"Checking…":"Check connection"}
         </button>}
       </div>
+      <section className="space-y-3 rounded-2xl border border-border p-4" aria-label="Connection and publishing readiness">
+        <h3 className="font-semibold">What can iFund do with this account?</h3>
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Public profile link</dt>
+            <dd className="mt-1 text-muted-foreground">{saved?"Saved privately in iFund":"Not saved yet — optional for public profiles"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Secure account sign-in</dt>
+            <dd className="mt-1 text-muted-foreground">{isLinked?"Verified account connection":"Not connected or awaiting provider authorization"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Draft assistance</dt>
+            <dd className="mt-1 text-muted-foreground">{helpConsent?.enabled===true&&["draft","review"].includes(selectedChoice)?"Assistance preferences saved; generated drafts still need verified AI service":"Enable guidance and choose draft/review below"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Automated external posting</dt>
+            <dd className="mt-1 text-muted-foreground">Not available until this destination's publishing scope, owner consent and delivery receipts are verified</dd></div>
+        </dl>
+        <p className="text-xs text-muted-foreground">A verified sign-in, public URL and membership subscription are separate permissions. None of them alone authorizes publishing or outreach.</p>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-border p-4" aria-label="Manual fundraising sharing">
+        <h3 className="font-semibold">Share a campaign yourself</h3>
+        <p className="text-sm text-muted-foreground">This free option copies an existing published campaign link. You write or approve the message and post it from your own account. iFund does not post anything for you.</p>
+        <label className="block space-y-2 text-sm font-medium">Published campaign
+          <select className={INPUT} value={campaigns.some(c=>c.id===pairedCampaign&&c.status==="active")?pairedCampaign:""}
+            onChange={event=>setPairedCampaign(event.target.value)}>
+            <option value="">Choose a published campaign</option>
+            {campaigns.filter(c=>c.status==="active").map(c=><option key={c.id} value={c.id}>{c.title||"Untitled campaign"}</option>)}
+          </select>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" disabled={Boolean(busy)||!campaigns.some(c=>c.id===pairedCampaign&&c.status==="active")}
+            onClick={copyManualCampaignLink} className={BUTTON}>Copy campaign link</button>
+          {selected.site&&<a href={selected.site} target="_blank" rel="noopener noreferrer" className={BUTTON}>Open {selected.name} to post</a>}
+          <Link to="/communications" className={BUTTON}>Prepare a message</Link>
+        </div>
+      </section>
+
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.
       </div>}

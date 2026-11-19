@@ -11,6 +11,7 @@ import { strategyRoute } from './agents/strategy.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
+import { routeTeamQuestion } from './agents/teamQuestion.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest, routePublicHelpIndex } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
@@ -18,6 +19,7 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
+    if (pathname === '/api/agents/team/question' || pathname === '/api/agents/team/status') return routeTeamQuestion(request, env);
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
     if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);

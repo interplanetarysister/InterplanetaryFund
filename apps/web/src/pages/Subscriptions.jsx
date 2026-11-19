@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/api/auth";
 import { isNativeBundle } from "@/lib/nativeApi";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
+import { PLAN_DISPLAY, PLAN_ORDER, canEnroll, displayPrice, validProviderPlan } from "@/lib/planCapabilities.mjs";
 
 const PLAN_NAMES={
   basic:"Basic AI Assistant",outreach:"AI Outreach Agent",professional:"Professional Outreach",
@@ -30,6 +32,7 @@ export default function Subscriptions(){
   const [busy,setBusy]=useState("");
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
+  const [billingInterval,setBillingInterval]=useState("monthly");
   const query=useMemo(()=>new URLSearchParams(window.location.search),[]);
   const native=isNativeBundle();
 
@@ -37,6 +40,7 @@ export default function Subscriptions(){
     // Plans are public; an unavailable private status endpoint must not hide
     // the catalog or falsely imply that a user has no paid subscription.
     setStatusLoad("loading");
+    setError("");
     const [catalog,current]=await Promise.allSettled([
       call("/api/payments/subscriptions/plans"),
       call("/api/payments/subscriptions/status",{auth:true})
@@ -86,6 +90,7 @@ export default function Subscriptions(){
 
   async function subscribe(plan){
     if(native){setError("Paid plans cannot be purchased inside this app yet. Your existing subscription status is still available here.");return;}
+    if(!canEnroll(plan,{native,statusLoad,hasSubscription:!!status&&["active","pending","past_due","approval_pending"].includes(status.status)})){setError("This subscription is not ready for verified enrollment.");return;}
     setBusy(plan.tier+":"+plan.interval);setError("");setNotice("");
     try{
       const result=await call("/api/payments/subscriptions/start",{
@@ -106,53 +111,80 @@ export default function Subscriptions(){
     }catch(e){setError(e.message);}finally{setBusy("");}
   }
 
-  return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
-    <header>
-      <h1 className="font-display text-3xl font-bold">Plans & subscriptions</h1>
-      <p className="mt-2 text-muted-foreground">Recurring billing is verified against PayPal before IFund records paid access. Approval alone never activates a plan.</p>
+  const activeMembership=Boolean(status && ["active","pending","past_due","approval_pending"].includes(status.status));
+  const visiblePlans=PLAN_ORDER.map(tier=>plans.find(plan=>plan.tier===tier&&plan.interval===billingInterval))
+    .filter(validProviderPlan);
+  return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:py-12">
+    <header className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Membership and billing</p>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">Plans & subscriptions</h1>
+      <p className="max-w-3xl text-muted-foreground">Start free. Upgrade only for verified capabilities you need. Account connections and manual sharing do not require a paid membership.</p>
+      <div className="flex flex-wrap gap-4 text-sm"><Link to="/connections" className="text-primary underline">Connect your accounts</Link><Link to="/agents" className="text-primary underline">Explore your agent team</Link><Link to="/fundraising-tips" className="text-primary underline">Fundraising tips</Link></div>
     </header>
-
-    {native&&<p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-      New paid subscriptions are unavailable in the iPhone and Android apps while mobile billing rules are reviewed. Existing status and cancellation remain available.
-    </p>}
-    {notice&&<p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">{notice}</p>}
-    {error&&<p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</p>}
-
-    <section className="rounded-2xl border border-border bg-card p-5">
-      <h2 className="text-lg font-semibold">Your subscription</h2>
-      {statusLoad==="loading"?<p role="status" className="mt-2 text-sm text-muted-foreground">Checking verified subscription status…</p>:
-      statusLoad==="unavailable"?<p role="alert" className="mt-2 text-sm text-amber-600">Your subscription status could not be verified. Existing paid access has not been changed. Sign in again or retry.</p>:
-      !status?<p className="mt-2 text-sm text-muted-foreground">No paid subscription is recorded for this account.</p>:
-        <div className="mt-3 space-y-2 text-sm">
-          <p><strong>{PLAN_NAMES[status.tier]||status.tier}</strong> · {status.interval} · <span className="capitalize">{status.status}</span></p>
-          {status.last_payment_at&&<p>Last verified payment: {new Date(status.last_payment_at).toLocaleString()}</p>}
-          {status.next_billing_time&&<p>Next PayPal billing time: {new Date(status.next_billing_time).toLocaleString()}</p>}
-          <p className="text-muted-foreground">{providerVerified?"Status refreshed directly from PayPal.":"Stored status shown; PayPal refresh was temporarily unavailable."}</p>
-          {["active","pending","past_due","approval_pending"].includes(status.status)&&
-            <button type="button" disabled={busy!==""} onClick={cancel} className="min-h-11 rounded-xl border px-4 py-2 text-red-700 disabled:opacity-50">
-              {busy==="cancel"?"Canceling…":"Cancel PayPal subscription"}
-            </button>}
-        </div>}
+    {native&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">Purchases are unavailable inside the mobile app while app-store billing is under review. You can still inspect existing membership status and cancel an eligible subscription.</p>}
+    {notice&&<p role="status" className="rounded-xl border border-border bg-card p-4 text-sm">{notice}</p>}
+    {error&&<p role="alert" className="rounded-xl border border-destructive/40 p-4 text-sm">{error}</p>}
+    <section aria-labelledby="current-membership" className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h2 id="current-membership" className="text-lg font-semibold">Your membership</h2>
+          {statusLoad==="loading" ? <p role="status" className="mt-2 text-sm text-muted-foreground">Verifying your PayPal membership…</p> :
+            statusLoad==="unavailable" ? <p role="alert" className="mt-2 text-sm text-muted-foreground">Billing status is unavailable. Your existing membership has not been changed.</p> :
+            !status ? <p className="mt-2 text-sm text-muted-foreground">Free access · No paid recurring subscription recorded.</p> :
+            <div className="mt-2 space-y-1 text-sm"><p className="font-medium">{PLAN_DISPLAY[status.tier]?.name||status.tier} · {status.interval} · <span className="capitalize">{status.status}</span></p>
+              {status.last_payment_at&&<p>Last verified payment: {new Date(status.last_payment_at).toLocaleString()}</p>}
+              {status.next_billing_time&&<p>Next provider billing: {new Date(status.next_billing_time).toLocaleString()}</p>}
+              <p className="text-muted-foreground">{providerVerified?"PayPal status verified on refresh.":"Stored billing status. Live provider refresh is unavailable."}</p>
+            </div>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={busy!==""||statusLoad==="loading"} onClick={refresh}
+            className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-40">Refresh status</button>
+          {activeMembership&&<button type="button" disabled={busy!==""} onClick={cancel}
+            className="min-h-11 rounded-xl border border-destructive/40 px-4 text-sm font-semibold disabled:opacity-40">{busy==="cancel"?"Cancelling…":"Cancel PayPal subscription"}</button>}
+        </div>
+      </div>
     </section>
-
-    <section className="grid gap-4 sm:grid-cols-2">
-      {plans.map(plan=>{
-        const name=PLAN_NAMES[plan.tier]||plan.tier;
-        const available=plan.available===true;
-        return <article key={plan.tier+plan.interval} className="rounded-2xl border border-border bg-card p-5">
-          <h2 className="text-lg font-semibold">{name}</h2>
-          <p className="mt-1 text-sm capitalize text-muted-foreground">{plan.interval}</p>
-          <p className="mt-4 text-3xl font-bold">${(plan.amount_cents/100).toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
-          <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>PayPal recurring billing</div>
-          <button type="button" disabled={native||!available||busy!==""||!!status&&["active","pending","past_due","approval_pending"].includes(status.status)}
-            onClick={()=>subscribe(plan)}
-            className="mt-5 min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:bg-muted disabled:text-muted-foreground">
+    <section aria-label="Choose a billing interval" className="flex flex-wrap items-center justify-between gap-3">
+      <div><h2 className="text-xl font-semibold">Compare membership options</h2><p className="text-sm text-muted-foreground">Only provider-verified plans can accept payment.</p></div>
+      <div className="inline-flex rounded-xl border border-border bg-card p-1" role="group" aria-label="Billing interval">
+        {["monthly","annual"].map(interval=><button key={interval} type="button" aria-pressed={billingInterval===interval}
+          onClick={()=>setBillingInterval(interval)} className={"min-h-11 rounded-lg px-4 text-sm font-semibold "+(billingInterval===interval?"bg-primary text-primary-foreground":"text-muted-foreground")}>
+          {interval==="monthly"?"Monthly":"Annual"}</button>)}
+      </div>
+    </section>
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Subscription plan cards">
+      <article className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6">
+        <span className="text-xs font-semibold uppercase tracking-wider text-primary">Always available</span>
+        <h3 className="mt-3 text-xl font-bold">{PLAN_DISPLAY.free.name}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{PLAN_DISPLAY.free.description}</p>
+        <p className="mt-4 text-3xl font-bold">$0<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
+        <ul className="mt-5 flex-1 space-y-3 text-sm">{PLAN_DISPLAY.free.features.map(feature=><li key={feature} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary"/>{feature}</li>)}</ul>
+        <p className="mt-4 text-xs text-muted-foreground">{PLAN_DISPLAY.free.note}</p>
+        <Link to="/dashboard" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 font-semibold">Continue with Free</Link>
+      </article>
+      {visiblePlans.map(plan=>{
+        const descriptor=PLAN_DISPLAY[plan.tier];
+        const enabled=canEnroll(plan,{native,statusLoad,hasSubscription:activeMembership});
+        const providerReady=plan.available===true&&plan.verified===true;
+        const available=providerReady;
+        return <article key={plan.tier+":"+plan.interval} className="flex flex-col rounded-2xl border border-border bg-card p-6">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{descriptor.eyebrow}</span>
+          <h3 className="mt-3 text-xl font-bold">{descriptor.name}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{descriptor.description}</p>
+          <p className="mt-4 text-3xl font-bold">{displayPrice(plan)}<span className="text-sm font-normal text-muted-foreground"> / {billingInterval==="annual"?"year":"month"}</span></p>
+          <ul className="mt-5 flex-1 space-y-3 text-sm">{descriptor.features.map(feature=><li key={feature} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary"/>{feature}</li>)}</ul>
+          <p className="mt-4 text-xs text-muted-foreground">{descriptor.note}</p>
+          <p className="mt-3 text-xs font-medium">{providerReady?"Provider verification recorded":"Provider verification pending"}</p>
+          <button type="button" disabled={native||!available||!enabled||busy!==""} onClick={()=>subscribe(plan)}
+            className="mt-4 min-h-11 w-full rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
-              native?"Unavailable in the mobile app":available?"Subscribe with PayPal":"Provider verification pending"}
+              native?"Unavailable in mobile app":!providerReady?"Not accepting enrollment":
+              activeMembership?"Manage existing membership":statusLoad!=="ready"?"Verify your account first":"Subscribe with PayPal"}
           </button>
         </article>;
       })}
     </section>
-    <p className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4"/>IFund records recurring-payment evidence only after a live PayPal status check. Subscription events are idempotently stored and member-scoped.</p>
+    {!visiblePlans.length&&<p className="rounded-xl border border-border p-4 text-sm" role="status">The {billingInterval} catalog is temporarily unavailable. No payment can be started without provider verification.</p>}
+    <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>Paid access requires a provider-confirmed payment and a matching subscription-ledger record. Connecting an account never grants automatic posting permission. No donations or campaign payments are changed here.</p>
   </main>;
 }
