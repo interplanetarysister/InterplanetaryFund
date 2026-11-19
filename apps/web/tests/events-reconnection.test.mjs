@@ -39,7 +39,8 @@ test("event API, dashboard and native routes are connected without checkout capt
   assert.match(api, /requireCurrentTerms/);
   assert.match(dashboard, /<EventsDashboardSection\s*\/>/);
   assert.match(widget, /listOwnerEvents/);
-  assert.match(mobile, /path="\/events\/?:id?"/);
+  assert.ok(mobile.includes('path="/events" element={<MobileStoreEvents/>}'));
+  assert.ok(mobile.includes('path="/events/:id" element={<MobileStoreEvents/>}'));
   assert.match(account, /<MobileStoreEvents embedded\s*\/>/);
   assert.match(mobileEvents, /listMyEventActivity/);
   assert.doesNotMatch(api, /\.from\(["']ifund_(?:donations|ledger_entries)["']\)/);
