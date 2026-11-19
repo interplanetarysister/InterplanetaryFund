@@ -111,6 +111,10 @@ assert(mobileEntrypoint.includes("MobileStoreApp") &&
   "Store entrypoint must load scoped, connected app");
 assert(mobileEntrypoint.includes("installNativePublicLinks()"),
   "Native store entrypoint must register the reviewed public link handler");
+assert(mobileEntrypoint.includes("installNativeAuthLinks()") &&
+  mobileEntrypoint.indexOf("installNativeAuthLinks();") <
+    mobileEntrypoint.indexOf("ReactDOM.createRoot("),
+  "Native store entrypoint must register secure PKCE auth callback handling before React mounts");
 assert(scope.routes.includes("/events") && scope.routes.includes("/events/:id") &&
   mobileSource.includes('<Route path="/events"') &&
   mobileSource.includes('<Route path="/events/:id"'),
