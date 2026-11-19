@@ -20,3 +20,14 @@ Baseline: [88-route November 18 audit](./ifund-88-route-provisional-scorecard-20
 - Visual screenshot review on 390px mobile and 1280px desktop, focus/keyboard tests, real-record campaign/article IDs, API response contracts, AG Charts rendering, media and AI agent jobs.
 - Re-score every route based on actual runtime evidence; maintain `unverified` instead of assigning false success.
 - Keep Base44 and judged hackathon artifacts read-only. All implementation targets the canonical Cloudflare/Supabase app.
+
+## November 18 continuation — measured and implemented
+
+- **Page navigation:** all 88 registered route patterns now map to a meaningful, privacy-safe browser title from one shared registry. The app tab and workspace header consume the same canonical names. A coverage test fails if future registered paths lack a title.
+- **Contextual help:** the shared Help Center mapper now directs billing, money, account security, AI, campaigns, social and publishing routes to relevant topics, including mobile header help.
+- **Performance:** the verified-money formatter is a separate 0.32 KB uncompressed output chunk; the 962 KB AG Grid bundle is lazily imported only by views that need it. Finance and admin pages still enforce their existing authenticated read and ledger contracts.
+- **Atlas empty state:** skips the heavyweight grid when no campaign rows match. Users can clear their query, discover public campaigns or create their own without seeing invented map locations.
+- **Scroll accessibility:** missing hash targets reset stale scroll positions and honor reduced-motion settings. Existing campaign URLs and financial anchor destinations remain unchanged.
+- **Preview evidence:** commit `686c3cc` built and deployed successfully with 49/49 root and 903/903 frontend tests. This validates builds and checked contracts, not complete member/admin browser acceptance.
+- **Release boundary:** latest `main` has diverged substantially from the UX preview branch. Reconciliation must preserve new mainline code; never overwrite or merge the entire branch without file-level review.
+- **Scoring:** these are confirmed improvements in organization and perceived performance. The original provisional 88-route scores are unchanged until authenticated, visual, and live-service measurements justify rescoring.
