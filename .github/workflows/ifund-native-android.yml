@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '24'
       - name: Check independent native identity before build
         run: node apps/mobile/scripts/verify-mobile.mjs --candidate
       - uses: actions/setup-java@v4
@@ -39,7 +39,6 @@ jobs:
       - name: Prepare separate mobile project
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add android
           node scripts/verify-android-sdk.mjs
