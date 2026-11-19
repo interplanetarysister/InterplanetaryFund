@@ -1,39 +1,13 @@
 name: IFund Atlas source regression tests
 # Source and privacy regression only. No deployment/build, no financial keys.
 on:
-  push:
-    branches:
-      - feature/route-completion-20261113
-    paths:
-      - '.github/workflows/ifund-atlas-source-tests.yml'
-      - 'apps/web/src/lib/atlasLocations.mjs'
-      - 'apps/web/src/lib/usAtlasProjection.mjs'
-      - 'apps/web/src/lib/usAtlasClusters.mjs'
-      - 'apps/web/src/lib/usCityCenters.mjs'
-      - 'apps/web/src/pages/Atlas.jsx'
-      - 'apps/web/src/components/atlas/**'
-      - 'apps/web/src/api/ownerCampaigns.js'
-      - 'apps/web/src/api/publicData.js'
-      - 'apps/web/tests/atlas-*.test.js'
-      - 'apps/web/tests/us-atlas-map.test.js'
-      - 'apps/web/tests/us-city-presets.test.js'
-  pull_request:
-    paths:
-      - '.github/workflows/ifund-atlas-source-tests.yml'
-      - 'apps/web/src/lib/atlasLocations.mjs'
-      - 'apps/web/src/lib/usAtlasProjection.mjs'
-      - 'apps/web/src/lib/usAtlasClusters.mjs'
-      - 'apps/web/src/lib/usCityCenters.mjs'
-      - 'apps/web/src/pages/Atlas.jsx'
-      - 'apps/web/src/components/atlas/**'
-      - 'apps/web/tests/atlas-*.test.js'
-      - 'apps/web/tests/us-atlas-map.test.js'
-      - 'apps/web/tests/us-city-presets.test.js'
+  workflow_dispatch:
+
 permissions:
   contents: read
 concurrency:
   group: ifund-atlas-source-${{ github.ref }}
-  # Continuous agents update this branch often; let source QA finish on its exact SHA.
+  # Manual source checks must finish on their invoked SHA.
   cancel-in-progress: false
 jobs:
   verify-atlas:
@@ -45,7 +19,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Verify Atlas source tests without building or deploying
         run: |
           set -euo pipefail
