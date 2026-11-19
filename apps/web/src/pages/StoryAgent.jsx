@@ -540,6 +540,8 @@ export function StoryDraft({
   const [titleIndex, setTitleIndex] = useState(0);
   const [summaryIndex, setSummaryIndex] = useState(0);
   const [target, setTarget] = useState(draft.campaign_id || "");
+  const [copyStatus, setCopyStatus] = useState("");
+  const generatedText = draft.payload?.section || draft.payload?.story || "";
   const [wording, setWording] = useState({
     title: draft.payload?.title || "",
     summary: draft.payload?.summary || "",
@@ -637,9 +639,19 @@ export function StoryDraft({
               ))}
             </fieldset>
           )}
-          <p className="whitespace-pre-wrap break-words">
-            {draft.payload?.section || draft.payload?.story}
-          </p>
+          <p className="whitespace-pre-wrap break-words">{generatedText}</p>
+          {generatedText && <div className="space-y-2">
+            <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(generatedText);
+                  setCopyStatus("Generated text copied. Paste it into the section you want to edit.");
+                } catch {
+                  setCopyStatus("Copy was unavailable in this browser. Select the text above to copy it.");
+                }
+              }}>Copy generated text</button>
+            {copyStatus && <p role="status" className="text-sm text-muted-foreground">{copyStatus}</p>}
+          </div>}
           {draft.payload?.image_prompt && (
             <details>
               <summary className="min-h-11 cursor-pointer">
