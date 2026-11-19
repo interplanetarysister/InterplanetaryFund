@@ -17,7 +17,7 @@ const env = {
 const suggestion = {
   titles: ["A", "B", "C", "D", "E"],
   summaries: ["A summary", "B summary"],
-  story: "A factual story.",
+  story: "A factual story with organizer-supplied facts and clear needs. ".repeat(26).trim(),
   image_prompt: "A mission-specific image.",
 };
 const request = (
