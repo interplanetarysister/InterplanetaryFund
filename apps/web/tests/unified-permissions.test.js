@@ -25,7 +25,7 @@ test("account navigation consolidates user-facing permissions", () => {
 
 test("signup interest never silently grants third party authorization", () => {
   assert.match(signupChoices, /ifund-signup-ai-interest-v1/);
-  assert.match(signup, /allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,interested_in_future_automation:false/);
+  assert.match(signup, /allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true,interested_in_future_automation:false/);
   assert.match(signup, /private AI campaign-drafting and outreach-drafting assistance/);
   assert.match(signup, /To decline, uncheck either option before signup/);
   assert.match(onboarding, /To revoke either preference now or later/);
