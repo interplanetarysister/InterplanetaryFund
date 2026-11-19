@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { validateExternalCheckout } from "../src/api/events.js";
+import { owningNavigationTab } from "../src/lib/navigation.js";
 
 const read = relative => readFileSync(new URL(relative, import.meta.url), "utf8");
 
@@ -74,4 +75,11 @@ test("planetary impact filters environmental campaigns before the public row lim
   assert.match(fn, /query = query\.eq\("category", "environment"\)/);
   assert.ok(fn.indexOf('query.eq("category", "environment")') < fn.indexOf(".limit(max)"));
   assert.match(fn, /throw new Error\("Unsupported public campaign category filter\."/);
+});
+
+test("restored public routes retain an Explore back-navigation destination", () => {
+  for (const route of ["/events", "/events/123", "/fundraising-tips", "/planetary-impact"]) {
+    assert.equal(owningNavigationTab(route, false), "/discover", route);
+    assert.equal(owningNavigationTab(route, true), "/discover", route);
+  }
 });
