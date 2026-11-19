@@ -170,7 +170,7 @@ export default function Events() {
       ]);
       setItems(eventItems);setOwnedEvents(ownRows);
       const current=auth.data?.user||null;setUser(current);
-      const isOwnEvent=ownRows.some(row=>row.id===eventId);
+      const isOwnEvent=Boolean(current?.id && ownRows.some(row=>row.id===eventId && row.owner_id===current.id));
       if(current?.id&&current.email_confirmed_at&&!current.is_anonymous){
         const myRows=await listMyEventActivity(client).catch(()=>[]);
         setActivity(myRows);
@@ -274,7 +274,7 @@ export default function Events() {
   }
 
   if(eventId){
-    const isOwner=Boolean(event?.id && user?.id && ownedEvents.some(row=>row.id===event.id));
+    const isOwner=Boolean(event?.id && user?.id && ownedEvents.some(row=>row.id===event.id && row.owner_id===user.id));
     const myEventActivity=activity.filter(row=>row.event_id===eventId&&row.status==="active");
     const hasRsvp=myEventActivity.some(row=>row.activity_type==="rsvp");
     return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
