@@ -1,0 +1,106 @@
+// Shared page identities for both browser tabs and the in-app workspace.
+// Keep these aligned with ci/route-acceptance.json as new routes are added.
+const TITLE_BY_PATH = Object.freeze({
+  "/": "Home",
+  "/about": "About iFund",
+  "/activate": "Sign In",
+  "/admin": "Administration",
+  "/admin/audit": "Audit Log",
+  "/admin/deletions": "Account Deletion Requests",
+  "/admin/finance": "Platform Finances",
+  "/admin/help": "Help Center Editor",
+  "/admin/integrations": "Admin Integrations",
+  "/admin/social-moderation": "Community Moderation",
+  "/admin/studio": "Website Studio",
+  "/admin/sustainability": "Planetary Impact Administration",
+  "/agents": "AI Team",
+  "/ai-images": "AI Image Studio",
+  "/analytics": "Command Center",
+  "/atlas": "Campaign Atlas",
+  "/auth/callback": "Completing Sign-In",
+  "/auth/mobile-callback": "Mobile Authentication",
+  "/blog": "Social Feed",
+  "/blogs": "Stories & Blogs",
+  "/campaigns": "My Campaigns",
+  "/communications": "Communications Workspace",
+  "/community": "Community",
+  "/connect": "Account Connections",
+  "/connections": "Account Connections",
+  "/contact": "Contact",
+  "/create": "Create a Campaign",
+  "/dashboard": "Dashboard",
+  "/delete-account": "Account Deletion",
+  "/devices": "Connected Devices",
+  "/discover": "Discover Campaigns",
+  "/donors": "Supporters",
+  "/download": "Download iFund",
+  "/engagement": "Campaign Engagement",
+  "/finances": "Financial Center",
+  "/following": "Followed Campaigns",
+  "/forgot-password": "Recover Your Password",
+  "/founding-members": "Founding Members",
+  "/fundraising-partners": "Fundraising Partners",
+  "/giving": "My Giving",
+  "/globe": "Campaign Atlas",
+  "/hackathon": "iFund Demo",
+  "/hackathon/tracker": "Demo Evidence Tracker",
+  "/health-privacy": "Health & Privacy",
+  "/help": "Help Center",
+  "/inbox": "Inbox",
+  "/institutions": "Institutions & Opportunities",
+  "/ledger": "Financial Ledger",
+  "/login": "Sign In",
+  "/mission": "Mission Control",
+  "/my-blog": "My Publication Studio",
+  "/my-profile": "My Profile",
+  "/news": "iFund Newscaster",
+  "/notifications": "Notifications",
+  "/oauth/consent": "Connection Authorization",
+  "/onboarding": "Account Setup",
+  "/ops": "Operations Center",
+  "/permissions": "Account Permissions",
+  "/planetary-impact": "Planetary Impact",
+  "/plans": "Membership Plans",
+  "/platform": "Platform Operations",
+  "/preferences": "Account Preferences",
+  "/privacy": "Privacy Policy",
+  "/profile": "My Profile",
+  "/publication": "My Publication",
+  "/register": "Create Account",
+  "/reset-password": "Reset Password",
+  "/shorts": "Orbit Shorts",
+  "/social": "Social Feed",
+  "/strategy": "Campaign Strategy",
+  "/subscriptions": "Manage Subscriptions",
+  "/support": "Support Tickets",
+  "/terms": "Terms of Service",
+  "/withdrawals": "Withdrawal Verification",
+});
+
+const DYNAMIC_TITLES = Object.freeze([
+  [/^\/campaign\/[^/]+\/?$/, "Campaign"],
+  [/^\/campaigns\/[^/]+\/edit\/?$/, "Edit Campaign"],
+  [/^\/social\/post\/[^/]+\/?$/, "Social Post"],
+  [/^\/community\/[^/]+\/?$/, "Community Discussion"],
+  [/^\/blogs\/[^/]+\/?$/, "Blog Article"],
+  [/^\/publications\/[^/]+\/?$/, "Publication"],
+  [/^\/help\/[^/]+\/?$/, "Help Article"],
+  [/^\/institutions\/[^/]+\/?$/, "Institution"],
+  [/^\/embed\/campaign\/[^/]+\/?$/, "Embedded Campaign"],
+  [/^\/p\/[^/]+\/?$/, "Published Page"],
+  [/^\/u\/[^/]+\/?$/, "Member Profile"],
+  [/^\/oauth\/callback\/[^/]+\/?$/, "Connecting Account"],
+]);
+
+export function pageTitle(pathname) {
+  const path = String(pathname || "/");
+  if (TITLE_BY_PATH[path]) return TITLE_BY_PATH[path];
+  if (path.startsWith("/admin/")) return "Administration";
+  for (const [pattern, name] of DYNAMIC_TITLES) if (pattern.test(path)) return name;
+  return "Page Not Found";
+}
+
+export function browserPageTitle(pathname) {
+  const page = pageTitle(pathname);
+  return page === "Home" ? "Interplanetary Fund — What If?" : page + " | Interplanetary Fund";
+}
