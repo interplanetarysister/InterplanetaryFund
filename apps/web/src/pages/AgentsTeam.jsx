@@ -74,6 +74,7 @@ export default function AgentsTeam() {
     const owner=user?.id||null;
     setAiPermission({status:owner?"loading":"signed-out",allowed:false,ownerId:owner});
     if(!owner)return()=>{active=false;};
+    try {
     const client=authClient();
     client.from("ifund_ai_permission_preferences")
       .select("owner_id,allow_ai_campaign_drafts,allow_future_internal_ai_assistance")
@@ -88,6 +89,9 @@ export default function AgentsTeam() {
           (data.allow_ai_campaign_drafts===true || data.allow_future_internal_ai_assistance===true));
         setAiPermission({status:matching?"ready":"unavailable",allowed,ownerId:owner});
       }).catch(()=>{if(active)setAiPermission({status:"unavailable",allowed:false,ownerId:owner});});
+    } catch {
+      if(active)setAiPermission({status:"unavailable",allowed:false,ownerId:owner});
+    }
     return()=>{active=false;};
   },[user?.id]);
   useEffect(()=>{
