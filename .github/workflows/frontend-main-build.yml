@@ -15,11 +15,11 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '24'
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run build
-      - run: npm --prefix apps/web install --no-audit --no-fund
+      - run: npm --prefix apps/web ci --no-audit --no-fund
       - run: npm --prefix apps/web test
       - run: npm --prefix apps/web run build

@@ -43,3 +43,33 @@ for (const platform of ["android", "ios"]) {
     assert.doesNotMatch(source, /npm install --package-lock-only/);
   });
 }
+
+test("retired native lockfile workflow only verifies exact-head dependencies", () => {
+  const source = workflow("ifund-native-refresh-lock");
+  manualOnly(source);
+  node24(source);
+  assert.match(source, /permissions:\s*\n\s*contents: read/);
+  assert.match(source, /persist-credentials: false/);
+  assert.doesNotMatch(source, /\bcontents: write\b/);
+  assert.doesNotMatch(source, /git push|git commit|npm install --package-lock-only/);
+  assert.doesNotMatch(source, /^\s+ref:\s*(?:feature\/|[a-f0-9]{40})/m);
+  assert.match(source, /npm ci --legacy-peer-deps --ignore-scripts/);
+  assert.match(source, /git -C \.\.\/\.\. diff --exit-code/);
+});
+
+test("manual Pages release and source security QA use Node 24", () => {
+  for (const name of [
+    "deploy-web-pages",
+    "frontend-main-build",
+    "ifund-document-security-tests",
+    "ifund-continuous-repair-qa",
+    "ifund-payment-reconciliation",
+    "ifund-atlas-source-tests",
+    "ifund-native-associations",
+    "main-release-candidate-checks",
+  ]) {
+    const source = workflow(name);
+    node24(source);
+    manualOnly(source);
+  }
+});

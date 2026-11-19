@@ -1,61 +1,43 @@
-name: IFund Independent Mobile Dependency Lock
+name: IFund Independent Mobile Dependency Lock Verification
 
-# Manual-only; deliberately no Cloudflare Pages or native build.
-# Updates only apps/mobile/package-lock.json on the existing work branch.
+# Read-only, manually invoked exact-head lockfile integrity check.
+# Never pushes to the deprecated route-completion branch or alters Base44.
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: ifund-native-dependency-lock
+  group: ifund-native-dependency-lock-verification-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  lock:
-    if: github.ref_name == 'feature/route-completion-20261113'
+  verify-lock:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/route-completion-20261113
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: Assert independent identity before installing dependencies
+          node-version: '24'
+      - name: Verify independent app identity before installing
         run: |
           node apps/mobile/scripts/verify-mobile.mjs --candidate
           node -e "const a=require('./apps/mobile/capacitor.config.json');if(a.appId!=='com.interplanetaryfund.app')process.exit(1)"
-      - name: Generate native lock from the exact pinned package manifest
+      - name: Verify exact committed dependency lock without writing changes
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --ignore-scripts --no-audit --no-fund
-          node -e "const fs=require('fs'),p=require('./package.json'),l=require('./package-lock.json');if(l.name!==p.name||l.lockfileVersion<3||Object.keys(p.dependencies).some(k=>l.packages[''].dependencies[k]!==p.dependencies[k]))process.exit(1)"
-      - name: Commit the reviewed dependency graph to the SAME branch
-        shell: bash
-        run: |
           set -euo pipefail
-          git config user.name "ifund-mobile-ci"
-          git config user.email "ifund-mobile-ci@users.noreply.github.com"
-          git add -- apps/mobile/package-lock.json
-          if git diff --cached --quiet; then
-            echo "Mobile dependency graph already locked."
-            exit 0
-          fi
-          # Race-safe refusal: no force-push or branch proliferation.
-          git fetch origin feature/route-completion-20261113
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]; then
-            echo "Other agents updated the branch; re-run the manual lock job on the latest SHA."
-            exit 1
-          fi
-          git commit -m "build(mobile): commit reproducible independent native dependency lock"
-          git push origin HEAD:feature/route-completion-20261113
-      - uses: actions/upload-artifact@v4
+          npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+          node -e "const fs=require('fs'),p=require('./package.json'),l=require('./package-lock.json');if(l.name!==p.name||l.lockfileVersion<3||Object.keys(p.dependencies).some(k=>l.packages[''].dependencies[k]!==p.dependencies[k])||Object.keys(p.devDependencies).some(k=>l.packages[''].devDependencies[k]!==p.devDependencies[k]))process.exit(1)"
+          git -C ../.. diff --exit-code -- apps/mobile/package.json apps/mobile/package-lock.json
+      - name: Preserve validated lock for review
+        uses: actions/upload-artifact@v4
         with:
-          name: IFund-independent-mobile-package-lock
+          name: IFund-independent-mobile-package-lock-read-only
           path: apps/mobile/package-lock.json
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
