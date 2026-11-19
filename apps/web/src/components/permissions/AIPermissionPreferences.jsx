@@ -67,7 +67,7 @@ export default function AIPermissionPreferences() {
   }
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-labelledby="ai-permission-heading">
     <h2 id="ai-permission-heading" className="text-xl font-semibold">iFund AI permissions</h2>
-    <p className="text-sm text-muted-foreground">Private campaign, outreach and future internal AI drafting or analysis assistance is offered by default when you sign up, unless you decline the relevant checkboxes. To revoke it, uncheck the option here and select Save AI preferences. Saved changes take effect for new drafts and do not authorize third-party posting, account access, messages, payment activity, or future features. Those require separate, explicit approval.</p>
+    <p className="text-sm text-muted-foreground">Private campaign, outreach and future internal AI drafting or analysis assistance is offered by default when you sign up, unless you decline the relevant checkboxes. To revoke it, uncheck the option here and select Save AI preferences. Saved changes take effect for new drafts and do not authorize third-party posting, account access, messages, payment activity, or future high-impact features. Those require separate, explicit approval.</p>
     {phase === "loading" && <p role="status">Loading saved AI preferences…</p>}
     {phase === "error" && <p role="alert">Could not read your saved preferences. <button type="button" className="underline" onClick={()=>setRetry(n=>n+1)}>Retry</button></p>}
     {(phase === "ready" || phase === "saving") && <form className="space-y-4" onSubmit={save}>
