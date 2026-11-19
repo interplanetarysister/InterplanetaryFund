@@ -64,6 +64,12 @@ test("no web callback is consumed by a separate native PKCE session", () => {
   assert.match(nativeAuth, /completeAuthCallback\(client\.auth, href\)/);
   assert.match(nativeAuth, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(main, /installNativeAuthLinks\(\)/);
+  const mobileMain = readFileSync(new URL("../src/mobile-main.jsx", import.meta.url), "utf8");
+  assert.match(mobileMain, /installNativePublicLinks\(\)/);
+  assert.match(mobileMain, /installNativeAuthLinks\(\)/);
+  assert.ok(mobileMain.indexOf("installNativeAuthLinks();") <
+    mobileMain.indexOf("ReactDOM.createRoot("),
+    "Install secure native PKCE listener before mounting the standalone store app");
   assert.match(signup, /emailAuthRedirectUrl\(/);
   assert.match(signup, /type: "signup"/);
 });
