@@ -22,7 +22,7 @@ const input = {
 const copy = {
   titles: ["One", "Two", "Three", "Four", "Five"],
   summaries: ["First summary", "Second summary"],
-  story: "A truthful campaign story.",
+  story: "A truthful account of the community garden needs and organizer-provided plan. ".repeat(21).trim(),
   image_prompt: "A symbolic community garden.",
 };
 const request = (body = input, overrides = {}) =>
