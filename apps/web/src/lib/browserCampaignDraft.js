@@ -21,8 +21,12 @@ function scopedRecord(storage, ownerId) {
       if (parsed?.version === 2 && parsed.owner_id === ownerId &&
           parsed.form && typeof parsed.form === "object" && !Array.isArray(parsed.form)) {
         storage.setItem(key, legacy);
-        storage.removeItem(KEY);
-        raw = legacy;
+        // A storage adapter may silently ignore writes. Never delete the
+        // only recoverable legacy copy until the scoped copy is verified.
+        if (storage.getItem(key) === legacy) {
+          storage.removeItem(KEY);
+          raw = legacy;
+        }
       }
     }
   }
@@ -36,7 +40,9 @@ function scopedRecord(storage, ownerId) {
       try { parsed = JSON.parse(legacyGuest); } catch { /* keep corrupt text */ }
       if (parsed?.version === 2 && parsed.owner_id === null) {
         storage.setItem(ownerKey(null), legacyGuest);
-        storage.removeItem(KEY);
+        // Preserve the original guest draft when the scoped write is ignored.
+        if (storage.getItem(ownerKey(null)) === legacyGuest)
+          storage.removeItem(KEY);
       }
     }
   }
