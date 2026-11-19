@@ -10,7 +10,7 @@ test("relevant context help on finance, plans, campaign, AI and account routes",
     ["/create","Campaigns"],["/campaign/abc","Campaigns"],
     ["/campaigns/abc/edit","Campaigns"],["/fundraising-partners","Campaigns"],
     ["/agents","AI Assistance"],["/analytics","AI Assistance"],
-    ["/community/abc","Community"],["/news","Community"],
+    ["/community/abc","Community"],["/news","Community"],["/publications/abc","Community"],
     ["/connections","Connections & Publishing"],["/admin/studio","Connections & Publishing"],
     ["/permissions","Account & Security"],["/register","Account & Security"],
     ["/health-privacy","Legal & Policies"],["/download","Getting Started"]
