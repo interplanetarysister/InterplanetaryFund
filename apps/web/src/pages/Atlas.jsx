@@ -164,7 +164,12 @@ export default function Atlas() {
       <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Campaign location explorer">
         <h2 className="text-xl font-semibold">AG Grid · Campaign locations</h2>
         <p className="text-sm text-muted-foreground">Sort and filter campaigns by place, cause, and status. {scope==="mine"?"Private drafts are visible only to the verified owner; they are never displayed as public markers.":"The public grid contains only published campaigns."}</p>
-        <Suspense fallback={<p role="status" className="rounded-xl border border-border p-4 text-sm text-muted-foreground">Loading interactive location table…</p>}><FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/></Suspense>
+        {gridRows.length ? <Suspense fallback={<p role="status" className="rounded-xl border border-border p-4 text-sm text-muted-foreground">Loading interactive location table…</p>}><FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/></Suspense>
+        : <div role="status" className="space-y-3 rounded-xl border border-border p-5 text-sm">
+            <p className="font-semibold">{query.trim() ? "No campaigns match your search." : "No campaign locations to display yet."}</p>
+            <p className="text-muted-foreground">{query.trim() ? "Try a different city, cause or campaign title." : scope==="mine" ? "Your campaigns will appear here once you have saved one. Sharing an approximate public map location is optional." : "Campaigns will appear when organizers publish them and approve their public visibility."}</p>
+            <div className="flex flex-wrap gap-3">{query.trim() && <button type="button" onClick={()=>setQuery("")} className="min-h-11 rounded-lg border border-border px-4 font-semibold">Clear search</button>}<Link to={scope==="mine"?"/create":"/discover"} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-semibold">{scope==="mine"?"Create a campaign":"Explore campaigns"}</Link></div>
+          </div>}
       </section>
       {scope==="mine" && campaigns.some(c=>c.status==="active"&&!isApprovedAtlasLocation(c)) && (
         <section className="space-y-3 rounded-xl border border-emerald-500/25 bg-card p-5" aria-label="Campaigns missing map locations">
