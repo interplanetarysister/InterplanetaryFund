@@ -5,6 +5,7 @@ import StoryAgent from "./StoryAgent";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
 import { askIFundAgent } from "@/lib/agentQuestions";
+import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import TeamConversationHistory from "@/components/agents/TeamConversationHistory";
@@ -83,10 +84,12 @@ export default function AgentsTeam() {
         if(error)throw error;
         const identity=await client.auth.getUser();
         if(!active)return;
-        const matching=identity?.data?.user?.id===owner &&
-          identity.data.user.email_confirmed_at && identity.data.user.is_anonymous!==true;
-        const allowed=Boolean(matching && data?.owner_id===owner &&
-          (data.allow_ai_campaign_drafts===true || data.allow_future_internal_ai_assistance===true));
+        const verifiedUser=identity?.data?.user;
+        const matching=verifiedUser?.id===owner &&
+          Boolean(verifiedUser.email_confirmed_at) && verifiedUser.is_anonymous!==true;
+        const allowed=canAskAgentWithSavedPermission({
+          user:verifiedUser,ownerId:owner,preferences:data,
+        });
         setAiPermission({status:matching?"ready":"unavailable",allowed,ownerId:owner});
       }).catch(()=>{if(active)setAiPermission({status:"unavailable",allowed:false,ownerId:owner});});
     } catch {
