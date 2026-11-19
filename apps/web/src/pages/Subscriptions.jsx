@@ -86,7 +86,10 @@ export default function Subscriptions(){
   },[query,refresh,native]);
 
   async function subscribe(plan){
-    if(native){setError("Paid plans cannot be purchased inside this app yet. Your existing subscription status is still available here.");return;}
+    if (!canStartVerifiedSubscription({plan,status,statusLoad,busy,native})) {
+      setError("Checkout is unavailable until your account status and this PayPal plan are verified.");
+      return;
+    }
     setBusy(plan.tier+":"+plan.interval);setError("");setNotice("");
     try{
       const result=await call("/api/payments/subscriptions/start",{
