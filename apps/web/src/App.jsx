@@ -25,12 +25,14 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const HealthPrivacy = lazy(() => import("./pages/HealthPrivacy"));
 const Help = lazy(() => import("./pages/Help"));
+const FundraisingTips = lazy(() => import("./pages/FundraisingTips"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AgentsTeam = lazy(() => import("./pages/AgentsTeam"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const MobileAuthCallbackNotice = lazy(() => import("./pages/MobileAuthCallbackNotice"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Events = lazy(() => import("./pages/Events"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
 function SocialRoute() {
   const { search } = useLocation();
@@ -136,6 +138,8 @@ function AppRoutes() {
       <Route path="/donors" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
       <Route path="/connect" element={<Navigate to="/connections" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/events" element={<Events />} />
+      <Route path="/events/:id" element={<Events />} />
       <Route path="/finances" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
       <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
       <Route path="/giving" element={<Navigate to="/finances#giving-receipts" replace />} />
@@ -151,6 +155,7 @@ function AppRoutes() {
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/planetary-impact" element={<AdminSustainability />} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><AdminDeletionQueue /></SuperAdminAccess></MemberAccess>} />
@@ -181,6 +186,7 @@ function AppRoutes() {
       <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
+      <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
       <Route path="/admin/*" element={<PageNotFound />} />
 
