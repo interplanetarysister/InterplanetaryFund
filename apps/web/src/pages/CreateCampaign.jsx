@@ -144,6 +144,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [saved, setSaved] = useState("");
   const [savedStatus, setSavedStatus] = useState("draft");
   const [browserSaved, setBrowserSaved] = useState(false);
+  const [guestCopyRetained,setGuestCopyRetained] = useState(false);
   const [guestDecisionPending, setGuestDecisionPending] = useState(() => {
     if (!ownerId || draftId) return false;
     try { return hasUnclaimedGuestCampaign(sessionStorage); } catch { return true; } // Fail closed when guest ownership cannot be checked.
@@ -312,6 +313,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   function decideGuestDraft(importIt) {
     if (ownerTransitionPending) return; // No consent can bridge two account identities without a remount.
     if (!importIt) {
+      setGuestCopyRetained(false);
       setGuestImportMessage("Guest draft kept separately on this device.");
       setGuestDecisionPending(false);
       return;
@@ -334,10 +336,31 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       const brief = restoreWritingBrief(sessionStorage, ownerId);
       setWritingPath(brief.writingPath); setDraftDetails(brief.details);
       setDraftBeneficiary(brief.beneficiary); setDraftNeed(brief.need);
-      setGuestImportMessage(outcome.status === "imported_guest_retained" ? "Draft imported, but the guest copy could not be removed from this device. Private information may remain accessible to another guest. Avoid using this shared device until its browser data is cleared." : "Guest draft imported into this account.");
+      setGuestCopyRetained(outcome.status === "imported_guest_retained");
+      setGuestImportMessage(outcome.status === "imported_guest_retained" ? "Draft imported, but the guest copy could not be removed from this device. Private information may remain accessible to another guest. Retry cleanup below or avoid this shared device." : "Guest draft imported into this account.");
       setGuestDecisionPending(false);
     } catch {
       setGuestImportMessage("Browser storage failed. Guest draft was not intentionally deleted. Choose Keep separate.");
+    }
+  }
+  function retryGuestCopyCleanup(){
+    // Explicit retry, never an unattended deletion. Only a byte-identical
+    // owner copy can authorize cleanup of its matching guest source.
+    if (!ownerId || ownerTransitionPending || disabled) return;
+    try {
+      const outcome=importGuestCampaign(sessionStorage,ownerId);
+      if(outcome.status==="imported"){
+        setGuestCopyRetained(false);
+        setGuestImportMessage("The duplicate guest campaign draft was removed from this browser. Your account draft remains unchanged.");
+      } else {
+        setGuestCopyRetained(true);
+        setGuestImportMessage(outcome.status==="owner_exists"
+          ? "The owner draft or guest draft has changed since import. Neither was overwritten or removed. Review this device's browser drafts before clearing anything."
+          : "Guest draft cleanup could not be verified ("+outcome.status.replaceAll("_"," ")+"). The guest copy may still be accessible on this device.");
+      }
+    } catch {
+      setGuestCopyRetained(true);
+      setGuestImportMessage("Browser storage blocked the cleanup attempt. Your account draft was not changed.");
     }
   }
   function change(key, value) {
@@ -522,7 +545,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <button type="button" onClick={retryStorageRead} className="min-h-12 rounded-xl border border-border px-4 font-semibold">Retry browser storage</button>
     </section>}
     {guestDecisionPending && <section role="region" aria-label="Guest draft transfer" className="space-y-3 rounded-xl border p-3"><p>A guest campaign draft is stored on this device and may belong to another person. Import it only if it is yours. Existing account drafts will not be overwritten.</p><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(true)}>Import my guest draft</button><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(false)}>Keep separate</button></div></section>}
-    {guestImportMessage && <p role="status" className="text-sm break-words">{guestImportMessage}</p>}
+    {guestImportMessage && <section className="space-y-2 rounded-xl border border-border p-3" aria-live="polite">
+      <p className="text-sm break-words">{guestImportMessage}</p>
+      {guestCopyRetained && <button type="button" disabled={disabled || !ownerId} onClick={retryGuestCopyCleanup} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-50">Retry guest-copy cleanup</button>}
+    </section>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
