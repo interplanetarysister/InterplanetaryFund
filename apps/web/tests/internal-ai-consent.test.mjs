@@ -32,7 +32,7 @@ test("signup discloses default and account permissions can revoke without third 
   const sql=read("../../../supabase/migrations/20261119110000_ifund_future_internal_ai_assistance_preference.sql");
   assert.match(signup,/allow_future_internal_ai_assistance:true/);
   assert.match(signup,/To decline any of these options, uncheck them before signup/);
-  assert.match(signup,/financial actions.*separate authorization/);
+  assert.match(signup,/handle payments, or represent other people\. Those actions require separate authorization/);
   assert.match(setting,/uncheck the option here and select Save AI preferences/);
   assert.match(setting,/allow_future_internal_ai_assistance: false/);
   assert.match(onboarding,/To revoke either preference now or later/);
