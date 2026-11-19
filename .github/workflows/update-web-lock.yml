@@ -1,35 +1,37 @@
-name: Update IFund web lockfile
+name: Verify IFund web dependency lock
 
-# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
+# Manual, read-only exact-head validation. Lockfile changes must be reviewed as
+# ordinary source commits, never silently pushed by a mutable CI workflow.
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   lockfile:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '24'
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
-      - name: Regenerate lockfile
+      - name: Verify exact committed web dependencies
         working-directory: apps/web
-        run: npm install --package-lock-only --ignore-scripts --legacy-peer-deps --no-audit --no-fund
-      - name: Commit lockfile
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/package-lock.json
-          if git diff --cached --quiet; then
-            echo "Lockfile is already current."
-            exit 0
-          fi
-          git commit -m "chore(web): update Capacitor lockfile"
-          git push
+          set -euo pipefail
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          node -e "const p=require('./package.json'),l=require('./package-lock.json'); if(l.lockfileVersion<3 || Object.keys(p.dependencies).some(k=>l.packages[''].dependencies[k]!==p.dependencies[k]) || Object.keys(p.devDependencies).some(k=>l.packages[''].devDependencies[k]!==p.devDependencies[k])) process.exit(1)"
+          git -C ../.. diff --exit-code -- apps/web/package.json apps/web/package-lock.json
+      - name: Preserve reviewed lockfile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IFund-web-lockfile-read-only
+          path: apps/web/package-lock.json
+          retention-days: 7
+          if-no-files-found: error
