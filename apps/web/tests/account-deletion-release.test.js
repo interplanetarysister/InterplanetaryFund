@@ -101,7 +101,7 @@ test("cancelled requests remain audited and never enter the active deletion queu
   const mobile=read("src/mobile/MobileStoreDeleteAccount.jsx");
   assert.match(migration,/status='cancelled',cancelled_at=now\(\)/);
   assert.match(migration,/r.status in \('requested','reviewing','requires_legal_retention'\)/);
-  assert.match(migration,/r.account_disabled_at is not null/);
+  assert.match(migration,/v_row\.account_disabled_at is not null/);
   assert.match(migration,/v_row.erasure_started_at is not null/);
   assert.match(migration,/v_row.document_cleanup_reviewed_at is not null/);
   assert.match(migration,/revoke all on function public.ifund_cancel_account_deletion\(uuid\) from public,anon,authenticated/);
