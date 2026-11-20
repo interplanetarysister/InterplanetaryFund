@@ -51,8 +51,16 @@ CREATE POLICY ifund_merch_draft_owner_update ON public.ifund_campaign_merch_desi
     WHERE c.id = campaign_id AND c.owner_id = (SELECT auth.uid())
   ) AND status='draft');
 
+DROP POLICY IF EXISTS ifund_merch_draft_owner_delete ON public.ifund_campaign_merch_designs;
+CREATE POLICY ifund_merch_draft_owner_delete ON public.ifund_campaign_merch_designs
+  FOR DELETE TO authenticated
+  USING (owner_id = (SELECT auth.uid()) AND EXISTS (
+    SELECT 1 FROM public.ifund_campaigns c
+    WHERE c.id = campaign_id AND c.owner_id = (SELECT auth.uid())
+  ));
+
 REVOKE ALL ON public.ifund_campaign_merch_designs FROM anon;
-GRANT SELECT, INSERT, UPDATE ON public.ifund_campaign_merch_designs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ifund_campaign_merch_designs TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.ifund_merch_private_draft_owner_guard()
 RETURNS trigger
