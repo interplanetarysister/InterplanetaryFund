@@ -52,6 +52,12 @@ test("prompt is source-agnostic, advisory and redacts pasted credentials",()=>{
   const input=validateTeamQuestion({request_id:KEY,question:"Can you help with my campaign story?",agent:"story"});
   const messages=teamQuestionMessages({...input,history:[{speaker:"user",agent_id:"story",content:"Authorization: Bearer secret1234567890"}]});
   assert.match(messages[0].content,/advisory reply only/);
+  assert.match(messages[0].content,/IFund gain legitimate new members/);
+  assert.match(messages[0].content,/IFund earn legitimate revenue/);
+  assert.match(messages[0].content,/nonmember may receive information about IFund/);
+  assert.match(messages[0].content,/authorized external campaign/i);
+  assert.match(messages[0].content,/Never impersonate a volunteer or hide your IFund affiliation/);
+  assert.match(messages[0].content,/owner-reported totals/i);
   assert.doesNotMatch(JSON.stringify(messages),/secret1234567890/);
   assert.equal(validateTeamAnswer({response:"Prepare a short outline first."},"story").actions_performed,false);
   assert.throws(()=>validateTeamAnswer({response:""},"story"));

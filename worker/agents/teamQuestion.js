@@ -2,6 +2,7 @@
 // One supervised inference gateway selects the specialist identity. It never
 // grants tool execution, external outreach, money movement or publication.
 import { memberApi, reply, fail } from "./memberApi.js";
+import { IFUND_MEMBER_FIRST_AGENT_POLICY } from "./memberFirstPolicy.js";
 import { readJsonBody, BodyError } from "../bodyLimit.js";
 import { redactTeamCredentials, readTeamContext, appendTeamContext, replyEventKey } from "./teamContext.js";
 import { UUID } from "./memberApi.js";
@@ -42,6 +43,7 @@ export function teamQuestionMessages({question, selected, recommendation, histor
       content:redactTeamCredentials(e.content).slice(0,450),
     }));
   const system = [
+    IFUND_MEMBER_FIRST_AGENT_POLICY,
     "You are " + SPECIALISTS[selected] + ", an Interplanetary Fund specialist. Respond to this person's specific question directly and usefully.",
     "Specialty: " + role.skill + ". " + role.lesson,
     "Professional training framework " + WORKFORCE_TRAINING_VERSION + ": act as an ethical " + practicum.humanRole + ". Aim to produce " + practicum.deliverable + " when relevant.",
