@@ -274,11 +274,11 @@ export default function Layout() {
       <aside className="ifund-sidebar ifund-desktop-sidebar hidden md:flex relative self-stretch shrink-0 w-max flex-col py-6 z-40">
         <div className="px-3 mb-5">
           <div className="flex items-center justify-between gap-2">
-            <Link to={user ? "/dashboard" : "/"} className="min-w-0 flex items-center gap-2 cursor-pointer" aria-label={user ? "Go to dashboard" : "Go home"}>
+            <Link to={user ? "/dashboard" : "/"} className="min-h-11 min-w-0 flex items-center gap-2 cursor-pointer" aria-label={user ? "Go to dashboard" : "Go home"}>
               <BrandLogo size="sm" showName={false} />
               <span className="font-display text-sm font-bold text-foreground">IFund</span>
             </Link>
-            <button type="button" onClick={toggleTheme} className="ifund-sidebar-theme rounded-xl p-2" aria-label={darkTheme ? "Switch to light theme" : "Switch to dark theme"} title={darkTheme ? "Light theme" : "Dark theme"}>{darkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
+            <button type="button" onClick={toggleTheme} className="ifund-sidebar-theme min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl p-2" aria-label={darkTheme ? "Switch to light theme" : "Switch to dark theme"} title={darkTheme ? "Light theme" : "Dark theme"}>{darkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
           </div>
           <p className="mt-3 font-display text-base brand-gradient-text">{SLOGAN}</p>
         </div>
@@ -295,7 +295,7 @@ export default function Layout() {
               <ChevronLeft className="w-6 h-6" />
             </button>
           )}
-          <Link to={user ? "/dashboard" : "/"} className="min-w-0 cursor-pointer" aria-label={user ? "Go to dashboard" : "Go home"}>
+          <Link to={user ? "/dashboard" : "/"} className="min-h-11 min-w-0 flex items-center cursor-pointer" aria-label={user ? "Go to dashboard" : "Go home"}>
             <BrandLogo size="sm" showName={isRoot} nameClassName="ifund-brand-title text-[15px] truncate" />
           </Link>
           {!isRoot && <span className="font-display ifund-mobile-title text-lg truncate">{pageTitle(pathname)}</span>}
@@ -331,7 +331,7 @@ export default function Layout() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link to={helpPathForLocation(pathname)} className="ifund-workspace-utility inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold" aria-label="Visit IFund Help Center">
+            <Link to={helpPathForLocation(pathname)} className="ifund-workspace-utility inline-flex min-h-11 items-center gap-2 px-3 text-xs font-semibold" aria-label="Visit IFund Help Center">
               <LifeBuoy className="h-4 w-4" />
               <span className="hidden sm:inline">Help Center</span>
             </Link>

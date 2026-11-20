@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Sparkles, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { pageTips } from "./pageTips";
+import { pageTips } from "./pageTipsData";
 
 // A small, unobtrusive Tips control. Opens a dismissible dialog with
 // page-specific guidance. Never auto-opens. For pages with an element

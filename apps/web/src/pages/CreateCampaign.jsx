@@ -1,4 +1,6 @@
 import AgentAdviceReview from "@/components/agents/AgentAdviceReview";
+import CampaignTemplatePreview from "@/components/campaigns/CampaignTemplatePreview";
+import { isTemplateCategory, isTemplateStyle, templateCategory, templateStyle } from "@/lib/campaignTemplates";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
@@ -142,6 +144,19 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     } catch { /* session storage unavailable */ }
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
   });
+  // A template link chooses a starting category and layout preview for a new
+  // campaign only. It never overwrites restored or typed content, and nothing
+  // is persisted beyond the normal campaign fields.
+  const [previewViewport, setPreviewViewport] = useState("desktop");
+  const templateParam = params.get("template");
+  const [previewStyle] = useState(() => templateStyle(isTemplateStyle(templateParam) ? templateParam : templateCategory(params.get("category")).style).id);
+  useEffect(() => {
+    const requestedCategory = params.get("category");
+    if (draftId || !isTemplateCategory(requestedCategory) || userEditedDraft.current) return;
+    setForm(previous => (previous.title || previous.summary || previous.story)
+      ? previous
+      : { ...previous, category: requestedCategory });
+  }, [draftId, params]);
   // Pre-fill only an empty new draft, and only with the current owner's private Mission.
   // User-entered or restored campaign content is never overwritten by a Mission.
   useEffect(() => {
@@ -562,7 +577,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
+    <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
@@ -577,7 +592,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {guestCopyRetained && <button type="button" disabled={disabled || !ownerId} onClick={retryGuestCopyCleanup} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-50">Retry guest-copy cleanup</button>}
     </section>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
-    {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
+    {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link></p>}
     <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
     <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
     <AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} />
@@ -714,6 +729,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
 
     {step===1&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
     {step===2&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"No optional short description added."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
+    {step===2&&<details className="rounded-xl border border-border p-4">
+      <summary className="cursor-pointer font-semibold">Preview your campaign layout</summary>
+      <div className="mt-3 space-y-3">
+        <p className="text-sm text-muted-foreground">This preview uses your current words. It never invents donations, supporters or progress: your published campaign shows only verified activity, and a goal is not a promise of funds.</p>
+        <div className="inline-flex rounded-xl border border-border p-1" role="group" aria-label="Preview size">
+          <button type="button" onClick={()=>setPreviewViewport("desktop")} aria-pressed={previewViewport==="desktop"} className={"min-h-11 rounded-lg px-4 text-sm font-medium "+(previewViewport==="desktop"?"bg-primary text-primary-foreground":"")}>Desktop</button>
+          <button type="button" onClick={()=>setPreviewViewport("mobile")} aria-pressed={previewViewport==="mobile"} className={"min-h-11 rounded-lg px-4 text-sm font-medium "+(previewViewport==="mobile"?"bg-primary text-primary-foreground":"")}>Mobile</button>
+        </div>
+        <CampaignTemplatePreview template={previewStyle} category={form.category} content={form} viewport={previewViewport} />
+      </div>
+    </details>}
     {step===2&&<details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Optional campaign readiness insights</summary><div className="mt-3"><CampaignReadinessScore form={form} /></div><p className="mt-3 text-sm text-muted-foreground">These suggestions are optional. You can refine your campaign later in Command Center.</p>{ownerId&&<Link to="/analytics" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline">Open Command Center</Link>}</details>}
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     {step===2&&<p className="text-sm text-muted-foreground">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>}

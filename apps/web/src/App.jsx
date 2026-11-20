@@ -44,6 +44,7 @@ const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const CampaignTemplates = lazy(() => import("./pages/CampaignTemplates"));
 const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
 const MyMissions = lazy(() => import("./pages/MyMissions"));
 const MissionWorkspace = lazy(() => import("./pages/MissionWorkspace"));
@@ -177,6 +178,7 @@ function AppRoutes() {
       <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
       <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
       <Route path="/create" element={<CreateCampaign />} />
+      <Route path="/templates" element={<CampaignTemplates />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />

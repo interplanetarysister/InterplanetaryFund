@@ -12,7 +12,7 @@ export default function AgentFeatureLauncher({campaignId=null,disabled=false,onS
    {onSelect?<button type="button" disabled={disabled} onClick={()=>onSelect(agent.identity)} className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold disabled:opacity-50">Open {agent.name}</button>:
     disabled?<span className="inline-flex min-h-11 items-center text-sm text-muted-foreground">Finish saving to open {agent.name}</span>:
     <Link className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold" to={agentWorkspaceHref(agent.identity,saved)}>Open {agent.name}</Link>}
-   {!disabled&&<Link className="block py-2 text-sm underline" to={agentToolHref(agent.identity,saved)}>Open {agent.tool}</Link>}
+   {!disabled&&<Link className="inline-flex min-h-11 items-center text-sm underline" to={agentToolHref(agent.identity,saved)}>Open {agent.tool}</Link>}
   </article>)}</div>
  </section>;
 }

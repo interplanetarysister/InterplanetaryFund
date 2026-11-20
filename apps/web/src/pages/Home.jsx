@@ -1,15 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
-import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp, Download, LayoutTemplate, ShieldCheck, Wand2 } from "lucide-react";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import PromptComposer from "@/components/prompt/PromptComposer";
+import CampaignCategoryGrid from "@/components/campaigns/CampaignCategoryGrid";
+import CampaignCard from "@/components/campaigns/CampaignCard";
+import { listActiveCampaigns } from "@/api/publicData";
 
 // Archived original Base44 hero artwork, bundled locally with Cloudflare Pages.
 // SHA-256 and original source are recorded in public/images/base44-archive/manifest.json.
@@ -36,15 +40,33 @@ const STORY = [
   { h: "Our ambition is global", p: "And that's why we're here today. We're looking for partners who see the potential to build a much larger ecosystem around how people fund ideas, causes, projects, and possibilities. Our ambition is global. Our technology is being built with scalability in mind. And our long-term goal is simple: Create a world where great ideas have a better chance of finding the people, resources, and momentum they need to become reality." },
 ];
 
+const EXAMPLE_PROMPTS = [
+  "I need help with medical bills after a diagnosis.",
+  "What if our neighbourhood had a shared community space?",
+  "I want to launch a small business with my family.",
+];
+
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
   const navigate = useNavigate();
-  const [goal,setGoal] = useState("");
   const { user } = useAuthSession();
   const isAuthenticated = Boolean(user);
   const [heroOk, setHeroOk] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    listActiveCampaigns({ limit: 6 })
+      .then((items) => { if (active) setCampaigns(items); })
+      .catch(() => { /* A guest-readable failure must not hide the rest of the page. */ });
+    return () => { active = false; };
+  }, []);
+
+  function startFromPrompt(prompt) {
+    navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt } });
+  }
 
   return (
     <div className="ifund-public min-h-dvh bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
@@ -58,30 +80,33 @@ export default function Home() {
       {/* Hero */}
       <section className="ifund-public-hero relative overflow-hidden deep-space">
         {heroOk && <img src={HERO_IMAGE} alt="A glowing planet arc surrounded by stars and soft nebula light" className="absolute inset-0 w-full h-full opacity-60 object-cover" style={{ objectPosition: "70% 60%" }} onError={() => setHeroOk(false)} />}
-        <div className="relative px-5 sm:px-8 py-16 sm:py-24 max-w-3xl mx-auto text-center">
+        <div className="relative px-5 sm:px-8 py-14 sm:py-20 max-w-3xl mx-auto text-center">
           <p className="ifund-editorial-eyebrow mb-6">A universe of possibility</p>
-          <div className="flex justify-center mb-8"><BrandLogo size="sm" nameClassName="text-slate-100 text-sm" /></div>
-          <h1 className="ifund-home-headline font-display text-4xl sm:text-6xl leading-[1.05] text-white mb-6">
+          <div className="flex justify-center mb-7"><BrandLogo size="sm" nameClassName="text-slate-100 text-sm" /></div>
+          <h1 className="ifund-home-headline font-display text-4xl sm:text-6xl leading-[1.05] text-white mb-5">
             Endless possibilities start with one question:
             <br />
             <span className="brand-gradient-text">What if?</span>
           </h1>
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
-          {whatIfEnabled && <form onSubmit={e=>{e.preventDefault();if(goal.trim())navigate("/what-if",{state:{prompt:goal}});}} className="mx-auto mb-6 max-w-xl space-y-3 rounded-2xl border border-cyan-200/25 bg-slate-950/75 p-4 text-left">
-            <label htmlFor="home-what-if" className="block text-sm font-semibold text-cyan-100">What would you like to make possible?</label>
-            <textarea id="home-what-if" rows={3} maxLength={12000} value={goal} onChange={e=>setGoal(e.target.value)}
-              className="w-full resize-y rounded-xl border border-white/20 bg-slate-900 px-4 py-3 text-base text-white placeholder-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
-              placeholder="I want to… I need help with… What if we could…"/>
-            <button type="submit" disabled={!goal.trim()} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50">Explore my possibilities <ArrowRight className="h-4 w-4"/></button>
-            <p className="text-xs text-slate-300">Start privately. A campaign or donation is never required.</p>
-          </form>}
+          <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
+          <PromptComposer
+            id="home-what-if"
+            variant="hero"
+            label="What would you like to make possible?"
+            placeholder="I want to… I need help with… What if we could…"
+            submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
+            note="Start privately. A campaign or donation is never required."
+            examples={EXAMPLE_PROMPTS}
+            onSubmit={startFromPrompt}
+            className="mb-6 mx-auto max-w-xl"
+          />
           <div className="flex flex-wrap items-center justify-center gap-3">
             {isAuthenticated ? (
-              <Link to="/dashboard"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+              <Link to="/dashboard"><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
             ) : (
               <>
-                <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> {whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Button></Link>
-                <Link to="/discover"><Button size="lg" variant="outline" className="rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
+                <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> {whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Button></Link>
+                <Link to="/discover"><Button size="lg" variant="outline" className="!min-h-12 rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
               </>
             )}
           </div>
@@ -95,15 +120,76 @@ export default function Home() {
             <Link to="/register" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Create your free account <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </div>
           {!isAuthenticated && (
-            <p className="mt-8 text-sm text-slate-400">Already have an account? <Link to="/login" className="text-cyan-300 hover:text-cyan-200 font-medium">Log in</Link> · <Link to="/register" className="text-cyan-300 hover:text-cyan-200 font-medium">Create one</Link></p>
+            <p className="mt-8 text-sm text-slate-400">Already have an account? <Link to="/login" className="inline-flex min-h-11 items-center text-cyan-300 hover:text-cyan-200 font-medium">Log in</Link> · <Link to="/register" className="inline-flex min-h-11 items-center text-cyan-300 hover:text-cyan-200 font-medium">Create one</Link></p>
           )}
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-14 sm:pt-20" aria-labelledby="home-categories-heading">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Find your starting point</p>
+            <h2 id="home-categories-heading" className="font-display text-3xl sm:text-4xl leading-tight">What are you hoping to make possible?</h2>
+            <p className="mt-2 max-w-2xl text-muted-foreground">Choose a cause to see real campaigns — or start one of your own with a template that fits.</p>
+          </div>
+          <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold">Browse all <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+        </div>
+        <div className="mt-5">
+          <CampaignCategoryGrid linkTo={(id) => `/discover?category=${id}`} limit={6} columns="sm:grid-cols-2 lg:grid-cols-3" headingLevel={3} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          <Link to="/templates" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/5 px-4 font-semibold text-cyan-800 dark:text-cyan-200"><LayoutTemplate className="h-4 w-4" aria-hidden="true" /> See campaign templates</Link>
+          <Link to="/fundraising-partners" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold">Fundraising partners</Link>
+        </div>
+      </section>
+
+      {/* Featured campaigns */}
+      {campaigns.length > 0 && (
+        <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-14 sm:pt-20" aria-labelledby="home-campaigns-heading">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Real people, real needs</p>
+              <h2 id="home-campaigns-heading" className="font-display text-3xl sm:text-4xl leading-tight">Campaigns you can support today</h2>
+              <p className="mt-2 max-w-2xl text-muted-foreground">Every campaign below is published by its owner. Funding totals appear only when verified.</p>
+            </div>
+            <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold">See all campaigns <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {campaigns.map((campaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}
+          </div>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-14 sm:pt-20" aria-labelledby="home-how-heading">
+        <div className="ifund-cosmic-panel rounded-3xl border border-border p-6 sm:p-9">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-2">Simple by design</p>
+          <h2 id="home-how-heading" className="font-display text-3xl sm:text-4xl leading-tight">Three steps, no maze.</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {[
+              { icon: Wand2, title: "Describe it", body: "Answer one plain-language prompt. iFund helps shape the idea into a private plan." },
+              { icon: LayoutTemplate, title: "Make it yours", body: "Choose a template, add your own words and images, and preview it on mobile or desktop." },
+              { icon: ShieldCheck, title: "Share it safely", body: "Publish when you are ready. Guest giving is welcome, and verified payment results are shown honestly." },
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="rounded-2xl border border-border bg-card p-5">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <h3 className="mt-3 font-semibold">{title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to={whatIfEnabled ? "/what-if" : "/create"} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-semibold text-white"><Sparkles className="h-4 w-4" aria-hidden="true" /> Start free</Link>
+            <Link to="/plans" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-5 font-semibold">See plans</Link>
+          </div>
         </div>
       </section>
 
       {/* About */}
       <section className="ifund-story-surface max-w-3xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary mb-3">Who is Interplanetary Fund?</p>
-        <h2 className="font-display text-3xl sm:text-4xl text-foreground mb-8 leading-tight">One universe of funding — for every person, every cause, every platform.</h2>
+        <h2 className="font-display text-3xl sm:text-4xl text-foreground mb-8 leading-tight">One place to shape a cause, find your people, and understand what actually happens.</h2>
 
         <div className="space-y-5">
           {OPENING.map((p, i) => <p key={i} className="text-muted-foreground leading-relaxed">{p}</p>)}
@@ -131,8 +217,8 @@ export default function Home() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/discover"><Button variant="outline" className="rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-          <Link to="/create"><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
+          <Link to="/discover"><Button variant="outline" className="!min-h-12 rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
+          <Link to="/create"><Button className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
           <div className="max-w-sm mx-auto mt-9 rounded-2xl border border-border p-4 text-center">
             <p className="text-sm font-medium text-foreground mb-2">Support Interplanetary Fund itself</p>
             <p className="text-xs text-muted-foreground mb-3">This donation helps operate the platform. It is not credited to any individual campaign.</p>

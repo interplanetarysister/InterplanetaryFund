@@ -935,6 +935,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/templates",
+      "role": "public",
+      "component": "CampaignTemplates",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/terms",
       "role": "public",
       "component": "Terms",

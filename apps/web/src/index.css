@@ -650,6 +650,35 @@
 .ifund-experience :where(h1, h2, h3) {
   text-wrap: balance;
 }
+/* Shared cosmic surface. Uses the page's own light/dark tokens so the same
+   component stays readable in both themes and keeps text contrast intact. */
+.ifund-cosmic-panel {
+  background-color: hsl(var(--card));
+  background-image:
+    radial-gradient(120% 100% at 0% 0%, hsl(262 83% 58% / .07), transparent 58%),
+    radial-gradient(90% 120% at 100% 0%, hsl(189 94% 48% / .06), transparent 58%);
+  box-shadow: 0 18px 45px hsl(229 60% 10% / .06);
+}
+.dark .ifund-cosmic-panel {
+  border-color: hsl(189 94% 60% / .22);
+  background-image:
+    radial-gradient(120% 100% at 0% 0%, hsl(262 83% 62% / .16), transparent 58%),
+    radial-gradient(90% 120% at 100% 0%, hsl(189 94% 55% / .12), transparent 58%);
+  box-shadow: 0 18px 45px hsl(229 60% 2% / .35);
+}
+/* One reliable touch target for custom cards, chips and icon links. */
+.ifund-tap {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ifund-cosmic-panel,
+  .ifund-tap,
+  .ifund-experience :where(button, a) {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .connections-hub [class~="bg-white"] {
   border-color: rgb(165 180 252 / .28);
   box-shadow: 0 12px 32px rgb(49 46 129 / .08);
