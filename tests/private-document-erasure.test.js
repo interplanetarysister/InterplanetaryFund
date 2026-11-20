@@ -11,7 +11,7 @@ const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ifund-
 const request=()=>new Request("https://ifund.example/api/services/admin/private-document-erasure",{
  method:"POST",headers:{authorization:"Bearer admin.jwt","content-type":"application/json"},body:JSON.stringify({request_id:REQUEST})
 });
-function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false,orphan=false,missingBytes=false,missingCode="NoSuchKey"}={}){
+function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false,orphan=false,missingBytes=false,missingCode="NoSuchKey",approval=true,approvalRows=null}={}){
  const calls=[];let inventory=1;
  const fetcher=async(url,options)=>{
    const parsed=new URL(url);const method=options.method;
@@ -19,6 +19,8 @@ function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPend
    if(failAt && parsed.pathname.includes(failAt))return Response.json({error:"private upstream detail"},{status:500});
    if(parsed.pathname.includes("/rpc/ifund_super_admin_account_deletion_queue"))
      return Response.json([{request_id:REQUEST,request_status:status,requested_user_id:owner}]);
+   if(parsed.pathname.endsWith("/rpc/ifund_super_admin_private_document_reviewed_queue"))
+     return Response.json(approvalRows ?? (approval?[{request_id:REQUEST,review_ready:true}]:[]));
    if(parsed.pathname.includes("/rpc/ifund_super_admin_private_document_inventory")){
      return Response.json(inventory===0?[]:[{document_id:orphan?null:DOCUMENT,storage_path:path,
        deletion_requested_at:alreadyPending?"2026-11-15T10:00:00Z":null,
@@ -64,6 +66,37 @@ test("unreviewed request cannot delete anything",async()=>{
  const s=service({status:"requested"});
  await assert.rejects(cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"}),/reviewed/);
  assert.equal(s.calls.some(c=>c.method==="DELETE"||c.method==="PATCH"),false);
+});
+test("reviewing state without explicit private-document approval cannot mutate storage or metadata",async()=>{
+ const s=service({approval:false});
+ await assert.rejects(cleanupPrivateCampaignDocuments({
+   fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"
+ }),/Explicit private-document cleanup approval/);
+ assert.ok(s.calls.some(c=>c.url.endsWith("/rpc/ifund_super_admin_private_document_reviewed_queue")));
+ assert.equal(s.calls.some(c=>c.method==="PATCH"||c.method==="DELETE"),false);
+ assert.equal(s.calls.some(c=>c.url.includes("/private_document_inventory")),false);
+});
+test("unrelated or unconfirmed reviewer approvals cannot authorize file erasure",async()=>{
+ for(const rows of [
+   [{request_id:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",review_ready:true}],
+   [{request_id:REQUEST,review_ready:false}],
+   [{request_id:REQUEST,review_ready:"true"}],
+   {request_id:REQUEST,review_ready:true},
+   Array.from({length:201},()=>({request_id:REQUEST,review_ready:true}))
+ ]){
+   const s=service({approvalRows:rows});
+   await assert.rejects(cleanupPrivateCampaignDocuments({
+     fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"
+   }),/Explicit private-document cleanup approval/);
+   assert.equal(s.calls.some(c=>c.method==="PATCH"||c.method==="DELETE"),false);
+ }
+});
+test("reviewer approval service errors cannot authorize cleanup",async()=>{
+ const s=service({failAt:"/rpc/ifund_super_admin_private_document_reviewed_queue"});
+ await assert.rejects(cleanupPrivateCampaignDocuments({
+   fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"
+ }),/refused/);
+ assert.equal(s.calls.some(c=>c.method==="PATCH"||c.method==="DELETE"),false);
 });
 test("foreign account object path blocked",async()=>{
  const s=service({path:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/"+CAMPAIGN+"/"+DOCUMENT+".pdf"});
@@ -118,6 +151,8 @@ test("large owner document inventory returns an explicitly incomplete resumable 
     calls.push({route,method:options.method});
     if(route.endsWith("/rpc/ifund_super_admin_account_deletion_queue"))
       return Response.json([{request_id:REQUEST,request_status:"reviewing",requested_user_id:OWNER}]);
+    if(route.endsWith("/rpc/ifund_super_admin_private_document_reviewed_queue"))
+      return Response.json([{request_id:REQUEST,review_ready:true}]);
     if(route.endsWith("/rpc/ifund_super_admin_private_document_inventory"))
       return Response.json(remaining===0?[]:[{
         document_id:DOCUMENT,storage_path:PATH,
