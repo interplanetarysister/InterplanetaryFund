@@ -1,6 +1,7 @@
 // The browser may request/reserve a personal email identity, never activate it.
 // The backend derives eligibility from provider-verified recurring entitlements.
 const HANDLE=/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const IFUND_EMAIL_DOMAIN="interplanetaryfund.com";
 export const BASIC_EMAIL_ADDON_MONTHLY_CENTS=100;
 export function normalizedEmailHandle(value){
@@ -22,6 +23,8 @@ export function checkedEmailAddonStatus(raw){
   if(raw.active && (!raw.eligible||!raw.opted_in||!raw.billing_verified||
     raw.state!=="active"||!raw.can_receive_email))
     throw new Error("Email add-on activation was not verified.");
+  if(raw.linked_campaign_id!=null && !UUID.test(raw.linked_campaign_id))
+    throw new Error("Email-linked campaign reference is invalid.");
   if(raw.requested_address!==null&&
     (typeof raw.requested_address!=="string"||
       !raw.requested_address.endsWith("@"+IFUND_EMAIL_DOMAIN)))
@@ -54,5 +57,30 @@ export async function selectEmailAddon(client,{optIn,handle}){
     throw new Error("Your email selection could not be confirmed. Refresh before retrying.");
   if(selection.active!==confirmed.active)
     throw new Error("Your email billing status changed. Refresh before using this address.");
+  return confirmed;
+}
+
+
+/** Bind the selected email alias to a campaign owned by the same verified member.
+ * Does not activate email or grant campaign management permissions. */
+export async function linkCampaignEmail(client,{campaignId=null}){
+  if(campaignId!==null && !UUID.test(campaignId))
+    throw new Error("Choose a valid campaign from your account.");
+  const {data:user,error:authError}=await client.auth.getUser();
+  if(authError||!UUID.test(user?.user?.id||"")||
+     !user?.user?.email_confirmed_at||user.user.is_anonymous===true)
+    throw new Error("Sign in with a verified member account.");
+  const previous=await readEmailAddon(client);
+  if(!previous.eligible||!previous.opted_in||!previous.requested_address)
+    throw new Error("Reserve your paid campaign email option before linking a campaign.");
+  const {data,error}=await client.rpc("ifund_set_campaign_email_campaign",{
+    p_campaign_id:campaignId
+  });
+  if(error)throw new Error(error.message||"Campaign email connection could not be saved.");
+  if(data!==campaignId)throw new Error("Campaign email connection was not confirmed.");
+  const confirmed=await readEmailAddon(client);
+  if(confirmed.linked_campaign_id!==campaignId ||
+    confirmed.requested_address!==previous.requested_address)
+    throw new Error("Your email connection changed unexpectedly. Refresh before continuing.");
   return confirmed;
 }
