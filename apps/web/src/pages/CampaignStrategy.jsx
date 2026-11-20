@@ -81,7 +81,7 @@ export default function CampaignStrategy() {
               Story length: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" characters (no minimum)" : "Unavailable"}
             </p>
             {item.editorial && item.editorial.remainingCharacters>0 &&
-              <p className="mt-1 text-sm text-amber-700">Add {item.editorial.remainingCharacters.toLocaleString()} characters before publishing.</p>}
+              <p className="mt-1 text-sm text-amber-700">Optional: add more background or budget context if it helps your supporters. There is no minimum story length.</p>}
           </div>
           <ul className="space-y-3">{CHECKS.map(([key, label, help]) =>
             <li key={key} className="text-sm">
