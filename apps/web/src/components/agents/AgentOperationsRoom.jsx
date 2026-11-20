@@ -41,20 +41,51 @@ export default function AgentOperationsRoom({user}){
     return()=>{alive=false;clearInterval(timer);};
   },[refresh]);
   useEffect(()=>{setPermitted(false);setChecking(true);setItems([]);setBody("");},[ownerId]);
+  async function runNexus(payload){
+    const client=authClient();
+    const [identity,session,admin]=await Promise.all([
+      client.auth.getUser(),client.auth.getSession(),client.rpc("ifund_current_user_is_verified_admin")
+    ]);
+    if(ownerGuard.current!==ownerId||identity.error||identity.data?.user?.id!==ownerId||
+      admin.error||admin.data!==true ||session.error ||
+      session.data?.session?.user?.id!==ownerId || !session.data?.session?.access_token)
+      throw Error("Administrator session could not be verified.");
+    const response=await fetch("/api/agents/ops/analyze",{
+      method:"POST",headers:{"Content-Type":"application/json",
+        Authorization:"Bearer "+session.data.session.access_token},
+      body:JSON.stringify(payload)
+    });
+    const result=await response.json().catch(()=>null);
+    if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
+      throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
+    return result;
+  }
   async function send(e){
     e.preventDefault();
     const message=body.trim();
-    if(!permitted||sending||message.length<1||message.length>4000||!ownerId)return;
+    if(!permitted||sending||analyzing||message.length<1||message.length>4000||!ownerId)return;
     setSending(true);setError("");
     try{
       const client=authClient();
       const [identity,admin]=await Promise.all([client.auth.getUser(),client.rpc("ifund_current_user_is_verified_admin")]);
-      if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true)throw Error("Administrator access could not be verified.");
-      const {error:writeError}=await client.from("ifund_agent_operations_messages").insert({
+      if(ownerGuard.current!==ownerId||identity.error||identity.data?.user?.id!==ownerId||
+        admin.error||admin.data!==true)throw Error("Administrator access could not be verified.");
+      const {data,error:writeError}=await client.from("ifund_agent_operations_messages").insert({
         thread_id:THREAD,speaker_type:"admin",author_user_id:ownerId,body:message,event_type:kind,source_kind:"admin_post"
-      });
-      if(writeError)throw Error("The message was not saved.");
-      setBody("");await refresh();
+      }).select("id").single();
+      if(writeError||!data?.id)throw Error("The message was not saved.");
+      setBody("");
+      await refresh();
+      if(kind==="assignment" && message.length<=1100){
+        setAnalyzing(true);setAnalyzingAssignment(data.id);
+        try{
+          await runNexus({message_id:data.id});
+          await refresh();
+        }catch(cause){
+          if(ownerGuard.current===ownerId)setError("Assignment saved, but specialist analysis needs retry: "+
+            (cause?.message||"Agent unavailable"));
+        }finally{setAnalyzing(false);setAnalyzingAssignment(null);}
+      }
     }catch(cause){setError(cause?.message||"Message failed.");}
     finally{setSending(false);}
   }
@@ -62,25 +93,13 @@ export default function AgentOperationsRoom({user}){
     const prompt=body.trim();
     if(!permitted||analyzing||sending||!ownerId)return;
     if(messageId===null && (prompt.length<8||prompt.length>1100))return;
-    if(messageId!==null && !items.some(item=>item.id===messageId && item.speaker_type==="admin" && item.event_type==="assignment"))return;
+    if(messageId!==null && !items.some(item=>item.id===messageId &&
+      item.speaker_type==="admin" && item.event_type==="assignment"))return;
     setAnalyzing(true);setAnalyzingAssignment(messageId);setError("");
     try{
-      const client=authClient();
-      const [identity,session,admin]=await Promise.all([
-        client.auth.getUser(),client.auth.getSession(),client.rpc("ifund_current_user_is_verified_admin")
-      ]);
-      if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true ||
-        session.error||session.data?.session?.user?.id!==ownerId || !session.data?.session?.access_token)
-        throw Error("Administrator session could not be verified.");
-      const response=await fetch("/api/agents/ops/analyze",{
-        method:"POST",headers:{"Content-Type":"application/json",
-          Authorization:"Bearer "+session.data.session.access_token},
-        body:JSON.stringify(messageId===null?{question:prompt}:{message_id:messageId})
-      });
-      const result=await response.json().catch(()=>null);
-      if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
-        throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
-      if(messageId===null)setBody("");await refresh();
+      await runNexus(messageId===null?{question:prompt}:{message_id:messageId});
+      if(messageId===null)setBody("");
+      await refresh();
     }catch(cause){setError(cause?.message||"Agent analysis was not completed.");}
     finally{setAnalyzing(false);setAnalyzingAssignment(null);}
   }
@@ -93,7 +112,7 @@ export default function AgentOperationsRoom({user}){
         <p className="text-xs text-slate-400">Private administrator room · Agent messages require verified runtime receipts</p>
       </div>
     </div>
-    <p className="text-xs text-slate-400">Discuss tasks and priorities here. Only verified administrators can read or post. An agent will appear as the speaker only after its backend message is authenticated and recorded.</p>
+    <p className="text-xs text-slate-400">Private to verified administrators. Posting an assignment of up to 1,100 characters automatically requests a bounded, advisory NEXUS specialist review. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
