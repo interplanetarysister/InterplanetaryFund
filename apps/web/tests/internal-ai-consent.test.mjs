@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { mayUseFutureInternalAI, isHighImpactAIAction } from "../src/lib/internalAIConsent.mjs";
 
 const user={ id:"11111111-1111-4111-8111-111111111111",email_confirmed_at:"2026-11-19T10:00:00Z",is_anonymous:false };
-const preferences={owner_id:user.id,allow_future_internal_ai_assistance:true};
+const preferences={owner_id:user.id,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true};
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 
 test("verified owner may use only explicitly allowed private AI features",()=>{
@@ -14,6 +14,7 @@ test("verified owner may use only explicitly allowed private AI features",()=>{
   for(const capability of ["publish","post","send","message","connect","external_access","payment","payout","withdraw","delegate","represent","delete","future_capability",""]){
     assert.equal(mayUseFutureInternalAI({user,preferences,capability}),false,capability);
   }
+  assert.equal(mayUseFutureInternalAI({user,preferences:{...preferences,allow_ai_outreach_drafts:false},capability:"draft"}),false);
   assert.equal(isHighImpactAIAction("withdraw"),true);
 });
 
