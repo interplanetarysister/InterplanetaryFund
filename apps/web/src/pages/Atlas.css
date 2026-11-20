@@ -69,3 +69,54 @@
 .ifund-atlas-shell .ifund-us-pin:focus-visible circle:nth-of-type(2) {
   stroke:#f2c46d; stroke-width:3;
 }
+
+/* Scoped usability hardening for Atlas controls: keyboard, touch and small screens.
+   Presentation only; location-consent and owner-scoped data behavior is unchanged. */
+.ifund-atlas-shell [role="group"] > button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+.ifund-atlas-shell [role="group"] > button:focus-visible,
+.ifund-atlas-shell input:focus-visible,
+.ifund-atlas-shell a:focus-visible,
+.ifund-atlas-shell [role="alert"] button:focus-visible {
+  outline: 3px solid #4dd9ca;
+  outline-offset: 3px;
+}
+.ifund-atlas-shell [role="group"] > button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px #64d6b3;
+}
+.ifund-atlas-shell .globe-selected .button:focus-visible {
+  outline: 3px solid #a4f9d8;
+  outline-offset: 3px;
+}
+@media (max-width: 390px) {
+  .ifund-atlas-shell {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ifund-atlas-shell .demo-globe-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .ifund-atlas-shell .globe-layout {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ifund-atlas-shell .globe-aside {
+    min-width: 0;
+    padding-inline: 0;
+  }
+  .ifund-atlas-shell .globe-controls button {
+    flex: 1 1 auto;
+  }
+}
+@media (prefers-contrast: more) {
+  .ifund-atlas-shell [role="group"] > button:focus-visible,
+  .ifund-atlas-shell input:focus-visible,
+  .ifund-atlas-shell a:focus-visible {
+    outline-width: 4px;
+  }
+}
