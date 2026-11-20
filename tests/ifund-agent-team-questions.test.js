@@ -1,3 +1,5 @@
+import "./ifund-agent-orchestration.test.js";
+import "./ifund-agent-operations.test.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
