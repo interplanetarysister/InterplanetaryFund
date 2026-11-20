@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "source_issue": 137,
+  "description": "Do not flip verified based on source files or mock tests; attach independently inspectable runtime/provider/browser/Android evidence",
+  "gates": [
+    {
+      "id": 1,
+      "name": "Original 59-route visual/functional and role parity at mobile/tablet/desktop and Android",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 2,
+      "name": "Source 95-entity schema, RLS, data and identity mapping",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 3,
+      "name": "184 source functions individually ported or owner-retired with tests",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 4,
+      "name": "10 agents tools, permissions, data, escalation and audit verified",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 5,
+      "name": "17 durable workflow triggers, queues, schedules, retries and idempotency",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 6,
+      "name": "11 connector consent, provider grants, secrets and revocation",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 7,
+      "name": "Full campaign creation, draft persistence, publish, updates, embeds and distribution",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 8,
+      "name": "Original campaign and user content plus media hash/record-count reconciliation",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 9,
+      "name": "PayPal sandbox order capture, verified webhook, atomic ledger and withdrawal lifecycle",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 10,
+      "name": "Owner support versus donor gift accounting, support add-on and platform withdrawal fee",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 11,
+      "name": "Post-login role boundary, multi-user RLS and admin/super-admin separation",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 12,
+      "name": "Password recovery, session termination, OAuth state and owner-consent server authorization",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 13,
+      "name": "External agent authentication, Chief of Staff and single-window assistant UX",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 14,
+      "name": "Social/community, blogging, messaging, notifications and discovery persistence",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 15,
+      "name": "AI image generation, moderation, cost controls and provenance",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 16,
+      "name": "Accessibility, screenreader, keyboard, theme, mobile layout and reduced motion",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 17,
+      "name": "Android signed installation, WebView, deep links, content sharing and device behavior",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 18,
+      "name": "Cloudflare Pages/Workers Supabase project cohesion, DNS, rollback and live route smoke tests",
+      "verified": false,
+      "evidence": null
+    },
+    {
+      "id": 19,
+      "name": "Operator/owner approval after verified provider, app and web production tests",
+      "verified": false,
+      "evidence": null
+    }
+  ]
+}

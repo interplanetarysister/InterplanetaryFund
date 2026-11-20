@@ -13,7 +13,8 @@ const files = [...local, "../../tests/paypal-sandbox-handler.test.js",
   "../../tests/paypal-sandbox-security.test.js",
   "../../tests/agent-browser-policy.test.mjs",
   "../../tests/browser-tooling-install.test.mjs",
-  "../../tests/skill-placement-contract.test.mjs"];
+  "../../tests/skill-placement-contract.test.mjs",
+  "../../tests/restored-distinct-files.test.mjs"];
 const child = spawn(process.execPath, ["--test", "--test-reporter=spec", ...files],
   { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
 let output = "", errors = "";

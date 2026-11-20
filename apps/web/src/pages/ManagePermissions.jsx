@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import MarketingPreferences from "./MarketingPreferences";
+import CommunicationPreferences from "@/components/CommunicationPreferences";
 import Connections from "./Connections";
 import CampaignDocumentPermissions from "@/components/permissions/CampaignDocumentPermissions";
 
 export default function ManagePermissions() {
   const location = useLocation();
   const requestedSection=new URLSearchParams(location.search).get("section");
-  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : ["ai","platforms","marketing","documents"].includes(requestedSection)?requestedSection:"ai");
+  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : ["ai","platforms","marketing","supporter-updates","documents"].includes(requestedSection)?requestedSection:"ai");
   return <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
@@ -18,7 +19,7 @@ export default function ManagePermissions() {
     </header>
     <div className="flex flex-wrap gap-2" role="group" aria-label="Permission categories">
       {[
-        ["ai","AI assistance"],["platforms","Connected platforms"],["marketing","Communication"],["documents","Campaign documents"]
+        ["ai","AI assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"]
       ].map(([id,label])=><button key={id} type="button" onClick={()=>setOpen(id)} aria-pressed={open===id} className={`min-h-11 rounded-xl border px-4 font-semibold ${open===id ? "border-primary bg-primary/10" : "border-border"}`}>{label}</button>)}
     </div>
     {open==="ai" && <AIPermissionPreferences />}
@@ -27,6 +28,7 @@ export default function ManagePermissions() {
       <Connections/>
     </div>}
     {open==="marketing" && <MarketingPreferences/>}
+    {open==="supporter-updates" && <CommunicationPreferences/>}
     {open==="documents" && <CampaignDocumentPermissions/>}
     <p className="text-sm text-muted-foreground">Revoking an iFund preference cannot revoke permissions you granted directly at an external provider; disconnect the account here and check the provider's settings to revoke its authorization.</p>
   </div>;
