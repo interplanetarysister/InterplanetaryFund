@@ -58,6 +58,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const draftId = params.get("draft");
+  const missionSourceId = params.get("mission");
+  const validMissionSourceId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionSourceId || "");
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
@@ -140,6 +142,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     } catch { /* session storage unavailable */ }
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
   });
+  // Mission-to-fundraiser is optional and explicit. Never overwrite an existing
+  // browser campaign draft, a restored account draft or the user's typed edits.
+  useEffect(() => {
+    if (!validMissionSourceId || draftId || !ownerId || campaignId.current) return;
+    let active=true;
+    loadMission(authClient(),missionSourceId).then(m=>{
+      if(!active || userEditedDraft.current)return;
+      setForm(previous=>(previous.title||previous.summary||previous.story)
+        ? previous
+        : {...previous,title:m.title.slice(0,150),
+            summary:(m.summary||m.original_prompt).slice(0,600)});
+    }).catch(()=>{/* A foreign, deleted or inaccessible Mission is never used for prefill. */});
+    return ()=>{active=false;};
+  },[validMissionSourceId,missionSourceId,draftId,ownerId]);
   const [busy, setBusy] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverUploadMessage, setCoverUploadMessage] = useState("");
@@ -498,9 +514,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       let recoveryStored=false;try{recoveryStored=rememberPendingCampaignSetup(sessionStorage,ownerId,data.id,setupToSave);}catch{/* Preserve the confirmed account receipt below. */}
       if(!recoveryStored)setAutosaveError("Campaign data is saved, but setup recovery could not be kept in this browser. Keep this page open until setup saving succeeds.");
       await saveCampaignSetup(client,data.id,setupToSave,setupToSave.draft_step,scope);
+      let missionLinkIssue = "";
+      if (validMissionSourceId) {
+        try { await linkCampaignToMission(client,missionSourceId,data.id); }
+        catch (cause) { missionLinkIssue = cause?.message || "The Mission link could not be confirmed."; }
+      }
       if(status==="active")await saveOwnerCampaign(client,form,{id:data.id,status:"active",expectedStatus:"draft",scope});
       if(!alive.current)return false;
-      setSavedStatus(status);setProgressNotice("Campaign and setup progress saved to your account.");
+      setSavedStatus(status);setProgressNotice(missionLinkIssue
+        ? "Campaign saved, but its Mission association needs attention: "+missionLinkIssue
+        : "Campaign and setup progress saved to your account.");
       storyEditStarted.current=false;
       // A server save succeeded, but local cleanup can fail (disabled storage,
       // malformed legacy data, or a blocked removeItem). Do not report that
@@ -522,7 +545,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       setBrowserSaved(false);
       // Keep the accessible warning mounted if cleanup fails; navigating away
       // immediately would discard the only visible notice of retained data.
-      if (!browserCleanupFailed) {
+      if (!browserCleanupFailed && !missionLinkIssue) {
         if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
         else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
       }
