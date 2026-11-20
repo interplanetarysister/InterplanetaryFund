@@ -55,6 +55,7 @@ declare
  v_created timestamptz;
  v_launch timestamptz;
  v_enabled boolean;
+ v_attempt integer;
  v_row public.ifund_referral_trial_accounts%rowtype;
 begin
  if v_owner is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then
@@ -67,9 +68,20 @@ begin
  if v_created is null then
    raise exception 'Active verified member required' using errcode='42501';
  end if;
- insert into public.ifund_referral_trial_accounts(owner_id,referral_code)
- values(v_owner,upper(substr(replace(pg_catalog.gen_random_uuid()::text,'-',''),1,12)))
- on conflict(owner_id) do nothing;
+ -- A 48-bit code can collide with another member's code. Retry a bounded
+ -- number of times on the unique code constraint; the owner conflict is
+ -- already an idempotent no-op, and an exhausted retry raises instead of
+ -- silently leaving this member without a code.
+ for v_attempt in 1..5 loop
+   begin
+     insert into public.ifund_referral_trial_accounts(owner_id,referral_code)
+     values(v_owner,upper(substr(replace(pg_catalog.gen_random_uuid()::text,'-',''),1,12)))
+     on conflict(owner_id) do nothing;
+     exit;
+   exception when unique_violation then
+     if v_attempt=5 then raise; end if;
+   end;
+ end loop;
  select * into v_row from public.ifund_referral_trial_accounts where owner_id=v_owner for update;
  select enabled,launch_at into v_enabled,v_launch from public.ifund_agent_trial_control where singleton is true;
  if v_enabled and v_row.trial_started_at is null and
@@ -83,7 +95,7 @@ begin
    where owner_id=v_owner returning * into v_row;
  elsif v_enabled and v_row.trial_started_at is not null and v_row.pending_hours>0 then
    update public.ifund_referral_trial_accounts
-    set trial_expires_at=pg_catalog.greatest(trial_expires_at,statement_timestamp())
+    set trial_expires_at=greatest(trial_expires_at,statement_timestamp())
        +(pending_hours * interval '1 hour'),pending_hours=0
    where owner_id=v_owner returning * into v_row;
  end if;
@@ -163,7 +175,7 @@ begin
  set successful_referrals=successful_referrals+1,
      trial_expires_at=case when trial_started_at is not null
         and exists(select 1 from public.ifund_agent_trial_control where singleton=true and enabled=true)
-       then pg_catalog.greatest(trial_expires_at,statement_timestamp())+interval '24 hours'
+       then greatest(trial_expires_at,statement_timestamp())+interval '24 hours'
        else trial_expires_at end,
      pending_hours=case when trial_started_at is null or
        not exists(select 1 from public.ifund_agent_trial_control where singleton=true and enabled=true)
@@ -216,6 +228,12 @@ begin
  return jsonb_build_object('tier',v_tier,'level',v_level,
    'status',v_status,'active',v_level>0,'admin_granted',false);
 end $fn$;
+
+-- CREATE OR REPLACE preserves the original ACL. Re-state the private-schema
+-- revocation and authenticated grant so a fresh bootstrap cannot leave this
+-- definer executable by PUBLIC after the replacement.
+revoke all on function ifund_story_runtime.subscription() from public,anon,authenticated;
+grant execute on function ifund_story_runtime.subscription() to authenticated;
 
 revoke all on function public.ifund_agent_referral_status() from public,anon,authenticated;
 revoke all on function public.ifund_claim_campaign_referral(text) from public,anon,authenticated;

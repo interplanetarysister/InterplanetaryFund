@@ -23,6 +23,23 @@ function walkSql(dir, out = []) {
 
 const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 
+// Hosted-only functions used by migrations but not defined in this migration
+// set. Each must be documented in docs/migration/BLOCKERS.md; the cap prevents
+// silent growth of undocumented production dependencies.
+const MAX_DOCUMENTED_EXTERNAL_FUNCTIONS = 3;
+
+// Capture guarded function calls in FROM/JOIN and expression positions. Browser
+// RLS policies commonly use SELECT/WHERE/AND/OR rather than a FROM clause.
+export function calledIfundFunctions(text) {
+  const called = new Set();
+  for (const match of text.matchAll(
+    /(?:from|join|select|where|and|or)\s+(?:public\.)?(ifund_[a-z_]+)\s*\(/gi,
+  )) {
+    called.add(match[1].toLowerCase());
+  }
+  return called;
+}
+
 // These reviewed functions may be volatile or mutate state. Keep this list
 // narrow and explicit: it never exempts a migration, schema, pinned search path
 // or PUBLIC-execute revocation. Source review is not production acceptance.
@@ -342,17 +359,34 @@ test("execute on a definer function is revoked from public before being granted"
   }
 });
 
+test("function dependency scanning covers expression-call contexts", () => {
+  const sample = [
+    "select * from public.ifund_from_function();",
+    "join ifund_join_function() on true",
+    "select public.ifund_select_function()",
+    "where ifund_where_function() = true",
+    "and public.ifund_and_function()",
+    "or ifund_or_function()",
+  ].join("\n");
+
+  assert.deepEqual([...calledIfundFunctions(sample)], [
+    "ifund_from_function",
+    "ifund_join_function",
+    "ifund_select_function",
+    "ifund_where_function",
+    "ifund_and_function",
+    "ifund_or_function",
+  ]);
+});
+
 test("functions this repository calls but does not define are recorded", () => {
   const defined = new Set(
     functionHeaders().map((f) => f.name.split(".").pop().toLowerCase()),
   );
   const called = new Set();
   for (const file of SQL_FILES) {
-    const text = readFileSync(file, "utf8");
-    for (const m of text.matchAll(
-      /(?:from|join)\s+(?:public\.)?(ifund_[a-z_]+)\s*\(/gi,
-    )) {
-      called.add(m[1].toLowerCase());
+    for (const name of calledIfundFunctions(readFileSync(file, "utf8"))) {
+      called.add(name);
     }
   }
   const undocumented = [...called].filter((c) => !defined.has(c));
@@ -368,8 +402,10 @@ test("functions this repository calls but does not define are recorded", () => {
     );
   }
   assert.ok(
-    undocumented.length <= 1,
-    "expected at most 1 externally-defined function dependency, found " +
+    undocumented.length <= MAX_DOCUMENTED_EXTERNAL_FUNCTIONS,
+    "expected at most " +
+      MAX_DOCUMENTED_EXTERNAL_FUNCTIONS +
+      " documented externally-defined function dependencies, found " +
       undocumented.length +
       ": " +
       undocumented.join(", "),

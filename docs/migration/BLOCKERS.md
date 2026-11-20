@@ -650,6 +650,23 @@ schemas/tables in the ordered migration chain and validate it against production
 No production SQL was changed during this verification.
 
 
+## Open production dependency: public.ifund_creator_mandate_ai_authorized
+
+The managed-campaign gate migrations `20261118193000_ifund_campaign_agent_ai_mandate_gate.sql`
+and `20261118194500_ifund_campaign_mandate_scope_access.sql` call
+`public.ifund_creator_mandate_ai_authorized(uuid)` as a boolean consent check
+before granting campaign-scoped AI or mandate-scope access. That function is not
+defined anywhere in the checked-in migration set. Its hosted definition,
+volatility, pinned `search_path`, `PUBLIC`/`anon` EXECUTE grants, and exact
+consent semantics were not read during Phase 1.
+
+Until an authorized read-only catalog check verifies the live routine and the
+versioned migration chain either defines a compatible function or explicitly
+records its prerequisite, the managed-campaign AI gate is **not independently
+bootstrappable**. This is a source/documentation reconciliation item only; no
+production SQL or permission was changed by this audit.
+
+
 ## Preview candidate validation — 2026-11-03
 
 The current feature preview branch passed both GitHub workflows on commit
