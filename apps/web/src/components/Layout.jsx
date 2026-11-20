@@ -12,6 +12,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import BackToTop from "@/components/BackToTop";
 import QuickActions from "@/components/QuickActions";
 import ScrollableNav from "@/components/ScrollableNav";
+import AgentSidePanel from "@/components/agents/AgentSidePanel";
+import "@/styles/agent-companion.css";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
@@ -46,6 +48,14 @@ function pageTitle(pathname) {
 // Order follows the tasks people do: explore, create, connect, then manage.
 // Keep a single destination per section and preserve existing authorization gates.
 const navSections = [
+  {
+    label: "AI Tools",
+    items: [
+      { to: "/agents", label: "AI Team", icon: Bot },
+      { to: "/mission", label: "Mission Control", icon: Sparkles },
+      { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
+    ],
+  },
   {
     label: "Explore",
     items: [
@@ -83,20 +93,11 @@ const navSections = [
     ],
   },
   {
-    label: "AI Tools",
-    items: [
-      { to: "/agents", label: "AI Team", icon: Bot },
-      { to: "/mission", label: "Mission Control", icon: Sparkles },
-      { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
-    ],
-  },
-  {
     label: "Account & Help",
     items: [
       { to: "/profile", label: "My Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
       { to: "/plans", label: "Plans", icon: CreditCard },
-      { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
       { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
   { to: "/help", label: "Help Center", icon: CircleHelp },
     ],
@@ -131,6 +132,7 @@ const publicNavItems = [
   { to: "/globe", label: "Global Globe", icon: Globe2 },
   { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/news", label: "IFund Newscaster", icon: Radio },
+  { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
   { to: "/help", label: "Help Center", icon: CircleHelp },
 ];
 
@@ -139,6 +141,12 @@ const publicNavItems = [
 export default function Layout() {
   const prefersReducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
+  const [activeAgent, setActiveAgent] = useState(null);
+  useEffect(() => {
+    const openAgent = event => setActiveAgent(event.detail?.agent || "nexus");
+    window.addEventListener("ifund-open-agent", openAgent);
+    return () => window.removeEventListener("ifund-open-agent", openAgent);
+  }, []);
   const drawerCloseRef = useRef(null);
   const [darkTheme, setDarkTheme] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
@@ -347,6 +355,7 @@ export default function Layout() {
         {!pathname.startsWith("/campaign/") && !pathname.startsWith("/campaigns/") && <PlatformSupportHostedButton />}
         <div><LegalFooter /></div>
       </main>
+      <AgentSidePanel agent={activeAgent} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />
     </div>
   );
 }
