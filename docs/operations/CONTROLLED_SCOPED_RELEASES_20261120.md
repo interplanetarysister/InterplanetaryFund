@@ -1,0 +1,15 @@
+# Controlled scoped releases — November 20, 2026
+
+Implemented on canonical main: `scripts/verify-scoped-release.mjs`, `tests/verify-scoped-release.test.mjs`, and root `package.json` commands `npm run test:release` and `npm run release:scoped -- evidence.json`.
+
+This is an executable **eligibility check**, not a deployment. Run only from a clean exact-SHA Git checkout. It independently verifies `base_sha`, `commit_sha`, Git ancestry, HEAD, clean workspace and every changed path; it refuses omitted changed files. Evidence must include passing exact-SHA local tests, security-negative tests, role-based browser QA, preview QA, a matching successful Cloudflare preview deployment, independent reviewer approval, and zero critical defects. The CLI cannot authenticate third-party evidence references; the release operator must independently confirm them. Never auto-deploy on this CLI result alone.
+
+The short path is restricted to a narrow subset of low-risk user interface, styling, static media and non-security documentation changes. Changes to auth, routes, campaign creation, member identities, private data, database, Workers, payments, external publishing, consent, financial ledger, secrets, mobile runtime and release infrastructure require the ORIGINAL full release gate, signed provider checks, RLS negatives and real user/admin/browser verification. No security condition or existing route assertion was removed.
+
+The separate `apps/web/ci/verify-dev-preflight.mjs` continues supporting local implementation while routes remain unverified. Source route inventory latest inspected: 92 tracked, 82 not_verified, 10 source_ready (not browser evidence).
+
+**Executed**: Node v22.16.0, 20/20 automated local tests including positive and negative scope/security cases and temporary Git repository proof of exact diff / dirty-checkout denial. Committed script blob `b3259d8267bd8007d354eb15c861f432ff0d0297` and test blob `e49c950f9c999809b5fd755e34e26c16c07b102e` matched hashes of locally executed bytes. Source commits `3dc891b`, `968ea82`, `7ab643e`, `9133ac6`, `123a8df`. No GitHub-hosted Actions executed.
+
+**Cloudflare runtime read-only inspection**: project `interplanetaryfund-migration` has automatic production and preview Git deployments disabled. Canonical successful production deployment `4a5a2e45-5c3d-42ad-a973-399095e9f94f` corresponds to `72b9770d1a512773d2e80be208e3a0a59bab2e7b`. Therefore these new tooling changes on main have NOT been built into the live site; they are release-operator tooling and require no site rollout. Do not turn automatic deploys on or promote unrelated main commits just to publish tooling.
+
+Release workflow: decide smallest safe change; obtain clean exact SHA; run executable affected-area and shared regressions; isolated preview and real guest/member/admin tests; verify independent receipts; run eligibility/full gate appropriately; manually promote exact artifact and verify production/rollback. Preserve current user/admin security, provider authorization, feature flags and $0 cost baseline. No finance, SQL, DNS, secrets, Base44 or production mutations in this increment.
