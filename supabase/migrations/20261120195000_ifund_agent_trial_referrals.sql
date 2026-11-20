@@ -4,7 +4,9 @@
 create table if not exists public.ifund_agent_trial_control (
  singleton boolean primary key default true check(singleton),
  enabled boolean not null default false,
- launch_at timestamptz not null default statement_timestamp()
+ launch_at timestamptz not null default statement_timestamp(),
+ desired_monthly_price_cents integer not null default 499 check(desired_monthly_price_cents=499),
+ paid_enrollment_ready boolean not null default false
 );
 insert into public.ifund_agent_trial_control(singleton,enabled) values (true,false)
  on conflict(singleton) do nothing;
