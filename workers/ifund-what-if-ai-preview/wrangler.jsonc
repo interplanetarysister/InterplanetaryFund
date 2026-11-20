@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "ifund-what-if-ai-preview",
+  "main": "index.mjs",
+  "compatibility_date": "2026-11-20",
+  "ai": { "binding": "AI" },
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "IFUND_WHAT_IF_AI_ENABLED": "enabled"
+  }
+}
