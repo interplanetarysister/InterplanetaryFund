@@ -50,3 +50,18 @@ export async function loadOwnerMerchDraft(campaignId, client = authClient()) {
     throw new Error("Merchandise design ownership could not be verified.");
   return data || null;
 }
+
+export async function deleteOwnerMerchDraft(campaignId, client = authClient()) {
+  if (!MERCH_DRAFTS_ENABLED)
+    throw new Error("Saved merchandise designs are not yet enabled.");
+  const { ownerId, campaign } = await ownerCampaign(client, campaignId);
+  const { data, error } = await client.from("ifund_campaign_merch_designs")
+    .delete().eq("campaign_id", campaign.id).eq("owner_id", ownerId)
+    .select("id,campaign_id,owner_id");
+  if (error || !Array.isArray(data) || data.some(row => row.owner_id !== ownerId || row.campaign_id !== campaign.id))
+    throw new Error("The saved merchandise design could not be removed.");
+  const after = await client.auth.getUser();
+  if (after.error || after.data?.user?.id !== ownerId)
+    throw new Error("Your account changed while deleting. Reopen your account.");
+  return { removed: data.length > 0 };
+}
