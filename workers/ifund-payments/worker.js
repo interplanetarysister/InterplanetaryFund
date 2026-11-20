@@ -139,7 +139,7 @@ function memberToken(req) {
 function exactBasicPlan(plan,expectedPlanId) {
   const cycle=plan?.billing_cycles?.find(row=>row.tenure_type==="REGULAR");
   return Boolean(plan?.id===expectedPlanId&&PAYPAL_PLAN_ID.test(expectedPlanId||"")&&plan?.status==="ACTIVE"&&
-    cycle?.frequency?.interval_unit==="MONTH"&&Number(cycle?.frequency?.interval_count||1)===1&&
+    cycle?.frequency?.interval_unit==="MONTH"&&Number(cycle?.frequency?.interval_count)===1&&
     Number(cycle?.total_cycles)===0&&cycle?.pricing_scheme?.fixed_price?.currency_code==="USD"&&
     cents(cycle?.pricing_scheme?.fixed_price?.value)===BASIC_MONTHLY_PLAN.amount_cents&&
     typeof plan?.product_id==="string"&&plan.product_id.length>=6);
