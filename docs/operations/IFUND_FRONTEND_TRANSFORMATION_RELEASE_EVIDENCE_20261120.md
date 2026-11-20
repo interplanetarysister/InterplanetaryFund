@@ -7,8 +7,8 @@
 Canonical source: `interplanetarysister/InterplanetaryFund`, branch `main`.
 Base commit: `0f34256e698da4fd9df8768c00583a157672279a`.
 Transformation commit: `bf15a34a9dc519fc382b8b0cdde96da8cb7133dd`.
-Remote `refs/heads/main` verified at `bf15a34a9dc519fc382b8b0cdde96da8cb7133dd`.
-Working tree clean after the commit.
+Remote `refs/heads/main` was verified at `bf15a34a9dc519fc382b8b0cdde96da8cb7133dd` immediately after the frontend push. This evidence document was then committed as `fc75612c1e7cee36f2146e0b712a77389b836da9`, which is the current remote `main`; it changes documentation only and does not alter the built frontend.
+Working tree clean after the commits.
 
 No Cloudflare preview or production deployment was created for this commit. The live site must not be described as having the new experience until a separately authorized manual release produces a deployment ID and role-specific live acceptance.
 
