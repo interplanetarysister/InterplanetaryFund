@@ -625,6 +625,26 @@
       "owner": "frontend"
     },
     {
+      "route": "/mail",
+      "role": "member",
+      "component": "Inbox",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/messaging",
+      "role": "member",
+      "component": "Messaging",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/mission",
       "role": "member",
       "component": "AgentsTeam",
