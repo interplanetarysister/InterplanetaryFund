@@ -44,6 +44,7 @@ const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const WhatIf = lazy(() => import("./pages/WhatIf"));
 const WHAT_IF_ENABLED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
 const MyMissions = lazy(() => import("./pages/MyMissions"));
@@ -89,6 +90,14 @@ const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
+
+function CampaignEntryPoint() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  // Keep all existing saved draft and manual editor entry points intact.
+  return params.has("draft") || params.get("manual")==="1"
+    ? <CreateCampaign /> : <Navigate to="/what-if" replace />;
+}
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
@@ -173,7 +182,10 @@ function AppRoutes() {
       <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart /> : <Navigate to="/create?manual=1" replace />} />
       <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions /></MemberAccess> : <Navigate to="/dashboard" replace />} />
       <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace /></MemberAccess> : <Navigate to="/dashboard" replace />} />
-      <Route path="/create" element={<CreateCampaign />} />
+      <Route path="/what-if" element={<WhatIf />} />
+      <Route path="/missions" element={<WhatIf />} />
+      <Route path="/missions/:missionId" element={<WhatIf />} />
+      <Route path="/create" element={<CampaignEntryPoint />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
