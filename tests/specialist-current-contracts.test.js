@@ -41,6 +41,7 @@ function service({ preferences, anonymous = false, malformed = "", claims = { st
     calls.push({ url, options });
     assert.equal(options.headers.Authorization, "Bearer verified.owner");
     if (malformed && url.includes(malformed)) return new Response("not JSON");
+    if (url.endsWith("/rpc/ifund_current_account_is_active")) return Response.json(true);
     if (url.endsWith("/auth/v1/user")) return Response.json({ id: owner, is_anonymous: anonymous, email_confirmed_at: "2026-11-01" });
     if (url.includes("/ifund_ai_permission_preferences?")) return Response.json(preferences ?? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }]);
     if (url.endsWith("_context")) return Response.json(context);
@@ -59,8 +60,8 @@ test("all specialist generation checks current saved AI permission before contex
       ...env, AI: { run: () => assert.fail("revoked inference") },
     }, backend.fetcher);
     assert.equal(response.status, 403, agent.name);
-    assert.equal(backend.calls.length, 2);
-    assert.match(backend.calls[1].url, new RegExp(`select=${agent.permission}&owner_id=eq.${owner}$`));
+    assert.equal(backend.calls.length, 3);
+    assert.match(backend.calls[2].url, new RegExp(`select=${agent.permission}&owner_id=eq.${owner}$`));
   }
 });
 
