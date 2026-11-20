@@ -84,3 +84,26 @@ export async function linkCampaignEmail(client,{campaignId=null}){
     throw new Error("Your email connection changed unexpectedly. Refresh before continuing.");
   return confirmed;
 }
+
+
+/** Server-authoritative readiness for an actual $1/month recurring PayPal plan.
+ * No frontend price or subscription state is trusted to activate checkout. */
+export async function readEmailAddonCheckoutReadiness(client){
+  const {data:user,error:authError}=await client.auth.getUser();
+  if(authError||!UUID.test(user?.user?.id||"")||
+      !user.user.email_confirmed_at||user.user.is_anonymous===true)
+    throw new Error("Sign in with your verified account to view recurring billing.");
+  const {data,error}=await client.rpc("ifund_campaign_email_checkout_readiness");
+  if(error||!data||typeof data!=="object"||Array.isArray(data)||
+     typeof data.plan_available!=="boolean"||
+     typeof data.checkout_ready!=="boolean"||
+     typeof data.subscription_eligible!=="boolean"||
+     typeof data.opted_in!=="boolean"||
+     data.monthly_amount_cents!==100||data.currency!=="USD"||
+     data.payment_provider!=="paypal"||
+     data.requires_recurring_provider_checkout!==true||
+     data.approval_alone_activates!==false||
+     (data.checkout_ready&&(!data.plan_available||!data.subscription_eligible||!data.opted_in)))
+    throw new Error("The provider-backed email checkout status could not be verified.");
+  return data;
+}
