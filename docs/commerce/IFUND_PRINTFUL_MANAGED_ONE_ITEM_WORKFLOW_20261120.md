@@ -1,6 +1,6 @@
 # iFund Managed Shop — Printful integration contract (November 20, 2026)
 
-**Implementation branch:** `feature/printful-merch-and-cosmic-ui-20261120`
+**Implementation branch:** `feature/printful-merch-cosmic-ui-main-sync-20261120`
 **Status:** isolated source implementation / provider connection NOT VERIFIED / no orders enabled.
 **Owner:** Interplanetary Fund; no fundraising creator needs their own Printful account.
 **Supplier:** Printful Manual Order / API store (official: https://help.printful.com/hc/en-us/articles/50262225690257-How-do-I-create-and-use-a-manual-order-API-store ).
