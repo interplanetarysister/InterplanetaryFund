@@ -83,7 +83,7 @@ export default function AgentsTeam() {
     try {
     const client=authClient();
     client.from("ifund_ai_permission_preferences")
-      .select("owner_id,allow_ai_campaign_drafts,allow_future_internal_ai_assistance")
+      .select("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance")
       .eq("owner_id",owner).maybeSingle()
       .then(async ({data,error})=>{
         if(error)throw error;
