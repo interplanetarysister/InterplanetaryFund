@@ -29,7 +29,7 @@ test("missing prompt, HTML body and oversized inputs are rejected",async()=>{
  assert.equal((await routeMissionExplore(make("POST",{prompt:""}),env)).status,400);
  assert.equal((await routeMissionExplore(make("POST",{prompt:"x".repeat(12001)}),env)).status,400);
  assert.equal((await routeMissionExplore(make("POST","<script>alert(1)</script>",{"content-type":"text/html"}),env)).status,415);
- assert.equal((await routeMissionExplore(make("POST",{prompt:"a".repeat(16200)}),env)).status,413);
+ assert.equal((await routeMissionExplore(make("POST",{prompt:"a".repeat(17000)}),env)).status,413);
 });
 test("invalid JSON is rejected",async()=>{
  const r=await routeMissionExplore(make("POST",'{"prompt":',{"content-type":"application/json"}),{IFUND_WHAT_IF_ENABLED:"enabled"});
