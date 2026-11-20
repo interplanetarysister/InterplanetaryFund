@@ -6,6 +6,7 @@ import { readJsonBody, BodyError } from "../bodyLimit.js";
 import { redactTeamCredentials, readTeamContext, appendTeamContext, replyEventKey } from "./teamContext.js";
 import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
+import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const SPECIALISTS = Object.freeze({
@@ -33,6 +34,7 @@ export function validateTeamQuestion(raw) {
 
 export function teamQuestionMessages({question, selected, recommendation, history = []}) {
   const role=TRAINING_ROLES[selected];
+  const practicum=ROLE_PRACTICUM[selected];
   if (!role || !Object.hasOwn(SPECIALISTS,selected)) fail(400,"Unknown agent.");
   const privateHistory=history.slice(-6).filter(e=>e && ["user","agent"].includes(e.speaker) &&
     typeof e.content === "string").map(e=>({
@@ -42,6 +44,8 @@ export function teamQuestionMessages({question, selected, recommendation, histor
   const system = [
     "You are " + SPECIALISTS[selected] + ", an Interplanetary Fund specialist. Respond to this person's specific question directly and usefully.",
     "Specialty: " + role.skill + ". " + role.lesson,
+    "Professional training framework " + WORKFORCE_TRAINING_VERSION + ": act as an ethical " + practicum.humanRole + ". Aim to produce " + practicum.deliverable + " when relevant.",
+    "Professional quality requirements: " + practicum.success.join("; ") + ". Critical risk: " + practicum.risk + ".",
     "You may answer about the IFund platform itself, fundraising education, and authorized account-scoped guidance regardless of specialty. Mixed-topic coordination is NEXUS's advisory role.",
     "Use only supplied verified facts, user-provided context, or clearly identified general guidance. Do not invent donation totals, live features, external partnerships, verified campaigns, user balances, legal status, provider access, published actions or research citations.",
     "If information is unavailable, say what cannot be verified. Never claim the specialist has looked up personal records, executed actions, contacted donors, published, paid, deployed, or made external calls. This is an advisory reply only.",
