@@ -293,3 +293,51 @@ export async function bookmarkMissionResource(client,missionId,opportunityId){
  await sessionStillOwner(client,owner);
  return r.data;
 }
+
+
+// Planning estimates only: never read or write the donations ledger or payment totals.
+const COST_FIELDS="id,mission_id,owner_id,label,estimated_minor,currency,source_kind,source_note,created_at,updated_at";
+export function parseMissionDollarEstimate(input){
+ if(typeof input!=="string"||!/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(input.trim()))
+  throw new Error("Enter a nonnegative amount in dollars with up to two decimal places.");
+ const [d,c=""]=input.trim().split(".");
+ const cents=Number(d)*100+Number((c+"00").slice(0,2));
+ if(!Number.isSafeInteger(cents)||cents>1_000_000_000_000)
+  throw new Error("Estimated amount is too large.");
+ return cents;
+}
+export async function listMissionCosts(client,missionId){
+ ensureUuid(missionId,"Mission ID");
+ const owner=await verifiedOwner(client);
+ const r=await client.from("ifund_mission_cost_items").select(COST_FIELDS)
+  .eq("mission_id",missionId).eq("owner_id",owner)
+  .order("created_at",{ascending:true}).limit(200);
+ if(r.error||!Array.isArray(r.data)||r.data.some(x=>x.owner_id!==owner||x.mission_id!==missionId))
+  throw new Error("Private Mission estimates could not be loaded.");
+ await sessionStillOwner(client,owner);return r.data;
+}
+export async function addMissionCost(client,missionId,{label,amount,sourceNote=""}){
+ ensureUuid(missionId,"Mission ID");
+ const owner=await verifiedOwner(client,true);
+ const payload={
+  mission_id:missionId,owner_id:owner,label:text(label,200,"estimate label",true),
+  estimated_minor:parseMissionDollarEstimate(amount),currency:"USD",
+  source_note:text(sourceNote,2000,"source note")
+ };
+ const r=await client.from("ifund_mission_cost_items").insert(payload).select(COST_FIELDS).single();
+ if(r.error||r.data?.owner_id!==owner||r.data?.mission_id!==missionId||
+    r.data.currency!=="USD"||Number(r.data.estimated_minor)!==payload.estimated_minor)
+  throw new Error("The private estimate was not confirmed.");
+ await sessionStillOwner(client,owner);return r.data;
+}
+export async function removeMissionCost(client,missionId,costId){
+ ensureUuid(missionId,"Mission ID");ensureUuid(costId,"estimate ID");
+ const owner=await verifiedOwner(client,true);
+ const r=await client.from("ifund_mission_cost_items").delete()
+  .eq("id",costId).eq("mission_id",missionId).eq("owner_id",owner)
+  .select("id,mission_id,owner_id").maybeSingle();
+ if(r.error||r.data?.id!==costId||r.data?.mission_id!==missionId||r.data?.owner_id!==owner)
+  throw new Error("Estimate removal could not be confirmed; reload before retrying.");
+ await sessionStillOwner(client,owner);
+ return r.data;
+}
