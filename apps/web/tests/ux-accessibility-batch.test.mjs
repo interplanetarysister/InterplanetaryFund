@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
+const atlas=read('../src/pages/Atlas.css');
+const companion=read('../src/styles/agent-companion.css');
+const team=read('../src/styles/agent-team.css');
+test('Atlas controls support 44px touch and keyboard focus',()=>{assert.match(atlas,/min-inline-size:44px/);assert.match(atlas,/role="group"\] > button:focus-visible/);});
+test('Atlas has 390px one-column map',()=>{assert.match(atlas,/@media\(max-width:390px\)/);assert.match(atlas,/grid-template-columns:minmax\(0,1fr\)/);});
+test('Agent panel and dashboard retain keyboard focus',()=>{assert.match(companion,/ifund-dashboard-shortcut:focus-visible/);assert.match(companion,/ifund-agent-panel-compose button:focus-visible/);});
+test('Agent panel remains responsive and motion-aware',()=>{assert.match(companion,/ifund-dashboard-shortcuts\{grid-template-columns:minmax\(0,1fr\)/);assert.match(companion,/prefers-reduced-motion:reduce/);});
+test('Agent team includes accessible editable controls',()=>{assert.match(team,/ifund-agents-page textarea:focus-visible/);assert.match(team,/ifund-agents-page a:focus-visible/);});
+test('Agent team has one-column narrow layout',()=>{assert.match(team,/@media\(max-width:390px\)/);assert.match(team,/ifund-agents-grid\{grid-template-columns:minmax\(0,1fr\)/);});
+test('All three styles preserve high-contrast focus',()=>{for(const css of [atlas,companion,team])assert.match(css,/prefers-contrast:more/);});
+test('Atlas data/privacy logic untouched by CSS batch',()=>{const app=read('../src/pages/Atlas.jsx');assert.match(app,/isApprovedAtlasLocation/);assert.match(app,/ownerCampaigns.ownerId === user.id/);});

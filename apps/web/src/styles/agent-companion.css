@@ -33,3 +33,27 @@
   .ifund-agent-panel-messages { flex:1; }
 }
 @media (prefers-reduced-motion:reduce) { .ifund-agent-panel-messages { scroll-behavior:auto; } }
+
+/* Batch accessibility: desktop side panel and responsive dashboard. */
+.ifund-dashboard-shortcut:focus-visible,.ifund-dashboard-mini-link:focus-visible,
+.ifund-dashboard-primary:focus-visible,.ifund-dashboard-secondary:focus-visible,
+.ifund-agent-panel-compose button:focus-visible {outline:3px solid #6be9dc;outline-offset:3px;}
+.ifund-agent-side-panel{overflow-wrap:anywhere;}
+.ifund-agent-panel-messages{scrollbar-gutter:stable;}
+.ifund-dashboard-hero,.ifund-dashboard-card{min-inline-size:0;overflow-wrap:anywhere;}
+@media(max-width:390px){
+ .ifund-dashboard-shortcuts{grid-template-columns:minmax(0,1fr);}
+ .ifund-dashboard-hero{padding:18px;border-radius:18px;}
+ .ifund-agent-panel-header{padding-inline:12px;flex-wrap:wrap;}
+ .ifund-agent-panel-choices{padding-inline:12px;}
+ .ifund-agent-panel-messages{margin-inline:8px;}
+ .ifund-agent-panel-compose{padding-inline:10px;}
+}
+@media(prefers-contrast:more){
+ .ifund-dashboard-primary:focus-visible,.ifund-dashboard-secondary:focus-visible,
+ .ifund-agent-side-panel button:focus-visible{outline-width:4px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .ifund-agent-side-panel *{scroll-behavior:auto;}
+ .ifund-dashboard-shortcut,.ifund-dashboard-mini-link{transition:none;}
+}
