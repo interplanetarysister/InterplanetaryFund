@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
@@ -38,6 +38,9 @@ const STORY = [
 
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
+  const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
+  const navigate = useNavigate();
+  const [goal,setGoal] = useState("");
   const { user } = useAuthSession();
   const isAuthenticated = Boolean(user);
   const [heroOk, setHeroOk] = useState(true);
@@ -64,12 +67,20 @@ export default function Home() {
             <span className="brand-gradient-text">What if?</span>
           </h1>
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
+          {whatIfEnabled && <form onSubmit={e=>{e.preventDefault();if(goal.trim())navigate("/what-if",{state:{prompt:goal}});}} className="mx-auto mb-6 max-w-xl space-y-3 rounded-2xl border border-cyan-200/25 bg-slate-950/75 p-4 text-left">
+            <label htmlFor="home-what-if" className="block text-sm font-semibold text-cyan-100">What would you like to make possible?</label>
+            <textarea id="home-what-if" rows={3} maxLength={12000} value={goal} onChange={e=>setGoal(e.target.value)}
+              className="w-full resize-y rounded-xl border border-white/20 bg-slate-900 px-4 py-3 text-base text-white placeholder-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
+              placeholder="I want to… I need help with… What if we could…"/>
+            <button type="submit" disabled={!goal.trim()} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50">Explore my possibilities <ArrowRight className="h-4 w-4"/></button>
+            <p className="text-xs text-slate-300">Start privately. A campaign or donation is never required.</p>
+          </form>}
           <div className="flex flex-wrap items-center justify-center gap-3">
             {isAuthenticated ? (
               <Link to="/dashboard"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
             ) : (
               <>
-                <Link to="/create"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign</Button></Link>
+                <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> {whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Button></Link>
                 <Link to="/discover"><Button size="lg" variant="outline" className="rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
               </>
             )}
@@ -121,7 +132,7 @@ export default function Home() {
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
           <Link to="/discover"><Button variant="outline" className="rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-          <Link to="/create"><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
+          <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
           <div className="max-w-sm mx-auto mt-9 rounded-2xl border border-border p-4 text-center">
             <p className="text-sm font-medium text-foreground mb-2">Support Interplanetary Fund itself</p>
             <p className="text-xs text-muted-foreground mb-3">This donation helps operate the platform. It is not credited to any individual campaign.</p>

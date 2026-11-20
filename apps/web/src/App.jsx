@@ -44,6 +44,10 @@ const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const WHAT_IF_ENABLED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
+const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
+const MyMissions = lazy(() => import("./pages/MyMissions"));
+const MissionWorkspace = lazy(() => import("./pages/MissionWorkspace"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
@@ -167,6 +171,9 @@ function AppRoutes() {
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/community/:id" element={<CommunityDetail />} />
+      <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart /> : <Navigate to="/create?manual=1" replace />} />
+      <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions /></MemberAccess> : <Navigate to="/dashboard" replace />} />
+      <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace /></MemberAccess> : <Navigate to="/dashboard" replace />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />

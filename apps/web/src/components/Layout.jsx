@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, CalendarDays, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
+import { LayoutDashboard, Compass, CalendarDays, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban, Orbit } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
@@ -22,7 +22,9 @@ import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
+const WHAT_IF_LAUNCHED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const PAGE_TITLES = {
+  "/what-if": "What If?", "/missions": "My Missions",
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
   "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
@@ -35,6 +37,7 @@ const PAGE_TITLES = {
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (pathname.startsWith("/missions/")) return "Private Mission";
   if (pathname.startsWith("/campaign/")) return "Campaign";
   if (pathname.startsWith("/campaigns/")) return "Edit Campaign";
   if (pathname.startsWith("/u/")) return "Member Profile";
@@ -60,6 +63,7 @@ const navSections = [
     label: "Explore",
     items: [
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      ...(WHAT_IF_LAUNCHED ? [{ to: "/missions", label: "My Missions", icon: Orbit }] : []),
       { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
@@ -73,7 +77,7 @@ const navSections = [
   {
     label: "Campaigns & Giving",
     items: [
-      { to: "/create", label: "New Campaign", icon: PlusCircle },
+      { to: WHAT_IF_LAUNCHED ? "/what-if" : "/create", label: WHAT_IF_LAUNCHED ? "What If? — Start a Mission" : "New Campaign", icon: PlusCircle },
       { to: "/donors", label: "Supporters", icon: Users },
       { to: "/finances", label: "Financial Center", icon: Wallet },
       { to: "/following", label: "Following", icon: Heart },
@@ -126,7 +130,7 @@ const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/events", label: "Fundraising Events", icon: CalendarDays },
-  { to: "/create", label: "Create a campaign", icon: PlusCircle },
+  { to: WHAT_IF_LAUNCHED ? "/what-if" : "/create", label: WHAT_IF_LAUNCHED ? "What If?" : "Create a campaign", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/social", label: "Social Feed", icon: Radio },
   { to: "/globe", label: "Global Globe", icon: Globe2 },
@@ -330,8 +334,8 @@ export default function Layout() {
               <span className="hidden sm:inline">Help Center</span>
             </Link>
             {user && (
-              <Link to="/create" className="hidden lg:inline-flex min-h-10 items-center gap-2 rounded-full bg-slate-900 px-4 text-xs font-semibold text-white hover:bg-slate-800" aria-label="Create a campaign">
-                New campaign <ArrowUpRight className="h-4 w-4" />
+              <Link to={WHAT_IF_LAUNCHED ? "/what-if" : "/create"} className="hidden lg:inline-flex min-h-10 items-center gap-2 rounded-full bg-slate-900 px-4 text-xs font-semibold text-white hover:bg-slate-800" aria-label="Create a campaign">
+                {WHAT_IF_LAUNCHED ? "What If?" : "New campaign"} <ArrowUpRight className="h-4 w-4" />
               </Link>
             )}
           </div>

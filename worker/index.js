@@ -1,3 +1,5 @@
+import { routeMissionExplore } from './missions/explore.js';
+import { routeMissionPlan } from './missions/plan.js';
 import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
@@ -25,6 +27,11 @@ export default {
       if (typeof env.IFUND_EMAIL_ADDON_BILLING?.fetch !== 'function')
         return response(503, { error: 'Recurring email checkout is not configured.' });
       return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
+    }
+    if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
+    if (pathname === '/api/missions/plan') {
+      if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') return env.IFUND_AGENT_SERVICE.fetch(request);
+      return routeMissionPlan(request, env);
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
