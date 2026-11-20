@@ -1,0 +1,240 @@
+/* iFund Cosmic Geometry, incremental rollout.
+ * Keeps native/mobile controls, embedded payment components, and semantic error states intact.
+ * A new multisurface workspace is layered onto the original Tailwind design tokens.
+ */
+:root {
+  --ifund-aurora: #47e0ee;
+  --ifund-orbit-purple: #a88fff;
+  --ifund-deep-ink: #071123;
+}
+.ifund-stage {
+  background:
+    radial-gradient(52rem 30rem at 11% 12%, rgb(35 196 228 / .12), transparent 67%),
+    radial-gradient(58rem 28rem at 92% 36%, rgb(157 99 242 / .12), transparent 67%),
+    radial-gradient(40rem 23rem at 52% 94%, rgb(254 164 99 / .08), transparent 74%),
+    linear-gradient(159deg, #eef8fd 0%, #f7f4ff 40%, #edf7fb 77%, #eff9f6 100%);
+  background-attachment: scroll;
+  min-height: 100dvh;
+}
+html.dark .ifund-stage {
+  background:
+    radial-gradient(50rem 32rem at 10% 9%, rgb(32 176 220 / .23), transparent 68%),
+    radial-gradient(57rem 28rem at 93% 35%, rgb(149 99 237 / .24), transparent 73%),
+    radial-gradient(47rem 24rem at 53% 105%, rgb(242 131 121 / .12), transparent 76%),
+    radial-gradient(1.4px 1.4px at 18px 14px, rgb(196 223 255 / .34) 60%, transparent 70%),
+    #09142b;
+  background-size: auto, auto, auto, 71px 79px, auto;
+}
+/* Global interaction feedback for first-party controls. Never restyle hosted pay widgets. */
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]),
+:where(.ifund-shell, .ifund-public) a.ifund-action {
+  transition: transform .18s ease, box-shadow .22s ease, opacity .2s ease, background-color .2s ease, border-color .2s ease, filter .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]):hover,
+:where(.ifund-shell, .ifund-public) a.ifund-action:hover {
+  filter: brightness(1.045);
+  transform: translateY(-1px);
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]):active,
+:where(.ifund-shell, .ifund-public) a.ifund-action:active {
+  transform: translateY(1px) scale(.986);
+  filter: brightness(.97);
+}
+:where(.ifund-shell, .ifund-public) button:is([aria-busy="true"], [data-loading="true"]),
+:where(.ifund-shell, .ifund-public) a[aria-busy="true"] {
+  cursor: progress;
+  opacity: .75;
+  pointer-events: none;
+}
+:where(.ifund-shell, .ifund-public) button:focus-visible,
+:where(.ifund-shell, .ifund-public) a:focus-visible {
+  outline: 3px solid var(--ifund-aurora);
+  outline-offset: 3px;
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([data-no-ripple]) {
+  position: relative;
+  isolation: isolate;
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([data-no-ripple])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgb(255 255 255 / .24) 0%, transparent 63%);
+  opacity: 0;
+  transform: scale(.38);
+  transition: transform .42s ease-out, opacity .42s ease-out;
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([data-no-ripple]):active::after {
+  opacity: .75;
+  transform: scale(1.15);
+  transition-duration: .08s;
+}
+.ifund-dashboard {
+  --ifund-dashboard-text: #eefbff;
+  position: relative;
+}
+.ifund-dashboard-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgb(125 217 255 / .27);
+  border-radius: 1.65rem;
+  padding: clamp(1.5rem, 4vw, 3.25rem);
+  color: var(--ifund-dashboard-text);
+  box-shadow: 0 24px 70px rgb(14 24 69 / .22);
+  background:
+    radial-gradient(36rem 24rem at 89% 20%, rgb(150 74 240 / .5), transparent 68%),
+    radial-gradient(28rem 18rem at 9% 5%, rgb(46 190 229 / .32), transparent 76%),
+    linear-gradient(133deg, #091a38, #111637 50%, #182348);
+}
+.ifund-dashboard-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .55;
+  background:
+    repeating-radial-gradient(circle at 80% 72%, transparent 0 58px, rgb(155 212 252 / .21) 59px 60px, transparent 61px 98px),
+    radial-gradient(1px 1px at 12px 16px, #cfe6ff 90%, transparent);
+  background-size: auto, 91px 83px;
+}
+.ifund-dashboard-module {
+  background: linear-gradient(136deg, rgb(255 255 255 / .93), rgb(242 250 255 / .89));
+  border: 1px solid rgb(120 163 193 / .3);
+  border-radius: 1.45rem;
+  box-shadow: 0 11px 37px rgb(9 21 48 / .065);
+}
+html.dark .ifund-dashboard-module {
+  background: linear-gradient(130deg, rgb(21 40 66 / .96), rgb(33 26 71 / .93));
+  border-color: rgb(117 174 244 / .2);
+}
+.ifund-dashboard-module:has(a:hover) {
+  border-color: rgb(91 178 221 / .46);
+}
+.ifund-dashboard-stat {
+  background: linear-gradient(128deg, rgb(255 255 255 / .11), rgb(130 168 255 / .08));
+  border: 1px solid rgb(177 228 255 / .23);
+  border-radius: 1.15rem;
+}
+.ifund-dashboard .ifund-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .7rem 1.1rem;
+  border-radius: .9rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: box-shadow .2s ease, transform .2s ease, filter .2s ease;
+}
+.ifund-dashboard .ifund-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 21px rgb(45 107 171 / .15);
+}
+.ifund-merch-studio {
+  background:
+    radial-gradient(33rem 21rem at 93% 2%, rgb(136 77 222 / .35), transparent 76%),
+    radial-gradient(35rem 19rem at 0% 80%, rgb(24 209 212 / .16), transparent 75%),
+    linear-gradient(145deg, #0b1a36, #132249 68%, #281638);
+  box-shadow: 0 20px 55px rgb(4 9 27 / .19);
+}
+.ifund-merch-design {
+  background: linear-gradient(145deg, rgb(31 49 84 / .86), rgb(12 23 53 / .94));
+  color: white;
+  transition: border-color .25s ease, transform .2s ease, box-shadow .25s ease;
+}
+.ifund-merch-design:hover {
+  border-color: rgb(149 221 247 / .68);
+  box-shadow: 0 12px 27px rgb(10 25 60 / .34);
+}
+.ifund-merch-preview {
+  height: 190px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: .9rem;
+  background: radial-gradient(ellipse at 70% 30%, rgb(82 242 231 / .24), transparent 65%), #0b1235;
+}
+.ifund-merch-preview img {
+  width: 82%; height: 78%;
+  object-fit: cover;
+  border-radius: .85rem;
+  box-shadow: 0 0 0 3px rgb(172 242 255 / .46), 0 0 24px rgb(62 208 255 / .23);
+}
+.ifund-merch-preview--orbit-portrait img { border-radius: 50%; transform: rotate(-5deg); }
+.ifund-merch-preview--horizon-story {
+  background: linear-gradient(12deg, #423366, #142c48 70%);
+}
+.ifund-merch-preview--horizon-story img { width: 92%; height: 70%; border-radius: .4rem; }
+.ifund-merch-preview--mission-emblem { background: linear-gradient(145deg, #0b2a2f, #1d2339); }
+.ifund-merch-preview--mission-emblem img { width: 74%; height: 72%; border-radius: 28%; }
+.ifund-merch-preview span {
+  position: absolute;
+  bottom: 12px;
+  left: 5%; width: 90%;
+  padding: .3rem .5rem;
+  border-radius: .5rem;
+  background: rgb(3 12 30 / .75);
+  color: #fff;
+  text-align: center;
+  font-weight: 750;
+  font-size: .9rem;
+  overflow-wrap: anywhere;
+  text-shadow: 0 2px 6px #000;
+}
+@media (max-width: 640px) {
+  .ifund-dashboard-hero { border-radius: 1.2rem; }
+  .ifund-merch-preview { height: 170px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.ifund-shell, .ifund-public) button,
+  :where(.ifund-shell, .ifund-public) a,
+  .ifund-dashboard .ifund-action,
+  .ifund-merch-design,
+  :where(.ifund-shell, .ifund-public) button::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    transform: none !important;
+  }
+}
+
+/* The public home and standalone pages should not collapse to a single flat fill. */
+.ifund-public {
+  background:
+    radial-gradient(56rem 25rem at 85% 10%, rgb(141 105 240 / .15), transparent 64%),
+    radial-gradient(50rem 33rem at 6% 55%, rgb(34 213 219 / .13), transparent 68%),
+    linear-gradient(159deg, #edf7ff 4%, #f8f3ff 51%, #ecf9fb 100%);
+}
+html.dark .ifund-public {
+  background:
+    radial-gradient(55rem 27rem at 88% 10%, rgb(141 105 240 / .26), transparent 65%),
+    radial-gradient(52rem 30rem at 5% 64%, rgb(31 201 235 / .18), transparent 72%),
+    linear-gradient(152deg, #060d23, #161435 56%, #091b31 100%);
+}
+:where(.ifund-shell, .ifund-public) button[aria-busy="true"]::before,
+:where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  width: 1em; height: 1em;
+  margin-right: .35em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ifund-button-spin .9s linear infinite;
+}
+@keyframes ifund-button-spin { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  :where(.ifund-shell, .ifund-public) button[aria-busy="true"]::before,
+  :where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+    animation: none !important;
+    border-right-color: currentColor;
+  }
+}
