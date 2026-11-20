@@ -141,7 +141,7 @@ export async function getMissionIntegrationStatus(client,missionId){
    .select("id,agent_id,action_kind,status,description,approved_at,created_at")
    .eq("mission_id",missionId).eq("owner_id",ownerId),
   client.from("ifund_mission_opportunity_matches")
-   .select("id,title,provider_name,source_status,match_status,checked_at,expires_at")
+   .select("id,opportunity_id,title,provider_name,source_status,match_status,checked_at,expires_at")
    .eq("mission_id",missionId).eq("owner_id",ownerId)
  ]);
  if(c.error||a.error||o.error)throw new Error("Provider and agent status unavailable.");
@@ -273,4 +273,23 @@ export async function listVerifiedMissionResources(client,{goalType="other",limi
  });
  await sessionStillOwner(client,owner);
  return sorted;
+}
+
+
+// An owner-selected, tentative resource bookmark. Supabase reads the canonical
+// provider link and title; the browser cannot attest eligibility, funds or consent.
+export async function bookmarkMissionResource(client,missionId,opportunityId){
+ ensureUuid(missionId,"Mission ID");
+ if(typeof opportunityId!=="string"||!opportunityId.trim()||opportunityId.length>200)
+  throw new Error("Invalid resource reference.");
+ const owner=await verifiedOwner(client,true);
+ const r=await client.rpc("ifund_mission_bookmark_verified_resource",{
+  p_mission_id:missionId,p_opportunity_id:opportunityId
+ });
+ if(r.error||r.data?.mission_id!==missionId||r.data?.opportunity_id!==opportunityId||
+    r.data?.match_status!=="interested"||r.data?.source_status!=="source_checked"||
+    typeof r.data?.id!=="string")
+  throw new Error("The resource bookmark could not be confirmed. Please retry.");
+ await sessionStillOwner(client,owner);
+ return r.data;
 }
