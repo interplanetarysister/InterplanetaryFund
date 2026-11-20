@@ -88,6 +88,7 @@ export default function Home() {
             label="Describe a goal, a problem to solve, or a financial burden."
             placeholder="What would you like help making possible?"
             submitLabel="Continue"
+            maxLength={1500}
             note="We'll fill in your draft. You can edit everything before publishing."
             onSubmit={startFromPrompt}
             className="mb-6 mx-auto max-w-xl"
