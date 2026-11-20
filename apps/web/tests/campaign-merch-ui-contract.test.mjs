@@ -14,6 +14,7 @@ test("optional merch studio is owner-scoped and reachable from existing editor",
   assert.match(editor,/strategy\?campaign=/);
   assert.match(studio,/validateMerchDesignRequest/);
   assert.match(studio,/namePublicationApproved/);
+  assert.match(studio,/Remove saved design/);
   assert.match(studio,/artworkRightsConfirmed/);
   assert.match(studio,/Generate optional AI art/);
   assert.match(studio,/Nothing was published|No Printful order/);
@@ -27,6 +28,8 @@ test("storage feature flag is default-off and saved design rows are private draf
   assert.match(migration,/ENABLE ROW LEVEL SECURITY/);
   assert.match(migration,/REFERENCES public\.ifund_campaigns\(id\)/);
   assert.match(migration,/WITH CHECK/);
+  assert.match(migration,/FOR DELETE TO authenticated/);
+  assert.match(api,/deleteOwnerMerchDraft/);
   assert.match(migration,/status\s+text NOT NULL DEFAULT 'draft' CHECK \(status='draft'\)/);
   assert.doesNotMatch(migration,/GRANT\s+.*ON public\.ifund_campaign_merch_designs TO anon/i);
 });
