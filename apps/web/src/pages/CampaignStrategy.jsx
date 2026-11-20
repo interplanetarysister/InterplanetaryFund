@@ -93,7 +93,7 @@ export default function CampaignStrategy() {
           <p className="text-xs text-muted-foreground">Cover check verifies only that a reference exists, not that its image URL loads or that you have image rights.</p>
           <details className="rounded-xl border border-border p-3" aria-label="Optional campaign readiness analysis">
             <summary className="cursor-pointer font-semibold">Optional readiness analysis</summary>
-            <CampaignReadinessScore form={item.campaignForm} />
+            <CampaignReadinessScore form={item.campaignForm} editPath={"/campaigns/"+encodeURIComponent(item.campaign_id)+"/edit"} />
             <p className="mt-2 text-xs text-muted-foreground">This score is advisory, not a publication condition. For reversible writing edits, open the campaign editor below.</p>
           </details>
           <AgentDocumentReferences campaignId={item.campaign_id}/>
