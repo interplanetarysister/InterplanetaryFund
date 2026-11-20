@@ -7,7 +7,7 @@ import { askIFundAgent } from "@/lib/agentQuestions";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
-const choices = ["nexus", "echo", "pulse", "orbit", "polaris", "forge", "story", "link"];
+const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
 export default function AgentSidePanel({ agent, onSelect, onClose }) {
   const { user } = useAuthSession();
