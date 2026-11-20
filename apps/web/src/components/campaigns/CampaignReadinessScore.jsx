@@ -36,6 +36,6 @@ export default function CampaignReadinessScore({ form }) {
         <a href={"#"+row.field} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</a>
       </li>)}</ul>}
     </div>
-    <p className="text-sm text-muted-foreground">A low readiness score does not prevent publishing. Standard account, required-field, story-format and financial safety checks still apply.</p>
+    <p className="text-sm text-muted-foreground">A low readiness score does not prevent publishing. Required account, campaign-field and financial safety checks still apply. There is no story-length minimum.</p>
   </section>;
 }
