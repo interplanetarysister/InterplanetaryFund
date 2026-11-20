@@ -14,11 +14,13 @@ referenceBytes.set([0xff, 0xd9], 126);
 const input={title:"Help a family recover",description:"Illustrate safe housing and support after a disaster",style:"comic",reference_jpeg:referenceBytes.toString("base64"),confirmed_rights:true};
 const env={IFUND_IMAGE_AI_ENABLED:"enabled",SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_PUBLISHABLE_KEY:"sb_publishable_mock_public"};
 const request=(body=input,method="POST")=>new Request(url,{method,headers:method==="POST"?{"Content-Type":"application/json",Authorization:"Bearer good.mock.token"}:{},...(method==="POST"?{body:JSON.stringify(body)}:{})});
-function services(quota=true,verified=true) {
+function services(quota=true,verified=true,aiAllowed=true) {
  const calls=[];
  const fetcher=async (destination,init)=>{
   calls.push(destination);
   if(destination.endsWith("/auth/v1/user")) return Response.json(verified?{id:owner,app_metadata:{role:"member"}}:{},{status:verified?200:401});
+  if(destination.includes("/rest/v1/ifund_ai_permission_preferences?"))
+   return Response.json([{owner_id:owner,allow_ai_campaign_drafts:aiAllowed,allow_ai_outreach_drafts:aiAllowed,allow_future_internal_ai_assistance:aiAllowed}]);
   if(destination.endsWith("/rpc/ifund_ai_image_consume_free_quota")) return Response.json(quota);
   throw Error("Unexpected remote request");
  };
@@ -30,7 +32,7 @@ test("a real member's explicitly approved small reference photo reaches the conf
  const enabled={...env,AI:{run:async (model,args)=>{
   assert.equal(model,IMAGE_EDIT_MODEL);
   assert.equal(args.multipart.contentType.startsWith("multipart/form-data; boundary="),true);
-  assert.equal(svc.calls.length,2,"member verification and quota must precede inference");
+  assert.equal(svc.calls.length,3,"member verification, consent and quota must precede inference");
   const body=await new Response(args.multipart.body).text();
   assert.ok(body.includes('name="input_image_0"'));
   assert.ok(body.includes('name="prompt"'));
@@ -88,4 +90,11 @@ test("frontend strips EXIF through canvas and requires image rights consent",()=
  assert.equal(decoded[0],255);
  assert.equal(decoded[1],216);
  assert.equal(decoded[2],255);
+});
+
+test("AI improvement respects account opt-out before consuming quota",async()=>{
+ const svc=services(true,true,false);
+ const r=await routeImageImprove(request(),{...env,AI:{run:()=>assert.fail("disabled AI invoked")}},svc.fetcher);
+ assert.equal(r.status,403);
+ assert.ok(!svc.calls.some(path=>path.endsWith("/rpc/ifund_ai_image_consume_free_quota")));
 });
