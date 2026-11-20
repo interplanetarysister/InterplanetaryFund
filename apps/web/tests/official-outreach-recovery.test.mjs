@@ -58,3 +58,16 @@ test("private legacy email inventory uses an admin guard, not browser-visible st
  assert.match(component,/fetchOfficialOutreachCandidates\(authClient\(\)\)/);
  assert.match(adminPage,/<OfficialOutreachRecovery \/>/);
 });
+
+test("brand access is counted only when an exact provider subject, owner, and OAuth connection match",()=>{
+ const sql=readFileSync(new URL("../../../supabase/migrations/20261120020000_ifund_official_outreach_provider_identity_mapping.sql",import.meta.url),"utf8");
+ const component=readFileSync(new URL("../src/components/connections/OfficialOutreachRecovery.jsx",import.meta.url),"utf8");
+ assert.match(sql,/official_outreach_verified_grants/);
+ assert.match(sql,/conn\.id=g\.connection_id/);
+ assert.match(sql,/conn\.owner_id=g\.owner_id/);
+ assert.match(sql,/conn\.provider=g\.provider/);
+ assert.match(sql,/g\.revoked_at is null/);
+ assert.match(sql,/alter table ifund_ops\.official_outreach_verified_grants enable row level security/);
+ assert.doesNotMatch(sql,/grant (select|insert|update|delete) on ifund_ops\.official_outreach_verified_grants to authenticated/i);
+ assert.match(component,/Verified official account grants/);
+});
