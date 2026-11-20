@@ -9,6 +9,7 @@ test("What If enabled: both Start a Mission links use the prompt-first route", (
   const layout = source("../src/components/Layout.jsx");
   const app = source("../src/App.jsx");
   assert.match(dashboard, /to=\{whatIfEnabled \? "\/what-if" : "\/create"\}/);
+  assert.match(dashboard, /to=\{whatIfEnabled \? "\/register\?returnTo=%2Fwhat-if" : "\/register\?returnTo=%2Fcreate"\}/);
   assert.match(layout, /to: WHAT_IF_LAUNCHED \? "\/what-if" : "\/create"/);
   assert.match(app, /path="\/what-if" element=\{WHAT_IF_ENABLED \? <WhatIfStart\/>/);
 });
