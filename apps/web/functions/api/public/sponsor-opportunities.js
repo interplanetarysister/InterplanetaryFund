@@ -44,5 +44,5 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
   return json({opportunities:records,count:records.length,
    member_enrollment_enabled:false,reward_payout_enabled:false,
    source:"supabase_rls_verified_sponsor_offers"});
- } catch {return json({error:"Sponsor catalog unavailable"},503,"failed_"+stage); }
+ } catch (error) {const type=String(error?.name||"error").replace(/[^a-zA-Z]/g,"").slice(0,24);return json({error:"Sponsor catalog unavailable"},503,"failed_"+stage+"_"+type); }
 }
