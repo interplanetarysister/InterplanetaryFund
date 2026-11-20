@@ -1,9 +1,9 @@
+import {removeVerifiedR2Document,canonicalDocumentKey} from './privateDocumentR2.mjs';
 // A restricted substep of audited account erasure, never a full account delete.
 // Deletes only private campaign-document bytes and their matching metadata.
 // The endpoint must remain disabled until isolated testing and independent
 // approval of the account-deletion queue workflow.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const PATH=/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.(pdf|docx|xlsx|txt|md|csv)$/i;
 const json=(code,value)=>Response.json(value,{status:code,headers:{"cache-control":"no-store"}});
 const isValidBody=(data)=>data&&typeof data==="object"&&!Array.isArray(data)&&
   Object.keys(data).length===1&&UUID.test(data.request_id||"");
@@ -28,16 +28,10 @@ async function fetchJson(fetcher,url,init){
  return value;
 }
 function validateRow(row,owner){
- if(typeof row?.storage_path!=="string"||
-    typeof row.storage_present!=="boolean"||typeof row.metadata_present!=="boolean"||
-    (!row.storage_present&&!row.metadata_present)||
-    (row.metadata_present&&!UUID.test(row.document_id||""))||
-    (!row.metadata_present&&row.document_id!==null))
-   throw Error("Unverifiable document inventory.");
- const m=PATH.exec(row.storage_path);
- if(!m||m[1]!==owner||(row.document_id&&m[3]!==row.document_id))
-   throw Error("Document path does not belong to deletion requester.");
- return row.storage_path;
+ if(!UUID.test(row?.document_id||'')||!UUID.test(row?.campaign_id||'')||
+    typeof row?.deletion_requested_at!=='string'||!row.deletion_requested_at)
+   throw Error('Document must be staged for deletion before object cleanup.');
+ return canonicalDocumentKey(row,owner);
 }
 async function authorizeRequest({fetcher,url,key,jwt,requestId}){
  const rows=await fetchJson(fetcher,url+"/rest/v1/rpc/ifund_super_admin_account_deletion_queue",{
@@ -48,64 +42,42 @@ async function authorizeRequest({fetcher,url,key,jwt,requestId}){
  // The server-side RPC verifies the super administrator; a request ID alone
  // cannot authorize erasure. Only the reviewed state allows this substep.
  const item=rows.find(row=>row.request_id===requestId);
- if(!item||item.request_status!=="reviewing"||!UUID.test(item.requested_user_id||""))
-   throw Error("An independently reviewed account deletion request is required.");
+ if(!item||item.request_status!=='reviewing'||!UUID.test(item.requested_user_id||''))
+   throw Error('An authorized deletion request is required.');
+ const reviewed=await fetchJson(fetcher,url+'/rest/v1/rpc/ifund_super_admin_private_document_reviewed_queue',{
+   method:'POST',headers:{apikey:key,Authorization:'Bearer '+jwt,'content-type':'application/json'},body:'{}'
+ });
+ if(!Array.isArray(reviewed)||!reviewed.some(row=>row.request_id===requestId&&row.review_ready===true))
+   throw Error('Independent review approval is missing.');
  return item.requested_user_id;
 }
 async function listOwnerDocuments({fetcher,url,key,owner,requestId,jwt}){
  const rows=await fetchJson(fetcher,url+"/rest/v1/rpc/ifund_super_admin_private_document_inventory",{
    method:"POST",headers:{"apikey":key,Authorization:"Bearer "+jwt,"content-type":"application/json"},
-   body:JSON.stringify({p_request_id:requestId,p_limit:100})
+   body:JSON.stringify({p_owner_id:owner,p_limit:100})
  });
  if(!Array.isArray(rows)||rows.length>100)throw Error("Private-document inventory is invalid.");
  rows.forEach(row=>validateRow(row,owner));
  return rows;
 }
-async function markPending({fetcher,url,key,owner,row}){
- if(!row.metadata_present||row.deletion_requested_at)return;
- const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.document_id+
-   "&owner_id=eq."+owner+"&deletion_requested_at=is.null";
- const result=await fetchJson(fetcher,endpoint,{method:"PATCH",
-   headers:serviceHeaders(key,true),
-   body:JSON.stringify({allow_agent_use:false,deletion_requested_at:new Date().toISOString()})
- });
- if(!Array.isArray(result)||result.length!==1||result[0].id!==row.document_id||
-    result[0].allow_agent_use!==false||!result[0].deletion_requested_at)
-   throw Error("Private document consent revocation could not be confirmed.");
-}
-async function deleteOne({fetcher,url,key,owner,row}){
+async function deleteOne({fetcher,url,key,owner,row,bucket}){
  const path=validateRow(row,owner);
- await markPending({fetcher,url,key,owner,row});
- if(row.storage_present){
-   const remove=await fetchJson(fetcher,url+"/storage/v1/object/ifund-campaign-documents",{
-     method:"DELETE",headers:serviceHeaders(key),body:JSON.stringify({prefixes:[path]})
-   });
-   if(!Array.isArray(remove))throw Error("Private Storage cleanup receipt is invalid.");
- }
- // Confirm missing bytes BEFORE removing the only durable cleanup reference.
- const encoded=path.split("/").map(encodeURIComponent).join("/");
- const info=await fetcher(url+"/storage/v1/object/info/ifund-campaign-documents/"+encoded,{
-   method:"GET",headers:serviceHeaders(key),signal:AbortSignal.timeout(20000)
- });
- if(info.status!==404)throw Error("Private Storage deletion could not be independently verified.");
- let missing;
- try{missing=await info.json();}catch{throw Error("Private Storage absence receipt is invalid.");}
- // A 404 can also mean a missing bucket or an inaccessible object. Only
- // an explicit NoSuchKey confirms that this particular file is absent.
- if(missing?.code!=="NoSuchKey")
-   throw Error("Private Storage absence receipt is not a missing-file proof.");
- if(row.metadata_present){
-   const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.document_id+"&owner_id=eq."+owner+
-     "&deletion_requested_at=not.is.null";
-   const deleted=await fetchJson(fetcher,endpoint,{
-     method:"DELETE",headers:serviceHeaders(key,true)
-   });
-   if(!Array.isArray(deleted)||deleted.length!==1||deleted[0].id!==row.document_id)
-     throw Error("Private document metadata cleanup was not confirmed.");
- }
+ // R2 object deletion requires a separate, verified serialization mechanism.
+ // No unsafe HEAD-then-unconditional-delete is permitted by this endpoint.
+ if(!bucket?.head||!bucket?.delete)throw Error('R2 binding unavailable.');
+ if(!bucket?.ifundIdentityLockedDeletion)throw Error('Identity-locked R2 deletion not verified.');
+ await removeVerifiedR2Document({bucket,row,owner});
+ const endpoint=url+'/rest/v1/ifund_campaign_documents?id=eq.'+row.document_id+
+   '&owner_id=eq.'+owner+'&storage_path=eq.'+encodeURIComponent(path)+
+   '&object_etag=eq.'+encodeURIComponent(row.object_etag)+
+   '&object_sha256=eq.'+row.object_sha256+'&deletion_requested_at=not.is.null';
+ const deleted=await fetchJson(fetcher,endpoint,{method:'DELETE',headers:serviceHeaders(key,true)});
+ if(!Array.isArray(deleted)||deleted.length!==1||deleted[0].id!==row.document_id)
+   throw Error('Immutable metadata deletion receipt missing.');
 }
 export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,requestId,jwt}){
  const {url,key}=config(env);
+ const bucket=env.IFUND_CAMPAIGN_MEDIA;
  if(!UUID.test(requestId||"")||!jwt||!/^[\w.~-]+$/.test(jwt))
    throw Error("Verified deletion request and administrator session required.");
  const owner=await authorizeRequest({fetcher,url,key,jwt,requestId});
@@ -118,7 +90,7 @@ export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,request
    const rows=await listOwnerDocuments({fetcher,url,key,owner,requestId,jwt});
    if(!rows.length)return {verified:true,more_documents:false,documents_removed:removed,account_deleted:false};
    for(const row of rows.slice(0,batchLimit-removed)){
-     await deleteOne({fetcher,url,key,owner,row});
+     await deleteOne({fetcher,url,key,owner,row,bucket});
      removed++;
    }
  }
