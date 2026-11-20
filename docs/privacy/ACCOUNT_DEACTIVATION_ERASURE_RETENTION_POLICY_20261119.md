@@ -1,7 +1,7 @@
 # IFund account deactivation, deletion and retention policy (proposed implementation, 2026-11-19)
 
 ## Two distinct user choices
-1. **Deactivate**: reversible account pause, not an account deletion. User can recover access after verified sign-in. Preserve ordinary account data only for as long as the user chooses the inactive service, subject to applicable retention and privacy rules. Include an eventual inactivity notice/retention review; do not promise indefinite backups.
+1. **Deactivate**: reversible account pause, not an account deletion. User can recover access after verified sign-in. Preserve ordinary account data for a maximum 24-month period of continued inactivity, subject to applicable retention and privacy rules. Notify the owner after 18 months and again at least 30 days before expiry; verified reactivation resets the clock. At expiry, initiate a separately authenticated, privacy-compliant account-deletion review rather than silently erasing data or bypassing unresolved legal/financial holds. This is a proposed product rule, not a currently operating inactivity scheduler. Never promise indefinite backups.
 2. **Delete account**: verify identity and initiate deletion. Disable account access and revoke sessions as part of the separately verified closure executor. No account is deleted by a request or a read-only preflight.
 
 ## Recovery schedule
