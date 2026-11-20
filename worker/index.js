@@ -18,6 +18,13 @@ import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, 
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/payments/email-addon/status' ||
+        pathname === '/api/payments/email-addon/start') {
+      // Isolated recurring PayPal checkout never falls through to donation rails.
+      if (typeof env.IFUND_EMAIL_ADDON_BILLING?.fetch !== 'function')
+        return response(503, { error: 'Recurring email checkout is not configured.' });
+      return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
+    }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
