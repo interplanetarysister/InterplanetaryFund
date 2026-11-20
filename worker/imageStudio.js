@@ -1,4 +1,5 @@
 import { authenticatedUser, response } from './reads.js';
+import { verifyOwnerAIConsent } from './aiConsent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
 
 export const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
@@ -81,6 +82,8 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     const { style, prompt } = validateImageRequest(input);
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with a verified account to generate artwork.' });
+    const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
+    if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
 
     // This is an atomic, database-verified membership and free-tier attempt
     // limit. The browser cannot bypass it using a forged owner ID or JWT role.

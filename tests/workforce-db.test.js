@@ -668,7 +668,7 @@ test("permanent gateway carries preview proof through real database context, ass
       if (url.endsWith("/auth/v1/user"))
         return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
       if (url.includes("/ifund_ai_permission_preferences?"))
-        return Response.json([{allow_ai_campaign_drafts:true}]);
+        return Response.json([{owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true}]);
       const name = url.split("/").pop();
       const payload = JSON.parse(init.body);
       const args = {

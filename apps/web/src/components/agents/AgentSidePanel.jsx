@@ -16,6 +16,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [availability, setAvailability] = useState({ loading: true, enabled: false, reason: "" });
+  const [consentRevision, setConsentRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
@@ -82,6 +83,18 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     scroll.current?.scrollTo({ top: scroll.current.scrollHeight, behavior: "smooth" });
   }, [messages, error, agent]);
   useEffect(() => {
+    const refresh = event => {
+      if (event.detail?.ownerId !== user?.id) return;
+      active.current?.abort();
+      stopListening();
+      stopAudio();
+      setAvailability({loading:true,enabled:false,reason:""});
+      setConsentRevision(value => value + 1);
+    };
+    window.addEventListener("ifund-ai-consent-changed",refresh);
+    return () => window.removeEventListener("ifund-ai-consent-changed",refresh);
+  }, [user?.id]);
+  useEffect(() => {
     const controller = new AbortController();
     const owner = user?.id;
     setAvailability({ loading: true, enabled: false, reason: "" });
@@ -95,7 +108,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
         const [status, subscription, preferences, identityResponse] = await Promise.all([
           fetch("/api/agents/team/status", { signal: controller.signal, cache: "no-store" }),
           client.rpc("ifund_story_subscription"),
-          client.from("ifund_ai_permission_preferences").select("owner_id,allow_ai_campaign_drafts,allow_future_internal_ai_assistance").eq("owner_id", owner).maybeSingle(),
+          client.from("ifund_ai_permission_preferences").select("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance").eq("owner_id", owner).maybeSingle(),
           client.auth.getUser(),
         ]);
         const gateway = await status.json().catch(() => null);
@@ -114,7 +127,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       }
     })();
     return () => controller.abort();
-  }, [user?.id]);
+  }, [user?.id, consentRevision]);
 
   useEffect(() => () => { speechRef.current?.abort(); stopSpeaking(); }, []);
   async function submit(event) {

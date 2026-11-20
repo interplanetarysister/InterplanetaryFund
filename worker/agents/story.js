@@ -1,3 +1,4 @@
+import { hasUnifiedAIConsent } from "../../apps/web/src/lib/unifiedAIConsent.mjs";
 import { readJsonBody, BodyError } from "../bodyLimit.js";
 import { IFUND_MEMBER_FIRST_AGENT_POLICY } from "./memberFirstPolicy.js";
 import { normalizeWritingPreferences } from "./writingPreferences.js";
@@ -345,11 +346,11 @@ export async function storyRoute(request, env, fetcher = fetch) {
     if (request.method === "POST" && path === "/api/agents/story/drafts") {
       const prefs = await requestData(
         env, jwt,
-        "/rest/v1/ifund_ai_permission_preferences?select=allow_ai_campaign_drafts&owner_id=eq." + user.id,
+        "/rest/v1/ifund_ai_permission_preferences?select=owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance&owner_id=eq." + user.id,
         {}, fetcher,
       );
-      if (!Array.isArray(prefs) || prefs.length !== 1 || prefs[0]?.allow_ai_campaign_drafts !== true)
-        fail(403, "Enable AI campaign drafting in My Profile → Manage iFund Permissions before requesting AI suggestions.");
+      if (!Array.isArray(prefs) || prefs.length !== 1 || !hasUnifiedAIConsent(prefs[0], user.id))
+        fail(403, "Turn on AI Assistance in My Account to request AI suggestions.");
     }
     const rpc = (name, body) => {
       const workerOperation =

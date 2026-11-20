@@ -39,7 +39,7 @@ const makeFetcher =
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
     if (url.includes("/ifund_ai_permission_preferences?"))
-      return Response.json([{allow_ai_campaign_drafts:true}]);
+      return Response.json([{owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true}]);
     if (overrides[name]) return overrides[name](JSON.parse(init.body));
     if (name === "ifund_story_begin")
       return Response.json({ state: "claimed", lease: rid });

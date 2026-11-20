@@ -1,5 +1,6 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
 import { authenticatedStudioUser, accountGuardResponse, studioReady, response } from './reads.js';
+import { verifyOwnerAIConsent } from './aiConsent.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -249,6 +250,8 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
     const denied = accountGuardResponse(account);
     if (denied) return denied;
     if (account.role !== 'super_admin') return response(403, { error: 'Administrator access required.' });
+    const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
+    if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? 'Turn on AI Assistance in My Account to use Studio AI.' : 'AI permission could not be verified.'});
     const input = await readJsonBody(request, 6_000);
     if (!input || typeof input !== 'object' || Array.isArray(input) ||
         Object.keys(input).some((key) => key !== 'prompt') ||

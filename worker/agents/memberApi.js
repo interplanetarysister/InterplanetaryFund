@@ -1,4 +1,5 @@
 import { mayUseFutureInternalAI } from "../../apps/web/src/lib/internalAIConsent.mjs";
+import { hasUnifiedAIConsent } from "../../apps/web/src/lib/unifiedAIConsent.mjs";
 export const SUPABASE_ORIGIN = "https://ssibsfmtodgximseeqsv.supabase.co";
 export const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -87,12 +88,13 @@ export async function memberApi(request, env, fetcher = fetch) {
       // filter. An unknown future action never inherits an existing grant.
       let preferences;
       try {
-        preferences = await upstream("/rest/v1/ifund_ai_permission_preferences?select=owner_id,allow_future_internal_ai_assistance&owner_id=eq." + user.id);
+        preferences = await upstream("/rest/v1/ifund_ai_permission_preferences?select=owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance&owner_id=eq." + user.id);
       } catch (error) {
         if (!required) return false;
         throw error;
       }
       const allowed = Array.isArray(preferences) && preferences.length === 1 &&
+        hasUnifiedAIConsent(preferences[0], user.id) &&
         mayUseFutureInternalAI({ user, preferences: preferences[0], capability });
       if (!allowed && required) fail(403, "Enable private AI assistance in My Account before asking the team.");
       return allowed;
@@ -103,14 +105,14 @@ export async function memberApi(request, env, fetcher = fetch) {
       const field = "allow_ai_" + kind + "_drafts";
       let preferences;
       try {
-        preferences = await upstream("/rest/v1/ifund_ai_permission_preferences?select=" + field + "&owner_id=eq." + user.id);
+        preferences = await upstream("/rest/v1/ifund_ai_permission_preferences?select=owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance&owner_id=eq." + user.id);
       } catch (error) {
         if (!required) return false;
         throw error;
       }
-      const allowed = Array.isArray(preferences) && preferences.length === 1 && preferences[0]?.[field] === true;
+      const allowed = Array.isArray(preferences) && preferences.length === 1 && hasUnifiedAIConsent(preferences[0], user.id) && preferences[0]?.[field] === true;
       if (!allowed && required)
-        fail(403, "Enable the matching AI drafting permission in My Account before requesting AI suggestions.");
+        fail(403, "Turn on AI Assistance in My Account to use AI suggestions.");
       return allowed;
     },
   };

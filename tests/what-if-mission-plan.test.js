@@ -59,7 +59,7 @@ function mockMemberBackend({allowed=true,quotaState="reserved",malformed=false,o
      u.pathname==="/rest/v1/rpc/ifund_current_user_has_current_terms")
    return Response.json(true);
   if(u.pathname==="/rest/v1/ifund_ai_permission_preferences")
-   return Response.json([{allow_ai_campaign_drafts:allowed}]);
+   return Response.json([{owner_id:owner,allow_ai_campaign_drafts:allowed,allow_ai_outreach_drafts:allowed,allow_future_internal_ai_assistance:allowed}]);
   if(u.pathname==="/rest/v1/ifund_missions")
    return Response.json([{id:QA_MISSION,owner_id:QA_OWNER,original_prompt:"Create a garden plan",
      goal_type:"community",desired_outcome:"A community garden",summary:"",status:"draft",revision:1}]);
