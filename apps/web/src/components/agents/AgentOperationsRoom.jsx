@@ -13,6 +13,7 @@ export default function AgentOperationsRoom({user}){
   const [kind,setKind]=useState("discussion");
   const [error,setError]=useState("");
   const [sending,setSending]=useState(false);
+  const [analyzing,setAnalyzing]=useState(false);
   const refresh=useCallback(async()=>{
     if(!ownerId)return;
     const client=authClient();
@@ -52,6 +53,30 @@ export default function AgentOperationsRoom({user}){
     }catch(cause){setError(cause?.message||"Message failed.");}
     finally{setSending(false);}
   }
+  async function askNexus(){
+    const prompt=body.trim();
+    if(!permitted||analyzing||sending||prompt.length<8||prompt.length>1100||!ownerId)return;
+    setAnalyzing(true);setError("");
+    try{
+      const client=authClient();
+      const [identity,session,admin]=await Promise.all([
+        client.auth.getUser(),client.auth.getSession(),client.rpc("ifund_current_user_is_verified_admin")
+      ]);
+      if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true ||
+        session.error||session.data?.session?.user?.id!==ownerId || !session.data?.session?.access_token)
+        throw Error("Administrator session could not be verified.");
+      const response=await fetch("/api/agents/ops/analyze",{
+        method:"POST",headers:{"Content-Type":"application/json",
+          Authorization:"Bearer "+session.data.session.access_token},
+        body:JSON.stringify({question:prompt})
+      });
+      const result=await response.json().catch(()=>null);
+      if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
+        throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
+      setBody("");await refresh();
+    }catch(cause){setError(cause?.message||"Agent analysis was not completed.");}
+    finally{setAnalyzing(false);}
+  }
   if(checking)return <p role="status" className="text-sm text-slate-400">Checking private operations-room access…</p>;
   if(!permitted)return null;
   return <section aria-label="Private Agent Operations Room" className="rounded-2xl border border-slate-600/50 bg-slate-950/60 p-4 space-y-4">
@@ -85,7 +110,11 @@ export default function AgentOperationsRoom({user}){
         maxLength={4000} rows={3} className="w-full rounded-xl border border-slate-600 bg-slate-900 p-3 text-sm"
         placeholder="Describe an assignment, question, decision or blocker…"/>
       <div className="flex flex-wrap gap-2">
-        <button disabled={!body.trim()||sending} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
+        <button disabled={!body.trim()||sending||analyzing} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
+        <button type="button" onClick={askNexus} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
+          className="rounded-xl border border-cyan-500/70 px-4 py-2 text-sm font-semibold text-cyan-200 disabled:opacity-40">
+          {analyzing?"Consulting specialists…":"Ask NEXUS to analyze"}
+        </button>
         <button type="button" onClick={()=>refresh().catch(()=>setError("Room refresh failed."))} className="rounded-xl border border-slate-600 px-4 py-2 text-sm">Refresh</button>
       </div>
     </form>
