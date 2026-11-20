@@ -40,9 +40,9 @@ const MONEY_FIELDS = Object.freeze([
 export function publicBeneficiaryLabel(name) {
   if (typeof name !== "string") return "";
   return name.normalize("NFKC")
-    .replace(/[\\u0000-\\u001f\\u007f]/g, " ")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/[<>]/g, "")
-    .replace(/\\s+/g, " ").trim().slice(0, MAX_BENEFICIARY_NAME_LENGTH);
+    .replace(/\s+/g, " ").trim().slice(0, MAX_BENEFICIARY_NAME_LENGTH);
 }
 export function validateMerchDesignRequest(input) {
   if (!input || typeof input !== "object" || Array.isArray(input))
@@ -101,5 +101,5 @@ export function describeMerchArtwork({ campaignTitle, campaignSummary, beneficia
     "Treat submitted campaign artwork as a reference only when explicit rights are confirmed.",
     "Do not invent real events, portraits, logos, endorsements, financial claims, or extra beneficiary names.",
     "Return a proof for human approval; never create an order or publish the art automatically.",
-  ].join("\\n");
+  ].join("\n");
 }
