@@ -107,6 +107,11 @@ export default function FundYourMission() {
        </div>:state.phase==="ready"&&<p className="rounded-xl border border-border p-4 text-sm text-muted-foreground">No currently source-checked listings are available. Check the opportunity directory for additional research.</p>}
      <Link to="/institutions" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 py-2 font-semibold">Browse all opportunity research <ArrowUpRight size={16}/></Link>
    </section>
+   <section className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border bg-card p-6 sm:p-8" aria-label="Sponsor with Interplanetary Fund">
+    <div className="max-w-xl"><h2 className="text-xl font-bold">Have a real opportunity to sponsor?</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Businesses and organizations can introduce a proposal for verified, fair and useful sponsored tasks. No offer goes live without review.</p></div>
+    <Link to="/sponsor" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-600 px-5 font-semibold text-white">Propose a sponsorship <ArrowUpRight size={17}/></Link>
+   </section>
    <footer className="rounded-2xl border border-border p-5 text-sm text-muted-foreground">
     <div className="flex gap-3"><ShieldCheck size={22} className="shrink-0 text-cyan-600"/><p>Sponsor submissions, offer enrollment, commissions and payouts are not enabled. IFund does not guarantee income or awards. When sponsor tasks become available, each will require verified terms and funding before any reward is advertised.</p></div>
    </footer>
