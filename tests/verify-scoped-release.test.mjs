@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {assess,verifyGitScope} from '../scripts/verify-scoped-release.mjs';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -51,4 +51,56 @@ test('CLI independently verifies exact Git diff, refuses omitted changed files a
   writeFileSync(join(cwd,'untracked'),'dirty');
   assert.match(verifyGitScope(x,{cwd}).join(),/dirty/);
  } finally {rmSync(cwd,{recursive:true,force:true});}
+});
+
+test('CLI refuses incomplete evidence at runtime without a real checkout',()=>{
+ const result=spawnSync(process.execPath,[new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname,'missing.json'],{encoding:'utf8'});
+ assert.notEqual(result.status,0);
+ assert.match(result.stderr,/FAIL CLOSED/);
+});
+test('CLI rejects out-of-scope fixture in temporary git checkout',()=>{
+ const cwd=mkdtempSync(join(tmpdir(),'ifund-release-cli-'));
+ const run=(...args)=>spawnSync('git',args,{cwd,encoding:'utf8'});
+ try {
+  run('init','-q');run('config','user.email','qa@example.invalid');run('config','user.name','iFund QA');
+  writeFileSync(join(cwd,'landing.css'),'one');run('add','.');run('commit','-qm','base');
+  const base=run('rev-parse','HEAD').stdout.trim();
+  writeFileSync(join(cwd,'landing.css'),'two');run('add','.');run('commit','-qm','new');
+  const commit=run('rev-parse','HEAD').stdout.trim();
+  const x=fixture(['landing.css']); x.base_sha=base;x.commit_sha=commit;
+  for(const k of ['local_tests','security_regressions','role_browser_qa','preview_qa']) x.evidence[k].commit_sha=commit;
+  x.evidence.preview_deployment.commit_sha=commit;
+  // Synthetic tests should not authorize a real deployment. This verifies execution mechanics only.
+  // landing.css is not an accepted production scope; eligibility must be denied.
+  writeFileSync(join(cwd,'evidence.json'),JSON.stringify(x));
+  const result=spawnSync(process.execPath,[new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname,'evidence.json'],{cwd,encoding:'utf8'});
+  assert.notEqual(result.status,0);
+  assert.match(result.stdout,/Full release\/security gate required/);
+ } finally {rmSync(cwd,{recursive:true,force:true});}
+});
+test('CLI permits fully proved narrow fixture and rejects omitted changed files',()=>{
+ const cwd=mkdtempSync(join(tmpdir(),'ifund-release-proof-repo-'));
+ const proof=mkdtempSync(join(tmpdir(),'ifund-release-proof-outside-'));
+ const run=(...args)=>spawnSync('git',args,{cwd,encoding:'utf8'});
+ try {
+  run('init','-q');run('config','user.email','qa@example.invalid');run('config','user.name','iFund QA');
+  mkdirSync(join(cwd,'apps/web/src/styles'),{recursive:true});
+  const style=join(cwd,'apps/web/src/styles/landing.css');
+  writeFileSync(style,'one');run('add','.');run('commit','-qm','base');
+  const base=run('rev-parse','HEAD').stdout.trim();
+  writeFileSync(style,'two');run('add','.');run('commit','-qm','release');
+  const commit=run('rev-parse','HEAD').stdout.trim();
+  const x=fixture();x.base_sha=base;x.commit_sha=commit;
+  for(const k of ['local_tests','security_regressions','role_browser_qa','preview_qa'])x.evidence[k].commit_sha=commit;
+  x.evidence.preview_deployment.commit_sha=commit;
+  const file=join(proof,'evidence.json');writeFileSync(file,JSON.stringify(x));
+  const script=new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname;
+  const pass=spawnSync(process.execPath,[script,file],{cwd,encoding:'utf8'});
+  assert.equal(pass.status,0,pass.stderr+' '+pass.stdout);
+  assert.match(pass.stdout,/"eligible": true/);
+  x.changed_files=[];writeFileSync(file,JSON.stringify(x));
+  const deny=spawnSync(process.execPath,[script,file],{cwd,encoding:'utf8'});
+  assert.notEqual(deny.status,0);
+  assert.match(deny.stdout,/disagree with committed Git diff/);
+ } finally {rmSync(cwd,{recursive:true,force:true});rmSync(proof,{recursive:true,force:true});}
 });
