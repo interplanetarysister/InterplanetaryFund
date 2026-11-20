@@ -17,8 +17,9 @@ function harness(kind="section") {
     setSectionProposals:value=>{state.proposals=typeof value==="function"?value(state.proposals):value;},
     setSuggesting:value=>{state.suggesting=value;},setSuggestionError:value=>{state.error=value;},
     setSuggestions:value=>{state.suggestions=value;},setStorySections:value=>{state.sections=value;}};
-  const start=source.indexOf(kind==="section"?"  async function regenerateSection(index) {":"  async function suggestDraft() {");
-  const end=source.indexOf(kind==="section"?"\n\n  async function suggestDraft()":"\n  useEffect(() => {",start+1);
+  // CreateCampaign.jsx is reindented by upstream tooling; locate by declaration.
+  const start=source.search(kind==="section"?/async function regenerateSection\(index\) \{/:/async function suggestDraft\(\)/);
+  const end=source.indexOf(kind==="section"?"async function suggestDraft()":"useEffect(() => {",start+1);
   assert.ok(start>=0&&end>start);
   const body=source.slice(start,end);
   const fn=new Function(...Object.keys(names),body+`;return ${kind==="section"?"regenerateSection":"suggestDraft"};`)(...Object.values(names));

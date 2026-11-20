@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const repoPath = name => new URL("../../../" + name, import.meta.url);
 const webPath = name => new URL("../" + name, import.meta.url);
@@ -41,7 +42,7 @@ test("manual Pages workflow runs route acceptance preflight before any npm/build
 });
 
 test("source preflight fails closed while any route is not independently accepted", () => {
-  const result = spawnSync(process.execPath, [webPath("ci/verify-route-readiness.mjs").pathname], {
+  const result = spawnSync(process.execPath, [fileURLToPath(webPath("ci/verify-route-readiness.mjs"))], {
     encoding: "utf8", timeout: 5000,
   });
   assert.equal(result.error, undefined, result.error?.message || "source preflight did not launch");

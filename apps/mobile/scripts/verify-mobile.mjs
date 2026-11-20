@@ -6,7 +6,8 @@ import { resolve, dirname } from "node:path";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repo = resolve(root, "../..");
-const read = path => readFileSync(resolve(repo, path), "utf8");
+// Git checkouts on Windows carry CRLF; the script's expected snippets use LF.
+const read = path => readFileSync(resolve(repo, path), "utf8").replace(/\r\n/g, "\n");
 const errors = [];
 const assert = (condition, message) => { if (!condition) errors.push(message); };
 const mode = process.argv[2] || "--candidate";

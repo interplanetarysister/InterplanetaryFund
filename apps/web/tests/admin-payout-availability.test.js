@@ -13,7 +13,7 @@ test("admin payout queue fails closed instead of presenting errors as no pending
 });
 test("operational counters do not interpret missing values or arbitrary strings as verified zero", () => {
   const start = src.indexOf("const operationalCount = ");
-  const end = src.indexOf(";\n", start);
+  const end = src.indexOf(";", start);
   assert.ok(start >= 0 && end > start);
   const formatter = new Function(src.slice(start, end).replace("const operationalCount = ", "return "))();
   for (const value of [null, undefined, "", " ", "1e2", "0.0", false, [], {}, "-1", -1, Number.NaN, Number.POSITIVE_INFINITY]) {

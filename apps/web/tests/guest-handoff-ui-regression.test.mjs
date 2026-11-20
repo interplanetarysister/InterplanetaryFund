@@ -9,7 +9,7 @@ test("guest copy cleanup requires explicit owner click and truthful feedback",()
  assert.match(editor,/function retryGuestCopyCleanup\(\)/);
  assert.match(editor,/onClick=\{retryGuestCopyCleanup\}/);
  assert.match(editor,/guestCopyRetained && <button/);
- assert.match(editor,/<\/section>\}\n    \{loadingDraft &&/);
+  assert.match(editor,/\{loadingDraft && <p role="status">/);
  assert.match(editor,/if \(!ownerId \|\| ownerTransitionPending \|\| disabled\) return/);
  assert.match(editor,/The owner draft or guest draft has changed since import/);
  assert.match(editor,/Private information may remain accessible to another guest/);
