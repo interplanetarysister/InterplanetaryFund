@@ -67,9 +67,9 @@ export default function Home() {
             <span className="brand-gradient-text">What if?</span>
           </h1>
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
-          {whatIfEnabled && <form onSubmit={e=>{e.preventDefault();if(goal.trim())navigate("/what-if",{state:{prompt:goal}});}} className="mx-auto mb-6 max-w-xl space-y-3 rounded-2xl border border-cyan-200/25 bg-slate-950/75 p-4 text-left">
+          {whatIfEnabled && <form onSubmit={e=>{e.preventDefault();if(goal.trim() && goal.trim().length <= 1500)navigate("/create?manual=1",{state:{prompt:goal.trim(),source:"home-what-if"}});}} className="mx-auto mb-6 max-w-xl space-y-3 rounded-2xl border border-cyan-200/25 bg-slate-950/75 p-4 text-left">
             <label htmlFor="home-what-if" className="block text-sm font-semibold text-cyan-100">What would you like to make possible?</label>
-            <textarea id="home-what-if" rows={3} maxLength={12000} value={goal} onChange={e=>setGoal(e.target.value)}
+            <textarea id="home-what-if" rows={3} maxLength={1500} value={goal} onChange={e=>setGoal(e.target.value)}
               className="w-full resize-y rounded-xl border border-white/20 bg-slate-900 px-4 py-3 text-base text-white placeholder-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
               placeholder="I want to… I need help with… What if we could…"/>
             <button type="submit" disabled={!goal.trim()} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50">Explore my possibilities <ArrowRight className="h-4 w-4"/></button>
