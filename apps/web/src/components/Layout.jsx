@@ -13,6 +13,7 @@ import BackToTop from "@/components/BackToTop";
 import QuickActions from "@/components/QuickActions";
 import ScrollableNav from "@/components/ScrollableNav";
 import AgentSidePanel from "@/components/agents/AgentSidePanel";
+import "@/styles/agent-companion.css";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
