@@ -25,3 +25,9 @@ test("owner drafts, AI story decisions and publication gates remain intact", () 
  assert.match(creator, /save\("active"\)/);
  assert.match(creator, /publishReadiness\(form\)/);
 });
+
+test("dashboard prompt uses the same direct three-stage AI editor handoff", () => {
+ const dashboard=read("../src/pages/Dashboard.jsx");
+ assert.match(dashboard,/navigate\("\/create\?manual=1", \{ state: \{ prompt, source: "home-what-if" \} \}\)/);
+ assert.match(dashboard,/submitLabel="Continue"/);
+});

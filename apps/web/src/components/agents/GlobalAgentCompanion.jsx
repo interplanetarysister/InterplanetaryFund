@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Bot, Compass } from "lucide-react";
 import AgentSidePanel from "@/components/agents/AgentSidePanel";
 import "@/styles/agent-companion.css";
+import ReferralTrialBootstrap from "@/components/referrals/ReferralTrialBootstrap";
 
 /**
  * One persistent companion for both public pages and member workspaces.
@@ -16,6 +17,7 @@ export default function GlobalAgentCompanion({ children }) {
     return () => window.removeEventListener("ifund-open-agent", openAgent);
   }, []);
   return <div className="ifund-global-companion-shell">
+    <ReferralTrialBootstrap />
     <div className="ifund-global-companion-main">{children}</div>
     {activeAgent == null && <button type="button"
       className="ifund-global-agent-launcher"

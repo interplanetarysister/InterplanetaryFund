@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bot, Compass, PlusCircle, FolderKanban, ArrowUpRight, Sparkles } from "lucide-react";
 import FollowFeed from "@/components/dashboard/FollowFeed";
+import ReferralRewards from "@/components/referrals/ReferralRewards";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
@@ -66,9 +67,9 @@ export default function Dashboard() {
           variant="hero"
           label="What would you like to make possible?"
           placeholder="Describe a need, an idea or a question. Nothing is published without you."
-          submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
+          submitLabel="Continue"
           note="Private by default. Turn on AI assistance in Permissions if you want suggestions."
-          onSubmit={(prompt) => navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt } })}
+          onSubmit={(prompt) => navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } })}
           className="mt-5 max-w-2xl"
         />
       </div>
@@ -136,6 +137,7 @@ export default function Dashboard() {
       </section>
       <FollowFeed ownerId={user?.id}/>
     </div>
+    <ReferralRewards ownerId={user?.id} />
     <EventsDashboardSection />
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
