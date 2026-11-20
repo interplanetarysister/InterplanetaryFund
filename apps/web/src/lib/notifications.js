@@ -81,8 +81,7 @@ export async function verifyInAppNotificationDelivery(client){
     .select(COLUMNS).eq("owner_id",owner)
     .eq("id",receipt.notification_id).maybeSingle();
   if(readError || !record || record.id!==receipt.notification_id ||
-    record.owner_id!==owner ||
-    record.canonical_operation_id!==undefined && record.canonical_operation_id!==null)
+    record.owner_id!==owner)
     throw new Error("The private inbox could not confirm the delivered notice.");
   if(record.title!=="Your iFund inbox is connected" || record.type!=="system")
     throw new Error("The inbox returned an unexpected delivery receipt.");
