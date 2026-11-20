@@ -9,6 +9,7 @@ import { routeImageImprove } from './imageImprove.js';
 import { routeGeocodeCity } from './geocodeCity.js';
 import { strategyRoute } from './agents/strategy.js';
 import { routeTeamQuestion } from './agents/teamQuestion.js';
+import { routeAgentOperations } from './agents/opsRoom.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
@@ -27,6 +28,7 @@ export default {
       return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
+    if (pathname === '/api/agents/ops/analyze') return routeAgentOperations(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
       // The local route remains fail-closed when inference is not configured.
