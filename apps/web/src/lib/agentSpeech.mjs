@@ -48,8 +48,15 @@ export function speakAgent(text,agent,{browser=typeof window==="undefined"?null:
   const voices=synth.getVoices?.() || [];
   // Prefer natural voices where the browser provides them, with agent-specific locale.
   const candidates=voices.filter(voice=>voice.lang?.toLowerCase().startsWith("en"));
-  const locale=candidates.find(voice=>voice.lang.toLowerCase()===profile.voiceHint.toLowerCase());
-  utterance.voice=locale || candidates.find(voice=>voice.localService && voice.lang.startsWith("en")) || candidates[0] || null;
+  // Give agents different installed voices whenever the device has enough.
+  // A stable index avoids multiple agents collapsing to the same default voice.
+  // With fewer voices, rate/pitch remain agent-specific.
+  const agentIndex=Object.keys(AGENT_VOICE_PROFILES).indexOf(agent);
+  const position=Math.max(0,agentIndex);
+  const ordered=[...candidates].sort((a,b)=>
+    Number(Boolean(b.localService))-Number(Boolean(a.localService)) ||
+    String(a.name).localeCompare(String(b.name)));
+  utterance.voice=ordered.length ? ordered[position % ordered.length] : null;
   if(utterance.voice) utterance.lang=utterance.voice.lang;
   utterance.onend=()=>onEnd?.();
   utterance.onerror=()=>onEnd?.();
