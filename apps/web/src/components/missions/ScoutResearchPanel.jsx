@@ -25,7 +25,7 @@ export default function ScoutResearchPanel(){
  return <section className="space-y-4 rounded-3xl border border-border bg-card p-5 sm:p-7" aria-label="SCOUT official opportunity feed search">
   <div className="flex items-start gap-3"><Radar className="mt-1 shrink-0 text-cyan-600" size={24}/><div>
     <h3 className="text-xl font-bold">Search official opportunity notices</h3>
-    <p className="mt-1 text-sm text-muted-foreground">SCOUT checks public grants feeds from Grants.gov and NIH. Results are unreviewed announcements, not approved sponsor tasks, confirmed awards, or personal eligibility.</p>
+    <p className="mt-1 text-sm text-muted-foreground">SCOUT checks public grants feeds from Grants.gov by agency and category. Results are unreviewed announcements, not approved sponsor tasks, confirmed awards, or personal eligibility.</p>
   </div></div>
   <form onSubmit={search} className="flex flex-col gap-2 sm:flex-row">
    <label className="sr-only" htmlFor="scout-keywords">Search words</label>
