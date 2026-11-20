@@ -384,3 +384,14 @@ test("full draft capacity rejects before inference and explains cancelling old d
   assert.equal(runs, 0);
   assert.match((await r.json()).error, /Cancel some drafts/);
 });
+
+test("public communications health never requires an undefined member API or advertises account-specific delivery",async()=>{
+  const response=await communicationsRoute(new Request("https://worker.test/health"),{
+    IFUND_COMMUNICATIONS_ENABLED:"enabled",IFUND_COMMUNICATIONS_SEND_ENABLED:"enabled"
+  });
+  assert.equal(response.status,200);
+  const health=await response.json();
+  assert.equal(health.enabled,true);
+  assert.equal(health.sending_in_app,false);
+  assert.equal(health.email,false);
+});
