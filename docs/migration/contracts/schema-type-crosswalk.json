@@ -1,0 +1,472 @@
+{
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "canonical_project": "ssibsfmtodgximseeqsv",
+  "schema_version": 1,
+  "static_field_count": 1126,
+  "sql_field_count_matched": 1126,
+  "source_type_to_sql_type_counts": {
+    "string -> text": 834,
+    "object -> jsonb": 22,
+    "string -> timestamp with time zone": 75,
+    "array -> jsonb": 54,
+    "number -> numeric": 73,
+    "boolean -> boolean": 65,
+    "integer -> bigint": 3
+  },
+  "assurance": "Read-only catalog comparison, not application validation, serialization tests or proof of policy equivalence.",
+  "timestamp_roundtrip_required_count": 75,
+  "timestamp_fields": [
+    {
+      "source_entity": "AdminActionMessage",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.admin_action_message.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminActionMessage",
+      "source_field": "processed_at",
+      "staging_column": "ifund_stage.admin_action_message.processed_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminApiConnectionIntake",
+      "source_field": "last_tested_at",
+      "staging_column": "ifund_secrets.admin_api_connection_intake.last_tested_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminApproval",
+      "source_field": "requested_at",
+      "staging_column": "ifund_stage.admin_approval.requested_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialReference",
+      "source_field": "created_at",
+      "staging_column": "ifund_secrets.admin_credential_reference.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialReference",
+      "source_field": "updated_at",
+      "staging_column": "ifund_secrets.admin_credential_reference.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialReference",
+      "source_field": "last_used_at",
+      "staging_column": "ifund_secrets.admin_credential_reference.last_used_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialVault",
+      "source_field": "created_at",
+      "staging_column": "ifund_secrets.admin_credential_vault.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialVault",
+      "source_field": "updated_at",
+      "staging_column": "ifund_secrets.admin_credential_vault.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AdminCredentialVault",
+      "source_field": "last_used_at",
+      "staging_column": "ifund_secrets.admin_credential_vault.last_used_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentContentDraft",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.agent_content_draft.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentContentDraft",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.agent_content_draft.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentConversationRun",
+      "source_field": "last_checked_at",
+      "staging_column": "ifund_stage.agent_conversation_run.last_checked_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentConversationRun",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.agent_conversation_run.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentConversationRun",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.agent_conversation_run.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentDelegation",
+      "source_field": "last_attempt_at",
+      "staging_column": "ifund_stage.agent_delegation.last_attempt_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentDelegation",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.agent_delegation.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AgentDelegation",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.agent_delegation.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "AuthorizationGrant",
+      "source_field": "expires_at",
+      "staging_column": "ifund_stage.authorization_grant.expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "BlogEntry",
+      "source_field": "published_at",
+      "staging_column": "ifund_stage.blog_entry.published_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "BlogEntry",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.blog_entry.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "BlogEntry",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.blog_entry.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Campaign",
+      "source_field": "outreach_last_run_at",
+      "staging_column": "ifund_stage.campaign.outreach_last_run_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Campaign",
+      "source_field": "outreach_last_attempt_at",
+      "staging_column": "ifund_stage.campaign.outreach_last_attempt_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Campaign",
+      "source_field": "social_last_generated_at",
+      "staging_column": "ifund_stage.campaign.social_last_generated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Campaign",
+      "source_field": "social_last_generation_attempt_at",
+      "staging_column": "ifund_stage.campaign.social_last_generation_attempt_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ConnectedPayoutAccount",
+      "source_field": "last_verified_at",
+      "staging_column": "ifund_finance.connected_payout_account.last_verified_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DeviceAuthorization",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.device_authorization.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DeviceAuthorization",
+      "source_field": "expires_at",
+      "staging_column": "ifund_stage.device_authorization.expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DeviceAuthorization",
+      "source_field": "approved_at",
+      "staging_column": "ifund_stage.device_authorization.approved_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DeviceAuthorization",
+      "source_field": "grant_expires_at",
+      "staging_column": "ifund_stage.device_authorization.grant_expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DeviceAuthorization",
+      "source_field": "last_polled_at",
+      "staging_column": "ifund_stage.device_authorization.last_polled_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "DistributedPost",
+      "source_field": "published_at",
+      "staging_column": "ifund_stage.distributed_post.published_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalAgentApiKey",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.external_agent_api_key.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalAgentApiKey",
+      "source_field": "last_used_at",
+      "staging_column": "ifund_stage.external_agent_api_key.last_used_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalCampaignImport",
+      "source_field": "source_updated_at",
+      "staging_column": "ifund_stage.external_campaign_import.source_updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalCampaignImport",
+      "source_field": "last_imported_at",
+      "staging_column": "ifund_stage.external_campaign_import.last_imported_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalCollectionAuthorization",
+      "source_field": "expires_at",
+      "staging_column": "ifund_stage.external_collection_authorization.expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalConversation",
+      "source_field": "last_message_at",
+      "staging_column": "ifund_stage.external_conversation.last_message_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalSyncClaim",
+      "source_field": "lock_expires_at",
+      "staging_column": "ifund_stage.external_sync_claim.lock_expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ExternalSyncEvent",
+      "source_field": "processed_at",
+      "staging_column": "ifund_stage.external_sync_event.processed_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Friendship",
+      "source_field": "requested_at",
+      "staging_column": "ifund_stage.friendship.requested_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "FundraisingProviderCapability",
+      "source_field": "last_researched_at",
+      "staging_column": "ifund_stage.fundraising_provider_capability.last_researched_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "IntegrationChangeRequest",
+      "source_field": "expires_at",
+      "staging_column": "ifund_stage.integration_change_request.expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "IntegrationChangeRequest",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.integration_change_request.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "IntegrationChangeRequest",
+      "source_field": "approved_at",
+      "staging_column": "ifund_stage.integration_change_request.approved_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "OfficialPublication",
+      "source_field": "published_at",
+      "staging_column": "ifund_stage.official_publication.published_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "OfficialPublication",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.official_publication.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PayPalSubscriptionIntent",
+      "source_field": "created_at",
+      "staging_column": "ifund_finance.pay_pal_subscription_intent.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PayPalSubscriptionIntent",
+      "source_field": "last_verified_at",
+      "staging_column": "ifund_finance.pay_pal_subscription_intent.last_verified_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PayPalSubscriptionIntent",
+      "source_field": "last_reversal_at",
+      "staging_column": "ifund_finance.pay_pal_subscription_intent.last_reversal_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformConnectionRecipe",
+      "source_field": "last_success_at",
+      "staging_column": "ifund_stage.platform_connection_recipe.last_success_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformConnectionRecipe",
+      "source_field": "last_failure_at",
+      "staging_column": "ifund_stage.platform_connection_recipe.last_failure_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformConnectionRecipe",
+      "source_field": "last_verified_at",
+      "staging_column": "ifund_stage.platform_connection_recipe.last_verified_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformIncident",
+      "source_field": "last_seen_at",
+      "staging_column": "ifund_stage.platform_incident.last_seen_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformIncident",
+      "source_field": "approved_at",
+      "staging_column": "ifund_stage.platform_incident.approved_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformIncident",
+      "source_field": "builder_last_checked_at",
+      "staging_column": "ifund_stage.platform_incident.builder_last_checked_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformOwnedAccount",
+      "source_field": "last_checked_at",
+      "staging_column": "ifund_stage.platform_owned_account.last_checked_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PlatformOwnedAccount",
+      "source_field": "last_posted_at",
+      "staging_column": "ifund_stage.platform_owned_account.last_posted_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PostInterest",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.post_interest.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PublicProfile",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.public_profile.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PushDevice",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.push_device.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "PushDevice",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.push_device.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "ScheduledAutoPostPermit",
+      "source_field": "published_at",
+      "staging_column": "ifund_stage.scheduled_auto_post_permit.published_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "User",
+      "source_field": "premium_day_pass_expires_at",
+      "staging_column": "ifund_stage.user.premium_day_pass_expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "UserBlog",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.user_blog.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "UserBlog",
+      "source_field": "updated_at",
+      "staging_column": "ifund_stage.user_blog.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "UserCredentialVault",
+      "source_field": "created_at",
+      "staging_column": "ifund_secrets.user_credential_vault.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "UserCredentialVault",
+      "source_field": "updated_at",
+      "staging_column": "ifund_secrets.user_credential_vault.updated_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "VerificationMail",
+      "source_field": "expires_at",
+      "staging_column": "ifund_stage.verification_mail.expires_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "VerificationMailbox",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.verification_mailbox.created_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "VerificationMailbox",
+      "source_field": "last_received_at",
+      "staging_column": "ifund_stage.verification_mailbox.last_received_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "WebhookEvent",
+      "source_field": "processed_at",
+      "staging_column": "ifund_finance.webhook_event.processed_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "Withdrawal",
+      "source_field": "processed_at",
+      "staging_column": "ifund_finance.withdrawal.processed_at",
+      "roundtrip_verified": false
+    },
+    {
+      "source_entity": "WritingResearchBrief",
+      "source_field": "created_at",
+      "staging_column": "ifund_stage.writing_research_brief.created_at",
+      "roundtrip_verified": false
+    }
+  ],
+  "other_type_roundtrip_verified": false,
+  "enum_and_default_semantics_verified": false
+}

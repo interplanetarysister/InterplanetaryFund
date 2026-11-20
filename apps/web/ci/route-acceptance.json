@@ -475,16 +475,6 @@
       "owner": "frontend"
     },
     {
-      "route": "/fundraising-partners",
-      "role": "public",
-      "component": "FundraisingPartners",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
-      "owner": "frontend"
-    },
-    {
       "route": "/fundraising-hub",
       "role": "member",
       "component": "ExternalFundingHub",
@@ -493,6 +483,16 @@
       "behavior_evidence": "Local tests verify member guard, canonical external campaign URLs, source attribution, source ledger isolation. No provider/OAuth/real-user acceptance established.",
       "backend_evidence": "supabase/migrations/20261119223500_ifund_external_fundraising_hub.sql (requires applied RLS and live verification)",
       "owner": "frontend+backend+qa"
+    },
+    {
+      "route": "/fundraising-partners",
+      "role": "public",
+      "component": "FundraisingPartners",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
     },
     {
       "route": "/fundraising-tips",
@@ -625,6 +625,26 @@
       "owner": "frontend"
     },
     {
+      "route": "/mail",
+      "role": "member",
+      "component": "Inbox",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/messaging",
+      "role": "member",
+      "component": "Messaging",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/mission",
       "role": "member",
       "component": "AgentsTeam",
@@ -633,6 +653,26 @@
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
+    },
+    {
+      "route": "/missions",
+      "role": "member",
+      "component": "MyMissions",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database+qa"
+    },
+    {
+      "route": "/missions/:id",
+      "role": "member",
+      "component": "MissionWorkspace",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+backend+qa"
     },
     {
       "route": "/my-blog",
@@ -913,6 +953,16 @@
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
+    },
+    {
+      "route": "/what-if",
+      "role": "public",
+      "component": "WhatIfStart",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+qa"
     },
     {
       "route": "/withdrawals",

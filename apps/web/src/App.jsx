@@ -44,6 +44,10 @@ const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
+const MyMissions = lazy(() => import("./pages/MyMissions"));
+const MissionWorkspace = lazy(() => import("./pages/MissionWorkspace"));
+const WHAT_IF_ENABLED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
@@ -60,6 +64,7 @@ const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
+const Messaging = lazy(() => import("./pages/Messaging"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
@@ -130,6 +135,7 @@ function AppRoutes() {
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<AgentsTeam />} />
+      <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
       <Route path="/mission" element={<AgentsTeam />} />
       <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
@@ -167,6 +173,9 @@ function AppRoutes() {
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/community/:id" element={<CommunityDetail />} />
+      <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart/> : <Navigate to="/create?manual=1" replace/>} />
+      <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
+      <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
@@ -178,6 +187,8 @@ function AppRoutes() {
       <Route path="/fundraising-hub" element={<MemberAccess><ExternalFundingHub /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
+      <Route path="/mail" element={<MemberAccess><Inbox /></MemberAccess>} />
+      {/* Legacy deep links remain valid; do not lose saved /inbox message destinations. */}
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/blog" element={<Navigate to="/social" replace />} />

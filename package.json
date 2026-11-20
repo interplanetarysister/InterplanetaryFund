@@ -14,7 +14,11 @@
     "reconcile": "node scripts/reconcile-production-schema.mjs",
     "audit:release": "node scripts/verify-dependency-audit.mjs",
     "test:release": "node --test tests/verify-scoped-release.test.mjs",
-    "release:scoped": "node scripts/verify-scoped-release.mjs"
+    "release:scoped": "node scripts/verify-scoped-release.mjs",
+    "test:browser:policy": "node --test tests/agent-browser-policy.test.mjs",
+    "audit:browser:desktop": "playwright install chromium && node scripts/agent-browser-audit.mjs --json browser-desktop.local",
+    "audit:browser:mobile": "playwright install chromium && node scripts/agent-browser-audit.mjs --mobile --json browser-mobile.local",
+    "setup:browser": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.4",
@@ -30,6 +34,7 @@
     "postcss": "8.5.26",
     "prettier": "3.6.2",
     "tailwindcss": "3.4.19",
-    "vite": "6.4.6"
+    "vite": "6.4.6",
+    "playwright": "1.56.1"
   }
 }

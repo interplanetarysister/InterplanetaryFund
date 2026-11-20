@@ -56,11 +56,12 @@ function fakeClient({
   return client;
 }
 
-test("source-aligned Inbox is a real member-only page and preserves filters", () => {
+test("Mail is a member-only inbox with legacy routes and filters", () => {
   const app = source("src/App.jsx");
   const page = source("src/pages/Inbox.jsx");
   assert.match(app, /path="\/inbox" element={<MemberAccess><Inbox \/><\/MemberAccess>}/);
-  for (const label of ["Universal Inbox", "All campaigns", "All platforms", "Filter by campaign", "open", "done"])
+  assert.match(app, /path="\/mail" element={<MemberAccess><Inbox \/><\/MemberAccess>}/);
+  for (const label of [">Mail</h1>", "All campaigns", "All platforms", "Filter by campaign", "open", "done"])
     assert.ok(page.includes(label), "missing " + label);
   assert.match(page, /requestedCampaign = params\.get\("campaign"\)/);
   assert.doesNotMatch(page, /base44Client|base44\.functions|mockInbox|FAKE_MESSAGES/);

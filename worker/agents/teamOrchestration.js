@@ -5,7 +5,7 @@ export const MAX_NEXUS_SPECIALISTS=2;
 export function planAgentConsultations({question,selected,recommendation}){
   if(selected!=="nexus") return [];
   const route=recommendation || recommendAgent(question);
-  if(!route.requiresCoordination) return [];
+  if(!route.topics.length) return [];
   return [...new Set(route.topics)]
     .filter(id=>id!=="nexus" && Object.hasOwn(TRAINING_ROLES,id))
     .slice(0,MAX_NEXUS_SPECIALISTS);
@@ -18,7 +18,7 @@ export function validateConsultation(raw,agent){
   return {agent,status:"completed",kind:"advisory_analysis",summary:text.trim().slice(0,1600)};
 }
 export function nexusSynthesisMessages({question,consultations}){
-  if(!Array.isArray(consultations) || consultations.length<2 ||
+  if(!Array.isArray(consultations) || consultations.length<1 ||
     consultations.length>MAX_NEXUS_SPECIALISTS ||
     consultations.some(c=>c.status!=="completed" || !Object.hasOwn(TRAINING_ROLES,c.agent) ||
       typeof c.summary!=="string" || c.summary.length>1600))

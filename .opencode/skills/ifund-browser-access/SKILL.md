@@ -1,19 +1,30 @@
 ---
 name: ifund-browser-access
-description: Use when testing Interplanetary Fund pages, UI, accessibility, responsive mobile layouts, and live release smoke tests via local free Playwright. Never use for external account actions.
+description: Use in OpenCode for local read-only desktop/mobile Playwright QA of Interplanetary Fund pages, frontend debugging and release smoke testing; never for website member-agent actions.
 ---
-# IFund Browser Access (OpenCode skill)
+# IFund Builder Browser — OpenCode
 
-Run the repository's *read-only* Playwright smoke harness rather than unsupervised browser control:
+**Audience:** the local builder/QA agent using the developer's repository checkout. This is not a runtime skill for user-facing iFund specialists.
+
+## Preconditions
+
+Run from the root of `interplanetarysister/InterplanetaryFund`. Inspect `git status --short` first; preserve any uncommitted work. Node.js 22+ and npm are required. The root `package.json` pins Playwright to `1.56.1`; `npm ci --no-audit --no-fund` installs it from the lockfile. Do not install duplicate global packages or change the lockfile to run audits.
+
+## Execution
 
 ```powershell
-node --test tests/agent-browser-policy.test.mjs
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --mobile --json browser-mobile.local
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --json browser-desktop.local
+npm ci --no-audit --no-fund
+npm run test:browser:policy
+npm run audit:browser:mobile
+npm run audit:browser:desktop
 ```
 
-If Playwright is missing in this repository, use `npm install --no-save --package-lock=false playwright` and `npx playwright install chromium` only when needed. No GitHub Actions minutes or paid hosted browser service are required.
+The two audit scripts invoke `playwright install chromium` to provision local Chromium as needed. This is a free local download, separate from the application build. `npm run setup:browser` pre-installs Chromium. Reports are `browser-mobile.local` and `browser-desktop.local`; `*.local` is gitignored. To inspect one allowed page, use `node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com/discover --mobile`.
 
-Treat all results as unauthenticated visual smoke checks, not authenticated browser acceptance. The script rejects arbitrary destinations, blocks writes and cross-origin traffic, and does not log URL query parameters. Keep generated `*.local` reports untracked. Do not attempt login, payments, external publishing, administration, credential entry, or consent bypass through this skill.
+## Interpret evidence
 
-For full policy and limitations read `docs/agents/skills/browser-access/SKILL.md`. Do not register it automatically as a user-facing tool; that requires separate central backend authorization, rate limits, quotas, audit receipts and free-cost verification.
+Report observed status, page title, headings, visible content, console/page errors, blocked network requests and overflow. An HTTP 200 or successful build is not end-to-end acceptance. This harness is **unauthenticated and read-only**: it blocks non-read HTTP methods, disallowed origins and service workers. No login credentials, account administration, financial operations or publishing through this skill. Do not add query tokens to URLs.
+
+If a check fails, inspect the source and logs, make scoped fixes in the existing branch and rerun the checks. Preserve provider receipts, verified user data and production release controls. Never call this skill a verified customer-agent browser capability.
+
+For the **separate website-agent research contract**, see `docs/agents/skills/browser-access/SKILL.md`. That contract needs protected backend implementation and runtime authorization before it can be offered to members; do not substitute this developer's local browser for their sessions.

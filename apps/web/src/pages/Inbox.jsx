@@ -101,8 +101,8 @@ export default function Inbox() {
             <MailOpen className="h-5 w-5" />
           </span>
           <div>
-            <h1 className="font-display text-3xl font-semibold">Universal Inbox</h1>
-            <p className="text-sm text-muted-foreground">Your connected-platform messages and IFund notifications.</p>
+            <h1 className="font-display text-3xl font-semibold">Mail</h1>
+            <p className="text-sm text-muted-foreground">Your IFund mail, connected-platform inbox items, and account notifications. Agent conversations are in Messaging.</p>
           </div>
         </div>
       </header>
@@ -112,7 +112,8 @@ export default function Inbox() {
         {reports.slice(0, 3).map(report => <p className="line-clamp-2 text-sm" key={report.id}>{report.reason}</p>)}
         <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center text-primary underline">Review community post reports</Link>
       </section>}
-      <section className="flex flex-wrap gap-2" aria-label="Inbox filters">
+      <p className="text-sm text-muted-foreground">To talk to an IFund agent, open <Link to="/messaging" className="font-semibold text-cyan-600 underline">Messaging</Link>. Mail does not show private agent conversations.</p>
+      <section className="flex flex-wrap gap-2" aria-label="Mail filters">
         {["open", "done", "all"].map(value => (
           <button key={value} type="button" onClick={() => setTab(value)}
             aria-pressed={tab === value}
@@ -123,7 +124,7 @@ export default function Inbox() {
         <label className="relative min-w-[12rem] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={event => setSearch(event.target.value)}
-            placeholder="Search inbox…" aria-label="Search inbox"
+            placeholder="Search mail…" aria-label="Search mail"
             className="min-h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm" />
         </label>
         <select value={platform} onChange={event => setPlatform(event.target.value)}
@@ -153,7 +154,7 @@ export default function Inbox() {
           <Bell className="mx-auto h-8 w-8 text-muted-foreground" />
           <h2 className="mt-3 font-semibold">{items.length ? "Nothing in this view" : "Your inbox is clear"}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {items.length ? "Try another filter or search term." : "New connected-platform messages and IFund notifications will appear here."}
+            {items.length ? "Try another filter or search term." : "IFund mail, imported platform messages, and notifications will appear here when available."}
           </p>
         </div>
       ) : (

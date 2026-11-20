@@ -9,6 +9,8 @@ import { routeImageImprove } from './imageImprove.js';
 import { routeGeocodeCity } from './geocodeCity.js';
 import { strategyRoute } from './agents/strategy.js';
 import { routeTeamQuestion } from './agents/teamQuestion.js';
+import { routeMissionExplore } from './missions/explore.js';
+import { routeMissionPlan } from './missions/plan.js';
 import { routeAgentOperations } from './agents/opsRoom.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
@@ -27,6 +29,17 @@ export default {
         return response(503, { error: 'Recurring email checkout is not configured.' });
       return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
     }
+    if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
+    if (pathname === '/api/missions/plan') {
+      // Mission inference uses isolated Workers AI only when explicitly enabled.
+      // Do not send mission requests to the legacy question service until its
+      // dedicated Mission route has been deployed and verified.
+      if (env.IFUND_WHAT_IF_AI_ENABLED === 'enabled' && typeof env.AI?.run === 'function')
+        return routeMissionPlan(request, env);
+      if (env.IFUND_WHAT_IF_AI_SERVICE?.fetch && env.IFUND_WHAT_IF_AI_ENABLED === 'enabled')
+        return env.IFUND_WHAT_IF_AI_SERVICE.fetch(request);
+      return routeMissionPlan(request, env);
+    }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/ops/analyze') return routeAgentOperations(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
@@ -39,7 +52,14 @@ export default {
     }
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
-    if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
+    if (pathname.startsWith('/api/agents/communications/')) {
+      // Production Pages binds the isolated Communications Worker. Direct local
+      // invocation has no IFUND_COMMUNICATIONS_* flags and falsely reports 503.
+      // Do not synthesize successful delivery when the service is unavailable.
+      if (typeof env.IFUND_COMMUNICATIONS_AGENT?.fetch === 'function')
+        return env.IFUND_COMMUNICATIONS_AGENT.fetch(request);
+      return communicationsRoute(request, env);
+    }
     if (pathname.startsWith('/api/agents/connections/')) return handleManagedConnections(request, env);
     if (pathname.startsWith('/api/oauth/')) {
       const origin = oauthCorsOrigin(request, env);

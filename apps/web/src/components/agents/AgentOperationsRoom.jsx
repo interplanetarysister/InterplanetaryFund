@@ -6,6 +6,8 @@ const THREAD="00000000-0000-4000-8000-000000000a61";
 const TYPES=["discussion","assignment","analysis","result","blocker"];
 export default function AgentOperationsRoom({user}){
   const ownerId=user?.id || null;
+  const ownerGuard=React.useRef(ownerId);
+  ownerGuard.current=ownerId;
   const [permitted,setPermitted]=useState(false);
   const [checking,setChecking]=useState(true);
   const [items,setItems]=useState([]);
@@ -14,10 +16,12 @@ export default function AgentOperationsRoom({user}){
   const [error,setError]=useState("");
   const [sending,setSending]=useState(false);
   const [analyzing,setAnalyzing]=useState(false);
+  const [analyzingAssignment,setAnalyzingAssignment]=useState(null);
   const refresh=useCallback(async()=>{
     if(!ownerId)return;
     const client=authClient();
     const [identity,admin]=await Promise.all([client.auth.getUser(),client.rpc("ifund_current_user_is_verified_admin")]);
+    if(ownerGuard.current!==ownerId)return;
     if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true){
       setPermitted(false);setItems([]);setChecking(false);return;
     }
@@ -25,6 +29,7 @@ export default function AgentOperationsRoom({user}){
     const {data,error:readError}=await client.from("ifund_agent_operations_messages")
       .select("id,speaker_type,agent_id,body,event_type,source_kind,source_receipt,created_at,author_user_id")
       .eq("thread_id",THREAD).order("created_at",{ascending:false}).limit(80);
+    if(ownerGuard.current!==ownerId)return;
     if(readError) setError("The private room could not be refreshed.");
     else {setItems((data||[]).reverse());setError("");}
     setChecking(false);
@@ -36,48 +41,69 @@ export default function AgentOperationsRoom({user}){
     return()=>{alive=false;clearInterval(timer);};
   },[refresh]);
   useEffect(()=>{setPermitted(false);setChecking(true);setItems([]);setBody("");},[ownerId]);
+  async function runNexus(payload){
+    const client=authClient();
+    const [identity,session,admin]=await Promise.all([
+      client.auth.getUser(),client.auth.getSession(),client.rpc("ifund_current_user_is_verified_admin")
+    ]);
+    if(ownerGuard.current!==ownerId||identity.error||identity.data?.user?.id!==ownerId||
+      admin.error||admin.data!==true ||session.error ||
+      session.data?.session?.user?.id!==ownerId || !session.data?.session?.access_token)
+      throw Error("Administrator session could not be verified.");
+    const response=await fetch("/api/agents/ops/analyze",{
+      method:"POST",headers:{"Content-Type":"application/json",
+        Authorization:"Bearer "+session.data.session.access_token},
+      body:JSON.stringify(payload)
+    });
+    const result=await response.json().catch(()=>null);
+    if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
+      throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
+    return result;
+  }
   async function send(e){
     e.preventDefault();
     const message=body.trim();
-    if(!permitted||sending||message.length<1||message.length>4000||!ownerId)return;
+    if(!permitted||sending||analyzing||message.length<1||message.length>4000||!ownerId)return;
     setSending(true);setError("");
     try{
       const client=authClient();
       const [identity,admin]=await Promise.all([client.auth.getUser(),client.rpc("ifund_current_user_is_verified_admin")]);
-      if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true)throw Error("Administrator access could not be verified.");
-      const {error:writeError}=await client.from("ifund_agent_operations_messages").insert({
+      if(ownerGuard.current!==ownerId||identity.error||identity.data?.user?.id!==ownerId||
+        admin.error||admin.data!==true)throw Error("Administrator access could not be verified.");
+      const {data,error:writeError}=await client.from("ifund_agent_operations_messages").insert({
         thread_id:THREAD,speaker_type:"admin",author_user_id:ownerId,body:message,event_type:kind,source_kind:"admin_post"
-      });
-      if(writeError)throw Error("The message was not saved.");
-      setBody("");await refresh();
+      }).select("id").single();
+      if(writeError||!data?.id)throw Error("The message was not saved.");
+      setBody("");
+      await refresh();
+      if(["assignment","discussion"].includes(kind) && message.length>=8 && message.length<=1100){
+        setAnalyzing(true);setAnalyzingAssignment(data.id);
+        try{
+          await runNexus({message_id:data.id});
+          await refresh();
+        }catch(cause){
+          if(ownerGuard.current===ownerId)setError("Message saved, but specialist analysis needs retry: "+
+            (cause?.message||"Agent unavailable"));
+        }finally{setAnalyzing(false);setAnalyzingAssignment(null);}
+      }
     }catch(cause){setError(cause?.message||"Message failed.");}
     finally{setSending(false);}
   }
-  async function askNexus(){
+  async function askNexus(messageId=null){
     const prompt=body.trim();
-    if(!permitted||analyzing||sending||prompt.length<8||prompt.length>1100||!ownerId)return;
-    setAnalyzing(true);setError("");
+    if(!permitted||analyzing||sending||!ownerId)return;
+    if(messageId===null && (prompt.length<8||prompt.length>1100))return;
+    if(messageId!==null && !items.some(item=>item.id===messageId &&
+      item.speaker_type==="admin" && ["assignment","discussion"].includes(item.event_type)))return;
+    setAnalyzing(true);setAnalyzingAssignment(messageId);setError("");
     try{
-      const client=authClient();
-      const [identity,session,admin]=await Promise.all([
-        client.auth.getUser(),client.auth.getSession(),client.rpc("ifund_current_user_is_verified_admin")
-      ]);
-      if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true ||
-        session.error||session.data?.session?.user?.id!==ownerId || !session.data?.session?.access_token)
-        throw Error("Administrator session could not be verified.");
-      const response=await fetch("/api/agents/ops/analyze",{
-        method:"POST",headers:{"Content-Type":"application/json",
-          Authorization:"Bearer "+session.data.session.access_token},
-        body:JSON.stringify({question:prompt})
-      });
-      const result=await response.json().catch(()=>null);
-      if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
-        throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
-      setBody("");await refresh();
+      await runNexus(messageId===null?{question:prompt}:{message_id:messageId});
+      if(messageId===null)setBody("");
+      await refresh();
     }catch(cause){setError(cause?.message||"Agent analysis was not completed.");}
-    finally{setAnalyzing(false);}
+    finally{setAnalyzing(false);setAnalyzingAssignment(null);}
   }
-  if(checking)return <p role="status" className="text-sm text-slate-400">Checking private operations-room access…</p>;
+  if(checking)return null;
   if(!permitted)return null;
   return <section aria-label="Private Agent Operations Room" className="rounded-2xl border border-slate-600/50 bg-slate-950/60 p-4 space-y-4">
     <div className="flex items-center gap-3">
@@ -86,7 +112,7 @@ export default function AgentOperationsRoom({user}){
         <p className="text-xs text-slate-400">Private administrator room · Agent messages require verified runtime receipts</p>
       </div>
     </div>
-    <p className="text-xs text-slate-400">Discuss tasks and priorities here. Only verified administrators can read or post. An agent will appear as the speaker only after its backend message is authenticated and recorded.</p>
+    <p className="text-xs text-slate-400">Only verified administrators can read or post. Posting a discussion or assignment (8–1,100 characters) automatically requests a bounded, advisory NEXUS specialist response. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
@@ -96,6 +122,17 @@ export default function AgentOperationsRoom({user}){
             <span className="ml-2 font-normal text-slate-400">{item.event_type} · {new Date(item.created_at).toLocaleString()}</span></p>
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.body}</p>
           {item.speaker_type==="agent"&&<p className="mt-1 text-[11px] text-slate-400">Verified agent runtime · receipt {item.source_receipt?.slice(0,12)}</p>}
+          {item.speaker_type==="admin"&&["assignment","discussion"].includes(item.event_type)&&
+            <button type="button" disabled={analyzing||sending||
+                items.some(entry=>entry.speaker_type==="agent" &&
+                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))}
+              className="mt-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40"
+              onClick={()=>askNexus(item.id)}>
+              {analyzingAssignment===item.id?"Specialists reviewing…":
+                items.some(entry=>entry.speaker_type==="agent" &&
+                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))?"Response recorded":
+                  "Ask NEXUS to reply"}
+            </button>}
         </div>
       </article>)}
     </div>
@@ -111,7 +148,7 @@ export default function AgentOperationsRoom({user}){
         placeholder="Describe an assignment, question, decision or blocker…"/>
       <div className="flex flex-wrap gap-2">
         <button disabled={!body.trim()||sending||analyzing} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
-        <button type="button" onClick={askNexus} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
+        <button type="button" onClick={()=>askNexus()} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
           className="rounded-xl border border-cyan-500/70 px-4 py-2 text-sm font-semibold text-cyan-200 disabled:opacity-40">
           {analyzing?"Consulting specialists…":"Ask NEXUS to analyze"}
         </button>
