@@ -21,6 +21,7 @@ const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const FundYourMission = lazy(() => import("./pages/FundYourMission"));
 const SponsorWithIFund = lazy(() => import("./pages/SponsorWithIFund"));
+const AdminSponsorInquiries = lazy(() => import("./pages/AdminSponsorInquiries"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -164,6 +165,7 @@ function AppRoutes() {
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/planetary-impact" element={<AdminSustainability />} />
