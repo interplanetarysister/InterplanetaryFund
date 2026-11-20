@@ -3,6 +3,8 @@ import {
   MERCH_DESIGN_OPTIONS, validateMerchDesignRequest,
 } from "@/lib/campaignMerch.mjs";
 import { Download, ImagePlus, ShieldCheck, Sparkles, ShoppingBag } from "lucide-react";
+import { authClient } from "@/api/auth";
+import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -81,6 +83,8 @@ export default function CampaignMerchDesigner({ campaigns = [] }) {
   const [approvedName, setApprovedName] = useState(false);
   const [approvedArtwork, setApprovedArtwork] = useState(false);
   const [file, setFile] = useState(null);
+  const [generatedFile, setGeneratedFile] = useState(null);
+  const [generatedUrl, setGeneratedUrl] = useState("");
   const [localUrl, setLocalUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
@@ -94,11 +98,56 @@ export default function CampaignMerchDesigner({ campaigns = [] }) {
     setLocalUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
-  const sourceImage = localUrl || selected?.cover_image_url || "";
+  useEffect(() => {
+    if (!generatedFile) { setGeneratedUrl(""); return; }
+    const url = URL.createObjectURL(generatedFile);
+    setGeneratedUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [generatedFile]);
+  const sourceImage = generatedUrl || localUrl || selected?.cover_image_url || "";
   const valid = validateMerchDesignRequest({
     beneficiaryName: name, designId,
     namePublicationApproved: approvedName, artworkRightsConfirmed: approvedArtwork,
   });
+  async function generateOptionalArtwork() {
+    if (busy) return;
+    if (!selected || !file || !approvedArtwork) {
+      setStatus("Select an owned campaign, upload a reference photo, and confirm the image rights.");
+      return;
+    }
+    const title = String(selected.title || "").trim();
+    const description = String(selected.summary || selected.story || "").trim().slice(0, 900);
+    if (title.length < 4 || description.length < 20) {
+      setStatus("Add a campaign title and a short description before requesting AI artwork.");
+      return;
+    }
+    setBusy(true); setStatus("Generating an optional illustrated variation of your uploaded photo…");
+    try {
+      const before = await authClient().auth.getUser();
+      const session = await authClient().auth.getSession();
+      if (before.error || session.error || !before.data?.user?.id ||
+          before.data.user.id !== session.data?.session?.user?.id ||
+          !session.data.session.access_token)
+        throw new Error("Sign in with a verified account to generate artwork.");
+      const prepared = await prepareReferenceJpeg(file);
+      const response = await fetch("/api/ai/images/improve", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + session.data.session.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, style: "interstellar", reference_jpeg: prepared.reference_jpeg, confirmed_rights: true }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.improved !== true)
+        throw new Error(result?.error || "Image improvement is currently unavailable.");
+      const bytes = decodeGeneratedArtwork(result);
+      const after = await authClient().auth.getUser();
+      if (after.error || after.data?.user?.id !== before.data.user.id)
+        throw new Error("Your account changed before the artwork was completed.");
+      setGeneratedFile(new File([bytes], "ifund-merch-illustration.jpg", { type: "image/jpeg" }));
+      setStatus("Illustrated artwork is ready to preview. Your original photo remains unchanged. Nothing was published.");
+    } catch (error) {
+      setStatus(error?.message || "The image could not be generated.");
+    } finally { setBusy(false); }
+  }
   async function downloadProof() {
     if (busy) return;
     if (!selected) { setStatus("Choose one of your own saved campaigns."); return; }
@@ -141,7 +190,7 @@ export default function CampaignMerchDesigner({ campaigns = [] }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold text-slate-100">Your saved campaign
           <select className="mt-2 w-full min-h-12 rounded-xl bg-slate-950/70 border border-cyan-300/25 p-3 text-white"
-            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setStatus("");}}>
+            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setGeneratedFile(null); setStatus("");}}>
             <option value="">Choose a campaign</option>
             {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.title || "Untitled campaign"}</option>)}
           </select>
@@ -172,11 +221,11 @@ export default function CampaignMerchDesigner({ campaigns = [] }) {
         <input type="file" accept="image/jpeg,image/png" className="max-w-[175px] text-xs"
           onChange={e => {
             const next=e.target.files?.[0];
-            if (!next) {setFile(null);return;}
+            if (!next) {setFile(null);setGeneratedFile(null);return;}
             if (!["image/png","image/jpeg"].includes(next.type) || next.size > MAX_IMAGE_SIZE) {
-              setStatus("Choose a JPEG or PNG smaller than 5 MB.");setFile(null);return;
+              setStatus("Choose a JPEG or PNG smaller than 5 MB.");setFile(null);setGeneratedFile(null);return;
             }
-            setFile(next);setStatus("");
+            setFile(next);setGeneratedFile(null);setStatus("");
           }}/>
       </label>
       <div className="space-y-3 rounded-xl border border-white/15 bg-slate-950/45 p-4">
@@ -184,14 +233,15 @@ export default function CampaignMerchDesigner({ campaigns = [] }) {
         <label className="flex items-start gap-3 text-sm text-slate-100"><input type="checkbox" className="mt-1 h-4 w-4" checked={approvedArtwork} onChange={e=>setApprovedArtwork(e.target.checked)}/><span>I have the rights to use the selected campaign imagery for printed merchandise.</span></label>
       </div>
       <div className="flex flex-wrap gap-3 items-center">
-        <button type="button" disabled={busy || !selected} onClick={downloadProof}
+        <button type="button" onClick={generateOptionalArtwork} disabled={busy || !selected || !file || !approvedArtwork} aria-busy={busy} className="ifund-action inline-flex min-h-12 items-center gap-2 rounded-xl border border-cyan-200/40 bg-white/10 px-5 py-3 font-semibold text-white disabled:opacity-50"><Sparkles className="h-5 w-5" /> Generate optional AI art</button>
+        <button type="button" disabled={busy || !selected} aria-busy={busy} onClick={downloadProof}
           className="ifund-action inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-violet-400 px-5 py-3 font-bold text-slate-950 disabled:opacity-50">
           {busy ? <Sparkles className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
           {busy ? "Preparing artwork..." : "Create selected design proof"}
         </button>
         <span className="inline-flex gap-2 items-center text-xs text-slate-200"><ShieldCheck className="w-4 h-4" /> 50% of cleared net merchandise profit goes to the campaign; 50% supports iFund.</span>
       </div>
-      <p className="text-xs text-slate-300">This creates a design proof only, not a print-production file or a live shop listing. Product dimensions, mockups, price, checkout, and fulfillment require verified Printful integration and owner approval. No donation balance changes.</p>
+      <p className="text-xs text-slate-300">AI artwork is illustrative, never an authenticated photograph or evidence of a real event. This creates a design proof only, not a print-production file or a live shop listing. Product dimensions, mockups, price, checkout, and fulfillment require verified Printful integration and owner approval. No donation balance changes.</p>
       {status && <p className="rounded-lg border border-cyan-300/20 bg-slate-950/40 p-3 text-sm text-white" role="status">{status}</p>}
     </section>
   );
