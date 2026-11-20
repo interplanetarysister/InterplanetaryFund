@@ -1,0 +1,30 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+test("Sponsor pages preserve public inquiry and privileged review distinction",()=>{
+ const app=read("../src/App.jsx");
+ const applicant=read("../src/pages/SponsorWithIFund.jsx");
+ const admin=read("../src/pages/AdminSponsorInquiries.jsx");
+ const routes=JSON.parse(read("../ci/route-acceptance.json")).routes;
+ assert.match(app,/path="\/sponsor" element={<SponsorWithIFund \/>}/);
+ assert.match(app,/path="\/admin\/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries \/><\/SuperAdminAccess><\/MemberAccess>}/);
+ assert.equal(routes.find(r=>r.route==="/sponsor")?.role,"public");
+ assert.equal(routes.find(r=>r.route==="/admin/sponsor-inquiries")?.role,"super_admin");
+ assert.match(applicant,/ifund_current_account_is_active/);
+ assert.match(applicant,/ifund_sponsor_inquiries/);
+ assert.match(admin,/ifund_current_user_is_verified_super_admin/);
+ assert.match(admin,/No sponsorship or paid task was activated/);
+});
+test("Sponsor inquiries SQL preserves owner RLS, readonly client status and admin authorization",()=>{
+ const sql=read("../../../supabase/migrations/20261120153000_ifund_sponsor_interest_inquiries.sql");
+ assert.match(sql,/alter table public.ifund_sponsor_inquiries enable row level security/);
+ assert.match(sql,/owner_id=\(select auth.uid\(\)\)/);
+ assert.match(sql,/ifund_current_user_is_verified_super_admin/);
+ assert.match(sql,/ifund_current_account_is_active/);
+ assert.match(sql,/revoke all on public.ifund_sponsor_inquiries from public,anon,authenticated/);
+ assert.match(sql,/grant insert \(owner_id,organization_name,website,proposal\)/);
+ assert.match(sql,/grant update \(state,public_status_message\)/);
+ assert.match(sql,/new\.reviewed_at=now\(\)/);
+ assert.doesNotMatch(sql,/grant delete/i);
+});
