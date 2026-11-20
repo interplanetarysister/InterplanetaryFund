@@ -141,6 +141,7 @@ export default function Home() {
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link to="/templates" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-400/5 px-4 font-semibold text-cyan-800 dark:text-cyan-200"><LayoutTemplate className="h-4 w-4" aria-hidden="true" /> See campaign templates</Link>
           <Link to="/fundraising-partners" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold">Fundraising partners</Link>
+          <Link to="/fund-your-mission" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 font-semibold">Fund your Mission <ArrowRight size={16}/></Link>
         </div>
       </section>
 
