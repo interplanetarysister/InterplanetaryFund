@@ -51,6 +51,8 @@ test("NEXUS executes specialists then synthesis; response holds genuine icon rec
  assert.equal(h.inferences.length,3);
  assert.deepEqual(body.consultations.map(call=>call.agent),["orbit","story"]);
  assert.ok(body.consultations.every(call=>call.status==="completed"&&call.kind==="advisory_analysis"));
+ assert.match(h.inferences[1].at(-1).content,/previous_specialist_findings/);
+ assert.match(h.inferences[1].at(-1).content,/orbit/);
  assert.match(h.inferences[2][0].content,/NEXUS/);
  assert.match(h.inferences[2][1].content,/completed_read_only_specialist_analyses/);
  assert.doesNotMatch(h.inferences[0][0].content,/Integrate the independent specialist findings/);
