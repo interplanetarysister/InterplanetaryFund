@@ -14,11 +14,11 @@ export default function ReferralTrialBootstrap() {
   const { user } = useAuthSession();
   const location = useLocation();
   useEffect(() => {
-    if (location.pathname !== "/register") return;
+    if (location.pathname !== "/register" || (user?.id && user.email_confirmed_at)) return;
     const code = new URLSearchParams(location.search).get("ref")?.trim().toUpperCase();
     if (!validReferralCode(code)) return;
     try { sessionStorage.setItem(PENDING_REFERRAL_KEY, code); } catch { /* optional */ }
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, user?.id, user?.email_confirmed_at]);
 
   useEffect(() => {
     if (!user?.id || user.is_anonymous || !user.email_confirmed_at) return;
@@ -39,6 +39,6 @@ export default function ReferralTrialBootstrap() {
       } catch { /* No false claims of a trial or reward. */ }
     })();
     return () => { cancelled = true; };
-  }, [user?.id, user?.is_anonymous, user?.email_confirmed_at]);
+  }, [user?.id, user?.is_anonymous, user?.email_confirmed_at, location.pathname]);
   return null;
 }
