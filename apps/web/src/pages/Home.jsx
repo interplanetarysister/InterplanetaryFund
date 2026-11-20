@@ -40,12 +40,6 @@ const STORY = [
   { h: "Our ambition is global", p: "And that's why we're here today. We're looking for partners who see the potential to build a much larger ecosystem around how people fund ideas, causes, projects, and possibilities. Our ambition is global. Our technology is being built with scalability in mind. And our long-term goal is simple: Create a world where great ideas have a better chance of finding the people, resources, and momentum they need to become reality." },
 ];
 
-const EXAMPLE_PROMPTS = [
-  "I need help with medical bills after a diagnosis.",
-  "What if our neighbourhood had a shared community space?",
-  "I want to launch a small business with my family.",
-];
-
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
@@ -92,11 +86,10 @@ export default function Home() {
           <PromptComposer
             id="home-what-if"
             variant="hero"
-            label="What would you like to make possible?"
-            placeholder="I want to… I need help with… What if we could…"
+            label="Describe a goal, a problem to solve, or a financial burden."
+            placeholder="What would you like help making possible?"
             submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
             note="Start privately. A campaign or donation is never required."
-            examples={EXAMPLE_PROMPTS}
             onSubmit={startFromPrompt}
             className="mb-6 mx-auto max-w-xl"
           />

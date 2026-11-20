@@ -50,6 +50,7 @@ test("Fund Your Mission CTAs follow the same What If flag as routing and navigat
  assert.match(page,/\{whatIfEnabled \? "My Missions" : "My campaigns"\}/);
  assert.match(page,/Private Missions are not available yet\./);
 });
+
 test("Route registry tracks source and runtime evidence independently",()=>{
  const routes=JSON.parse(read("../ci/route-acceptance.json")).routes;
  const row=routes.find(x=>x.route==="/fund-your-mission");
