@@ -18,6 +18,9 @@ test("The sponsor endpoint defaults to fail-closed and never authorizes enrollme
 test("The sponsor endpoint rejects missing credentials, mutations and failed data retrieval",async()=>{
  assert.equal((await onRequest({request:new Request(request().url,{method:"POST"}),env})).status,405);
  assert.equal((await onRequest({request:request(),env:{}})).status,503);
+ const previewEnv={SUPABASE_URL:env.SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY:env.SUPABASE_PUBLISHABLE_KEY};
+ const preview=await onRequest({request:request(),env:previewEnv,fetch:async url=>Response.json(url.includes("sponsor_opportunities")?[row]:[sponsor])});
+ assert.equal(preview.status,200);
  assert.equal((await onRequest({request:request(),env,fetch:async()=>new Response("unavailable",{status:503})})).status,503);
 });
 test("The sponsor endpoint filters untrusted redirects, invalid rewards and unmatched sponsors",async()=>{
