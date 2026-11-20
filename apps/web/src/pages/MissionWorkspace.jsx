@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowRight, BrainCircuit, CheckCircle2, Circle, LockKeyhole, Orbit, Plus, RefreshCcw, Save, Sparkles } from "lucide-react";
 import { authClient } from "@/api/auth";
+import MissionBudget from "@/components/missions/MissionBudget";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import {
  loadMission,listMissionPlans,listMissionTasks,listMissionCampaignLinks,
@@ -209,6 +210,7 @@ export default function MissionWorkspace(){
     </article>
    </div>
    <aside className="space-y-5">
+    <MissionBudget key={mission.id+":"+owner} missionId={mission.id} ownerId={owner}/>
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
      <h2 className="text-lg font-semibold">Fundraising is your choice</h2>
      <p className="text-sm text-muted-foreground">You don't need to raise money to complete a Mission. If a fundraising gap emerges, you can create a separate campaign without making your private planning notes public.</p>
