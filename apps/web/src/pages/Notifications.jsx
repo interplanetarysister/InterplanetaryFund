@@ -5,6 +5,7 @@ import { loadNotifications, acknowledgeNotification,
   acknowledgeAllNotifications, verifyInAppNotificationDelivery } from "@/lib/notifications";
 import { safeNoticeDestination } from "@/lib/notifications";
 import { Bell, CheckCheck, ChevronRight, ShieldCheck } from "lucide-react";
+import InAppReminders from "@/components/notifications/InAppReminders";
 
 export default function Notifications(){
   const navigate=useNavigate();
@@ -125,6 +126,7 @@ export default function Notifications(){
         </li>;
       })}
     </ul>}
+    <InAppReminders />
     <p className="text-xs text-muted-foreground">Android push, optional diagnostics, and administrative mail remain separate consent-controlled integrations; they are not enabled by opening this page.</p>
   </main>;
 }
