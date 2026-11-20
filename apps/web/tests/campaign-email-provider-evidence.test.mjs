@@ -1,0 +1,41 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const dir="../../../supabase/migrations/";
+const read=name=>readFileSync(new URL(dir+name,import.meta.url),"utf8");
+test("paid campaign mail checkout starts with owner-only verified subscription and plan",()=>{
+ const src=read("20261119234000_ifund_campaign_email_checkout_intents.sql");
+ assert.match(src,/ifund_campaign_email_checkout_readiness\(\)/);
+ assert.match(src,/checkout_ready/);
+ assert.match(src,/pg_advisory_xact_lock/);
+ assert.match(src,/provider_plan_id/);
+ assert.match(src,/status in\('requested','provider_created','pending'\)/);
+ assert.match(src,/Email checkout daily limit reached/);
+ assert.match(src,/revoke all on function public\.ifund_begin_campaign_email_checkout\(uuid\)/);
+ assert.match(src,/grant execute on function public\.ifund_begin_campaign_email_checkout\(uuid\)\s+to authenticated/);
+ assert.match(src,/'checkout_completed',false,'addon_active',false/);
+});
+test("provider staging is private, idempotent, and never activates paid email",()=>{
+ const src=read("20261119235500_ifund_campaign_email_paypal_evidence_staging.sql");
+ assert.match(src,/current_user<>'service_role'/);
+ assert.match(src,/ifund_ops\.campaign_email_provider_events/);
+ assert.match(src,/unique\(kind,provider_resource_id\)/);
+ assert.match(src,/provider_verified/);
+ assert.match(src,/webhook_verified/);
+ assert.match(src,/v_plan\.merchant_id is distinct from v_merchant/);
+ assert.match(src,/v_intent\.paypal_subscription_id is distinct from v_subscription/);
+ assert.match(src,/Event replay identity conflict/);
+ assert.match(src,/entitlement_activated',false/);
+ assert.match(src,/grant execute on function public\.ifund_stage_campaign_email_provider_event\(jsonb\)\s+to service_role/);
+ assert.doesNotMatch(src,/update ifund_ops\.campaign_email_addon_billing/);
+ assert.doesNotMatch(src,/insert into ifund_ops\.campaign_email_addon_billing/);
+});
+test("checkout-readiness UI never offers an unverified payment link",()=>{
+ const page=readFileSync(new URL("../src/components/subscriptions/CampaignEmailAddon.jsx",import.meta.url),"utf8");
+ const client=readFileSync(new URL("../src/lib/campaignEmailAddon.mjs",import.meta.url),"utf8");
+ assert.match(page,/checkoutStatus\.checkout_ready/);
+ assert.match(page,/readEmailAddonCheckoutReadiness\(authClient\(\)\)/);
+ assert.match(page,/does not charge you or enable mail delivery/);
+ assert.match(client,/requires_recurring_provider_checkout/);
+ assert.doesNotMatch(page,/paypal_checkout=return|approval_url|window\.location\.assign/);
+});
