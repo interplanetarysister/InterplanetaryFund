@@ -253,6 +253,15 @@ export default function Connections() {
       <Link to="/profile" className={BUTTON}>Back to profile</Link>
     </header>
 
+    <section aria-label="iFund campaign email identity" className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-2xl space-y-2">
+          <h2 className="text-lg font-bold">Connect using your iFund campaign email</h2>
+          <p className="text-sm text-muted-foreground">A unique @interplanetaryfund.com address is an optional account identity for paid iFund subscribers. Basic members must explicitly select the additional $1/month email option. A reserved address cannot be used until recurring payment and incoming mail routing are verified; it is not a separate sign-in.</p>
+        </div>
+        <Link to="/subscriptions#campaign-email" className={PRIMARY}>Manage email option</Link>
+      </div>
+    </section>
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Connection overview">
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Actively connected</p><p className="mt-1 text-3xl font-bold tabular-nums">{connected.length}</p></div>
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Available to add</p><p className="mt-1 text-3xl font-bold tabular-nums">{readyToAdd}</p></div>
