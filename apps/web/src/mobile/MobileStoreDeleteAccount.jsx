@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
-import { getMyAccountDeletionRequests, requestAccountDeletion } from "@/lib/accountDeletion";
+import { getMyAccountDeletionRequests, requestAccountDeletion, cancelAccountDeletion } from "@/lib/accountDeletion";
 
 const STATUS_LABELS={
   requested:"Request received",
   reviewing:"Reviewing your account data",
   requires_legal_retention:"Checking legally required financial retention",
   completed:"Deletion recorded as complete",
+  cancelled:"Deletion request withdrawn",
 };
 export default function MobileStoreDeleteAccount({returnTo="/account",webMode=false}){
   const {user,status}=useAuthSession();
@@ -28,6 +29,8 @@ export default function MobileStoreDeleteAccount({returnTo="/account",webMode=fa
   },[user?.id,status]);
   const account=user||guestUser;
   const [confirmed,setConfirmed]=useState(false);
+  const [cancelConfirmed,setCancelConfirmed]=useState(false);
+  const [cancelNotice,setCancelNotice]=useState("");
   const [busy,setBusy]=useState(false),[error,setError]=useState("");
   const [checking,setChecking]=useState(false),[reload,setReload]=useState(0);
   const [requests,setRequests]=useState([]);
@@ -62,6 +65,18 @@ export default function MobileStoreDeleteAccount({returnTo="/account",webMode=fa
     }catch(cause){setError(cause?.message||"Request not confirmed. Please retry.");}
     finally{setBusy(false);}
   }
+  async function withdrawDeletion(requestId){
+    if(!cancelConfirmed||busy||checking)return;
+    setBusy(true);setError("");setCancelNotice("");
+    try {
+      const result=await cancelAccountDeletion(requestId);
+      setRequests(rows=>rows.map(row=>row.id===result.id?{...row,status:"cancelled",updatedAt:result.updatedAt}:row));
+      setCancelConfirmed(false);
+      setCancelNotice("Your deletion request has been withdrawn. No account data was erased.");
+    }catch(cause){
+      setError(cause?.message||"Cancellation was not confirmed. Your original deletion request remains active.");
+    }finally{setBusy(false);}
+  }
   const activeRequest=requests.find(r=>["requested","reviewing","requires_legal_retention"].includes(r.status));
   const accountVerified=checkedFor===account?.id;
 
@@ -94,6 +109,17 @@ export default function MobileStoreDeleteAccount({returnTo="/account",webMode=fa
       <p className="text-xs">Submitted: {activeRequest.requestedAt?new Date(activeRequest.requestedAt).toLocaleDateString():"Recorded by IFund"}</p>
       <p className="text-sm text-slate-200">This is not a completed deletion. The request stays open until the erasure/retention review is finished.</p>
       <button type="button" onClick={()=>setReload(n=>n+1)} className="min-h-11 rounded-lg border border-white/30 px-4 text-sm">Refresh status</button>
+      <div className="space-y-3 rounded-lg border border-white/20 p-3">
+        <p className="text-sm text-slate-200">Changed your mind? You may withdraw this request before account disablement or any private-file erasure begins. Once processing starts, contact support for verified recovery.</p>
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" checked={cancelConfirmed} onChange={e=>setCancelConfirmed(e.target.checked)} className="mt-1 h-5 w-5" />
+          <span>I want to keep my IFund account and withdraw the pending deletion request.</span>
+        </label>
+        <button type="button" disabled={!cancelConfirmed||busy} onClick={()=>withdrawDeletion(activeRequest.id)}
+          className="min-h-11 rounded-lg border border-white/30 px-4 text-sm disabled:opacity-50">
+          {busy?"Checking cancellation…":"Keep my account — cancel deletion"}
+        </button>
+      </div>
     </div>}
     {account&&accountVerified&&!activeRequest&&<form onSubmit={requestDeletion}
       className="space-y-4 rounded-xl border border-rose-300/40 bg-white/5 p-5">
@@ -109,6 +135,7 @@ export default function MobileStoreDeleteAccount({returnTo="/account",webMode=fa
         {busy?"Recording your request…":"Request permanent account deletion"}
       </button>
     </form>}
+    {cancelNotice&&<p role="status" className="rounded-lg border border-emerald-300/40 p-4 text-sm">{cancelNotice}</p>}
     {error&&<div role="alert" className="space-y-2 rounded-xl border border-rose-300/40 p-4">
       <p className="text-sm text-rose-200">{error}</p>
       <button type="button" className="min-h-11 rounded-lg border border-rose-300/40 px-4"

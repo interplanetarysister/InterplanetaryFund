@@ -27,3 +27,17 @@ export async function getMyAccountDeletionRequests(client=authClient()){
     .map(row=>({id:row.request_id,status:row.request_status,
        requestedAt:row.submitted_at,updatedAt:row.updated_at}));
 }
+
+/** Cancel an untouched request; server refuses after account disablement or any erasure review. */
+export async function cancelAccountDeletion(requestId,client=authClient()){
+  if(!UUID.test(requestId||""))throw new Error("A valid deletion request reference is required.");
+  const {data:auth,error:identityError}=await client.auth.getUser();
+  if(identityError||!auth?.user?.id||
+      (!auth.user.is_anonymous&&!auth.user.email_confirmed_at))
+    throw new Error("Verified account sign-in is required to withdraw a deletion request.");
+  const {data,error}=await client.rpc("ifund_cancel_account_deletion",{p_request_id:requestId});
+  const row=Array.isArray(data)?data[0]:null;
+  if(error||!row||row.request_id!==requestId||row.request_status!=="cancelled")
+    throw new Error(error?.message||"Cancellation could not be confirmed. Your deletion request remains open.");
+  return {id:row.request_id,status:row.request_status,updatedAt:row.updated_at};
+}
