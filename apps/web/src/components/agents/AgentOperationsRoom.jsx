@@ -81,7 +81,7 @@ export default function AgentOperationsRoom({user}){
     }catch(cause){setError(cause?.message||"Agent analysis was not completed.");}
     finally{setAnalyzing(false);}
   }
-  if(checking)return <p role="status" className="text-sm text-slate-400">Checking private operations-room access…</p>;
+  if(checking)return null;
   if(!permitted)return null;
   return <section aria-label="Private Agent Operations Room" className="rounded-2xl border border-slate-600/50 bg-slate-950/60 p-4 space-y-4">
     <div className="flex items-center gap-3">
