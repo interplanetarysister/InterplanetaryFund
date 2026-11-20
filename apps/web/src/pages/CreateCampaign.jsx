@@ -1,3 +1,4 @@
+import AgentAdviceReview from "@/components/agents/AgentAdviceReview";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
@@ -553,6 +554,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
     <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
+    <AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} />
     <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
     <section hidden={step!==0&&step!==1} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
