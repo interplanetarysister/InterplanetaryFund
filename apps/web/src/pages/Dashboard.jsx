@@ -54,7 +54,7 @@ export default function Dashboard() {
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link to="/create" className="ifund-dashboard-primary"><PlusCircle size={18}/> {whatIfEnabled ? "Start a Mission" : "Start a campaign"}</Link>
+          <Link to={whatIfEnabled ? "/what-if" : "/create"} className="ifund-dashboard-primary"><PlusCircle size={18}/> {whatIfEnabled ? "Start a Mission" : "Start a campaign"}</Link>
           <button type="button" className="ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
         </div>
       </div>
