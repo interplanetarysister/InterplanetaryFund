@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { reviewedR2Inventory } from './r2ReviewedInventory.mjs';
+const owner='11111111-1111-4111-8111-111111111111', other='22222222-2222-4222-8222-222222222222', campaign='33333333-3333-4333-8333-333333333333', doc='44444444-4444-4444-8444-444444444444', requestId='55555555-5555-4555-8555-555555555555';
+const row={document_id:doc,campaign_id:campaign,storage_path:`private/campaign-documents/${owner}/${campaign}/${doc}.pdf`,object_etag:'"etag"',object_sha256:'a'.repeat(64),object_verified_at:'2026-11-20T00:00:00Z',file_size:10};
+const run=(queue,rows,who=owner)=>reviewedR2Inventory({requestId,jwt:'session',ownerId:who,rpc:async(name,args,jwt)=>{assert.equal(jwt,'session');return name.endsWith('reviewed_queue')?queue:rows;}});
+test('reviewed exact owner inventory accepted',async()=>assert.equal((await run([{request_id:requestId,review_ready:true}],[row])).length,1));
+test('missing review denied',async()=>assert.rejects(run([], [row])));
+test('false review denied',async()=>assert.rejects(run([{request_id:requestId,review_ready:false}],[row])));
+test('cross-owner denied',async()=>assert.rejects(run([{request_id:requestId,review_ready:true}],[row],other)));
+test('missing immutable receipt denied',async()=>assert.rejects(run([{request_id:requestId,review_ready:true}],[{...row,object_sha256:null}])));
+test('oversized inventory denied',async()=>assert.rejects(run([{request_id:requestId,review_ready:true}],Array(101).fill(row))));
+test('read-only bounded batch',async()=>assert.equal((await run([{request_id:requestId,review_ready:true}],Array(12).fill(row))).length,10));
