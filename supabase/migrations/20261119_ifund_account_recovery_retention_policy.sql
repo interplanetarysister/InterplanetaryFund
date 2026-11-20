@@ -63,7 +63,7 @@ begin
   if v.financial_retention_class in ('no_financial_activity','financial_activity')
       and v.account_disabled_at is not null and v.financial_reviewed_at is not null
   then
-    v_earliest := pg_catalog.greatest(
+    v_earliest := greatest(
       v.account_disabled_at + case v.financial_retention_class
         when 'no_financial_activity' then interval '48 hours'
         else interval '30 days' end,
