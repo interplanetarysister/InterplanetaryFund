@@ -44,6 +44,10 @@ const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
+const MyMissions = lazy(() => import("./pages/MyMissions"));
+const MissionWorkspace = lazy(() => import("./pages/MissionWorkspace"));
+const WHAT_IF_ENABLED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
@@ -86,6 +90,13 @@ const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
+
+function CampaignEntryPoint() {
+  const location=useLocation();
+  const params=new URLSearchParams(location.search);
+  return !WHAT_IF_ENABLED || params.has("draft") || params.get("manual")==="1"
+    ? <CreateCampaign/> : <Navigate to="/what-if" replace/>;
+}
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
@@ -167,7 +178,10 @@ function AppRoutes() {
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/community/:id" element={<CommunityDetail />} />
-      <Route path="/create" element={<CreateCampaign />} />
+      <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart/> : <Navigate to="/create?manual=1" replace/>} />
+      <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
+      <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
+      <Route path="/create" element={<CampaignEntryPoint/>} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
