@@ -147,6 +147,11 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   // Owner-derived, bounded content-block preferences; no financial effect.
   // Blocking needs an active confirmed account and a published organizer;
   // unblocking remains available without an active membership requirement.
+  // Owner-only verified signup trial/code issuance, one-time referral claim,
+  // and trigger-only published-campaign qualification. No paid-plan grant.
+  "public.ifund_agent_referral_status",
+  "public.ifund_claim_campaign_referral",
+  "public.ifund_credit_published_referral",
   "public.ifund_mobile_block_organizer",
   "public.ifund_mobile_unblock_organizer",
   // Restored specialist contracts were matched against all 55 hosted function
