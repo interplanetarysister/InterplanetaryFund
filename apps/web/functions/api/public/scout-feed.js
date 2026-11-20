@@ -37,7 +37,11 @@ export async function onRequest({request,fetch:fetchOverride}) {
    return {source:source.name,available:true,items:scoutParsePublicRss(raw,source,{limit:20})};
   }catch{return {source:source.name,available:false,items:[]};}
  }));
- const items=scoutFilterLeads(results.flatMap(x=>x.items),q).slice(0,30);
+ const seen=new Set();
+ const items=scoutFilterLeads(results.flatMap(x=>x.items),q).filter(x=>{
+  if(seen.has(x.url))return false;
+  seen.add(x.url);return true;
+ }).slice(0,30);
  if(results.every(x=>!x.available))return json({error:"Official research feeds are temporarily unavailable",leads:[],source_results:results.map(({source,available})=>({source,available}))},503);
  return json({leads:items,count:items.length,
    source_results:results.map(({source,available})=>({source,available})),
