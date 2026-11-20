@@ -7,6 +7,7 @@ import { redactTeamCredentials, readTeamContext, appendTeamContext, replyEventKe
 import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
+import { planAgentConsultations, validateConsultation, nexusSynthesisMessages } from "./teamOrchestration.js";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const SPECIALISTS = Object.freeze({
@@ -128,7 +129,18 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       await appendTeamContext({env,jwt:api.jwt,eventKey:input.requestId,
         agentId:input.selected,content:input.question,speaker:"user",fetcher});
     }
-    const messages=teamQuestionMessages({...input,history});
+    // Each specialist entry below is an actual bounded model invocation, not
+    // a visual simulation or a permission to use an external account/tool.
+    const consulted=planAgentConsultations(input);
+    const consultations=[];
+    for(const specialist of consulted){
+      const messages=teamQuestionMessages({...input,selected:specialist,history});
+      const result=await env.AI.run(MODEL,{messages,max_tokens:400,temperature:0.25});
+      consultations.push(validateConsultation(result,specialist));
+    }
+    const messages=consultations.length
+      ? nexusSynthesisMessages({question:input.question,consultations})
+      : teamQuestionMessages({...input,history});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
     const answer=validateTeamAnswer(result,input.selected);
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
@@ -139,7 +151,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     if (completed !== true)
       fail(503,"Your answer was prepared, but the daily allowance could not be finalized.");
     quotaCompleted = true;
-    return noStore(200,{...answer,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
+    return noStore(200,{...answer,consultations,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       questions_remaining_today:quota.remaining,
