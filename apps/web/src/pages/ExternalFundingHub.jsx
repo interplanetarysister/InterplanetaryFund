@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "../api/auth.js";
-import { listExternalFundingHub, createExternalFundraiserGroup, addExternalFundraisingSource, setExternalReportedAmount, removeExternalFundingSource } from "../api/externalFundingHub.js";
+import { listExternalFundingHub, linkExternalFundraiser, setExternalReportedAmount, removeExternalFundingSource } from "../api/externalFundingHub.js";
 import { identifyExternalFundraiser, suggestedFundraiserTitle, FUNDRAISER_PROVIDERS, groupReportedTotals } from "../lib/externalFundingHub.mjs";
 
 const formatAmount = (n,currency) => new Intl.NumberFormat(undefined,{style:"currency",currency}).format(Number(n)/100);
@@ -13,9 +13,8 @@ export default function ExternalFundingHub() {
   useEffect(()=>{let mounted=true;listExternalFundingHub(authClient()).then(x=>{if(mounted){setHub(x);setLoading(false);}}).catch(()=>{if(mounted){setStatus("The hub is unavailable. Try again.");setLoading(false);}});return ()=>{mounted=false;};},[]);
   async function add(e){e.preventDefault();setBusy(true);setStatus("");
     try {const found=identifyExternalFundraiser(link),client=authClient();
-      const chosen=group||(await createExternalFundraiserGroup(client,suggestedFundraiserTitle(link))).id;
-      await addExternalFundraisingSource(client,{groupId:chosen,platform:found.platform,url:found.url});
-      setLink("");setGroup("");await reload();setStatus("Your fundraiser is in your hub.");
+      const result=await linkExternalFundraiser(client,{groupId:group||null,platform:found.platform,url:found.url,title:suggestedFundraiserTitle(link)});
+      setLink("");setGroup("");await reload();setStatus(result.alreadyLinked?"This fundraiser is already in your IFund hub.":"Your fundraiser is in your hub.");
     }catch(e){setStatus(e.message||"Could not add that fundraiser.");}finally{setBusy(false);}
   }
   async function update(source){setBusy(true);setStatus("");try{
