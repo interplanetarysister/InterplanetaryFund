@@ -62,9 +62,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const draftId = params.get("draft");
   // A homepage prompt is transient input for this exact editor, never a
   // separate Mission, payment authorization or permission to publish.
-  const landingPrompt = !draftId && location.state?.source === "home-what-if" &&
+  const transferredPrompt = !draftId && location.state?.source === "home-what-if" &&
     typeof location.state.prompt === "string" && location.state.prompt.trim().length <= 1500
       ? location.state.prompt.trim() : "";
+  const [landingPrompt] = useState(() => {
+    if (!transferredPrompt) return "";
+    try {
+      const existing=restoreBrowserCampaign(sessionStorage,ownerId);
+      const brief=restoreWritingBrief(sessionStorage,ownerId);
+      // Never mix a newly submitted idea into an existing guest or owner draft.
+      if(existing.title||existing.summary||existing.story||
+        brief.details||brief.beneficiary||brief.need) return "";
+    } catch { return ""; }
+    return transferredPrompt;
+  });
   const missionSourceId = params.get("mission");
   const validMissionSourceId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionSourceId || "");
   const campaignId = useRef(draftId || null);
@@ -593,6 +604,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     {landingPrompt && <p role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-400/5 p-4 text-sm">Your idea was brought into this three-step draft. Review the title and details, then use Generate campaign ideas if you want AI help writing the story. Nothing has been published.</p>}
+    {!landingPrompt && transferredPrompt && <p role="status" className="rounded-xl border border-amber-400/40 p-4 text-sm">An existing draft was found, so your new idea was not merged into it. Your earlier work remains unchanged. To start a separate idea, save or finish that draft first.</p>}
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p>{templateParam && <p role="status" className="mt-2 text-sm font-medium text-primary">Starting layout: {templateStyle(previewStyle).name}. You can change it below.</p>}<div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
