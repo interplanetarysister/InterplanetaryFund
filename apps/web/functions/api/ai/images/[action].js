@@ -12,9 +12,13 @@ export async function onRequest({ request, env }) {
     return Response.json({ error: "Not found." }, { status: 404, headers: SECURE_HEADERS });
 
   try {
-    const result = pathname === "/api/ai/images/generate"
-      ? await routeImageStudio(request, env)
-      : await routeImageImprove(request, env);
+    // The isolated Workers AI service holds its own authenticated quota gate.
+    // When absent, local handlers remain disabled rather than making unaudited calls.
+    const result = typeof env.IFUND_IMAGE_STUDIO?.fetch === "function"
+      ? await env.IFUND_IMAGE_STUDIO.fetch(request)
+      : pathname === "/api/ai/images/generate"
+        ? await routeImageStudio(request, env)
+        : await routeImageImprove(request, env);
     const headers = new Headers(result.headers);
     headers.set("cache-control", "no-store");
     headers.set("x-content-type-options", "nosniff");
