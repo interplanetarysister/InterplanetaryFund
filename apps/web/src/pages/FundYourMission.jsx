@@ -10,6 +10,7 @@ const tiles=[
 ];
 export default function FundYourMission() {
  const [state,setState]=useState({phase:"loading",items:[],error:""});
+ const [sponsors,setSponsors]=useState({phase:"loading",items:[],error:""});
  useEffect(()=>{
    const controller=new AbortController();
    fetch("/api/public/opportunity-sources",{signal:controller.signal,cache:"no-store"})
@@ -20,6 +21,19 @@ export default function FundYourMission() {
      })
      .then(items=>{if(!controller.signal.aborted)setState({phase:"ready",items,error:""});})
      .catch(()=>{if(!controller.signal.aborted)setState({phase:"error",items:[],error:"Opportunity research is temporarily unavailable. You can still browse the official directories."});});
+   return ()=>controller.abort();
+ },[]);
+ useEffect(()=>{
+   const controller=new AbortController();
+   fetch("/api/public/sponsor-opportunities",{signal:controller.signal,cache:"no-store"})
+    .then(async response=>{
+      if(!response.ok)throw Error("No sponsor offers verified yet.");
+      const data=await response.json();
+      if(!Array.isArray(data.opportunities)||data.member_enrollment_enabled!==false||data.reward_payout_enabled!==false)
+        throw Error("Sponsor catalog could not be verified.");
+      return data.opportunities.filter(x=>safeScoutUrl(x.official_url)&&Number.isSafeInteger(x.reward_minor)&&x.reward_minor>0&&x.state==="provider_terms_and_funding_verified");
+    }).then(items=>{if(!controller.signal.aborted)setSponsors({phase:"ready",items,error:""});})
+      .catch(()=>{if(!controller.signal.aborted)setSponsors({phase:"unavailable",items:[],error:"Sponsor task listings are not available yet."});});
    return ()=>controller.abort();
  },[]);
  return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-8 sm:py-12">
@@ -48,6 +62,23 @@ export default function FundYourMission() {
      <div className="flex items-center gap-3"><HeartHandshake className="text-cyan-600" size={26}/><h2 className="text-xl font-bold">Already raising funds somewhere else?</h2></div>
      <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">IFund can help you organize supported external fundraiser links and plan how to reach more supporters. Your donations continue through your original host. Adding a link does not create a partnership or grant access to your account.</p>
      <Link to="/fundraising-hub" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 py-2 font-semibold">Connect your existing fundraiser <ArrowUpRight size={16}/></Link>
+   </section>
+   <section aria-label="Verified sponsor tasks" className="space-y-4">
+     <div className="flex items-center gap-3"><BriefcaseBusiness size={27} className="text-cyan-600"/><h2 className="text-2xl font-bold">Sponsored tasks</h2></div>
+     <p className="text-sm text-muted-foreground">Tasks appear here only after sponsor identity, terms and reserved funding are confirmed. Viewing a task does not enroll you or make earnings payable.</p>
+     {sponsors.phase==="loading"&&<p role="status" className="text-sm">Checking approved sponsor offers…</p>}
+     {sponsors.items.length>0?<div className="grid gap-3 sm:grid-cols-2">
+       {sponsors.items.map(o=><article key={o.id} className="rounded-2xl border border-border bg-card p-5">
+         <div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold text-muted-foreground">{o.sponsor_name}</p><strong className="text-lg tabular-nums">{new Intl.NumberFormat("en-US",{style:"currency",currency:o.currency}).format(o.reward_minor/100)}</strong></div>
+         <h3 className="mt-2 text-lg font-bold">{o.title}</h3><p className="mt-2 text-sm">{o.summary}</p>
+         <p className="mt-2 text-xs text-muted-foreground"><strong>Requirements:</strong> {o.requirements}</p>
+         <p className="mt-1 text-xs text-muted-foreground"><strong>Eligibility:</strong> {o.eligibility}</p>
+         <p className="mt-1 text-xs text-muted-foreground">Payouts and on-platform enrollment remain unavailable pending provider settlement integration.</p>
+         <a href={o.official_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-1 font-semibold text-primary">Review official offer terms <ArrowUpRight size={16}/></a>
+       </article>)}
+       </div>:sponsors.phase!=="loading"&&<div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+       No approved funded sponsor tasks are available right now. SCOUT's provider research below is not a payable task list.
+       </div>}
    </section>
    <section id="scout" className="space-y-4 scroll-mt-20" aria-labelledby="scout-title">
      <div className="flex items-start gap-3"><Radar className="mt-1 text-cyan-600" size={28}/><div><h2 id="scout-title" className="text-2xl font-bold">SCOUT opportunity research</h2>
