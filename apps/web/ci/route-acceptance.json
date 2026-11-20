@@ -485,6 +485,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/fundraising-hub",
+      "role": "member",
+      "component": "ExternalFundingHub",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/ExternalFundingHub.jsx; apps/web/src/api/externalFundingHub.js; apps/web/src/lib/externalFundingHub.mjs; apps/web/tests/external-funding-hub.test.mjs",
+      "behavior_evidence": "Local tests verify member guard, canonical external campaign URLs, source attribution, source ledger isolation. No provider/OAuth/real-user acceptance established.",
+      "backend_evidence": "supabase/migrations/20261119223500_ifund_external_fundraising_hub.sql (requires applied RLS and live verification)",
+      "owner": "frontend+backend+qa"
+    },
+    {
       "route": "/fundraising-tips",
       "role": "public",
       "component": "FundraisingTips",
