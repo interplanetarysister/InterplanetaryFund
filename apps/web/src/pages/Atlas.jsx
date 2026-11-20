@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Compass, Globe2, MapPin, Search, ShieldCheck } from "lucide-react";
 import { listPublicAtlasCampaigns } from "@/api/publicData";
@@ -8,7 +8,8 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import CampaignGlobe from "@/components/atlas/CampaignGlobe";
 import USCampaignMap from "@/components/atlas/USCampaignMap";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
-import FinanceDataGrid from "@/components/finance/FinanceDataGrid";
+import FinanceGridFallback from "@/components/finance/FinanceGridFallback";
+const FinanceDataGrid = lazy(() => import("@/components/finance/FinanceDataGrid"));
 import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAtlasLocation } from "@/lib/atlasLocations.mjs";
 import "./Atlas.css";
 
@@ -164,7 +165,9 @@ export default function Atlas() {
       <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Campaign location explorer">
         <h2 className="text-xl font-semibold">AG Grid · Campaign locations</h2>
         <p className="text-sm text-muted-foreground">Sort and filter campaigns by place, cause, and status. {scope==="mine"?"Private drafts are visible only to the verified owner; they are never displayed as public markers.":"The public grid contains only published campaigns."}</p>
-        <FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/>
+        <Suspense fallback={<FinanceGridFallback />}>
+          <FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/>
+        </Suspense>
       </section>
       {scope==="mine" && campaigns.some(c=>c.status==="active"&&!isApprovedAtlasLocation(c)) && (
         <section className="space-y-3 rounded-xl border border-emerald-500/25 bg-card p-5" aria-label="Campaigns missing map locations">

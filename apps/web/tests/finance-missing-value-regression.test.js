@@ -1,14 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-
-// FinanceDataGrid contains JSX, so evaluate only its pure amount formatter.
-const gridSource = readFileSync(new URL("../src/components/finance/FinanceDataGrid.jsx", import.meta.url), "utf8");
-const begin = gridSource.indexOf("export const formatUsdCents = ");
-const end = gridSource.indexOf("\nexport default function FinanceDataGrid(", begin);
-assert.ok(begin >= 0 && end > begin, "finance formatter must remain exported");
-const formatterSource = gridSource.slice(begin, end).replace("export const formatUsdCents =", "const formatUsdCents =");
-const formatter = new Function(formatterSource + "\nreturn formatUsdCents;")();
+import { formatUsdCents as formatter } from "../src/lib/formatUsdCents.mjs";
 
 test("financial reporting never silently displays missing or invalid values as zero", () => {
   for (const amount of [null, undefined, "", " ", false, true, NaN, Infinity, -1, 1.2, "1.2", "1e2", {}, []]) {

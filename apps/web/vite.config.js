@@ -39,6 +39,12 @@ export default defineConfig({
           // React, ReactDOM, scheduler and React Router stay one runtime chunk.
           if (/[\\/]node_modules[\\/](?:react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) return "react-runtime";
           if (id.includes("@supabase")) return "supabase";
+          // AG Grid is only reached through lazy financial and Atlas routes.
+          // Keep its community core, React adapter and shared stack in explicit
+          // vendor chunks instead of folding them into a route implementation.
+          if (/[\\/]node_modules[\\/]ag-grid-community[\\/]/.test(id)) return "ag-grid-community";
+          if (/[\\/]node_modules[\\/]ag-grid-react[\\/]/.test(id)) return "ag-grid-react";
+          if (/[\\/]node_modules[\\/]ag-stack[\\/]/.test(id)) return "ag-grid-shared";
         },
       },
     },

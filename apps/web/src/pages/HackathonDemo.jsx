@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
-import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { formatUsdCents } from "@/lib/formatUsdCents.mjs";
+import FinanceGridFallback from "@/components/finance/FinanceGridFallback";
+const FinanceDataGrid = lazy(() => import("@/components/finance/FinanceDataGrid"));
 import { financeDemoRows, demoFinanceStats } from "@/lib/hackathonFinanceDemo.mjs";
 import DemoJourney from "@/components/hackathon/DemoJourney";
 import AgentPreviewLab from "@/components/hackathon/AgentPreviewLab";
@@ -223,8 +225,10 @@ export default function HackathonDemo() {
           placeholder="Search fictional campaign, status, or channel"
           className="mt-2 min-h-11 w-full rounded-xl border border-slate-600 bg-slate-900 p-3 text-slate-100" />
       </label>
-      <FinanceDataGrid rows={financeDemoRows} columns={financeColumns} label="Fictional campaign finance data in AG Grid"
-        search={financeSearch} allowExport csvName="ifund-fictional-example-finance.csv" />
+      <Suspense fallback={<FinanceGridFallback />}>
+        <FinanceDataGrid rows={financeDemoRows} columns={financeColumns} label="Fictional campaign finance data in AG Grid"
+          search={financeSearch} allowExport csvName="ifund-fictional-example-finance.csv" />
+      </Suspense>
       <p className="text-xs text-slate-400">Developer API testing: a Postman collection is included in the public GitHub repository. Postman readiness checks do not create orders or verify captures.</p>
       <a className="inline-flex min-h-11 items-center text-sm font-semibold text-cyan-300 underline"
         href="/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json"

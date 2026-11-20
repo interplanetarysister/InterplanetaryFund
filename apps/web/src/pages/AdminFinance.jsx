@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
-import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { formatUsdCents } from "@/lib/formatUsdCents.mjs";
+import FinanceGridFallback from "@/components/finance/FinanceGridFallback";
+const FinanceDataGrid = lazy(() => import("@/components/finance/FinanceDataGrid"));
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { sumVerifiedCents, sumVerifiedCounts } from "@/lib/verifiedMoney.mjs";
 import { merchantReceiptExceptions } from "@/lib/merchantReconciliation.mjs";
@@ -212,7 +214,9 @@ export default function AdminFinance({ embedded = false }) {
       <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Verified campaign finance dashboard">
         <h2 className="text-lg font-semibold">AG Grid · Verified campaign finance</h2>
         <p className="text-sm text-muted-foreground">Live records from the existing authorization-checked Supabase finance RPC. Sort, filter, or resize columns. No sandbox or example data is included in this admin report.</p>
-        <FinanceDataGrid rows={state.rows} columns={campaignColumns} label="Verified authorized campaign accounting" />
+        <Suspense fallback={<FinanceGridFallback />}>
+          <FinanceDataGrid rows={state.rows} columns={campaignColumns} label="Verified authorized campaign accounting" />
+        </Suspense>
         {state.rows.length === 0 && <p className="text-sm text-muted-foreground">No verified campaign finance records are available. No sample totals were inserted.</p>}
       </section>
     </>}
