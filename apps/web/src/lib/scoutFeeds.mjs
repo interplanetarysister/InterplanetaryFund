@@ -1,7 +1,7 @@
 // SCOUT's safe, public research inputs. NOT sponsor offer catalogs.
 export const SCOUT_PUBLIC_FEEDS=Object.freeze([
  Object.freeze({id:"grants-gov",name:"Grants.gov",url:"https://www.grants.gov/rss/GG_NewOppByAgency.xml",domain:"grants.gov",kind:"grants"}),
- Object.freeze({id:"nih",name:"NIH Grants",url:"https://grants.nih.gov/grants/guide/newsfeed/fundingopps.xml",domain:"nih.gov",kind:"grants"})
+ Object.freeze({id:"grants-category",name:"Grants.gov (category)",url:"https://www.grants.gov/rss/GG_NewOppByCategory.xml",domain:"grants.gov",kind:"grants"})
 ]);
 function entityDecode(text) {
  return String(text||"").replace(/&(?:amp|lt|gt|quot|apos|#39|#x[0-9a-f]+|#\d+);/gi,m=>{
