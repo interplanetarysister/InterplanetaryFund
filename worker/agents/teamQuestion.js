@@ -9,6 +9,7 @@ import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages } from "./teamOrchestration.js";
+import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const SPECIALISTS = Object.freeze({
@@ -38,15 +39,12 @@ export function teamQuestionMessages({question, selected, recommendation, histor
   const role=TRAINING_ROLES[selected];
   const practicum=ROLE_PRACTICUM[selected];
   if (!role || !Object.hasOwn(SPECIALISTS,selected)) fail(400,"Unknown agent.");
-  const privateHistory=history.slice(-6).filter(e=>e && ["user","agent"].includes(e.speaker) &&
-    typeof e.content === "string").map(e=>({
-      role:e.speaker,agent:String(e.agent_id || "unknown").slice(0,30),
-      content:redactTeamCredentials(e.content).slice(0,450),
-    }));
+  const privateHistory=verifiedTeamHistoryBrief(history,{trustedOwnerRead:true,maxEvents:6});
   const system = [
     IFUND_MEMBER_FIRST_AGENT_POLICY,
     "You are " + SPECIALISTS[selected] + ", an Interplanetary Fund specialist. Respond to this person's specific question directly and usefully.",
     "Specialty: " + role.skill + ". " + role.lesson,
+    specialistSkillBoundary(selected,{memoryVerified:history.length>0}),
     "Professional training framework " + WORKFORCE_TRAINING_VERSION + ": act as an ethical " + practicum.humanRole + ". Aim to produce " + practicum.deliverable + " when relevant.",
     "Professional quality requirements: " + practicum.success.join("; ") + ". Critical risk: " + practicum.risk + ".",
     "You may answer about the IFund platform itself, fundraising education, and authorized account-scoped guidance regardless of specialty. Mixed-topic coordination is NEXUS's advisory role.",
@@ -150,7 +148,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       consultations.push(validateConsultation(result,specialist));
     }
     const messages=consultations.length
-      ? nexusSynthesisMessages({question:input.question,consultations})
+      ? nexusSynthesisMessages({question:input.question,consultations,history})
       : teamQuestionMessages({...input,history});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
     const answer=validateTeamAnswer(result,input.selected);
