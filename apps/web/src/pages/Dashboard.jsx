@@ -13,6 +13,7 @@ import { hasGuestNotice } from "@/lib/guestAccess";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
   const [account, setAccount] = useState({ phase: "loading", user: null, campaigns: [], error: "" });
   const { user, phase: state, campaigns: myCampaigns, error: myCampaignError } = account;
   const [campaigns, setCampaigns] = useState([]);
@@ -53,14 +54,22 @@ export default function Dashboard() {
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link to="/create" className="ifund-dashboard-primary"><PlusCircle size={18}/> Start a campaign</Link>
+          <Link to="/create" className="ifund-dashboard-primary"><PlusCircle size={18}/> {whatIfEnabled ? "Start a Mission" : "Start a campaign"}</Link>
           <button type="button" className="ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
         </div>
       </div>
       <Sparkles size={170} strokeWidth={0.65} className="pointer-events-none absolute -right-4 -top-12 text-cyan-300/20 sm:right-10" aria-hidden="true"/>
     </header>
+    {whatIfEnabled && <section className="ifund-dashboard-card space-y-3" aria-label="What If private Missions">
+      <h2 className="text-xl font-semibold">Your next possibility starts here</h2>
+      <p className="text-sm text-muted-foreground">Build a private Mission from an idea or need. A fundraiser is optional, and nothing is published without your review.</p>
+      <div className="flex flex-wrap gap-3">
+        <Link to="/what-if" className="ifund-dashboard-primary">Explore What If?</Link>
+        <Link to="/missions" className="ifund-dashboard-secondary">My Missions</Link>
+      </div>
+    </section>}
     <div className="ifund-dashboard-shortcuts">
-      <Link to="/campaigns" className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>My campaigns</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to={whatIfEnabled?"/missions":"/campaigns"} className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>{whatIfEnabled?"My Missions":"My campaigns"}</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <button type="button" className="ifund-dashboard-shortcut" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={21}/><span>Agent chat</span><ArrowUpRight size={15} className="ml-auto"/></button>
       <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
