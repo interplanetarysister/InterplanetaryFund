@@ -29,10 +29,13 @@ export async function inspectPrintfulStore(env = {}, fetcher = fetch) {
     if (!response.ok) return { configured: true, connected: false };
     const payload = await response.json();
     const result = payload?.result;
-    if (Number(result?.id) !== storeId) return { configured: true, connected: false };
+    if (!result || typeof result !== "object" || Array.isArray(result) ||
+        typeof result.id !== "number" || !Number.isSafeInteger(result.id) ||
+        result.id !== storeId || typeof result.name !== "string" ||
+        !result.name.trim()) return { configured: true, connected: false };
     return {
       configured: true, connected: true,
-      storeId, storeName: String(result?.name || "").slice(0, 80),
+      storeId, storeName: result.name.trim().slice(0, 80),
     };
   } catch {
     return { configured: true, connected: false };
