@@ -132,6 +132,7 @@ const publicNavItems = [
   { to: "/globe", label: "Global Globe", icon: Globe2 },
   { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/news", label: "IFund Newscaster", icon: Radio },
+  { to: "/fundraising-tips", label: "Fundraising Guide", icon: BookOpen },
   { to: "/help", label: "Help Center", icon: CircleHelp },
 ];
 
