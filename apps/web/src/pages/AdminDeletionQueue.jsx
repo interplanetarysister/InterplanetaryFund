@@ -75,10 +75,18 @@ export default function AdminDeletionQueue(){
     setDependencyIssue(current=>({...current,[row.request_id]:""}));
     try {
       const client=authClient();
-      const {data,error:issue}=await runAdminReview(scope,client,()=>client.rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id}));
+      const [dependencyResult,financialResult]=await runAdminReview(scope,client,()=>Promise.all([
+        client.rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id}),
+        client.rpc("ifund_admin_account_financial_evidence",{p_request_id:row.request_id}),
+      ]));
+      const {data,error:issue}=dependencyResult;
+      const {data:financial,error:financeIssue}=financialResult;
       scope.assertActive();
-      if(issue||data?.open_request!==true||data?.safe_to_erase!==false)throw Error(issue?.message||"Verified dependency snapshot unavailable.");
-      setDependencySnapshot(current=>({...current,[row.request_id]:data}));
+      if(issue||data?.open_request!==true||data?.safe_to_erase!==false||
+         financeIssue||financial?.request_id!==row.request_id||financial?.safe_to_erase!==false||
+         financial?.zero_activity_verified!==false)
+        throw Error(issue?.message||financeIssue?.message||"Verified dependency and financial evidence unavailable.");
+      setDependencySnapshot(current=>({...current,[row.request_id]:{...data,financialEvidence:financial}}));
     }catch(cause){
       if(!scope.active)return;
       setDependencySnapshot(current=>{const next={...current};delete next[row.request_id];return next;});
@@ -178,6 +186,9 @@ export default function AdminDeletionQueue(){
             <li>Notifications: {dependencySnapshot[row.request_id].notifications}</li>
             <li>Supabase Storage objects: {dependencySnapshot[row.request_id].storage_objects}</li>
           </ul>
+          <p className="font-semibold">Read-only financial trace: {dependencySnapshot[row.request_id].financialEvidence?.source_rows_found??"Unknown"} overlapping source records</p>
+          <p>Potential financial history: {dependencySnapshot[row.request_id].financialEvidence?.possible_financial_history?"Evidence found":"Not ruled out — full review required"}</p>
+          <p className="text-muted-foreground">The ledger traces include donations, payment intents, subscriptions, withdrawals and migrated financial sources. Zero matches never proves there was no financial activity. External providers, legacy identities, disputes and statutory retention require independent verification.</p>
           <p className="text-muted-foreground">Financial records, other schemas, R2 and external providers require independent review; this snapshot never authorizes erasure.</p>
         </section>}
         {["requested","reviewing"].includes(row.request_status)&&reviewed[row.request_id]!==true&&<div className="rounded-xl border border-border p-3 space-y-2">
