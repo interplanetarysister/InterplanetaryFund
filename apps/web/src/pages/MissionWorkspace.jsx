@@ -6,7 +6,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import {
  loadMission,listMissionPlans,listMissionTasks,listMissionCampaignLinks,
  addMissionTask,setMissionTaskState,saveReviewedMissionPlan,suggestMissionPlan,
- updateMission,getMissionIntegrationStatus,listVerifiedMissionResources
+ updateMission,getMissionIntegrationStatus,listVerifiedMissionResources,bookmarkMissionResource
 } from "@/api/missions";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -92,6 +92,16 @@ export default function MissionWorkspace(){
     await refreshData();
     setNotice("Your reviewed plan was saved privately, and its initial steps are now available as tasks.");
   }catch(cause){setError(cause.message||"The plan was not confirmed. It remains in this editor.");}
+  finally{setBusy("");}
+ }
+ async function bookmarkResource(item){
+  if(!ready||busy)return;
+  setBusy("resource");setError("");setNotice("");
+  try{
+   await bookmarkMissionResource(authClient(),mission.id,item.id);
+   await refreshData();
+   setNotice("Saved as a possible resource. Eligibility, funding and provider permissions are not confirmed.");
+  }catch(cause){setError(cause.message||"Resource could not be saved.");}
   finally{setBusy("");}
  }
  async function updateTitle(){
@@ -218,7 +228,12 @@ export default function MissionWorkspace(){
          <p className="text-xs text-muted-foreground">{item.tags.includes(mission.goal_type)?"Related topic · ":"General resource · "}Source link checked · Eligibility not checked</p>
          <h4 className="mt-1 text-sm font-semibold">{item.title}</h4>
          <p className="mt-1 text-xs text-muted-foreground">{item.official_provider} · {item.geography}</p>
-         <a href={item.official_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-1 text-sm font-medium text-primary underline">Review official website <ArrowRight size={14} aria-hidden="true"/></a>
+         <div className="mt-2 flex flex-wrap items-center gap-3">
+           <a href={item.official_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 text-sm font-medium text-primary underline">Review official website <ArrowRight size={14} aria-hidden="true"/></a>
+           {integration?.opportunities?.some(x=>x.opportunity_id===item.id)
+             ? <span className="text-xs font-medium text-cyan-600">Saved as a possible resource</span>
+             : <button type="button" disabled={!!busy} onClick={()=>bookmarkResource(item)} className="min-h-10 rounded-xl border border-border px-3 text-xs font-semibold disabled:opacity-50">Save to this Mission</button>}
+         </div>
        </article>)}
      </div>
      <Link to="/connections" className="text-sm font-medium text-primary underline">Manage connected platforms</Link>
