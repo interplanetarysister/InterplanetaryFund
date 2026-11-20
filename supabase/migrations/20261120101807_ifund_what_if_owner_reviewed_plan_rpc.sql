@@ -61,8 +61,7 @@ begin
  return jsonb_build_object('id',p_request_id,'mission_id',p_mission_id,
   'version',v_version,'revision',p_expected_revision+1,'replayed',false);
 end
-$function$
-
+$function$;
 revoke all on function public.ifund_mission_save_reviewed_plan(uuid,uuid,integer,jsonb) from public,anon,authenticated;
 grant execute on function public.ifund_mission_save_reviewed_plan(uuid,uuid,integer,jsonb) to authenticated;
 comment on function public.ifund_mission_save_reviewed_plan(uuid,uuid,integer,jsonb) is 'Atomic versioned owner-reviewed Mission plan, never verifies AI output or authorizes external actions.';
