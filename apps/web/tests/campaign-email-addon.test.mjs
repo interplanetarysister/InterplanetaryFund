@@ -60,6 +60,9 @@ test("database gate never equates a checkbox or admin entitlement with a paid ad
  assert.match(sql,/v_bill\.amount_cents=100/);
  assert.match(sql,/v_bill\.paid_through>now\(\)/);
  assert.match(sql,/v_bill\.routing_verified_at is not null/);
+ const nullFix=readFileSync(new URL("../../../supabase/migrations/20261119214500_ifund_campaign_email_null_billing_guard.sql",import.meta.url),"utf8");
+ assert.match(nullFix,/v_verified:=coalesce\(/);
+ assert.match(nullFix,/v_ready:=coalesce\(/);
  assert.match(sql,/is_anonymous is false/);
  assert.match(sql,/revoke all on ifund_ops\.campaign_email_addon_billing from public,anon,authenticated/);
  assert.match(ui,/type="checkbox"/);
