@@ -76,8 +76,13 @@ function loadProofImage(url) {
     image.src = url;
   });
 }
-export default function CampaignMerchDesigner({ campaigns = [] }) {
+export default function CampaignMerchDesigner({ campaigns = [], initialCampaignId = null }) {
   const [campaignId, setCampaignId] = useState("");
+  useEffect(() => {
+    if (initialCampaignId && campaigns.some(item => item.id === initialCampaignId))
+      setCampaignId(initialCampaignId);
+  }, [campaigns, initialCampaignId]);
+
   const [name, setName] = useState("");
   const [designId, setDesignId] = useState(MERCH_DESIGN_OPTIONS[0].id);
   const [approvedName, setApprovedName] = useState(false);
