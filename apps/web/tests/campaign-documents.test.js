@@ -278,7 +278,8 @@ test("all document UI adapters fail closed when the browser feature is disabled"
   const uploader=readFileSync(new URL("../src/components/campaigns/CampaignDocuments.jsx",import.meta.url),"utf8");
   const refs=readFileSync(new URL("../src/components/agents/AgentDocumentReferences.jsx",import.meta.url),"utf8");
   const settings=readFileSync(new URL("../src/components/permissions/CampaignDocumentPermissions.jsx",import.meta.url),"utf8");
-  assert.match(config,/VITE_IFUND_CAMPAIGN_DOCUMENTS_ENABLED === "enabled"/);
+  assert.match(config,/CAMPAIGN_DOCUMENTS_ACTIVE = false/);
+  assert.doesNotMatch(config,/import\\.meta\\.env|process\\.env/);
   assert.match(uploader,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledCampaignDocuments/);
   assert.match(refs,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledAgentDocumentReferences/);
   assert.match(settings,/if\(!CAMPAIGN_DOCUMENTS_ACTIVE\)/);
