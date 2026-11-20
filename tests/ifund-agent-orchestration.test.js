@@ -37,6 +37,7 @@ test("NEXUS schedules specialist calls only for real mixed-topic requests",()=>{
  assert.equal(multi.selected,"nexus");
  assert.deepEqual(planAgentConsultations(multi),["orbit","story"]);
  assert.deepEqual(planAgentConsultations({...multi,selected:"orbit"}),[]);
+ assert.deepEqual(planAgentConsultations({...multi,selected:"nexus",recommendation:{topics:["story"],requiresCoordination:false}}),["story"]);
  assert.ok(MAX_NEXUS_SPECIALISTS<=2);
  assert.deepEqual(planAgentConsultations(validateTeamQuestion({request_id:KEY,question:"Review my campaign story",agent:"auto"})),[]);
 });
@@ -78,7 +79,8 @@ test("untrusted specialist text is bounded before NEXUS synthesis",()=>{
  assert.equal(item.status,"completed");
  assert.throws(()=>validateConsultation({response:"X".repeat(3001)},"story"),/valid advisory/);
  assert.throws(()=>validateConsultation({response:"hello"},"unknown"),/Unknown/);
- assert.throws(()=>nexusSynthesisMessages({question:"x",consultations:[item]}),/Verified specialist/);
+ assert.match(nexusSynthesisMessages({question:"x",consultations:[item]})[1].content,/story/);
+ assert.throws(()=>nexusSynthesisMessages({question:"x",consultations:[]}),/Verified specialist/);
 });
 test("agent interfaces render genuine service receipts with their governed icons",()=>{
  const trail=readFileSync(new URL("../apps/web/src/components/agents/AgentConsultationTrail.jsx",import.meta.url),"utf8");
