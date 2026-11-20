@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./../styles/agent-team.css";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { rememberAgentAdvice } from "@/lib/agentAdviceHandoff.mjs";
 import { parseAgentFeatureSelection, agentToolHref } from "@/lib/agentFeatureRoutes.mjs";
 import StoryAgent from "./StoryAgent";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -22,6 +23,7 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
  * messages to Base44 or present a placeholder as an active AI conversation.
  */
 export default function AgentsTeam() {
+  const navigate=useNavigate();
   const [params,setParams]=useSearchParams();
   const selection=parseAgentFeatureSelection(params.toString());
   const selected=selection.identity;
@@ -136,6 +138,23 @@ export default function AgentsTeam() {
       if(generation===requestRef.current.generation) setQuestionBusy(false);
     }
   }
+  async function reviewAnswerInCampaign(){
+    if(!agentReply||!user?.id)return;
+    setQuestionError("");
+    try{
+      const client=authClient();
+      const identity=await client.auth.getUser();
+      const verified=identity.data?.user;
+      if(identity.error||verified?.id!==user.id||!verified.email_confirmed_at||verified.is_anonymous===true)
+        throw Error("Sign in to the same verified account to use this answer.");
+      const target=selection.campaignId||null;
+      // A campaign-specific link is checked again by the owner editor before any changes.
+      const handoff=rememberAgentAdvice(sessionStorage,{
+        ownerId:user.id,agent:agentReply.agent,answer:agentReply.answer,campaignId:target,
+      });
+      navigate(handoff.target);
+    }catch(cause){setQuestionError(cause?.message||"The campaign editor could not open.");}
+  }
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
   return <div className="ifund-agents-page space-y-6">
@@ -206,6 +225,7 @@ export default function AgentsTeam() {
         </div>
         <p className="text-xs text-muted-foreground">Your question: {agentReply.question}</p>
         <p className="ifund-agents-reply-body text-sm">{agentReply.answer}</p>
+        <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
       <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
