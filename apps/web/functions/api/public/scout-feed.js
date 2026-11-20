@@ -30,7 +30,7 @@ export async function onRequest({request,fetch:fetchOverride}) {
  const getter=typeof fetchOverride==="function"?fetchOverride:fetch;
  const results=await Promise.all(SCOUT_PUBLIC_FEEDS.map(async source=>{
   try {
-   const r=await getter(source.url,{method:"GET",redirect:"error",headers:{accept:"application/rss+xml,application/xml,text/xml"},signal:AbortSignal.timeout(6500)});
+   const r=await getter(source.url,{method:"GET",headers:{accept:"application/rss+xml,application/xml,text/xml"},signal:AbortSignal.timeout(6500)});
    if(!r.ok)return {source:source.name,available:false,items:[]};
    const raw=await readCapped(r);
    if(!raw)return {source:source.name,available:false,items:[]};
