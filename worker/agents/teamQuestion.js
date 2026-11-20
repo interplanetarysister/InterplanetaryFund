@@ -10,6 +10,7 @@ import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrai
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages } from "./teamOrchestration.js";
 import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
+import { runSpecialistPractice } from "./agentPracticalSkills.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const SPECIALISTS = Object.freeze({
@@ -150,6 +151,15 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const messages=consultations.length
       ? nexusSynthesisMessages({question:input.question,consultations,history})
       : teamQuestionMessages({...input,history});
+    // The practice is executed locally after member verification and quota reservation.
+    // It supplies real role-specific guidance without granting model/provider actions.
+    const practice=runSpecialistPractice({agent:input.selected,question:input.question,
+      identityVerified:true,ownerScoped:true});
+    messages.push({role:"user",content:JSON.stringify({
+      executable_private_advisory_skill:{skill:practice.skill,checklist:practice.checklist,
+        evidence:practice.evidence,actions_performed:false},
+      instruction:"Use the checklist where relevant. This does not authorize external actions."
+    })});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
     const answer=validateTeamAnswer(result,input.selected);
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
@@ -160,7 +170,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     if (completed !== true)
       fail(503,"Your answer was prepared, but the daily allowance could not be finalized.");
     quotaCompleted = true;
-    return noStore(200,{...answer,consultations,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
+    return noStore(200,{...answer,consultations,advisory_skill:practice.skill,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       questions_remaining_today:quota.remaining,
