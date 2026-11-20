@@ -73,7 +73,11 @@ test("native payment collection and paid enrollment remain disabled pending revi
   const plans = read("../src/pages/Subscriptions.jsx");
   const publicPlans = read("../src/pages/PublicSubscriptionPlans.jsx");
   assert.match(native, /native_checkout_requires_approval/);
-  assert.match(plans, /native\|\|!available/);
-  assert.match(plans, /if\(native\)\{setError/);
+  // Native checkout is now blocked by both the UI predicate and submit handler.
+  assert.match(plans, /canStartVerifiedSubscription\(\{plan,status,statusLoad,busy,native\}\)/);
+  assert.match(plans, /disabled=\{!canBegin\}/);
+  const check = read("../src/lib/subscriptionEnrollment.mjs");
+  assert.match(check, /!native && !busy/);
+  assert.match(check, /statusLoad === "ready"/);
   assert.match(publicPlans, /available && !native/);
 });
