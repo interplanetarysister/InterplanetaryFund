@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { calculateCampaignReadiness } from "@/lib/campaignReadinessScore.mjs";
 
-export default function CampaignReadinessScore({ form }) {
+export default function CampaignReadinessScore({ form, editPath = "" }) {
   const [sharingPlan,setSharingPlan]=useState(false);
   const review=useMemo(()=>calculateCampaignReadiness(form,{sharingPlan}),[form,sharingPlan]);
   const data=[
@@ -33,9 +34,11 @@ export default function CampaignReadinessScore({ form }) {
       <ul className="space-y-2">{review.tips.map(row=><li key={row.key} className="rounded-xl border border-border p-3">
         <div className="flex items-center justify-between gap-2 text-sm"><strong>{row.label}</strong><span className="tabular-nums text-muted-foreground">{row.earned}/{row.max}</span></div>
         <p className="mt-1 text-xs text-muted-foreground">{row.tip}</p>
-        <a href={"#"+row.field} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</a>
+        {editPath && row.field !== "campaign-sharing-plan"
+          ? <Link to={editPath+"#"+row.field} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</Link>
+          : <a href={"#"+row.field} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</a>}
       </li>)}</ul>}
     </div>
-    <p className="text-sm text-muted-foreground">A low readiness score does not prevent publishing. Standard account, required-field, story-format and financial safety checks still apply.</p>
+    <p className="text-sm text-muted-foreground">A low readiness score does not prevent publishing. Required account, campaign-field and financial safety checks still apply; no story-length minimum is imposed.</p>
   </section>;
 }
