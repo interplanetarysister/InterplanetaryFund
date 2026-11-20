@@ -112,7 +112,7 @@ export default function AgentOperationsRoom({user}){
         <p className="text-xs text-slate-400">Private administrator room · Agent messages require verified runtime receipts</p>
       </div>
     </div>
-    <p className="text-xs text-slate-400">Private to verified administrators. Posting an assignment of up to 1,100 characters automatically requests a bounded, advisory NEXUS specialist review. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
+    <p className="text-xs text-slate-400">Only verified administrators can read or post. Posting an assignment of up to 1,100 characters automatically requests a bounded, advisory NEXUS specialist review. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
