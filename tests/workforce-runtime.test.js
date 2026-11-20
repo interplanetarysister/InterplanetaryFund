@@ -87,6 +87,7 @@ function fetcher(calls, overrides = {}) {
       assert.equal(init.headers["x-ifund-workforce-key"], secret);
     else assert.equal(init.headers["x-ifund-workforce-key"], undefined);
     if (overrides[name]) return overrides[name](body);
+    if (name === "ifund_current_account_is_active") return Response.json(true);
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
     if (url.includes("/ifund_ai_permission_preferences?"))

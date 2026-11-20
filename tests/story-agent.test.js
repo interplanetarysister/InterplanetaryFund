@@ -35,6 +35,7 @@ const makeFetcher =
   (overrides = {}) =>
   async (url, init) => {
     const name = url.split("/").pop();
+    if (name === "ifund_current_account_is_active") return Response.json(true);
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
     if (url.includes("/ifund_ai_permission_preferences?"))

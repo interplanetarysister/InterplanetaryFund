@@ -114,7 +114,7 @@ test("Worker validates identity, reserves once and requires stored draft receipt
   const fetcher = async (url, init) => {
     calls.push([url, init.body ? JSON.parse(init.body) : null]);
     return Response.json(
-      url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : url.endsWith("_context")
           ? context
@@ -167,7 +167,7 @@ test("inference replay, quota and previous failure do not call the model", async
     let runs = 0;
     const fetcher = async (url) =>
       Response.json(
-        url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
           ? { id: uid, email_confirmed_at: "today" }
           : url.endsWith("_context")
             ? context
@@ -197,7 +197,7 @@ test("failed inference consumes the attempt and never reports a sent message", a
   const fetcher = async (url, init) => {
     if (url.endsWith("_finish")) finish = JSON.parse(init.body);
     return Response.json(
-      url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : url.endsWith("_context")
           ? context
@@ -221,7 +221,7 @@ test("sending requires a current owner review and explicit runtime enablement, n
     calls.push([url, init.body ? JSON.parse(init.body) : null]);
     if (url.endsWith("ifund_communications_delivery_contract")) return Response.json(2);
     return Response.json(
-      url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : { outcomes: [], replayed: false },
     );
@@ -276,7 +276,7 @@ test("manual drafting remains independent of AI binding and uses an operation re
   const fetcher = async (url, init) => {
     if (url.endsWith("_save")) saved = JSON.parse(init.body);
     return Response.json(
-      url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : { message: { id: lease, status: "draft" } },
     );
@@ -308,7 +308,7 @@ test("raw provider/SQL errors are not exposed and unauthenticated/oversized requ
     401,
   );
   const fetcher = async (url) =>
-    url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+    url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
       ? Response.json({ id: uid, email_confirmed_at: "today" })
       : Response.json(
           { message: "SECRET SQL", code: "XX000" },
@@ -332,7 +332,7 @@ test("Cloudflare entrypoint ignores execution context and preview masks send/AI 
   try {
     globalThis.fetch = async (url) =>
       Response.json(
-        url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
           ? { id: uid, email_confirmed_at: "today" }
           : {
               messages: [],
@@ -364,7 +364,7 @@ test("full draft capacity rejects before inference and explains cancelling old d
     url.endsWith("_begin")
       ? Response.json({ code: "P1001" }, { status: 400 })
       : Response.json(
-          url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
+          url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
             ? { id: uid, email_confirmed_at: "today" }
             : context,
         );

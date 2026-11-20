@@ -334,8 +334,12 @@ export async function storyRoute(request, env, fetcher = fetch) {
       fail(401, "Sign in to use the writing assistant.");
     const jwt = bearer.slice(7);
     const user = await requestData(env, jwt, "/auth/v1/user", {}, fetcher);
-    if (!UUID.test(user?.id || "") || !user.email_confirmed_at)
+    if (!UUID.test(user?.id || "") || !user.email_confirmed_at || user.is_anonymous === true)
       fail(401, "Confirm your email before using the writing assistant.");
+    const active = await requestData(env, jwt,
+      "/rest/v1/rpc/ifund_current_account_is_active",
+      { method: "POST", body: "{}" }, fetcher);
+    if (active !== true) fail(403, "Your IFund account must be active to use the writing assistant.");
     // Recheck the actual saved owner choice for every generation request.
     // A signup checkbox, OAuth identity, or old queued job is not authorization.
     if (request.method === "POST" && path === "/api/agents/story/drafts") {
