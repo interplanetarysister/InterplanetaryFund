@@ -25,7 +25,7 @@ test("dashboard offers real referral link without claiming premium checkout is l
  assert.doesNotMatch(card,/startSubscription|BILLING.SUBSCRIPTION|PayPal checkout/);
 });
 test("referral credit is a single provider-independent, published campaign grant",()=>{
- const sql=read("../../../supabase/migrations/20261120195000_ifund_agent_trial_referrals.sql");
+ const sql=read("../../../supabase/migrations/20261120194050_ifund_agent_trial_referrals_20261120.sql");
  assert.match(sql,/ifund_referral_claims\s*\(/);
  assert.match(sql,/referred_id uuid primary key/);
  assert.match(sql,/new\.status<>'active'/);
