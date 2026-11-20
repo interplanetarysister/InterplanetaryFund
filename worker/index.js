@@ -19,7 +19,8 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/payments/email-addon/status' ||
-        pathname === '/api/payments/email-addon/start') {
+        pathname === '/api/payments/email-addon/start' ||
+        pathname === '/api/payments/email-addon/webhook') {
       // Isolated recurring PayPal checkout never falls through to donation rails.
       if (typeof env.IFUND_EMAIL_ADDON_BILLING?.fetch !== 'function')
         return response(503, { error: 'Recurring email checkout is not configured.' });
