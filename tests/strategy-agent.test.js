@@ -113,7 +113,7 @@ test("Worker authenticates, reserves once, validates AI and requires persistence
   const fetcher = async (url, init) => {
     calls.push([url, init.body ? JSON.parse(init.body) : null]);
     if (url.endsWith("/rpc/ifund_current_account_is_active")) return Response.json(true);
-    if (url.includes("/ifund_ai_permission_preferences?")) return Response.json([{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }]);
+    if (url.includes("/ifund_ai_permission_preferences?")) return Response.json([{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }]);
     if (url.endsWith("/auth/v1/user"))
       return Response.json({ id: uid, email_confirmed_at: "2026-11-04" });
     if (url.endsWith("_context"))
@@ -168,7 +168,7 @@ test("replays, quota and in-progress states never call inference", async () => {
     let runs = 0;
     const fetcher = async (url) =>
       Response.json(
-        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
           ? { id: uid, email_confirmed_at: "today" }
           : url.endsWith("_context")
             ? { campaigns: [{ id: uid }] }
@@ -204,7 +204,7 @@ test("invalid AI output marks a failed attempt without saving a plan", async () 
       return Response.json({ status: "failed" });
     }
     return Response.json(
-      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : url.endsWith("_context")
           ? { campaigns: [{ id: uid }] }
@@ -272,7 +272,7 @@ test("Cloudflare execution context is never treated as a fetch implementation", 
   try {
     globalThis.fetch = async (url) =>
       Response.json(
-        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
           ? { id: uid, email_confirmed_at: "today" }
           : { brief: null, recommendations: [] },
       );
