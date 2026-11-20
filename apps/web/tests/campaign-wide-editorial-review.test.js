@@ -73,6 +73,7 @@ test("agent submission validates saved owner campaign and batches all findings",
 assert.match(create,/You may improve your campaign afterward in Command Center/);
 assert.doesNotMatch(create,/CampaignReadinessScore/);
  assert.match(create,/Command Center/);
+ assert.match(create,/!Number\.isInteger\(next\)\|\|next<0\|\|next>2/);
  assert.doesNotMatch(create,/<PrepublicationGate/);
 });
 
