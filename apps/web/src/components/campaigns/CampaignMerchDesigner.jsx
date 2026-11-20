@@ -4,6 +4,7 @@ import {
 } from "@/lib/campaignMerch.mjs";
 import { Download, ImagePlus, ShieldCheck, Sparkles, ShoppingBag } from "lucide-react";
 import { authClient } from "@/api/auth";
+import { MERCH_DRAFTS_ENABLED, loadOwnerMerchDraft, saveOwnerMerchDraft } from "@/api/merchDrafts";
 import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -109,11 +110,35 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
     setGeneratedUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [generatedFile]);
+  useEffect(() => {
+    if (!MERCH_DRAFTS_ENABLED || !selected?.id) return;
+    let alive = true;
+    loadOwnerMerchDraft(selected.id).then(draft => {
+      if (!alive || !draft) return;
+      if (MERCH_DESIGN_OPTIONS.some(item => item.id === draft.design_id)) setDesignId(draft.design_id);
+      setName(draft.beneficiary_display_name || "");
+      setStatus("Saved merchandise draft loaded. Please reconfirm the name and image rights before generating or exporting.");
+    }).catch(error => { if (alive) setStatus(error?.message || "The saved design could not be loaded."); });
+    return () => { alive = false; };
+  }, [selected?.id]);
   const sourceImage = generatedUrl || localUrl || selected?.cover_image_url || "";
   const valid = validateMerchDesignRequest({
     beneficiaryName: name, designId,
     namePublicationApproved: approvedName, artworkRightsConfirmed: approvedArtwork,
   });
+  async function saveDesignPreference() {
+    if (busy) return;
+    if (!selected) {setStatus("Choose your own campaign."); return;}
+    setBusy(true);setStatus("");
+    try {
+      const saved = await saveOwnerMerchDraft({
+        campaignId: selected.id, beneficiaryName: name, designId,
+        namePublicationApproved: approvedName, artworkRightsConfirmed: approvedArtwork,
+      });
+      setStatus("Your private " + saved.design_id + " design preference was saved. No product was listed, charged or shipped.");
+    } catch (error) {setStatus(error?.message || "The design could not be saved.");}
+    finally {setBusy(false);}
+  }
   async function generateOptionalArtwork() {
     if (busy) return;
     if (!selected || !file || !approvedArtwork) {
@@ -195,7 +220,7 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold text-slate-100">Your saved campaign
           <select className="mt-2 w-full min-h-12 rounded-xl bg-slate-950/70 border border-cyan-300/25 p-3 text-white"
-            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setGeneratedFile(null); setStatus("");}}>
+            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setGeneratedFile(null); setName(""); setApprovedName(false); setApprovedArtwork(false); setStatus("");}}>
             <option value="">Choose a campaign</option>
             {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.title || "Untitled campaign"}</option>)}
           </select>
@@ -244,9 +269,10 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
           {busy ? <Sparkles className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
           {busy ? "Preparing artwork..." : "Create selected design proof"}
         </button>
+        <button type="button" onClick={saveDesignPreference} disabled={!MERCH_DRAFTS_ENABLED || !selected || busy} aria-busy={busy} className="ifund-action min-h-12 rounded-xl border border-white/30 bg-white/10 px-4 py-2 font-semibold text-white disabled:opacity-50">{MERCH_DRAFTS_ENABLED ? "Save design preference" : "Save design (coming after verification)"}</button>
         <span className="inline-flex gap-2 items-center text-xs text-slate-200"><ShieldCheck className="w-4 h-4" /> 50% of cleared net merchandise profit goes to the campaign; 50% supports iFund.</span>
       </div>
-      <p className="text-xs text-slate-300">AI artwork is illustrative, never an authenticated photograph or evidence of a real event. This creates a design proof only, not a print-production file or a live shop listing. Product dimensions, mockups, price, checkout, and fulfillment require verified Printful integration and owner approval. No donation balance changes.</p>
+      <p className="text-xs text-slate-300">AI artwork is illustrative, never an authenticated photograph or evidence of a real event. Saving the design preference does not save a locally uploaded image or generated art. This creates a design proof only, not a print-production file or a live shop listing. Product dimensions, mockups, price, checkout, and fulfillment require verified Printful integration and owner approval. No donation balance changes.</p>
       {status && <p className="rounded-lg border border-cyan-300/20 bg-slate-950/40 p-3 text-sm text-white" role="status">{status}</p>}
     </section>
   );
