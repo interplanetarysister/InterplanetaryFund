@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assess} from '../scripts/verify-scoped-release.mjs';
+const A='a'.repeat(40),B='b'.repeat(40);
+function fixture(files=['apps/web/src/styles/landing.css']) {return {commit_sha:A,changed_files:files,evidence:{local_tests:{passed:true,commit_sha:A,reference:'local-node-output-1'},security_regressions:{passed:true,commit_sha:A,reference:'negative-suite-1'},role_browser_qa:{passed:true,commit_sha:A,reference:'role-browser-1'},preview_qa:{passed:true,commit_sha:A,reference:'preview-browser-1'},preview_deployment:{id:'cf-preview-123',status:'success',commit_sha:A},independent_reviewer:{identity:'independent-qa',approved:true,reference:'qa-record-1'},outstanding_critical_defects:0}}}
+test('eligible for narrowly scoped styling only with complete proof',()=>assert.equal(assess(fixture()).eligible,true));
+test('missing role browser QA cannot be bypassed',()=>{const x=fixture();delete x.evidence.role_browser_qa;assert.equal(assess(x).eligible,false)});
+test('wrong SHA on positive tests fails',()=>{const x=fixture();x.evidence.local_tests.commit_sha=B;assert.equal(assess(x).eligible,false)});
+test('wrong preview SHA fails',()=>{const x=fixture();x.evidence.preview_deployment.commit_sha=B;assert.equal(assess(x).eligible,false)});
+test('failed preview fails',()=>{const x=fixture();x.evidence.preview_deployment.status='failure';assert.equal(assess(x).eligible,false)});
+test('missing independent QA fails',()=>{const x=fixture();x.evidence.independent_reviewer.approved=false;assert.equal(assess(x).eligible,false)});
+test('unresolved critical defects fail',()=>{const x=fixture();x.evidence.outstanding_critical_defects=1;assert.equal(assess(x).eligible,false)});
+test('financial code always requires full gate',()=>assert.equal(assess(fixture(['workers/ifund-payments/worker.js'])).eligible,false));
+test('authorization files always require full gate',()=>assert.equal(assess(fixture(['apps/web/src/lib/auth.js'])).eligible,false));
+test('route registration always requires full gate',()=>assert.equal(assess(fixture(['apps/web/src/App.jsx'])).eligible,false));
+test('unknown extension fails',()=>assert.equal(assess(fixture(['apps/web/src/components/Random.bin'])).eligible,false));
+test('path traversal fails',()=>assert.equal(assess(fixture(['apps/web/src/styles/../../unsafe.css'])).eligible,false));
+test('no evidence fails',()=>{const x=fixture();delete x.evidence;assert.equal(assess(x).eligible,false)});
+test('duplicate path fails',()=>assert.equal(assess(fixture(['apps/web/src/styles/a.css','apps/web/src/styles/a.css'])).eligible,false));
+test('negative suite failure prevents release',()=>{const x=fixture();x.evidence.security_regressions.passed=false;assert.equal(assess(x).eligible,false)});
+test('docs involving security architecture require full gate',()=>assert.equal(assess(fixture(['docs/architecture/FINANCIAL_RULES.md'])).eligible,false));
+test('login page requires full gate',()=>assert.equal(assess(fixture(['apps/web/src/pages/Login.jsx'])).eligible,false));
+test('campaign creator requires full gate',()=>assert.equal(assess(fixture(['apps/web/src/pages/CreateCampaign.jsx'])).eligible,false));
