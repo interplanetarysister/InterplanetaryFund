@@ -67,7 +67,8 @@ test("agent submission validates saved owner campaign and batches all findings",
  assert.match(ui,/onApplyFields\?\.\(campaignPunctuation\.after\)/);
  assert.match(ui,/onApplyFields\?\.\(campaignRepetition\.after\)/);
  assert.match(editor,/onApplyFields=\{/);
- assert.match(create,/onApplyFields=\{/);
+ assert.doesNotMatch(create,/<PrepublicationGate\b/);
+ assert.match(create,/Optional campaign readiness insights/);
 });
 
 test("owner-only discussion RPC rejects anonymous and cross-owner posting and avoids pretending AI execution",()=>{
