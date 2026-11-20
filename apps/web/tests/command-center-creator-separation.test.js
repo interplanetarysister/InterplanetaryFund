@@ -43,3 +43,16 @@ test("reversible editorial tools and required publish validation remain availabl
   assert.match(prepublication, /onApplyFields\?\.\(campaignPunctuation\.after\)/);
   assert.match(prepublication, /Story length and paragraph structure are your choice/);
 });
+
+test("readiness deep links target actual editor fields, not missing anchors", () => {
+  const score = source("../src/lib/campaignReadinessScore.mjs");
+  const editor = source("../src/pages/EditCampaign.jsx");
+  const calculatorFields = [...score.matchAll(/"campaign-(?:title|summary|cover|story|goal|category|sharing-plan)"/g)]
+    .map(match => match[0].slice(1, -1));
+  const targetFields = [...new Set(calculatorFields.filter(field => field !== "campaign-sharing-plan"))];
+  assert.ok(targetFields.length >= 6, "Readiness category fields must remain covered");
+  for (const field of targetFields) {
+    assert.match(editor, new RegExp('id="' + field + '"'),
+      "Readiness deep link #" + field + " must resolve to an actual editor control");
+  }
+});
