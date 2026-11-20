@@ -36,8 +36,7 @@ create table if not exists public.ifund_referral_claims (
  rewarded_at timestamptz,
  constraint ifund_referral_not_self check(referred_id<>referrer_id),
  constraint ifund_referral_reward_consistency check(
-   (rewarded_at is null and qualifying_campaign_id is null) or
-   (rewarded_at is not null and qualifying_campaign_id is not null)
+   rewarded_at is not null or qualifying_campaign_id is null
  )
 );
 create index if not exists ifund_referral_claims_referrer on public.ifund_referral_claims(referrer_id);
@@ -79,6 +78,11 @@ begin
          + make_interval(hours=>case when v_created>=v_launch then 24 else 0 end)
          + (pending_hours * interval '1 hour'),
        pending_hours=0
+   where owner_id=v_owner returning * into v_row;
+ elsif v_enabled and v_row.trial_started_at is not null and v_row.pending_hours>0 then
+   update public.ifund_referral_trial_accounts
+    set trial_expires_at=pg_catalog.greatest(trial_expires_at,statement_timestamp())
+       +(pending_hours * interval '1 hour'),pending_hours=0
    where owner_id=v_owner returning * into v_row;
  end if;
  return jsonb_build_object(
@@ -156,9 +160,12 @@ begin
  update public.ifund_referral_trial_accounts
  set successful_referrals=successful_referrals+1,
      trial_expires_at=case when trial_started_at is not null
+        and exists(select 1 from public.ifund_agent_trial_control where singleton=true and enabled=true)
        then pg_catalog.greatest(trial_expires_at,statement_timestamp())+interval '24 hours'
-       else null end,
-     pending_hours=case when trial_started_at is null then pending_hours+24 else pending_hours end
+       else trial_expires_at end,
+     pending_hours=case when trial_started_at is null or
+       not exists(select 1 from public.ifund_agent_trial_control where singleton=true and enabled=true)
+       then pending_hours+24 else pending_hours end
  where owner_id=v_referrer;
  return new;
 end $fn$;
