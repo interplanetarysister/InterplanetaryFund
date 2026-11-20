@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadNotifications, acknowledgeNotification,
-  acknowledgeAllNotifications } from "@/lib/notifications";
+  acknowledgeAllNotifications, verifyInAppNotificationDelivery } from "@/lib/notifications";
 import { safeNoticeDestination } from "@/lib/notifications";
-import { Bell, CheckCheck, ChevronRight } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, ShieldCheck } from "lucide-react";
 
 export default function Notifications(){
   const navigate=useNavigate();
@@ -15,6 +15,7 @@ export default function Notifications(){
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
   const [busy,setBusy]=useState("");
+  const [deliveryResult,setDeliveryResult]=useState("");
   const load=useCallback(async()=>{
     const generation=++requestId.current;
     setPhase("loading");setError("");
@@ -36,6 +37,18 @@ export default function Notifications(){
     return()=>{alive.current=false;requestId.current+=1;};
   },[load]);
   const unread=items.filter(item=>item.read!==true).length;
+  async function testDelivery(){
+    if(actionLock.current)return;
+    actionLock.current=true;setBusy("selfcheck");setError("");setDeliveryResult("");
+    try{
+      const result=await verifyInAppNotificationDelivery(authClient());
+      await load();
+      setDeliveryResult(result.alreadyExists
+        ?"Today's private inbox test has already been recorded. It remains available in your notifications."
+        :"Verified: your private test notification was saved and read back from the database. No external message was sent.");
+    }catch(cause){setError(cause?.message||"In-app delivery could not be confirmed.");}
+    finally{actionLock.current=false;if(alive.current)setBusy("");}
+  }
   async function markAll(){
     if(actionLock.current)return;
     actionLock.current=true;
@@ -64,11 +77,18 @@ export default function Notifications(){
         <Bell aria-hidden="true" className="h-7 w-7 text-primary"/>Notifications</h1>
         <p className="mt-2 text-sm text-muted-foreground">Your private IFund notices, separate from the payment ledger and external provider messages.</p>
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+      <button type="button" onClick={testDelivery} disabled={Boolean(busy)}
+        className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold disabled:opacity-50">
+        <ShieldCheck aria-hidden="true" className="h-4 w-4"/>{busy==="selfcheck"?"Verifying inbox…":"Test inbox delivery"}
+      </button>
       {phase==="ready"&&unread>0&&<button type="button" disabled={Boolean(busy)}
         onClick={markAll} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 disabled:opacity-50">
         <CheckCheck aria-hidden="true" className="h-4 w-4"/>Mark displayed read ({unread})
       </button>}
+      </div>
     </header>
+    {deliveryResult&&<p role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">{deliveryResult}</p>}
     {error&&<p role="alert" className="rounded-lg border border-destructive/40 p-3 text-destructive">{error}</p>}
     {phase==="loading"&&<p role="status">Loading notifications…</p>}
     {phase==="error"&&<section className="rounded-xl border border-border bg-card p-5">
