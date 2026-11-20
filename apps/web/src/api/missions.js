@@ -293,3 +293,22 @@ export async function bookmarkMissionResource(client,missionId,opportunityId){
  await sessionStillOwner(client,owner);
  return r.data;
 }
+
+
+// Undo a tentative resource bookmark, never a submitted application or award.
+// Server RPC refuses anything beyond source_checked + interested.
+export async function removeMissionResourceBookmark(client,missionId,opportunityId){
+ ensureUuid(missionId,"Mission ID");
+ if(typeof opportunityId!=="string"||!opportunityId.trim()||opportunityId.length>200)
+  throw new Error("Invalid resource reference.");
+ const owner=await verifiedOwner(client,true);
+ const result=await client.rpc("ifund_mission_remove_tentative_resource",{
+  p_mission_id:missionId,p_opportunity_id:opportunityId
+ });
+ if(result.error||result.data?.mission_id!==missionId||
+    result.data?.opportunity_id!==opportunityId||
+    result.data?.removed!==true && result.data?.already_absent!==true)
+  throw new Error("The resource bookmark could not be removed. Please retry.");
+ await sessionStillOwner(client,owner);
+ return result.data;
+}
