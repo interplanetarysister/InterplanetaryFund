@@ -4,7 +4,7 @@ import {
 } from "@/lib/campaignMerch.mjs";
 import { Download, ImagePlus, ShieldCheck, Sparkles, ShoppingBag } from "lucide-react";
 import { authClient } from "@/api/auth";
-import { MERCH_DRAFTS_ENABLED, loadOwnerMerchDraft, saveOwnerMerchDraft } from "@/api/merchDrafts";
+import { MERCH_DRAFTS_ENABLED, loadOwnerMerchDraft, saveOwnerMerchDraft, deleteOwnerMerchDraft } from "@/api/merchDrafts";
 import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -93,6 +93,7 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [localUrl, setLocalUrl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [savedDraftId, setSavedDraftId] = useState(null);
   const [status, setStatus] = useState("");
   const selected = useMemo(
     () => campaigns.find(item => item?.id === campaignId) || null,
@@ -115,6 +116,7 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
     let alive = true;
     loadOwnerMerchDraft(selected.id).then(draft => {
       if (!alive || !draft) return;
+      setSavedDraftId(draft.id);
       if (MERCH_DESIGN_OPTIONS.some(item => item.id === draft.design_id)) setDesignId(draft.design_id);
       setName(draft.beneficiary_display_name || "");
       setStatus("Saved merchandise draft loaded. Please reconfirm the name and image rights before generating or exporting.");
@@ -135,8 +137,22 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
         campaignId: selected.id, beneficiaryName: name, designId,
         namePublicationApproved: approvedName, artworkRightsConfirmed: approvedArtwork,
       });
+      setSavedDraftId(saved.id);
       setStatus("Your private " + saved.design_id + " design preference was saved. No product was listed, charged or shipped.");
     } catch (error) {setStatus(error?.message || "The design could not be saved.");}
+    finally {setBusy(false);}
+  }
+  async function removeSavedPreference() {
+    if (!selected || !savedDraftId || busy) return;
+    if (!window.confirm("Remove the saved merchandise design for this campaign?")) return;
+    setBusy(true);setStatus("");
+    try {
+      await deleteOwnerMerchDraft(selected.id);
+      setSavedDraftId(null);setName("");setFile(null);setGeneratedFile(null);
+      setApprovedName(false);setApprovedArtwork(false);
+      setDesignId(MERCH_DESIGN_OPTIONS[0].id);
+      setStatus("The saved merchandise design was removed. No order was affected.");
+    } catch (error) {setStatus(error?.message || "The saved design could not be removed.");}
     finally {setBusy(false);}
   }
   async function generateOptionalArtwork() {
@@ -220,7 +236,7 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold text-slate-100">Your saved campaign
           <select className="mt-2 w-full min-h-12 rounded-xl bg-slate-950/70 border border-cyan-300/25 p-3 text-white"
-            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setGeneratedFile(null); setName(""); setApprovedName(false); setApprovedArtwork(false); setStatus("");}}>
+            value={campaignId} onChange={e => {setCampaignId(e.target.value); setFile(null); setGeneratedFile(null); setName(""); setSavedDraftId(null); setApprovedName(false); setApprovedArtwork(false); setStatus("");}}>
             <option value="">Choose a campaign</option>
             {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.title || "Untitled campaign"}</option>)}
           </select>
@@ -270,6 +286,7 @@ export default function CampaignMerchDesigner({ campaigns = [], initialCampaignI
           {busy ? "Preparing artwork..." : "Create selected design proof"}
         </button>
         <button type="button" onClick={saveDesignPreference} disabled={!MERCH_DRAFTS_ENABLED || !selected || busy} aria-busy={busy} className="ifund-action min-h-12 rounded-xl border border-white/30 bg-white/10 px-4 py-2 font-semibold text-white disabled:opacity-50">{MERCH_DRAFTS_ENABLED ? "Save design preference" : "Save design (coming after verification)"}</button>
+        {MERCH_DRAFTS_ENABLED && savedDraftId && <button type="button" onClick={removeSavedPreference} disabled={busy} className="min-h-11 rounded-xl border border-rose-300/40 bg-rose-950/20 px-4 py-2 text-sm font-semibold text-white">Remove saved design</button>}
         <span className="inline-flex gap-2 items-center text-xs text-slate-200"><ShieldCheck className="w-4 h-4" /> 50% of cleared net merchandise profit goes to the campaign; 50% supports iFund.</span>
       </div>
       <p className="text-xs text-slate-300">AI artwork is illustrative, never an authenticated photograph or evidence of a real event. Saving the design preference does not save a locally uploaded image or generated art. This creates a design proof only, not a print-production file or a live shop listing. Product dimensions, mockups, price, checkout, and fulfillment require verified Printful integration and owner approval. No donation balance changes.</p>
