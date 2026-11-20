@@ -6,6 +6,7 @@ import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
 import { reviewCampaignWideEditorial } from "@/lib/campaignEditorialImprovements.mjs";
 import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
 import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
+import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 
 const fieldId = finding => finding.field === "title" || finding.id === "title_repetition" ? "campaign-title"
   : finding.field === "summary" || finding.id === "summary_repeated" ? "campaign-summary"
@@ -42,7 +43,7 @@ export default function CampaignStrategy() {
       const owned=new Map(campaigns.filter(c=>c.owner_id===owner).map(c=>[c.id,c]));
       const items=data.filter(item=>owned.has(item.campaign_id)).map(item=>{
         const campaign=owned.get(item.campaign_id);
-        return {...item,editorial:reviewCampaignPublication(campaign),
+        return {...item,campaignForm:campaign,editorial:reviewCampaignPublication(campaign),
           campaignWide:reviewCampaignWideEditorial(campaign)};
       });
       if(items.length!==data.length)throw Error("Strategy results did not match your owned campaigns.");
@@ -81,7 +82,7 @@ export default function CampaignStrategy() {
               Story length: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" characters (no minimum)" : "Unavailable"}
             </p>
             {item.editorial && item.editorial.remainingCharacters>0 &&
-              <p className="mt-1 text-sm text-amber-700">Add {item.editorial.remainingCharacters.toLocaleString()} characters before publishing.</p>}
+              <p className="mt-1 text-sm text-muted-foreground">Optional: add more background or budget context if it helps. There is no required story length for publishing.</p>}
           </div>
           <ul className="space-y-3">{CHECKS.map(([key, label, help]) =>
             <li key={key} className="text-sm">
@@ -90,6 +91,11 @@ export default function CampaignStrategy() {
             </li>
           )}</ul>
           <p className="text-xs text-muted-foreground">Cover check verifies only that a reference exists, not that its image URL loads or that you have image rights.</p>
+          <details className="rounded-xl border border-border p-3" aria-label="Optional campaign readiness analysis">
+            <summary className="cursor-pointer font-semibold">Optional readiness analysis</summary>
+            <CampaignReadinessScore form={item.campaignForm} />
+            <p className="mt-2 text-xs text-muted-foreground">This score is advisory, not a publication condition. For reversible writing edits, open the campaign editor below.</p>
+          </details>
           <AgentDocumentReferences campaignId={item.campaign_id}/>
           {item.editorial && [...item.editorial.findings, ...item.campaignWide.filter(f=>!item.editorial.findings.some(g=>g.id===f.id))].length>0 && <section className="space-y-3 rounded-xl border border-border p-3" aria-label="Contextual campaign writing guidance">
             <h3 className="font-semibold">POLARIS · Writing improvements</h3>
