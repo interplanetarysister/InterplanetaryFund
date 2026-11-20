@@ -19,7 +19,6 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 
-import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
 import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
@@ -714,7 +713,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
 
     {step===1&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
     {step===2&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"No optional short description added."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
-    {step===2&&<details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Optional campaign readiness insights</summary><div className="mt-3"><CampaignReadinessScore form={form} /></div><p className="mt-3 text-sm text-muted-foreground">These suggestions are optional. You can refine your campaign later in Command Center.</p>{ownerId&&<Link to="/analytics" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline">Open Command Center</Link>}</details>}
+    {step===2&&ownerId&&<p className="text-sm text-muted-foreground">Want to improve your campaign further? <Link to="/analytics" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Open Command Center</Link> after saving to explore optional readiness insights.</p>}
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     {step===2&&<p className="text-sm text-muted-foreground">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>}
     <section hidden={step!==2} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
