@@ -125,6 +125,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/admin/sponsor-inquiries",
+      "role": "super_admin",
+      "component": "AdminSponsorInquiries",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/AdminSponsorInquiries.jsx; guarded App.jsx route",
+      "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs; live admin E2E pending",
+      "backend_evidence": "Verified super_admin RPC and RLS reviewed per mutation; no partner approval from inquiry",
+      "owner": "admin+backend"
+    },
+    {
       "route": "/admin/studio",
       "role": "super_admin",
       "component": "AdminStudio",
@@ -913,6 +923,16 @@
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
+    },
+    {
+      "route": "/sponsor",
+      "role": "public",
+      "component": "SponsorWithIFund",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/SponsorWithIFund.jsx; apps/web/src/App.jsx",
+      "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs; authenticated E2E pending",
+      "backend_evidence": "public.ifund_sponsor_inquiries RLS owner insert/read, review status; no sponsor activation",
+      "owner": "frontend+finance"
     },
     {
       "route": "/strategy",
