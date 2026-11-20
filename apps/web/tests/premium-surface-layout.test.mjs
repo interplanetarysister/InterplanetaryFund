@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const read = path => readFileSync(new URL("../"+path, import.meta.url), "utf8");
+const read = path => readFileSync(new URL("../../../"+path, import.meta.url), "utf8");
 
 test("single premium background surface is imported after legacy studio layers",()=>{
  const index=read("apps/web/src/index.css");
