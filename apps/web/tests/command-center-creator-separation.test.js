@@ -24,7 +24,11 @@ test("Command Center shows owner-scoped, optional readiness analysis", () => {
   assert.match(strategy, /owned\.has\(item\.campaign_id\)/);
   assert.match(strategy, /campaignForm:campaign/);
   assert.match(strategy, /<CampaignReadinessScore form=\{item\.campaignForm\}/);
+  assert.match(strategy, /editPath=\{/);
   assert.match(strategy, /This score is advisory, not a publication condition/);
+  const score = source("../src/components/campaigns/CampaignReadinessScore.jsx");
+  assert.match(score, /editPath\+"#"\+row.field/);
+  assert.match(score, /campaign-sharing-plan/);
   assert.doesNotMatch(strategy, /characters before publishing/);
 });
 
