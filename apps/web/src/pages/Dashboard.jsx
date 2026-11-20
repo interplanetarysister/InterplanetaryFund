@@ -43,7 +43,7 @@ export default function Dashboard() {
     catch { setAccount({ phase: "error", user: null, campaigns: [], error: "" }); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
-  if (state === "guest") return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8">
+  if (state === "guest") return <main className="ifund-dashboard mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8">
     <h1 className="font-display text-3xl font-bold">Welcome to your iFund workspace</h1>
     <p className="max-w-2xl text-muted-foreground">Explore campaigns as a visitor. To create, save, or publish your own content, sign up with an email address. Two-factor authentication is only required when you request your first withdrawal.</p>
     {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest browsing is active on this device. Create a verified email account before writing or publishing campaign content.</p>}
@@ -74,7 +74,7 @@ export default function Dashboard() {
       </div>
       <Sparkles size={170} strokeWidth={0.65} className="pointer-events-none absolute -right-4 -top-12 text-cyan-300/20 sm:right-10" aria-hidden="true"/>
     </header>
-    {whatIfEnabled && <section className="ifund-dashboard-card space-y-3" aria-label="What If private Missions">
+    {whatIfEnabled && <section className="ifund-dashboard-card ifund-dashboard-module space-y-3" aria-label="What If private Missions">
       <h2 className="text-xl font-semibold">Your next possibility starts here</h2>
       <p className="text-sm text-muted-foreground">Build a private Mission from an idea or need. A fundraiser is optional, and nothing is published without your review.</p>
       <div className="flex flex-wrap gap-3">
@@ -89,7 +89,19 @@ export default function Dashboard() {
       <Link to="/messaging" className="ifund-dashboard-shortcut"><Bot size={21}/><span>Messaging</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
     </div>
-    <section className="ifund-dashboard-card" aria-labelledby="dashboard-agent-team-heading">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Campaign snapshot">
+      {[
+        { label: "Saved campaigns", value: myCampaigns.length },
+        { label: "Active campaigns", value: myCampaigns.filter(c => c.status === "active").length },
+        { label: "Drafts to finish", value: myCampaigns.filter(c => c.status === "draft").length },
+      ].map(stat => (
+        <div key={stat.label} className="ifund-dashboard-stat p-4">
+          <p className="text-3xl font-bold">{stat.value}</p>
+          <p className="text-xs text-muted-foreground">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+    <section className="ifund-dashboard-card ifund-dashboard-module" aria-labelledby="dashboard-agent-team-heading">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="ifund-dashboard-eyebrow">Your AI team</p>
@@ -112,7 +124,7 @@ export default function Dashboard() {
       <p className="mt-3 text-xs text-muted-foreground">AI Assistance is one switch for the whole team. Manage it in <Link to="/permissions?section=ai" className="underline">Permissions</Link>. Turning it off stops AI suggestions everywhere.</p>
     </section>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
-      <section className="ifund-dashboard-card space-y-4">
+      <section className="ifund-dashboard-card ifund-dashboard-module space-y-4">
         <div><p className="ifund-dashboard-eyebrow">Build and manage</p><h2 className="text-xl font-bold">Your fundraising hub</h2>
           <p className="mt-2 text-sm text-muted-foreground">Keep campaigns, external fundraisers and verified finances organized. No estimated donation totals.</p></div>
         <div className="grid gap-2 sm:grid-cols-2">

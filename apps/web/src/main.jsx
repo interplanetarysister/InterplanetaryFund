@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "@/App.jsx";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/index.css";
+import "@/styles/ifund-next-cosmic.css";
 import { installNativeApiTransport } from "@/lib/nativeApi";
 import { installNativePublicLinks } from "@/lib/nativeLinks";
 import { installNativeAuthLinks } from "@/lib/nativeAuthLinks";
