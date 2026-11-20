@@ -66,7 +66,7 @@ export default function Home() {
             <br />
             <span className="brand-gradient-text">What if?</span>
           </h1>
-          <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
+          <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">Raise support, explore opportunities and make something possible.</p>
           {whatIfEnabled && <form onSubmit={e=>{e.preventDefault();if(goal.trim())navigate("/what-if",{state:{prompt:goal}});}} className="mx-auto mb-6 max-w-xl space-y-3 rounded-2xl border border-cyan-200/25 bg-slate-950/75 p-4 text-left">
             <label htmlFor="home-what-if" className="block text-sm font-semibold text-cyan-100">What would you like to make possible?</label>
             <textarea id="home-what-if" rows={3} maxLength={12000} value={goal} onChange={e=>setGoal(e.target.value)}
