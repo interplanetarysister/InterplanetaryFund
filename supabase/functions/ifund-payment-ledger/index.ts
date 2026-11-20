@@ -222,8 +222,9 @@ Deno.serve(async req=>{
         ||!["monthly","annual"].includes(p.interval))return fail("Invalid subscription selection");
       const plan=await findOne("ifund_subscription_plans?select=*&tier=eq."+encodeURIComponent(p.tier)
         +"&interval=eq."+encodeURIComponent(p.interval));
-      if(!plan||plan.active!==true||!planId.test(plan.paypal_plan_id||""))
-        return fail("Subscription plan is not provider verified",409);
+      if(!plan||plan.active!==true||plan.currency!=="USD"||plan.amount_cents!==500||
+        !plan.verified_at||!plan.webhook_verified_at||!planId.test(plan.paypal_plan_id||""))
+        return fail("The $5 plan requires matching PayPal and webhook verification",409);
       const current=await db("ifund_subscription_intents?select=id,status,paypal_subscription_id&member_id=eq."+memberId
         +"&status=in.(initiated,approval_pending,pending,active,past_due)&order=created_at.desc&limit=1");
       if(current.length)return fail("Manage the existing subscription before starting another",409);
