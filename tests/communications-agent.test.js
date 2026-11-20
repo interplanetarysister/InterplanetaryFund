@@ -320,8 +320,10 @@ test("raw provider/SQL errors are not exposed and unauthenticated/oversized requ
   const huge = http("save", { content: "x".repeat(40000) });
   assert.equal(
     (
-      await communicationsRoute(huge, env, async () =>
-        Response.json({ id: uid, email_confirmed_at: "today" }),
+      await communicationsRoute(huge, env, async (url) =>
+        url.endsWith("/rpc/ifund_current_account_is_active")
+          ? Response.json(true)
+          : Response.json({ id: uid, email_confirmed_at: "today" }),
       )
     ).status,
     413,

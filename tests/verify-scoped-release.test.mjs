@@ -5,6 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const A='a'.repeat(40),B='b'.repeat(40);
 function fixture(files=['apps/web/src/styles/landing.css']) {return {commit_sha:A,changed_files:files,evidence:{local_tests:{passed:true,commit_sha:A,reference:'local-node-output-1'},security_regressions:{passed:true,commit_sha:A,reference:'negative-suite-1'},role_browser_qa:{passed:true,commit_sha:A,reference:'role-browser-1'},preview_qa:{passed:true,commit_sha:A,reference:'preview-browser-1'},preview_deployment:{id:'cf-preview-123',status:'success',commit_sha:A},independent_reviewer:{identity:'independent-qa',approved:true,reference:'qa-record-1'},outstanding_critical_defects:0}}}
 test('eligible for narrowly scoped styling only with complete proof',()=>assert.equal(assess(fixture()).eligible,true));
@@ -54,7 +55,7 @@ test('CLI independently verifies exact Git diff, refuses omitted changed files a
 });
 
 test('CLI refuses incomplete evidence at runtime without a real checkout',()=>{
- const result=spawnSync(process.execPath,[new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname,'missing.json'],{encoding:'utf8'});
+ const result=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/verify-scoped-release.mjs',import.meta.url)),'missing.json'],{encoding:'utf8'});
  assert.notEqual(result.status,0);
  assert.match(result.stderr,/FAIL CLOSED/);
 });
@@ -73,7 +74,7 @@ test('CLI rejects out-of-scope fixture in temporary git checkout',()=>{
   // Synthetic tests should not authorize a real deployment. This verifies execution mechanics only.
   // landing.css is not an accepted production scope; eligibility must be denied.
   writeFileSync(join(cwd,'evidence.json'),JSON.stringify(x));
-  const result=spawnSync(process.execPath,[new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname,'evidence.json'],{cwd,encoding:'utf8'});
+  const result=spawnSync(process.execPath,[fileURLToPath(new URL('../scripts/verify-scoped-release.mjs',import.meta.url)),'evidence.json'],{cwd,encoding:'utf8'});
   assert.notEqual(result.status,0);
   assert.match(result.stdout,/Full release\/security gate required/);
  } finally {rmSync(cwd,{recursive:true,force:true});}
@@ -94,7 +95,7 @@ test('CLI permits fully proved narrow fixture and rejects omitted changed files'
   for(const k of ['local_tests','security_regressions','role_browser_qa','preview_qa'])x.evidence[k].commit_sha=commit;
   x.evidence.preview_deployment.commit_sha=commit;
   const file=join(proof,'evidence.json');writeFileSync(file,JSON.stringify(x));
-  const script=new URL('../scripts/verify-scoped-release.mjs',import.meta.url).pathname;
+  const script=fileURLToPath(new URL('../scripts/verify-scoped-release.mjs',import.meta.url));
   const pass=spawnSync(process.execPath,[script,file],{cwd,encoding:'utf8'});
   assert.equal(pass.status,0,pass.stderr+' '+pass.stdout);
   assert.match(pass.stdout,/"eligible": true/);

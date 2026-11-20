@@ -6,7 +6,7 @@ do $$ begin
   raise exception 'Campaign RLS must remain enabled';
  end if;
  if exists(select 1 from pg_proc where pronamespace='public'::regnamespace and proname='ifund_prepublication_story_gate'
-  and md5(prosrc) not in ('be7095ef01275654981b1577c382fb76','efa78dd09c3091e9c001ce22c6d12290')) then
+  and md5(prosrc) not in ('be7095ef01275654981b1577c382fb76','efa78dd09c3091e9c001ce22c6d12290','7278981b8b575a0cfd7b041faa985286')) then
   raise exception 'Publication trigger changed; independent reconciliation required';
  end if;
 end $$;

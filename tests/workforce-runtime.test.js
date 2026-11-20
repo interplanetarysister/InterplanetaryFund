@@ -10,7 +10,8 @@ const secret = "e".repeat(64);
 const suggestion = {
   titles: ["A", "B", "C", "D", "E"],
   summaries: ["One", "Two"],
-  story: "A truthful story.",
+  story: "The classroom supplies campaign tells organizers how supplies reach classrooms and how every contribution changes a student's learning. " +
+    "Organizers explain the verified barrier, the specific need and the measurable impact they can show backers. ".repeat(12).trim(),
   image_prompt: "A mission-specific scene.",
 };
 const input = {
@@ -464,6 +465,7 @@ test("the permanent Story address preserves released drafting when procurement i
       calls.map((c) => c.name),
       [
         "user",
+        "ifund_current_account_is_active",
         "ifund_ai_permission_preferences?select=allow_ai_campaign_drafts&owner_id=eq." +
           uid,
         "ifund_story_context",

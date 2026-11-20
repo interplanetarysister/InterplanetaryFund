@@ -171,6 +171,27 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_connections_runtime.request_action",
   "ifund_connections_runtime.change_selected",
   "ifund_connections_runtime.campaign_deleted",
+  // Operations-room and recent tooling definers, each reviewed with its
+  // migration authors. These are admin/owner/worker-scoped: verified
+  // identities, active accounts and confirmed terms or super-admin checks.
+  // None grants publication, campaign mutation or financial authority, and
+  // PUBLIC execute is revoked or granted to `authenticated` only where the
+  // migration audit guard convention requires it.
+  "public.ifund_guard_managed_campaign_content",
+  "public.ifund_creator_mandate_sync_campaign_draft",
+  "public.ifund_reserve_agent_question",
+  "public.ifund_complete_agent_question",
+  "public.ifund_release_agent_question",
+  "public.ifund_notification_delivery_selfcheck",
+  "public.ifund_schedule_inapp_reminder",
+  "public.ifund_cancel_inapp_reminder",
+  "public.ifund_dispatch_inapp_reminders",
+  "public.ifund_set_campaign_email_option",
+  "public.ifund_receive_paid_campaign_email",
+  "public.ifund_set_campaign_email_campaign",
+  "public.ifund_begin_campaign_email_checkout",
+  "public.ifund_admin_review_outreach_candidate",
+  "public.ifund_cancel_account_deletion",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */

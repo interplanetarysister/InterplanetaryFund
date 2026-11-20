@@ -5,6 +5,7 @@ import {
   evaluateAuditReport,
   AUDIT_PROJECTS,
 } from "../scripts/verify-dependency-audit.mjs";
+import {join, resolve} from "node:path";
 
 const report = (findings = {}) =>
   JSON.stringify({
@@ -63,13 +64,16 @@ test("registry errors and incomplete audit reports never mean zero vulnerabiliti
 });
 
 test("each canonical lock is audited independently and failures do not skip later projects", () => {
+  // auditProjects resolves the project paths, so expectations must be built
+  // the same way; "/example" is absolute, so this is identical on POSIX.
+  const root = resolve("/example");
   const calls = [];
   const results = auditProjects({
-    root: "/example",
+    root,
     hasFile: () => true,
     runner: (command, args, options) => {
       calls.push({ command, args, ...options });
-      return options.cwd === "/example/apps/web"
+      return options.cwd === join(root, "apps/web")
         ? { error: Error("timeout"), status: null }
         : { stdout: report(), status: 0 };
     },
@@ -77,7 +81,7 @@ test("each canonical lock is audited independently and failures do not skip late
   assert.equal(calls.length, 3);
   assert.deepEqual(
     calls.map((call) => call.cwd),
-    ["/example", "/example/apps/web", "/example/apps/mobile"],
+    [root, join(root, "apps/web"), join(root, "apps/mobile")],
   );
   assert.ok(
     calls.every(

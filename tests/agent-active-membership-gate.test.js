@@ -19,7 +19,7 @@ function mockAccount(active) {
       return Response.json({ id: UID, email_confirmed_at: "2026-11-01T00:00:00Z", is_anonymous: false });
     if (path === "/rest/v1/rpc/ifund_current_account_is_active") {
       assert.equal(init.method, "POST");
-      return Response.json(active);
+      return Response.json(active ?? null);
     }
     throw Error("Unexpected upstream path: " + path);
   };

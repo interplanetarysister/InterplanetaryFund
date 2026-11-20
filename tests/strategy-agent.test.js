@@ -260,8 +260,10 @@ test("unauthenticated, disabled, unconfirmed and oversized requests fail closed"
   const big = http("brief", { request_id: uid, objective: "x".repeat(20000) });
   assert.equal(
     (
-      await strategyRoute(big, env, async () =>
-        Response.json({ id: uid, email_confirmed_at: "today" }),
+      await strategyRoute(big, env, async (url) =>
+        url.endsWith("/rpc/ifund_current_account_is_active")
+          ? Response.json(true)
+          : Response.json({ id: uid, email_confirmed_at: "today" }),
       )
     ).status,
     413,

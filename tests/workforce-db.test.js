@@ -17,7 +17,7 @@ const secret = "e".repeat(64),
 const result = {
   titles: ["A", "B", "C", "D", "E"],
   summaries: ["One summary", "Another summary"],
-  story: "A true story",
+  story: "A true story about the classroom supplies campaign: organizers keep ask, barrier and impact claims accurate so backers can decide. ".repeat(10).trim(),
   image_prompt: "Mission-specific image",
 };
 async function setup({ enabled = true, tested = true } = {}) {
@@ -661,6 +661,10 @@ test("permanent gateway carries preview proof through real database context, ass
     let inference = 0;
     const apiFetch = async (url, init) => {
       assert.equal(init.headers.Authorization, "Bearer fixture.owner.jwt");
+      // The storyDatabase fixture defines its own schema; the active-account
+      // RPC is not part of it, and the route only needs an active account.
+      if (url.endsWith("/rpc/ifund_current_account_is_active"))
+        return Response.json(true);
       if (url.endsWith("/auth/v1/user"))
         return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
       if (url.includes("/ifund_ai_permission_preferences?"))

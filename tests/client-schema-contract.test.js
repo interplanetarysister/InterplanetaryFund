@@ -16,6 +16,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   COMMITTED_MIGRATIONS,
   applyMigrations,
@@ -38,6 +39,16 @@ const PENDING = [
   "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
   "supabase/migrations/20261110_ifund_current_legal_terms_sync.sql",
   "supabase/migrations/20261110225840_ifund_campaign_creation_state_20261110.sql",
+  // Private operations room (NEXUS advisory analysis): table + RLS contract.
+  "supabase/migrations/20261120033000_ifund_agent_operations_messages.sql",
+  // Review-completed PUBLIC revocation for the managed-campaign audit guard.
+  "supabase/migrations/20261120034000_ifund_guard_public_revocation.sql",
+  // Fundraising events (ifund_events) and external-activity receipts the
+  // browser reads directly; execute the real DDL so client reads cannot pass
+  // against a hand-written imitation of the application schema.
+  "supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
+  // Future internal AI assistance preference selected by the agent side panel.
+  "supabase/migrations/20261119110000_ifund_future_internal_ai_assistance_preference.sql",
 ];
 
 const PGlite = await loadPGlite();
@@ -141,6 +152,15 @@ const SELECT_CONTRACTS = [
         "ifund_profiles",
       ),
   },
+  {
+    table: "ifund_agent_operations_messages",
+    path: "apps/web/src/components/agents/AgentOperationsRoom.jsx",
+    columns: () =>
+      inlineSelectColumns(
+        "apps/web/src/components/agents/AgentOperationsRoom.jsx",
+        "ifund_agent_operations_messages",
+      ),
+  },
 ];
 
 // What the client writes, and where that payload is written.
@@ -159,6 +179,15 @@ const WRITE_CONTRACTS = [
     path: "apps/web/src/lib/followedCampaigns.js",
     keys: () =>
       upsertKeys("apps/web/src/lib/followedCampaigns.js", "ifund_follows"),
+  },
+  {
+    table: "ifund_agent_operations_messages",
+    path: "apps/web/src/components/agents/AgentOperationsRoom.jsx",
+    keys: () =>
+      insertKeys(
+        "apps/web/src/components/agents/AgentOperationsRoom.jsx",
+        "ifund_agent_operations_messages",
+      ),
   },
 ];
 
@@ -200,6 +229,14 @@ const getDb = () =>
           select (string_to_array(path, '/'))[1:
             (array_length(string_to_array(path, '/'), 1) - 1)]
         $$;
+    `);
+    // ifund_private.verified_email_creator is defined by the deferred
+    // withdrawal MFA migration, which is not part of this contract harness;
+    // the fundraising-events migration calls it while parsing RLS bodies.
+    await db.exec(`
+      create schema if not exists ifund_private;
+      create function ifund_private.verified_email_creator() returns boolean
+      language sql stable set search_path = '' as $$ select false $$;
     `);
     await applyMigrations(db, COMMITTED_MIGRATIONS);
     await applyMigrations(db, PENDING);
@@ -252,7 +289,7 @@ function discoverSelects() {
   for (const tree of SRC_TREES) {
     let files;
     try {
-      files = walk(new URL("../" + tree + "/", import.meta.url).pathname);
+      files = walk(fileURLToPath(new URL("../" + tree + "/", import.meta.url)));
     } catch {
       continue; // tree absent
     }
