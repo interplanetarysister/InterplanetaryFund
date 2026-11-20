@@ -42,7 +42,10 @@ export default function Notifications(){
     actionLock.current=true;setBusy("selfcheck");setError("");setDeliveryResult("");
     try{
       const result=await verifyInAppNotificationDelivery(authClient());
-      await load();
+      const displayed=await loadNotifications(authClient());
+      if(!displayed.some(item=>item.id===result.id))
+        throw new Error("The delivered notice is not visible in your inbox yet. Refresh and retry.");
+      if(alive.current){setItems(displayed);setPhase("ready");}
       setDeliveryResult(result.alreadyExists
         ?"Today's private inbox test has already been recorded. It remains available in your notifications."
         :"Verified: your private test notification was saved and read back from the database. No external message was sent.");
