@@ -30,12 +30,16 @@ test("provider staging is private, idempotent, and never activates paid email",(
  assert.doesNotMatch(src,/update ifund_ops\.campaign_email_addon_billing/);
  assert.doesNotMatch(src,/insert into ifund_ops\.campaign_email_addon_billing/);
 });
-test("checkout-readiness UI never offers an unverified payment link",()=>{
+test("checkout UI navigates only after provider and database readiness",()=>{
  const page=readFileSync(new URL("../src/components/subscriptions/CampaignEmailAddon.jsx",import.meta.url),"utf8");
  const client=readFileSync(new URL("../src/lib/campaignEmailAddon.mjs",import.meta.url),"utf8");
  assert.match(page,/checkoutStatus\.checkout_ready/);
  assert.match(page,/readEmailAddonCheckoutReadiness\(authClient\(\)\)/);
  assert.match(page,/does not charge you or enable mail delivery/);
  assert.match(client,/requires_recurring_provider_checkout/);
- assert.doesNotMatch(page,/paypal_checkout=return|approval_url|window\.location\.assign/);
+ assert.match(page,/checkoutStatus\?\.checkout_ready!==true/);
+ assert.match(page,/providerCheckout\?\.checkout_ready!==true/);
+ assert.match(page,/beginRecurringEmailCheckout\(authClient\(\)/);
+ assert.match(page,/window\.location\.assign\(approved\.approvalUrl\)/);
+ assert.doesNotMatch(page,/subscription_approved:true|mailbox_active:true/);
 });
