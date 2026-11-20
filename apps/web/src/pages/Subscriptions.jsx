@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/api/auth";
 import { isNativeBundle } from "@/lib/nativeApi";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
+import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
 
 const PLAN_NAMES={
   basic:"Basic AI Assistant",outreach:"AI Outreach Agent",professional:"Professional Outreach",
@@ -134,6 +135,8 @@ export default function Subscriptions(){
             </button>}
         </div>}
     </section>
+
+    <CampaignEmailAddon />
 
     <section className="grid gap-4 sm:grid-cols-2">
       {plans.map(plan=>{
