@@ -118,3 +118,20 @@
 @media (min-width:1000px) { .ifund-agents-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; } }
 @media (max-width:420px) { .ifund-agents-card { min-height:151px; padding:.9rem; } .ifund-agents-card .ifund-agents-name { font-size:.84rem; } .ifund-agents-hero { border-radius:22px; } }
 @media (prefers-reduced-motion:reduce) { .ifund-agents-card,.ifund-agents-submit { transition:none; } .ifund-agents-card:hover,.ifund-agents-submit:enabled:hover { transform:none; } }
+
+/* Batch accessibility: maintain readable agent cards on narrow touch screens. */
+.ifund-agents-page a:focus-visible,
+.ifund-agents-page textarea:focus-visible,
+.ifund-agents-page input:focus-visible,
+.ifund-agents-card:focus-visible {outline:3px solid #6be9dc;outline-offset:3px;}
+.ifund-agents-page{min-inline-size:0;overflow-wrap:anywhere;}
+.ifund-agents-writing,.ifund-agents-reply{min-inline-size:0;}
+@media(max-width:390px){
+ .ifund-agents-grid{grid-template-columns:minmax(0,1fr);}
+ .ifund-agents-card{min-height:140px;min-width:0;}
+ .ifund-agents-detail{padding:16px;}
+}
+@media(prefers-contrast:more){
+ .ifund-agents-page a:focus-visible,.ifund-agents-page button:focus-visible,
+ .ifund-agents-page textarea:focus-visible{outline-width:4px;}
+}
