@@ -12,7 +12,7 @@ npm run audit:browser:mobile
 npm run audit:browser:desktop
 ```
 
-Run `npm ci` from repository root to install pinned Playwright; then use `npm run setup:browser` once to install the Chromium binary locally. No GitHub Actions minutes or paid hosted browser service are required.
+Run `npm ci` from repository root to install pinned Playwright; then run an audit; it automatically installs Chromium when needed. No GitHub Actions minutes or paid hosted browser service are required.
 
 Treat all results as unauthenticated visual smoke checks, not authenticated browser acceptance. The script rejects arbitrary destinations, blocks writes and cross-origin traffic, and does not log URL query parameters. Keep generated `*.local` reports untracked. Do not attempt login, payments, external publishing, administration, credential entry, or consent bypass through this skill.
 
