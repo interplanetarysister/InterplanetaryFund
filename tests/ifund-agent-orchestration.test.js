@@ -15,8 +15,7 @@ function harness({failure=false}={}){
   if(url.endsWith("/auth/v1/user"))return Response.json({id:UID,email_confirmed_at:"2026-11-01T00:00:00Z",is_anonymous:false});
   if(url.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(true);
   if(url.includes("/ifund_ai_permission_preferences?")){
-   if(url.includes("allow_future_internal_ai_assistance"))return Response.json([{owner_id:UID,allow_future_internal_ai_assistance:true}]);
-   return Response.json([{allow_ai_campaign_drafts:true}]);
+   return Response.json([{owner_id:UID,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true}]);
   }
   if(url.endsWith("/rpc/ifund_reserve_agent_question")){rpc.push("reserve");return Response.json({allowed:true,state:"reserved",remaining:10});}
   if(url.endsWith("/rpc/ifund_complete_agent_question")){rpc.push("complete");return Response.json(true);}
