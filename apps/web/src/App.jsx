@@ -96,8 +96,8 @@ const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
-// These two legacy routes still need independent, authorized backend parity.
-// A release gate prevents preview publication while either is a placeholder.
+// Legacy placeholder route registries are intentionally empty. The historical
+// placeholder component is preserved but is not referenced by AppRoutes.
 const STANDALONE_COMING_SOON = [];
 const LAYOUT_COMING_SOON = [];
 

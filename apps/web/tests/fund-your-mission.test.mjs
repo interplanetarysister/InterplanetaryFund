@@ -39,6 +39,17 @@ test("Fund Your Mission routes to genuine existing fundraising and research flow
  assert.match(page,/Sponsor submissions, offer enrollment, commissions and payouts are not enabled/);
  assert.doesNotMatch(page,/member.*earnings.*\$[0-9]+/i);
 });
+test("Fund Your Mission CTAs follow the same What If flag as routing and navigation",()=>{
+ const app=read("../src/App.jsx"),layout=read("../src/components/Layout.jsx"),page=read("../src/pages/FundYourMission.jsx");
+ assert.match(app,/const WHAT_IF_ENABLED = import\.meta\.env\.VITE_IFUND_WHAT_IF_ENABLED === "enabled"/);
+ assert.match(layout,/const WHAT_IF_LAUNCHED = import\.meta\.env\.VITE_IFUND_WHAT_IF_ENABLED === "enabled"/);
+ assert.match(page,/const whatIfEnabled = import\.meta\.env\.VITE_IFUND_WHAT_IF_ENABLED === "enabled"/);
+ assert.match(page,/to=\{whatIfEnabled \? "\/what-if" : "\/create\?manual=1"\}/);
+ assert.match(page,/to=\{whatIfEnabled \? "\/missions" : "\/campaigns"\}/);
+ assert.match(page,/\{whatIfEnabled \? "Start a private Mission" : "Start a campaign"\}/);
+ assert.match(page,/\{whatIfEnabled \? "My Missions" : "My campaigns"\}/);
+ assert.match(page,/Private Missions are not available yet\./);
+});
 test("Route registry tracks source and runtime evidence independently",()=>{
  const routes=JSON.parse(read("../ci/route-acceptance.json")).routes;
  const row=routes.find(x=>x.route==="/fund-your-mission");
