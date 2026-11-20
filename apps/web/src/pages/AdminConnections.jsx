@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { OAUTH_PLATFORM_IDS, CONNECTION_PLATFORMS } from "@/lib/connectionCatalog.mjs";
+import OfficialOutreachRecovery from "@/components/connections/OfficialOutreachRecovery";
 
 const REQUIRED_BINDINGS = [
   ["OAUTH_API_ENABLED", "Enable the member authorization gateway."],
@@ -71,6 +72,7 @@ export default function AdminConnections() {
     <p className="text-sm text-muted-foreground">Read-only readiness for member OAuth, vault storage, provider registrations, and approved publishing permissions. This page never exposes credentials or grants member consent.</p>
     <Link to="/connections" className="inline-flex min-h-11 items-center text-primary underline">Back to member Connections</Link>
   </header>
+  <OfficialOutreachRecovery />
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Gateway status">
     <h2 className="font-semibold">Member OAuth gateway</h2>
     <p role="status" className="text-sm">{status==="loading"?"Checking current configuration…":status==="ready"?"OAuth runtime and encrypted storage are configured; provider credentials and member consent are checked separately.":"Configuration requires administrator attention."}</p>
