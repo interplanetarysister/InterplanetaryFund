@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 
-const read = relative => readFileSync(new URL("../"+relative.replace(/^apps\\/web\\//,""),import.meta.url),"utf8");
+const read = relative => readFileSync(new URL("../"+(relative.startsWith("apps/web/") ? relative.slice(9) : relative),import.meta.url),"utf8");
 
 test("Mail and Messaging are separate authenticated routes with the legacy Inbox route preserved",()=>{
  const app=read("apps/web/src/App.jsx");
