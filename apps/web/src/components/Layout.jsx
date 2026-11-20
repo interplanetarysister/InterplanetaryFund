@@ -12,8 +12,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import BackToTop from "@/components/BackToTop";
 import QuickActions from "@/components/QuickActions";
 import ScrollableNav from "@/components/ScrollableNav";
-import AgentSidePanel from "@/components/agents/AgentSidePanel";
-import "@/styles/agent-companion.css";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
@@ -150,12 +148,6 @@ const publicNavItems = [
 export default function Layout() {
   const prefersReducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
-  const [activeAgent, setActiveAgent] = useState(null);
-  useEffect(() => {
-    const openAgent = event => setActiveAgent(event.detail?.agent || "nexus");
-    window.addEventListener("ifund-open-agent", openAgent);
-    return () => window.removeEventListener("ifund-open-agent", openAgent);
-  }, []);
   const drawerCloseRef = useRef(null);
   const [darkTheme, setDarkTheme] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
@@ -364,7 +356,6 @@ export default function Layout() {
         {!pathname.startsWith("/campaign/") && !pathname.startsWith("/campaigns/") && <PlatformSupportHostedButton />}
         <div><LegalFooter /></div>
       </main>
-      <AgentSidePanel agent={activeAgent} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />
     </div>
   );
 }

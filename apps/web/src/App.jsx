@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "r
 import { legacyAuthCallbackUrl } from "./lib/authFlow";
 import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import GlobalAgentCompanion from "./components/agents/GlobalAgentCompanion";
 import PlatformSupportHostedButton from "./components/payments/PlatformSupportHostedButton";
 import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -232,6 +233,6 @@ function App() {
     window.addEventListener("ifund-theme-changed", apply);
     return () => { mq.removeEventListener("change", apply); window.removeEventListener("ifund-theme-changed", apply); };
   }, []);
-  return <ErrorBoundary><Router><ScrollToTop /><AppRoutes /></Router></ErrorBoundary>;
+  return <ErrorBoundary><Router><ScrollToTop /><GlobalAgentCompanion><AppRoutes /></GlobalAgentCompanion></Router></ErrorBoundary>;
 }
 export default App;

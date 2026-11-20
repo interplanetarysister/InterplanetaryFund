@@ -237,6 +237,12 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       {voiceError && <p role="alert" className="text-sm text-amber-300">{voiceError}</p>}
     </div>
     <div className="ifund-agent-panel-compose">
+      <nav aria-label="Quick site navigation" className="mb-3 flex flex-wrap gap-2 text-xs">
+        <Link to="/help" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Site help</Link>
+        <Link to="/create?manual=1" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Create a campaign</Link>
+        <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Discover</Link>
+        {user && <Link to="/dashboard" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Dashboard</Link>}
+      </nav>
       {!availability.enabled && <p role="status" className="mb-2 text-sm text-slate-200">{availability.loading ? "Checking agent access…" : availability.reason}{" "}
         {!user ? <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link> :
           <Link className="underline" to="/subscriptions">Agent plans and permissions</Link>}
