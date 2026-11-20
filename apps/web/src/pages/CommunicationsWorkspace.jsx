@@ -83,7 +83,7 @@ export default function CommunicationsWorkspace() {
   return <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-8">
     <header>
       <h1 className="text-3xl font-bold">ECHO · Communications workspace</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message, or use the connected ECHO message service below to save drafts and review consent-based in-app delivery. External email, direct messaging and social posting are separate provider capabilities.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message using your own campaign. This local template does not call an AI model or send email, direct messages, or social posts. The ECHO service below separately supports saved drafts, AI-assisted writing where authorized, and reviewed in-app updates.</p>
     </header>
     {state.phase==="loading"&&<p role="status">Loading your campaigns…</p>}
     {state.phase==="error"&&<p role="alert" className="rounded-xl border border-red-500/50 p-4">{state.error}</p>}
