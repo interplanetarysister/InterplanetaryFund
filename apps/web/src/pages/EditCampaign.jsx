@@ -1,3 +1,4 @@
+import AgentAdviceReview from "@/components/agents/AgentAdviceReview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
@@ -147,6 +148,7 @@ export default function EditCampaign() {
   }
 
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+    <AgentAdviceReview ownerId={user?.id || null} campaignId={id} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => { change("story",text); setNotice(""); setError(""); }} />
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={user?.id || null} campaignId={id} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setError(""); setNotice(""); }} />
     <CampaignDocuments key={(user?.id||"guest")+":"+id} campaignId={id} ownerId={user?.id||null} />
     <header className="space-y-3">
