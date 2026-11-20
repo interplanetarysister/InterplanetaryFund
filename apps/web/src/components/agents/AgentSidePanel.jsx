@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { X, Send, ExternalLink } from "lucide-react";
+import { X, Send, ExternalLink, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
 import { askIFundAgent } from "@/lib/agentQuestions";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
+import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
 
 const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
@@ -16,22 +17,65 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   const [availability, setAvailability] = useState({ loading: true, enabled: false, reason: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [listening, setListening] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const speechRef = useRef(null);
+  const dictationBase = useRef("");
+  const speechToken = useRef(0);
   const active = useRef(null);
   const scroll = useRef(null);
   const previousOwner = useRef(user?.id || null);
   const identity = choices.includes(agent) ? agent : "nexus";
+  function stopListening() {
+    speechToken.current += 1;
+    const current = speechRef.current;
+    speechRef.current = null;
+    if (current) { current.onend = null; current.onerror = null; current.onresult = null; current.abort(); }
+    setListening(false);
+  }
+  function stopAudio() {
+    stopSpeaking();
+    setSpeaking(false);
+  }
+  function toggleDictation() {
+    if (listening) { stopListening(); return; }
+    if (!availability.enabled || busy || !user?.id) return;
+    const token = ++speechToken.current;
+    dictationBase.current = question.trim();
+    setVoiceError("");
+    stopAudio();
+    const recognition = makeRecognition({
+      onText: ({ final, interim }) => {
+        if (speechToken.current !== token) return;
+        const combined = [dictationBase.current, final || interim].filter(Boolean).join(" ").slice(0, 2000);
+        setQuestion(combined);
+        if (final) dictationBase.current = combined;
+      },
+      onError: message => { if (speechToken.current === token) { setVoiceError(message); setListening(false); } },
+      onEnd: () => { if (speechToken.current === token) { speechRef.current = null; setListening(false); } }
+    });
+    if (!recognition) { setVoiceError("Speech recognition is unsupported in this browser. You can type instead."); return; }
+    speechRef.current = recognition;
+    try { recognition.start(); setListening(true); }
+    catch { speechRef.current = null; setListening(false); setVoiceError("Microphone access could not start. You can type instead."); }
+  }
 
   useEffect(() => {
     if (previousOwner.current !== (user?.id || null)) {
       previousOwner.current = user?.id || null;
       active.current?.abort();
+      stopListening();
+      stopAudio();
+      setVoiceEnabled(false);
       setMessages([]);
       setQuestion("");
       setError("");
     }
   }, [user?.id]);
   useEffect(() => {
-    if (!agent) active.current?.abort();
+    if (!agent) { active.current?.abort(); stopListening(); stopAudio(); }
   }, [agent]);
   useEffect(() => {
     scroll.current?.scrollTo({ top: scroll.current.scrollHeight, behavior: "smooth" });
@@ -71,10 +115,13 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     return () => controller.abort();
   }, [user?.id]);
 
+  useEffect(() => () => { speechRef.current?.abort(); stopSpeaking(); }, []);
   async function submit(event) {
     event.preventDefault();
     const text = question.trim();
     if (!availability.enabled || busy || text.length < 8 || text.length > 2000 || !user?.id) return;
+    stopListening();
+    stopAudio();
     setQuestion("");
     setError("");
     const controller = new AbortController();
@@ -84,7 +131,10 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     setMessages(items => [...items, { agent: identity, kind: "user", text }]);
     try {
       const response = await askIFundAgent(authClient(), { question: text, agent: identity, ownerId: user.id, signal: controller.signal });
-      if (!controller.signal.aborted) setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer }]);
+      if (!controller.signal.aborted) {
+        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer }]);
+        if (voiceEnabled && speakAgent(response.answer, response.agent, {onEnd: () => setSpeaking(false)})) setSpeaking(true);
+      }
     } catch (cause) {
       if (!controller.signal.aborted) setError(cause?.message || "The agent could not answer.");
     } finally {
@@ -98,13 +148,13 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       <div className="flex items-center gap-3 min-w-0"><AgentIdentityIcon identity={identity} size={42}/>
         <div><h2 className="font-bold tracking-wide">{AGENT_IDENTITIES[identity].name}</h2><p className="text-xs text-slate-400">{AGENT_IDENTITIES[identity].role}</p></div>
       </div>
-      <button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-white/10" aria-label="Close agent panel"><X size={22}/></button>
+      <button type="button" onClick={() => { stopListening(); stopAudio(); onClose(); }} className="rounded-lg p-2 hover:bg-white/10" aria-label="Close agent panel"><X size={22}/></button>
     </header>
     <p className="px-4 pb-2 text-xs text-slate-400">Keep browsing IFund while this conversation stays open.</p>
     <div className="ifund-agent-panel-choices" aria-label="Switch agent">
       {choices.map(id => <button type="button" key={id} title={AGENT_IDENTITIES[id].name}
         aria-label={"Talk to " + AGENT_IDENTITIES[id].name} aria-pressed={identity === id}
-        onClick={() => { active.current?.abort(); setBusy(false); onSelect(id); }}>
+        onClick={() => { active.current?.abort(); stopListening(); stopAudio(); setBusy(false); onSelect(id); }}>
         <AgentIdentityIcon identity={id} size={35}/></button>)}
     </div>
     <div ref={scroll} className="ifund-agent-panel-messages" role="log" aria-label="Agent messages" aria-live="polite">
@@ -117,12 +167,30 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       </div>)}
       {busy && <p role="status" className="text-sm text-slate-400">Checking your question…</p>}
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
+      {voiceError && <p role="alert" className="text-sm text-amber-300">{voiceError}</p>}
     </div>
     <div className="ifund-agent-panel-compose">
       {!availability.enabled && <p role="status" className="mb-2 text-xs text-slate-300">{availability.loading ? "Checking agent access…" : availability.reason}{" "}
         {!user ? <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link> :
           <Link className="underline" to="/subscriptions">Agent plans and permissions</Link>}
       </p>}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <button type="button" aria-label={listening ? "Stop dictation" : "Dictate a message"} aria-pressed={listening}
+          disabled={!availability.enabled || busy} onClick={toggleDictation}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-3 py-2 text-xs text-white disabled:opacity-40">
+          {listening ? <MicOff size={16}/> : <Mic size={16}/>}
+          {listening ? "Stop listening" : "Speak"}
+        </button>
+        <button type="button" aria-label={voiceEnabled ? "Turn off spoken answers" : "Turn on spoken answers"}
+          aria-pressed={voiceEnabled} disabled={!canSpeak()}
+          onClick={() => { if (voiceEnabled) stopAudio(); setVoiceEnabled(value => !value); }}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-600 px-3 py-2 text-xs text-white disabled:opacity-40">
+          {voiceEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}
+          {voiceEnabled ? "Voice on" : "Voice off"}
+        </button>
+        {speaking && <button type="button" onClick={stopAudio} className="rounded-lg border border-slate-600 px-3 py-2 text-xs text-white">Stop audio</button>}
+        {listening && <span role="status" className="text-xs text-cyan-300">Listening… review before sending</span>}
+      </div>
       <form onSubmit={submit} className="flex gap-2">
         <label htmlFor="ifund-side-agent-question" className="sr-only">Ask the selected agent</label>
         <textarea id="ifund-side-agent-question" rows={2} maxLength={2000}
@@ -132,7 +200,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
           className="self-end rounded-xl bg-cyan-600 p-3 text-white disabled:opacity-40"><Send size={18}/></button>
       </form>
       <Link to={"/agents?agent=" + encodeURIComponent(identity)} className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-300">Full agent workspace <ExternalLink size={12}/></Link>
-      <p className="mt-1 text-[11px] text-slate-400">Answers are advisory. External actions require separate approval.</p>
+      <p className="mt-1 text-[11px] text-slate-400">Voice is optional and may use your browser's speech service. Check the transcript before sending. Answers are advisory; spoken approval never authorizes an external action.</p>
     </div>
   </aside>;
 }
