@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Bot, Compass, PlusCircle, FolderKanban, ArrowUpRight, Sparkles } from "lucide-react";
-import FollowFeed from "@/components/dashboard/FollowFeed";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
 import CampaignCard from "@/components/campaigns/CampaignCard";
 import EventsDashboardSection from "@/components/dashboard/EventsDashboardSection";
+import FollowFeed from "@/components/dashboard/FollowFeed";
 import { observeDashboardSession } from "@/lib/dashboardSession";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { hasGuestNotice } from "@/lib/guestAccess";
+import { ArrowRight, BookOpen, Bot, Compass, HeartHandshake, Layers3, MessageSquareText, Orbit, Palette, ShoppingBag, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -38,51 +38,88 @@ export default function Dashboard() {
     catch { setAccount({ phase: "error", user: null, campaigns: [], error: "" }); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
-  if (state === "guest") return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8">
-    <h1 className="font-display text-3xl font-bold">Welcome to your iFund workspace</h1>
-    <p className="max-w-2xl text-muted-foreground">Explore campaigns as a visitor. To create, save, or publish your own content, sign up with an email address. Two-factor authentication is only required when you request your first withdrawal.</p>
-    {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest browsing is active on this device. Create a verified email account before writing or publishing campaign content.</p>}
-    <div className="flex flex-wrap gap-4"><Link className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white" to="/register?returnTo=%2Fcreate">Create a campaign with email</Link><Link to="/discover" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Explore campaigns</Link><Link to="/register" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Sign up with email</Link></div>
-    <p className="text-sm"><Link to="/withdrawals" className="underline">Withdrawal identity verification</Link> is only needed before a payout can be requested.</p>
+  if (state === "guest") return <main className="ifund-dashboard mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
+    <section className="ifund-dashboard-hero space-y-4">
+      <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-cyan-200"><Orbit className="h-5 w-5"/> A universe of possibilities</p>
+      <h1 className="font-display text-4xl sm:text-5xl font-black">Your next possibility starts here.</h1>
+      <p className="max-w-2xl text-slate-100">Explore a campaign, discover a Mission, or create a fundraiser with your own words and images. Your space grows with you.</p>
+      <div className="flex flex-wrap gap-3">
+        <Link to="/register?returnTo=%2Fcreate" className="ifund-action bg-gradient-to-r from-cyan-300 to-violet-300 text-slate-950"><Sparkles className="w-5 h-5"/> Start a campaign <ArrowRight className="w-4 h-4"/></Link>
+        <Link to="/discover" className="ifund-action border border-white/30 bg-white/10 text-white"><Compass className="w-5 h-5"/> Explore campaigns</Link>
+      </div>
+    </section>
+    {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest browsing is active on this device. Create a verified email account before saving or publishing content.</p>}
+    <p className="text-sm text-muted-foreground">Browsing is open to everyone. Email registration is required to save. First-withdrawal identity verification remains separate.</p>
+    <Link className="text-sm underline" to="/login">Already have an account? Sign in.</Link>
   </main>;
   if (state === "error") return <main role="alert" className="mx-auto max-w-5xl p-8">Account services are unavailable. <Link className="underline" to="/login">Return to sign in</Link>.</main>;
-  return <main className="ifund-dashboard mx-auto max-w-7xl space-y-7 px-4 py-6 sm:px-8 sm:py-9">
-    <header className="ifund-dashboard-hero">
-      <div className="relative z-10 max-w-2xl">
-        <p className="ifund-dashboard-eyebrow !text-cyan-200">Your IFund workspace</p>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link to="/create" className="ifund-dashboard-primary"><PlusCircle size={18}/> Start a campaign</Link>
-          <button type="button" className="ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
+  const activeCount = myCampaigns.filter(c => c.status === "active").length;
+  const draftCount = myCampaigns.filter(c => c.status === "draft").length;
+  const shortcuts = [
+    { to: "/campaigns", title: "My campaigns", detail: "Manage drafts, updates and public pages", icon: Layers3 },
+    { to: "/strategy#campaign-merch-studio", title: "Shop to Support", detail: "Create three personalized merchandise proofs", icon: ShoppingBag },
+    { to: "/communications", title: "Communications", detail: "Prepare approved campaign updates and outreach", icon: MessageSquareText },
+    { to: "/analytics", title: "Command Center", detail: "Review progress and verified performance", icon: TrendingUp },
+    { to: "/agents", title: "Meet your AI team", detail: "Find NEXUS and specialist tools", icon: Sparkles },
+    { to: "/discover", title: "Discover", detail: "Explore community possibilities", icon: Compass },
+  ];
+  return <main className="ifund-dashboard mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-8">
+    <section className="ifund-dashboard-hero space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-3">
+          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-cyan-200"><Orbit className="h-5 w-5"/> Mission workspace</p>
+          <h1 className="font-display text-4xl sm:text-5xl font-black leading-tight">What if your next idea<br/><span className="text-cyan-200">became possible?</span></h1>
+          <p className="max-w-xl text-slate-200">One place to create, plan, share, and celebrate your campaigns. Your existing records stay exactly where they are.</p>
         </div>
+        <button onClick={signOut} className="min-h-11 rounded-xl border border-white/30 bg-slate-950/30 px-4 py-2 text-sm text-white hover:bg-white/10">Sign out</button>
       </div>
-      <Sparkles size={170} strokeWidth={0.65} className="pointer-events-none absolute -right-4 -top-12 text-cyan-300/20 sm:right-10" aria-hidden="true"/>
-    </header>
-    <div className="ifund-dashboard-shortcuts">
-      <Link to="/campaigns" className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>My campaigns</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <button type="button" className="ifund-dashboard-shortcut" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={21}/><span>Agent chat</span><ArrowUpRight size={15} className="ml-auto"/></button>
-      <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-    </div>
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
-      <section className="ifund-dashboard-card space-y-4">
-        <div><p className="ifund-dashboard-eyebrow">Build and manage</p><h2 className="text-xl font-bold">Your fundraising hub</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Keep campaigns, external fundraisers and verified finances organized. No estimated donation totals.</p></div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Link to="/campaigns" className="ifund-dashboard-mini-link">Manage campaigns <ArrowUpRight size={15}/></Link>
-          <Link to="/fundraising-hub" className="ifund-dashboard-mini-link">Connected fundraisers <ArrowUpRight size={15}/></Link>
-          <Link to="/ledger" className="ifund-dashboard-mini-link">Verified finances <ArrowUpRight size={15}/></Link>
-          <Link to="/giving" className="ifund-dashboard-mini-link">My giving <ArrowUpRight size={15}/></Link>
-        </div>
+      <div className="flex flex-wrap gap-3">
+        <Link to="/create" className="ifund-action bg-gradient-to-r from-cyan-300 via-teal-200 to-violet-300 text-slate-950 shadow-lg shadow-cyan-500/20"><Sparkles className="h-5 w-5"/> Create a campaign <ArrowRight className="h-4 w-4"/></Link>
+        <Link to="/campaigns" className="ifund-action border border-white/25 bg-white/10 text-white"><Palette className="w-5 h-5"/> View my campaigns</Link>
+        <button type="button" className="ifund-action border border-white/25 bg-white/10 text-white" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", {detail:{agent:"nexus"}}))}><Bot className="w-5 h-5"/> Ask NEXUS</button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {[{label:"My campaigns",value:myCampaigns.length},{label:"Active campaigns",value:activeCount},{label:"Drafts to finish",value:draftCount}].map(stat =>
+          <div key={stat.label} className="ifund-dashboard-stat p-4"><p className="text-3xl font-bold">{stat.value}</p><p className="text-xs text-slate-200">{stat.label}</p></div>)}
+      </div>
+      <p className="text-xs text-slate-300">Signed in as {user?.email}</p>
+    </section>
+    <section className="space-y-4" aria-label="Workspace shortcuts">
+      <div className="flex items-end justify-between gap-3">
+        <div><h2 className="font-display text-2xl font-bold">Your tools</h2><p className="text-sm text-muted-foreground">Everything you need, without hunting through menus.</p></div>
+        <Link to="/campaigns" className="text-sm text-primary underline underline-offset-4">All campaigns</Link>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {shortcuts.map(({to,title,detail,icon:Icon}) =>
+          <Link key={to} to={to} className="ifund-dashboard-module group p-5 transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-500">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-300/20 to-violet-300/25"><Icon className="h-6 w-6 text-cyan-700 dark:text-cyan-200"/></div>
+            <h3 className="font-semibold flex items-center gap-2">{title}<ArrowRight className="h-4 w-4 opacity-50 transition-transform group-hover:translate-x-1"/></h3>
+            <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+          </Link>)}
+      </div>
+    </section>
+    <section className="ifund-dashboard-module p-5 sm:p-7 space-y-4">
+      <h2 className="text-xl font-semibold flex items-center gap-2"><BookOpen className="h-5 w-5 text-violet-500"/> Pick up where you left off</h2>
+      <p className="text-sm text-muted-foreground">Continue an existing draft, follow community projects, or check verified financial records. Nothing is automatically published.</p>
+      <div className="flex flex-wrap gap-3">
+        <Link className="ifund-action bg-cyan-700 text-white" to="/campaigns">Manage my work</Link>
+        <Link className="ifund-action border border-border text-foreground" to="/fundraising-hub">External campaigns</Link>
+        <Link className="ifund-action border border-border text-foreground" to="/finances">Verified finances</Link>
+        <Link className="ifund-action border border-border text-foreground" to="/giving"><HeartHandshake className="h-4 w-4"/> My giving</Link>
+      </div>
+    </section>
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,350px)]">
+      <section className="ifund-dashboard-module p-5 sm:p-7 space-y-3">
+        <h2 className="text-xl font-semibold">Your community is part of the mission</h2>
+        <p className="text-sm text-muted-foreground">Follow campaigns, discover progress updates, and pick up new ideas while working on your own goals.</p>
+        <Link to="/following" className="ifund-action border border-border text-foreground">Your followed campaigns <ArrowRight className="w-4 h-4"/></Link>
       </section>
       <FollowFeed ownerId={user?.id}/>
     </div>
-    <EventsDashboardSection />
+    <EventsDashboardSection/>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
-    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
+    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns" className="space-y-4"><h2 className="text-2xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c}/>)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
-    {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
-    <div className="flex justify-end"><button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2 text-sm">Sign out</button></div>
+    {campaigns.length > 0 && <section className="space-y-4"><h2 className="text-2xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c}/>)}</div></section>}
   </main>;
 }
