@@ -104,10 +104,15 @@ export default function AgentOperationsRoom({user}){
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.body}</p>
           {item.speaker_type==="agent"&&<p className="mt-1 text-[11px] text-slate-400">Verified agent runtime · receipt {item.source_receipt?.slice(0,12)}</p>}
           {item.speaker_type==="admin"&&item.event_type==="assignment"&&
-            <button type="button" disabled={analyzing||sending}
+            <button type="button" disabled={analyzing||sending||
+                items.some(entry=>entry.speaker_type==="agent" &&
+                  entry.source_receipt?.startsWith("assignment-"+item.id+":"))}
               className="mt-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40"
               onClick={()=>askNexus(item.id)}>
-              {analyzingAssignment===item.id?"Specialists reviewing…":"Assign to NEXUS for specialist review"}
+              {analyzingAssignment===item.id?"Specialists reviewing…":
+                items.some(entry=>entry.speaker_type==="agent" &&
+                  entry.source_receipt?.startsWith("assignment-"+item.id+":"))?"Review recorded":
+                  "Assign to NEXUS for specialist review"}
             </button>}
         </div>
       </article>)}
