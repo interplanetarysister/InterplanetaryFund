@@ -19,6 +19,9 @@ const Discover = lazy(() => import("./pages/Discover"));
 const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
 const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
+const FundYourMission = lazy(() => import("./pages/FundYourMission"));
+const SponsorWithIFund = lazy(() => import("./pages/SponsorWithIFund"));
+const AdminSponsorInquiries = lazy(() => import("./pages/AdminSponsorInquiries"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -133,6 +136,8 @@ function AppRoutes() {
       <Route path="/shorts" element={<OrbitShorts />} />
       <Route path="/globe" element={<Atlas />} />
       <Route path="/institutions" element={<Institutions />} />
+      <Route path="/fund-your-mission" element={<FundYourMission />} />
+      <Route path="/sponsor" element={<SponsorWithIFund />} />
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<AgentsTeam />} />
@@ -161,6 +166,7 @@ function AppRoutes() {
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/planetary-impact" element={<AdminSustainability />} />
