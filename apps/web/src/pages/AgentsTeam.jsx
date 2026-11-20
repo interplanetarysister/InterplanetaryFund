@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import "./../styles/agent-team.css";
 import { Link, useSearchParams } from "react-router-dom";
 import { parseAgentFeatureSelection, agentToolHref } from "@/lib/agentFeatureRoutes.mjs";
 import StoryAgent from "./StoryAgent";
@@ -137,24 +138,29 @@ export default function AgentsTeam() {
   }
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
-  return <div className="mx-auto max-w-5xl space-y-6 px-4 pb-24 pt-6 sm:px-7">
-    <header>
-      <p className="text-xs font-semibold uppercase tracking-[0.23em] text-cyan-300">IFund Mission Control</p>
-      <h1 className="mt-2 text-3xl font-semibold text-foreground">Your AI Team</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Choose an agent to open an available iFund tool or inspect its operational status. A related page is not proof of independent specialist AI execution.</p>
+  return <div className="ifund-agents-page space-y-6">
+    <header className="ifund-agents-hero">
+      <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
+      <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>
+      <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and account connections. Find the right specialist, ask a question, or open the tools available to your account.</p>
+      <div className="ifund-agents-hero-foot" aria-label="Agent Team capabilities">
+        <span className="ifund-agents-chip">Specialist matching included</span>
+        <span className="ifund-agents-chip">Account-scoped assistance</span>
+        <span className="ifund-agents-chip">You approve external actions</span>
+      </div>
     </header>
-    <section className="rounded-2xl border border-border bg-card p-5" aria-label="Ask the IFund agent team">
-      <h2 className="text-lg font-semibold">Ask your iFund agent team</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Ask a question and iFund will choose a relevant specialist. You can also select an agent yourself. The response is advice, not a financial, publishing, or account action.</p>
+    <section className="ifund-agents-console" aria-label="Ask the IFund agent team">
+      <div className="ifund-agents-section-heading"><h2>Ask Mission Control</h2><p>One question. The right specialist.</p></div>
+      <p className="ifund-agents-muted max-w-2xl text-sm leading-relaxed">Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization.</p>
       <form className="mt-4 space-y-3" onSubmit={submitAgentQuestion}>
         <label className="block text-sm font-medium" htmlFor="agent-specialist-question">What would you like help with?</label>
         <textarea id="agent-specialist-question" rows={3} minLength={8} maxLength={2000}
           required value={agentQuestion} onChange={e => setAgentQuestion(e.target.value)}
           placeholder="For example: How should I explain my spending plan in the story?"
-          className="w-full rounded-xl border border-border bg-background p-3 text-foreground" />
+          className="w-full min-h-[120px] resize-y p-4 text-sm leading-relaxed" />
         <label className="block text-sm font-medium" htmlFor="ifund-agent-choice">Who should answer?</label>
         <select id="ifund-agent-choice" value={agentMode} onChange={e=>setAgentMode(e.target.value)}
-          className="min-h-11 w-full rounded-xl border border-border bg-background px-3">
+          className="min-h-12 w-full px-4 text-sm">
           <option value="auto">Automatically choose the right agent</option>
           {TEAM.map(id=><option key={id} value={id}>{AGENT_IDENTITIES[id].name} — {AGENT_IDENTITIES[id].role}</option>)}
         </select>
@@ -175,42 +181,45 @@ export default function AgentsTeam() {
         {gateway.configured&&membershipActive&&aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Direct AI questions are disabled in your saved permissions. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> and save to use the agent team.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
         <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membershipActive || !aiPermissionGranted}
-          className="min-h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">
+          className="ifund-agents-submit">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
       </form>
-      {agentReply && <article className="mt-5 space-y-3 rounded-2xl border border-primary/30 bg-background p-4" aria-live="polite">
+      {agentReply && <article className="ifund-agents-reply mt-6 space-y-3" aria-live="polite">
         <div className="flex items-center gap-3">
           <AgentIdentityIcon identity={agentReply.agent} size={48}/>
           <div><h3 className="font-semibold">{AGENT_IDENTITIES[agentReply.agent]?.name} answered</h3>
             <p className="text-xs text-muted-foreground">{AGENT_IDENTITIES[agentReply.agent]?.role} · Advisory response</p></div>
         </div>
         <p className="text-xs text-muted-foreground">Your question: {agentReply.question}</p>
-        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{agentReply.answer}</p>
+        <p className="ifund-agents-reply-body text-sm">{agentReply.answer}</p>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
       <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
       <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
-    <div aria-label="IFund agents" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <section aria-label="Agent specialties" className="space-y-4">
+      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to explore its tools</p></div>
+      <div aria-label="IFund agents" className="ifund-agents-grid">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
         onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); }}
-        className={"flex min-h-40 flex-col items-center justify-center rounded-2xl border bg-[#0B0F14] p-4 text-center transition hover:border-cyan-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " + (selected === id ? "border-cyan-400/80" : "border-white/15")}>
+        className="ifund-agents-card" style={{"--agent-accent": agent.color}}>
         <AgentIdentityIcon identity={id} size={70}/>
-        <span className="mt-3 font-semibold tracking-[0.16em] text-white">{agent.name}</span>
-        <span className="mt-1 text-xs text-slate-400">{agent.role}</span>
+        <span className="ifund-agents-name">{agent.name}</span>
+        <span className="ifund-agents-role">{agent.role}</span><span className="ifund-agents-arrow" aria-hidden="true">↗</span>
       </button>; })}
-    </div>
+      </div>
+    </section>
     {selection.invalidCampaign&&<p role="alert">The campaign link is invalid. Choose a saved campaign in the workspace.</p>}
-    {selected && <section aria-live="polite" className="rounded-2xl border border-border bg-card p-5">
+    {selected && <section aria-live="polite" className="ifund-agents-detail space-y-3">
       <div className="flex items-center gap-3">
         <AgentIdentityIcon identity={selected} size={54}/>
         <div><h2 className="text-xl font-semibold">{AGENT_IDENTITIES[selected].name}</h2><p className="text-sm text-muted-foreground">{AGENT_IDENTITIES[selected].role}</p></div>
       </div>
       <p className="mt-3 text-sm font-medium">Specialty: {TRAINING_ROLES[selected]?.skill}</p>
       <p className="mt-1 text-sm text-muted-foreground">Can help with: {TRAINING_ROLES[selected]?.handles.join(", ")}. Consults: {TRAINING_ROLES[selected]?.consult.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>
-      <p role="status" className="mt-4 text-sm text-muted-foreground">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
+      <p role="status" className="ifund-agents-muted mt-4 text-sm">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
       {!user && <p className="mt-3 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to open private agent workspaces. Agent identities and specialties are public.</p>}
       {user && selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
       {user && ["polaris", "forge", "echo", "link"].includes(selected) && <div className="mt-4 space-y-4">
@@ -221,14 +230,14 @@ export default function AgentsTeam() {
       {user && workspace && <div className="mt-4">
         {selected === "story" ?
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
-          <Link className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold" to={agentToolHref(selected,selection.campaignId)}>Open related tool: {workspace.tool}</Link>}
+          <Link className="ifund-agents-action" to={agentToolHref(selected,selection.campaignId)}>Open related tool: {workspace.tool}</Link>}
       </div>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
     {user && <EditorialAgentQueue />}
     {user && <TeamConversationHistory />}
-    <section className="rounded-2xl border border-border bg-card p-5">
-      <h2 className="text-lg font-semibold">Available AI writing workspace</h2>
+    <section className="ifund-agents-writing">
+      <h2 className="text-lg font-semibold">Campaign writing studio</h2>
       <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission.</p>
       <button type="button" disabled={!user} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
       {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
