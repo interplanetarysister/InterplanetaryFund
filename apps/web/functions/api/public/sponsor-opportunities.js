@@ -14,12 +14,16 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
  const headers={apikey:publishableKey,accept:"application/json"};
  const offersUrl=ORIGIN+"/rest/v1/ifund_sponsor_opportunities?select="+encodeURIComponent("id,sponsor_id,source_kind,title,summary,requirements,official_url,geography,eligibility,reward_minor,currency,compensation_basis,starts_at,ends_at,verified_at")+"&state=eq.published&order=verified_at.desc&limit=30";
  const sponsorsUrl=ORIGIN+"/rest/v1/ifund_sponsor_organizations?select="+encodeURIComponent("id,display_name,official_url,partner_claim_allowed")+"&verification_state=eq.approved&limit=100";
+ let stage="request";
  try {
   const [a,b]=await Promise.all([offersUrl,sponsorsUrl].map(url=>get(url,{headers,redirect:"error",signal:AbortSignal.timeout(8000)})));
   if(!a.ok||!b.ok)return json({error:"Sponsor catalog unavailable"},503,"upstream_"+a.status+"_"+b.status);
+  stage="json";
   const [offers,sponsors]=await Promise.all([a.json(),b.json()]);
   if(!Array.isArray(offers)||!Array.isArray(sponsors))return json({error:"Invalid sponsor catalog"},503,"invalid_json");
+  stage="shape";
   const sponsorsById=new Map(sponsors.filter(x=>safeHttps(x.official_url)&&typeof x.display_name==="string").map(x=>[x.id,x]));
+  stage="filter";
   const now=Date.now();
   const records=offers.filter(x=>x&&sponsorsById.has(x.sponsor_id)&&
     safeHttps(x.official_url)&&validAmount(x.reward_minor)&&x.currency==="USD"&&
@@ -36,8 +40,9 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
     state:"provider_terms_and_funding_verified",enrollment_enabled:false,
     reward_payable:false
    }));
+  stage="respond";
   return json({opportunities:records,count:records.length,
    member_enrollment_enabled:false,reward_payout_enabled:false,
    source:"supabase_rls_verified_sponsor_offers"});
- } catch {return json({error:"Sponsor catalog unavailable"},503,"fetch_exception");}
+ } catch {return json({error:"Sponsor catalog unavailable"},503,"failed_"+stage); }
 }
