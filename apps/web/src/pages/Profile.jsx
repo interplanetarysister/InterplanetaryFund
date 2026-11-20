@@ -130,6 +130,7 @@ export default function Profile() {
       <Link to={`/u/${profile.id}`} className={action}>View public profile</Link>
     </header>
     <section className={panel} aria-label="Permissions and connected accounts"><h2 className="text-xl font-semibold">iFund AI & account permissions</h2><p className="text-sm text-muted-foreground">Control AI assistance, platform connections, and optional communications from one place.</p><Link to="/permissions" className={action}>Manage iFund Permissions</Link></section>
+    <section className={panel} aria-label="Optional campaign email"><h2 className="text-xl font-semibold">Campaign email address</h2><p className="text-sm text-muted-foreground">Paid iFund subscribers can request a personal @interplanetaryfund.com campaign email address. Basic plans require an optional additional $1 per month. The address stays inactive until separate recurring payment and mail routing are verified.</p><Link to="/subscriptions#campaign-email" className={action}>Manage campaign email add-on</Link></section>
     <section className={panel} aria-labelledby="profile-account">
       <h2 id="profile-account" className="text-xl font-semibold">Account</h2>
       <p className="break-all text-sm text-muted-foreground">{profile.email}</p>
