@@ -5,10 +5,11 @@ import { listActiveCampaigns } from "@/api/publicData";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
 import CampaignCard from "@/components/campaigns/CampaignCard";
 import EventsDashboardSection from "@/components/dashboard/EventsDashboardSection";
+import FollowFeed from "@/components/dashboard/FollowFeed";
 import { observeDashboardSession } from "@/lib/dashboardSession";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { hasGuestNotice } from "@/lib/guestAccess";
-import { ArrowRight, BookOpen, Compass, HeartHandshake, Layers3, MessageSquareText, Orbit, Palette, ShoppingBag, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Compass, HeartHandshake, Layers3, MessageSquareText, Orbit, Palette, ShoppingBag, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ export default function Dashboard() {
       <div className="flex flex-wrap gap-3">
         <Link to="/create" className="ifund-action bg-gradient-to-r from-cyan-300 via-teal-200 to-violet-300 text-slate-950 shadow-lg shadow-cyan-500/20"><Sparkles className="h-5 w-5"/> Create a campaign <ArrowRight className="h-4 w-4"/></Link>
         <Link to="/campaigns" className="ifund-action border border-white/25 bg-white/10 text-white"><Palette className="w-5 h-5"/> View my campaigns</Link>
+        <button type="button" className="ifund-action border border-white/25 bg-white/10 text-white" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", {detail:{agent:"nexus"}}))}><Bot className="w-5 h-5"/> Ask NEXUS</button>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {[{label:"My campaigns",value:myCampaigns.length},{label:"Active campaigns",value:activeCount},{label:"Drafts to finish",value:draftCount}].map(stat =>
@@ -106,6 +108,14 @@ export default function Dashboard() {
         <Link className="ifund-action border border-border text-foreground" to="/giving"><HeartHandshake className="h-4 w-4"/> My giving</Link>
       </div>
     </section>
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,350px)]">
+      <section className="ifund-dashboard-module p-5 sm:p-7 space-y-3">
+        <h2 className="text-xl font-semibold">Your community is part of the mission</h2>
+        <p className="text-sm text-muted-foreground">Follow campaigns, discover progress updates, and pick up new ideas while working on your own goals.</p>
+        <Link to="/following" className="ifund-action border border-border text-foreground">Your followed campaigns <ArrowRight className="w-4 h-4"/></Link>
+      </section>
+      <FollowFeed ownerId={user?.id}/>
+    </div>
     <EventsDashboardSection/>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns" className="space-y-4"><h2 className="text-2xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c}/>)}</div></section>}
