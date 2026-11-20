@@ -1,7 +1,7 @@
 // Voice intent parsing is only a proposal to confirm a pending action.
 // It never authorizes, signs, or executes tool calls.
-const APPROVE=/^(?:yes[, ]*)?(?:i )?(?:approve|authorize|confirm)(?: (?:this|that|the (?:proposed )?action))?[.!]?$/i;
-const DENY=/^(?:no[, ]*)?(?:i )?(?:deny|reject|cancel|decline)(?: (?:this|that|the (?:proposed )?action))?[.!]?$/i;
+const APPROVE=/^(?:yes[, ]*)?(?:i )?(?:approve|authorize|confirm)(?: (?:(?:this|that)(?: action)?|the (?:proposed )?action))?[.!]?$/i;
+const DENY=/^(?:no[, ]*)?(?:i )?(?:deny|reject|cancel|decline)(?: (?:(?:this|that)(?: action)?|the (?:proposed )?action))?[.!]?$/i;
 export const HIGH_RISK_ACTIONS=Object.freeze([
   "payment","withdrawal","refund","transfer","publish_external","send_external",
   "grant_submission","account_security","delete_account","delete_campaign","oauth_change"
