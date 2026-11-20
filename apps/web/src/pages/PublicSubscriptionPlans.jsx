@@ -60,6 +60,7 @@ export default function PublicSubscriptionPlans() {
             <p className="text-sm capitalize text-muted-foreground">{plan.interval === "annual" ? "Annual" : plan.interval === "monthly" ? "Monthly" : "Billing interval unavailable"}</p>
             <p className="text-2xl font-bold">{price(plan)}</p>
             <p className="text-sm">{available ? "PayPal billing verified for enrollment" : "Enrollment unavailable — provider verification pending"}</p>
+            {plan.tier==="basic"&&<p className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3 text-sm">Optional campaign email: <strong>+$1/month</strong>. Requires a verified paid Basic subscription and a separate email add-on payment. Addresses are inactive until the provider and routing are verified.</p>}
             {available && !native ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>
               : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground">Not accepting enrollment</span>}
           </article>;
