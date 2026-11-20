@@ -54,7 +54,7 @@ html.dark .ifund-public {
 }
 /* Floating actions occupy separate physical zones even when the quick-action
    menu expands; desktop is stacked, mobile uses opposing sides. */
-.ifund-global-agent-launcher {
+.ifund-global-companion-shell > .ifund-global-agent-launcher {
   right: 24px;
   bottom: calc(6.5rem + env(safe-area-inset-bottom));
   max-width: calc(100vw - 5.5rem);
@@ -65,7 +65,7 @@ html.dark .ifund-public {
   color: #f2faff;
   box-shadow: 0 12px 36px rgb(5 15 34 / .28), inset 0 1px rgb(255 255 255 / .13);
 }
-.ifund-global-agent-launcher:hover {
+.ifund-global-companion-shell > .ifund-global-agent-launcher:hover {
   border-color: #73e6f5;
 }
 @media (max-width: 767px) {
@@ -74,7 +74,7 @@ html.dark .ifund-public {
     background-size: auto, min(116vw, 560px) min(116vw, 560px), auto;
     background-position: center top, center top 5rem, center;
   }
-  .ifund-global-agent-launcher {
+  .ifund-global-companion-shell > .ifund-global-agent-launcher {
     left: auto;
     right: max(12px, env(safe-area-inset-right));
     bottom: calc(5.45rem + env(safe-area-inset-bottom));
@@ -85,16 +85,16 @@ html.dark .ifund-public {
   }
 }
 @media (max-width: 360px) {
-  .ifund-global-agent-launcher { gap: 6px; padding-inline: 10px; }
-  .ifund-global-agent-launcher svg:last-child { display: none; }
+  .ifund-global-companion-shell > .ifund-global-agent-launcher { gap: 6px; padding-inline: 10px; }
+  .ifund-global-companion-shell > .ifund-global-agent-launcher svg:last-child { display: none; }
 }
 @media print {
   .ifund-shell [data-page-scroll],
   .ifund-public:not(.ifund-auth) { background-image: none !important; }
-  .ifund-global-agent-launcher { display: none !important; }
+  .ifund-global-companion-shell > .ifund-global-agent-launcher { display: none !important; }
 }
 @media (prefers-contrast: more) {
-  .ifund-global-agent-launcher { border: 2px solid #b3f5ff; }
+  .ifund-global-companion-shell > .ifund-global-agent-launcher { border: 2px solid #b3f5ff; }
   .ifund-shell [data-page-scroll], .ifund-public:not(.ifund-auth) {
     background-image: none;
   }
