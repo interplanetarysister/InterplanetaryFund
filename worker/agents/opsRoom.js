@@ -41,6 +41,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    if(byAssignment && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.message_id))
      fail(400,"Invalid assignment reference.");
    let assignedText=null;
+   let sourceEvent=null;
    if(byAssignment){
      // Only an authenticated admin who can SELECT the source under RLS may
      // submit that assignment. The browser cannot nominate an agent speaker.
@@ -54,24 +55,25 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      const rows=await assignmentResponse.json().catch(()=>null);
      if(!Array.isArray(rows)||rows.length!==1 || rows[0].id!==input.message_id ||
        rows[0].speaker_type!=="admin" || rows[0].source_kind!=="admin_post" ||
-       rows[0].event_type!=="assignment" || typeof rows[0].body!=="string" ||
+       !["assignment","discussion"].includes(rows[0].event_type) || typeof rows[0].body!=="string" ||
        rows[0].body.trim().length<8)
-       fail(403,"Only a saved administrator assignment can be analyzed.");
+       fail(403,"Only a saved administrator assignment or discussion can be analyzed.");
      if(rows[0].body.trim().length>1100)
        fail(400,"This assignment is too long for a single NEXUS review. Summarize it to 1,100 characters.");
      assignedText=rows[0].body.trim();
+     sourceEvent=rows[0].event_type;
    }
    if(byAssignment){
      const existing=await fetcher(SUPABASE_ORIGIN+
        "/rest/v1/ifund_agent_operations_messages?select=id,source_receipt"+
-       "&thread_id=eq."+ROOM+"&source_receipt=like.assignment-"+input.message_id+"*&limit=1",{
+       "&thread_id=eq."+ROOM+"&source_receipt=like."+sourceEvent+"-"+input.message_id+"*&limit=1",{
        headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+api.jwt},
        signal:AbortSignal.timeout(12000)
      });
      if(!existing.ok)fail(503,"Previous assignment processing could not be checked.");
      const prior=await existing.json().catch(()=>null);
      if(!Array.isArray(prior))fail(503,"Invalid assignment processing history.");
-     if(prior.length)fail(409,"This assignment has already been reviewed by NEXUS.");
+     if(prior.length)fail(409,"This message has already been reviewed by NEXUS.");
    }
    // Read only the admin's private room under their verified JWT and RLS.
    const historyResponse=await fetcher(SUPABASE_ORIGIN+
@@ -110,7 +112,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      c.agent==="nexus" || c.status!=="completed" ||
      c.kind!=="advisory_analysis" || typeof c.summary!=="string" || !c.summary.trim() ||
      c.summary.length>1600))fail(503,"Invalid specialist execution evidence.");
-   const receipt=byAssignment?"assignment-"+input.message_id:crypto.randomUUID();
+   const receipt=byAssignment?sourceEvent+"-"+input.message_id:crypto.randomUUID();
    const entries=[...consultations.map(c=>({
      thread_id:ROOM,speaker_type:"agent",agent_id:c.agent,body:c.summary,
      event_type:"analysis",source_kind:"verified_agent_runtime",source_receipt:receipt+":"+c.agent
@@ -123,7 +125,8 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      "ifund_agent_operations_messages",entries,fetcher);
    if(!Array.isArray(saved) || saved.length!==entries.length)fail(503,"Agent discussion persistence was not verified.");
    return reply(200,{saved:saved.length,agents:entries.map(e=>e.agent_id),
-     assignment_id:byAssignment?input.message_id:null,
+     assignment_id:sourceEvent==="assignment"?input.message_id:null,
+     discussion_id:sourceEvent==="discussion"?input.message_id:null,
      discussion_receipt:receipt,actions_performed:false});
  }catch(error){
    if(error instanceof BodyError)return reply(error.status||400,{error:"Invalid question body."});
