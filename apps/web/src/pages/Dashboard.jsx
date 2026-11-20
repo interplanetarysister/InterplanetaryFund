@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Bot, Compass, PlusCircle, FolderKanban, ArrowUpRight, Sparkles } from "lucide-react";
+import FollowFeed from "@/components/dashboard/FollowFeed";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
@@ -44,25 +46,43 @@ export default function Dashboard() {
     <p className="text-sm"><Link to="/withdrawals" className="underline">Withdrawal identity verification</Link> is only needed before a payout can be requested.</p>
   </main>;
   if (state === "error") return <main role="alert" className="mx-auto max-w-5xl p-8">Account services are unavailable. <Link className="underline" to="/login">Return to sign in</Link>.</main>;
-  return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-8">
-    <header className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="font-display text-3xl font-bold">Your dashboard</h1><p className="mt-2 text-muted-foreground">{"Signed in as " + user?.email}</p></div>
-      <button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2">Sign out</button>
+  return <main className="ifund-dashboard mx-auto max-w-7xl space-y-7 px-4 py-6 sm:px-8 sm:py-9">
+    <header className="ifund-dashboard-hero">
+      <div className="relative z-10 max-w-2xl">
+        <p className="ifund-dashboard-eyebrow !text-cyan-200">Your IFund workspace</p>
+        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link to="/create" className="ifund-dashboard-primary"><PlusCircle size={18}/> Start a campaign</Link>
+          <button type="button" className="ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
+        </div>
+      </div>
+      <Sparkles size={170} strokeWidth={0.65} className="pointer-events-none absolute -right-4 -top-12 text-cyan-300/20 sm:right-10" aria-hidden="true"/>
     </header>
-    <section className="rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-xl font-semibold">Your campaigns</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Live donations are enabled where provider checkout is available. Withdrawals require verified ownership, cleared funds, and payout checks.</p>
-      <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
-      <Link to="/campaigns" className="mt-4 mr-5 inline-block text-primary underline">Manage your campaigns</Link>
-      <Link to="/fundraising-hub" className="mt-4 mr-5 inline-block text-primary underline">Track fundraisers from other sites</Link>
-      <Link to="/ledger" className="mt-4 mr-5 inline-block text-primary underline">Verified finances</Link>
-      <Link to="/giving" className="mt-4 mr-5 inline-block text-primary underline">My Giving</Link>
-      <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
-    </section>
+    <div className="ifund-dashboard-shortcuts">
+      <Link to="/campaigns" className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>My campaigns</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <button type="button" className="ifund-dashboard-shortcut" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={21}/><span>Agent chat</span><ArrowUpRight size={15} className="ml-auto"/></button>
+      <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+    </div>
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
+      <section className="ifund-dashboard-card space-y-4">
+        <div><p className="ifund-dashboard-eyebrow">Build and manage</p><h2 className="text-xl font-bold">Your fundraising hub</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Keep campaigns, external fundraisers and verified finances organized. No estimated donation totals.</p></div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link to="/campaigns" className="ifund-dashboard-mini-link">Manage campaigns <ArrowUpRight size={15}/></Link>
+          <Link to="/fundraising-hub" className="ifund-dashboard-mini-link">Connected fundraisers <ArrowUpRight size={15}/></Link>
+          <Link to="/ledger" className="ifund-dashboard-mini-link">Verified finances <ArrowUpRight size={15}/></Link>
+          <Link to="/giving" className="ifund-dashboard-mini-link">My giving <ArrowUpRight size={15}/></Link>
+        </div>
+      </section>
+      <FollowFeed ownerId={user?.id}/>
+    </div>
     <EventsDashboardSection />
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
     {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
+    <div className="flex justify-end"><button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2 text-sm">Sign out</button></div>
   </main>;
 }
