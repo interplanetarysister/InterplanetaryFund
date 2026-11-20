@@ -13,6 +13,7 @@ import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import TeamConversationHistory from "@/components/agents/TeamConversationHistory";
 import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWorkspace";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
+import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
 
@@ -198,7 +199,14 @@ export default function AgentsTeam() {
         </select>
         {recommendation && <div className="rounded-xl border border-border p-3" aria-live="polite">
           <p className="text-sm">Recommended: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
-          {recommendation.requiresCoordination && <p className="mt-1 text-xs text-muted-foreground">NEXUS can coordinate: {recommendation.topics.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>}
+          {recommendation.requiresCoordination && <div className="mt-2 flex flex-wrap items-center gap-2" aria-label="Proposed NEXUS specialist routing">
+            <AgentIdentityIcon identity="nexus" size={30}/>
+            <span className="text-xs text-muted-foreground">Proposed specialist calls:</span>
+            {recommendation.topics.slice(0,2).map(id=><span className="inline-flex items-center gap-1" key={id}>
+              <AgentIdentityIcon identity={id} size={27}/>
+              <span className="text-xs">{AGENT_IDENTITIES[id]?.name}</span>
+            </span>)}
+          </div>}
           <p className="mt-1 text-xs text-muted-foreground">The recommendation is informational until you submit your question.</p>
           <button type="button" onClick={()=>{setSelected(recommendation.target);setShowWriting(false);setShowService(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">Open recommended agent tools</button>
         </div>}
@@ -224,6 +232,7 @@ export default function AgentsTeam() {
             <p className="text-xs text-muted-foreground">{AGENT_IDENTITIES[agentReply.agent]?.role} · Advisory response</p></div>
         </div>
         <p className="text-xs text-muted-foreground">Your question: {agentReply.question}</p>
+        <AgentConsultationTrail consultations={agentReply.consultations}/>
         <p className="ifund-agents-reply-body text-sm">{agentReply.answer}</p>
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
