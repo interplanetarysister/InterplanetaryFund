@@ -1,5 +1,5 @@
 ---
-name: ifund-builder-browser
+name: ifund-browser-access
 description: Use in OpenCode for local read-only desktop/mobile Playwright QA of Interplanetary Fund pages, frontend debugging and release smoke testing; never for website member-agent actions.
 ---
 # IFund Builder Browser — OpenCode
