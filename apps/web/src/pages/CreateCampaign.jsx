@@ -57,23 +57,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
   const headingRef=useRef(null);
-  const fieldToFocus=useRef(null);
   const storyEditStarted=useRef(false);
   const [wizard,setWizard]=useState(()=>{try{return restoreWizard(sessionStorage,ownerId,draftId);}catch{return emptyWizard();}});
   const [wizardError,setWizardError]=useState("");
   const [progressNotice,setProgressNotice]=useState("");
   const step=wizard.draft_step;
-  useEffect(()=>{
-    if(fieldToFocus.current){
-      const target=document.getElementById(fieldToFocus.current);fieldToFocus.current=null;
-      target?.scrollIntoView({behavior:"smooth",block:"center"});target?.focus({preventScroll:true});
-    }else headingRef.current?.focus();
-  },[step]);
-  function focusCampaignField(field){
-    const target=field==="title"?"campaign-title":field==="summary"?"campaign-summary":field==="goal_amount"?"campaign-goal":field==="category"?"campaign-category":field==="cover_image_url"?"campaign-cover-url":"campaign-story";
-    fieldToFocus.current=target;
-    setWizard(previous=>({...previous,draft_step:["title","goal_amount","category","cover_image_url"].includes(field)?0:1}));
-  }
+  useEffect(()=>{ headingRef.current?.focus(); },[step]);
   // Explicit edits, not mount/effect replays, authorize clearing restored text.
   const userEditedDraft = useRef(false);
   const coverUploadLock = useRef(false);
