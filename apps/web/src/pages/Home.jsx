@@ -85,6 +85,10 @@ export default function Home() {
               </>
             )}
           </div>
+          <Link to="/fund-your-mission" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-slate-950/75 px-5 py-3 text-sm font-semibold text-cyan-100 hover:bg-slate-900">
+            <Compass size={16}/> Fund your Mission — raise, earn and discover
+          </Link>
+          <div className="mt-3 text-xs text-slate-300">Already fundraising elsewhere? IFund helps you organize supported fundraiser links while donations remain with the original host. Partner relationships are shown only when verified.</div>
           <Link to="/download" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-slate-950/75 px-5 py-3 text-sm font-semibold text-cyan-100 transition-colors hover:border-cyan-200 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
             <Download className="h-4 w-4" aria-hidden="true" /> Get the IFund app
           </Link>
