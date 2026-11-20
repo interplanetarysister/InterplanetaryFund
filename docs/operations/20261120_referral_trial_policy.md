@@ -17,7 +17,7 @@ Owner product decision: maintain the three-step AI-assisted campaign creator and
 
 ## Release evidence and verification
 
-- `supabase/migrations/20261120195000_ifund_agent_trial_referrals.sql` is the source of truth. It creates private RLS-protected referral accounts/claims, explicit owner-only status and claim RPCs, a trigger-only qualification grant, and a trial extension of the existing canonical entitlement read without modifying paid receipts.
+- `supabase/migrations/20261120194050_ifund_agent_trial_referrals_20261120.sql` is the source of truth. It creates private RLS-protected referral accounts/claims, explicit owner-only status and claim RPCs, a trigger-only qualification grant, and a trial extension of the existing canonical entitlement read without modifying paid receipts.
 - The SQL was compiled in a production-schema transaction and rolled back before applying. Verified RLS is enabled, anon cannot issue/redeem codes, authenticated can invoke the guarded RPCs, the trial switch is off, and $4.99 desired price is 499 cents.
 - Do not turn off safety gates, mint referral credits client-side, or give referrers cash, guaranteed donations, payouts, or free account email addresses.
 
