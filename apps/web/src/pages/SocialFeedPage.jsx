@@ -184,6 +184,12 @@ export default function SocialFeedPage({ community = false }) {
       <Link to="/blogs">Stories &amp; Blogs</Link>
       <Link to="/news">IFund Newscaster</Link>
     </nav>
+    {community && <section className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-card to-cyan-500/5 p-5" aria-label="Fund your Mission community opportunities">
+      <p className="text-xs font-semibold uppercase tracking-widest text-primary">Make progress on your goals</p>
+      <h2 className="mt-2 text-xl font-bold">Fund your Mission</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse checked grants and resources, organize existing fundraisers, and see how sponsored earning opportunities are being developed. No paid sponsor tasks are available until their terms and funding are verified.</p>
+      <Link to="/fund-your-mission" className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-border px-4 py-2 font-semibold text-primary">Explore funding opportunities</Link>
+    </section>}
     {community && <CommunityDirectory />}
     {canPost ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       {shareSuggestion && body.trim() && !body.includes(shareSuggestion.split("\n").at(-1)) && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
