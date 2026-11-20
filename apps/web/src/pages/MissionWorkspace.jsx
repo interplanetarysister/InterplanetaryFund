@@ -6,7 +6,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import {
  loadMission,listMissionPlans,listMissionTasks,listMissionCampaignLinks,
  addMissionTask,setMissionTaskState,saveReviewedMissionPlan,suggestMissionPlan,
- updateMission,getMissionIntegrationStatus
+ updateMission,getMissionIntegrationStatus,listVerifiedMissionResources
 } from "@/api/missions";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -29,6 +29,7 @@ export default function MissionWorkspace(){
  const [phase,setPhase]=useState("loading"),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [mission,setMission]=useState(null),[plans,setPlans]=useState([]),[tasks,setTasks]=useState([]),
        [links,setLinks]=useState([]),[integration,setIntegration]=useState(null);
+ const [resources,setResources]=useState([]),[resourceError,setResourceError]=useState("");
  const [proposal,setProposal]=useState(null),[busy,setBusy]=useState("");
  const [newTask,setNewTask]=useState(""),[titleDraft,setTitleDraft]=useState("");
  const [refresh,setRefresh]=useState(0);
@@ -36,18 +37,22 @@ export default function MissionWorkspace(){
  const load=useCallback(async()=>{
   if(!UUID.test(id||""))throw Error("Invalid Mission reference.");
   const client=authClient();
-  const [m,p,t,l,integrations]=await Promise.all([
+  const [m,p,t,l,integrations,catalog]=await Promise.all([
     loadMission(client,id),listMissionPlans(client,id),listMissionTasks(client,id),
-    listMissionCampaignLinks(client,id),getMissionIntegrationStatus(client,id)
+    listMissionCampaignLinks(client,id),getMissionIntegrationStatus(client,id),
+    listVerifiedMissionResources(client).then(items=>({items})).catch(()=>({error:true}))
   ]);
   if(!active.current)return;
   if(m.owner_id!==owner)throw Error("That Mission belongs to a different account.");
   setMission(m);setPlans(p);setTasks(t);setLinks(l);setIntegration(integrations);
+  setResources(catalog.items||[]);
+  setResourceError(catalog.error?"Potential resource links are temporarily unavailable. Your Mission is unaffected.":"");
   setTitleDraft(m.title||"");setPhase("ready");
  },[id,owner]);
  useEffect(()=>{
   active.current=true;
   setMission(null);setPlans([]);setTasks([]);setLinks([]);setProposal(null);setIntegration(null);
+  setResources([]);setResourceError("");
   setError("");setNotice("");setPhase("loading");
   if(session.status==="loading")return()=>{active.current=false;};
   if(!owner||session.user?.is_anonymous===true){setPhase("error");setError("Sign in to open your private Mission.");return()=>{active.current=false;};}
@@ -204,6 +209,18 @@ export default function MissionWorkspace(){
      <h2 className="text-lg font-semibold">Opportunities and connections</h2>
      <p className="text-sm text-muted-foreground">Potential programs and partners need real source checks. A website link alone never proves a verified connection or approved support.</p>
      <p className="text-xs text-muted-foreground">{integration?.opportunities?.length||0} opportunity matches · {integration?.connections?.length||0} connection requests · {integration?.agents?.length||0} agent records</p>
+     <div className="space-y-3 border-t border-border pt-4" aria-label="Potential outside resources">
+       <h3 className="font-semibold">Programs and resources to investigate</h3>
+       <p className="text-xs text-muted-foreground">These are independently checked official website links, not offers or grants to your Mission. Eligibility, deadlines, availability and benefits have not been confirmed for you. Visiting an external site is your choice.</p>
+       {resourceError&&<p role="status" className="text-xs text-muted-foreground">{resourceError}</p>}
+       {!resourceError&&resources.length===0&&<p className="text-sm text-muted-foreground">No reviewed source links are currently listed. Your Mission can continue without them.</p>}
+       {resources.slice(0,5).map(item=><article key={item.id} className="rounded-xl border border-border p-3">
+         <p className="text-xs text-muted-foreground">{item.tags.includes(mission.goal_type)?"Related topic · ":"General resource · "}Source link checked · Eligibility not checked</p>
+         <h4 className="mt-1 text-sm font-semibold">{item.title}</h4>
+         <p className="mt-1 text-xs text-muted-foreground">{item.official_provider} · {item.geography}</p>
+         <a href={item.official_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-1 text-sm font-medium text-primary underline">Review official website <ArrowRight size={14} aria-hidden="true"/></a>
+       </article>)}
+     </div>
      <Link to="/connections" className="text-sm font-medium text-primary underline">Manage connected platforms</Link>
     </section>
     <section className="space-y-3 rounded-2xl border border-border bg-card p-5">

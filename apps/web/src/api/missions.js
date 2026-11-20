@@ -230,3 +230,47 @@ export async function suggestMissionPlan(client,missionId,revision,{requestId=cr
    throw new Error("AI planning returned an unverified response. Nothing was saved.");
  return data.plan;
 }
+
+
+// Read-only public-source discovery scoped to signed-in members.
+// The SQL policy exposes only source-checked catalog entries; this client never
+// sends private Mission prompts to providers or asserts personal eligibility.
+export async function listVerifiedMissionResources(client,{goalType="other",limit=12}={}){
+ const owner=await verifiedOwner(client);
+ const wanted=TYPES.has(goalType)?goalType:"other";
+ const cap=Math.min(20,Math.max(1,Number.isSafeInteger(limit)?limit:12));
+ const result=await client.from("ifund_opportunity").select(
+  "id,title,type,description,official_url,official_provider,verified_at,cause_tags,geography,requirements_complete,deadline_at,source_system,status"
+ ).eq("source_system","ifund_external_verified_v1")
+  .in("status",["open","program"])
+  .not("verified_at","is",null)
+  .order("verified_at",{ascending:false}).limit(cap);
+ if(result.error||!Array.isArray(result.data))throw new Error("Potential resource links could not be loaded.");
+ const items=result.data.filter(row=>{
+  if(typeof row?.official_url!=="string")return false;
+  try{return new URL(row.official_url).protocol==="https:"&&
+   row.source_system==="ifund_external_verified_v1"&&
+   row.verified_at!=null&&["open","program"].includes(row.status);}
+  catch{return false;}
+ }).map(row=>({
+  id:String(row.id),title:String(row.title||"Resource"),type:String(row.type||"resource"),
+  description:String(row.description||"").slice(0,1000),
+  official_url:row.official_url,
+  official_provider:String(row.official_provider||"Provider"),
+  geography:String(row.geography||"Location requirements vary"),
+  tags:Array.isArray(row.cause_tags)?row.cause_tags.filter(x=>typeof x==="string"):[],
+  source_checked_at:row.verified_at,
+  // Verification applies to the source link only, not benefits, award amounts,
+  // qualification or account/connection authority.
+  source_status:"source_link_checked",
+  eligibility_status:"not_checked",
+  match_status:"potential_only",
+ }));
+ const sorted=items.sort((a,b)=>{
+  const aScore=wanted!=="other"&&a.tags.includes(wanted)?1:0;
+  const bScore=wanted!=="other"&&b.tags.includes(wanted)?1:0;
+  return bScore-aScore;
+ });
+ await sessionStillOwner(client,owner);
+ return sorted;
+}
