@@ -58,7 +58,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    ).slice(0,1950);
    const questionRequest=new Request("https://ifund-agent-question.invalid/api/agents/team/question",{
      method:"POST",headers:{Authorization:"Bearer "+api.jwt,"Content-Type":"application/json"},
-     body:JSON.stringify({question,agent:"auto",request_id:crypto.randomUUID()})
+     body:JSON.stringify({question,agent:"nexus",request_id:crypto.randomUUID()})
    });
    const response=await env.IFUND_AGENT_SERVICE.fetch(questionRequest);
    const analysis=await response.json().catch(()=>null);
