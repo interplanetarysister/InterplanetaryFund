@@ -91,13 +91,6 @@ const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
-function CampaignEntryPoint() {
-  const location=useLocation();
-  const params=new URLSearchParams(location.search);
-  return !WHAT_IF_ENABLED || params.has("draft") || params.has("mission") || params.get("manual")==="1"
-    ? <CreateCampaign/> : <Navigate to="/what-if" replace/>;
-}
-
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
 const STANDALONE_COMING_SOON = [];
@@ -181,7 +174,7 @@ function AppRoutes() {
       <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart/> : <Navigate to="/create?manual=1" replace/>} />
       <Route path="/missions" element={WHAT_IF_ENABLED ? <MemberAccess><MyMissions/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
       <Route path="/missions/:id" element={WHAT_IF_ENABLED ? <MemberAccess><MissionWorkspace/></MemberAccess> : <Navigate to="/dashboard" replace/>} />
-      <Route path="/create" element={<CampaignEntryPoint/>} />
+      <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
