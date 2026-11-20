@@ -10,7 +10,9 @@ const local = readdirSync(path.join(root, "tests"))
   .filter(name => /\.test\.m?js$/.test(name))
   .sort().map(name => "tests/" + name);
 const files = [...local, "../../tests/paypal-sandbox-handler.test.js",
-  "../../tests/paypal-sandbox-security.test.js"];
+  "../../tests/paypal-sandbox-security.test.js",
+  "../../tests/agent-browser-policy.test.mjs",
+  "../../tests/browser-tooling-install.test.mjs"];
 const child = spawn(process.execPath, ["--test", "--test-reporter=spec", ...files],
   { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
 let output = "", errors = "";
