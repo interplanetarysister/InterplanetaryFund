@@ -55,8 +55,10 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      if(!Array.isArray(rows)||rows.length!==1 || rows[0].id!==input.message_id ||
        rows[0].speaker_type!=="admin" || rows[0].source_kind!=="admin_post" ||
        rows[0].event_type!=="assignment" || typeof rows[0].body!=="string" ||
-       rows[0].body.trim().length<8 || rows[0].body.length>4000)
+       rows[0].body.trim().length<8)
        fail(403,"Only a saved administrator assignment can be analyzed.");
+     if(rows[0].body.trim().length>1100)
+       fail(400,"This assignment is too long for a single NEXUS review. Summarize it to 1,100 characters.");
      assignedText=rows[0].body.trim();
    }
    if(byAssignment){
