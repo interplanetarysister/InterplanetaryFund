@@ -21,7 +21,10 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
-    if (pathname === '/api/missions/plan') return routeMissionPlan(request, env);
+    if (pathname === '/api/missions/plan') {
+      if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') return env.IFUND_AGENT_SERVICE.fetch(request);
+      return routeMissionPlan(request, env);
+    }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
