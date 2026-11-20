@@ -28,9 +28,9 @@ test("Live plan credentials and ready state must be set by the provider trusted 
  assert.match(migration,/revoke all on function public\.ifund_campaign_email_checkout_readiness\(\)/);
  assert.match(ui,/readEmailAddonCheckoutReadiness\(authClient\(\)\)/);
  assert.match(ui,/checkout is not yet available/i);
- assert.match(ui,/checkoutStatus\\?\\.checkout_ready!==true/);
- assert.match(ui,/providerCheckout\\?\\.checkout_ready!==true/);
- assert.match(ui,/beginRecurringEmailCheckout\\(authClient\\(\\)/);
- assert.match(ui,/window\\.location\\.assign\\(approved\\.approvalUrl\\)/);
+ assert.match(ui,/checkoutStatus\?\.checkout_ready!==true/);
+ assert.match(ui,/providerCheckout\?\.checkout_ready!==true/);
+ assert.match(ui,/beginRecurringEmailCheckout\(authClient\(\)/);
+ assert.match(ui,/window\.location\.assign\(approved\.approvalUrl\)/);
  assert.doesNotMatch(ui,/subscription_approved:true|mailbox_active:true/);
 });
