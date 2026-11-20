@@ -2,7 +2,8 @@ import {useCallback,useEffect,useRef,useState} from "react";
 import {Link} from "react-router-dom";
 import {AtSign,CheckCircle2,ShieldCheck,Loader2} from "lucide-react";
 import {authClient} from "@/api/auth";
-import {readEmailAddon,selectEmailAddon,IFUND_EMAIL_DOMAIN} from "@/lib/campaignEmailAddon.mjs";
+import {readEmailAddon,selectEmailAddon,linkCampaignEmail,IFUND_EMAIL_DOMAIN} from "@/lib/campaignEmailAddon.mjs";
+import {listOwnerCampaigns} from "@/api/ownerCampaigns";
 
 // Requests a reserved address only. The backend independently checks a real
 // active paid plan and separate provider-verified addon payment and routing.
@@ -11,6 +12,10 @@ export default function CampaignEmailAddon(){
  const [status,setStatus]=useState(null);
  const [handle,setHandle]=useState("");
  const [optIn,setOptIn]=useState(false);
+ const [campaigns,setCampaigns]=useState([]);
+ const [linkedCampaign,setLinkedCampaign]=useState("");
+ const [linkBusy,setLinkBusy]=useState(false);
+ const [campaignError,setCampaignError]=useState("");
  const [busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("");
  const [error,setError]=useState("");
@@ -23,7 +28,14 @@ export default function CampaignEmailAddon(){
      const result=await readEmailAddon(authClient());
      if(!alive.current||generationNumber!==generation.current)return;
      setStatus(result);setHandle(result.requested_handle||"");
-     setOptIn(result.opted_in);setPhase("ready");
+     setOptIn(result.opted_in);setLinkedCampaign(result.linked_campaign_id||"");setPhase("ready");
+     setCampaignError("");
+     if(result.eligible && result.opted_in){
+       listOwnerCampaigns(authClient()).then(rows=>{
+         if(alive.current&&generationNumber===generation.current)setCampaigns(rows);
+       }).catch(()=>{if(alive.current&&generationNumber===generation.current)
+         setCampaignError("Your campaigns could not be loaded. Refresh before linking an address.");});
+     } else setCampaigns([]);
    }catch(e){
      if(alive.current&&generationNumber===generation.current){
        setPhase("unavailable");setError(e?.message||"Email add-on status unavailable.");
@@ -42,6 +54,11 @@ export default function CampaignEmailAddon(){
      if(!alive.current)return;
      setStatus(latest);setOptIn(latest.opted_in);
      setHandle(latest.requested_handle||"");
+     setLinkedCampaign(latest.linked_campaign_id||"");
+     if(latest.opted_in){
+       listOwnerCampaigns(authClient()).then(rows=>{if(alive.current)setCampaigns(rows);})
+         .catch(()=>{if(alive.current)setCampaignError("Could not load your owned campaigns.");});
+     }else setCampaigns([]);
      setNotice(!latest.opted_in
        ?"Email add-on disabled. Your reserved address cannot receive campaign messages."
        :latest.active
@@ -49,6 +66,20 @@ export default function CampaignEmailAddon(){
          :"Your address preference is reserved. Email delivery is NOT active. The separately billed $1/month add-on and address routing must be verified before use.");
    }catch(e){if(alive.current)setError(e?.message||"Email add-on selection was not saved.");}
    finally{if(alive.current)setBusy(false);}
+ }
+ async function connectCampaign(event){
+   event.preventDefault();
+   if(busy||linkBusy||!status?.opted_in)return;
+   setLinkBusy(true);setError("");setNotice("");
+   try{
+     const updated=await linkCampaignEmail(authClient(),{campaignId:linkedCampaign||null});
+     if(!alive.current)return;
+     setStatus(updated);setLinkedCampaign(updated.linked_campaign_id||"");
+     setNotice(updated.linked_campaign_id
+       ?"Campaign connection saved and confirmed. Incoming mail will be associated with your selected campaign only after paid mailbox activation."
+       :"Campaign link cleared. Your email add-on selection remains unchanged.");
+   }catch(cause){if(alive.current)setError(cause?.message||"Campaign connection could not be saved.");}
+   finally{if(alive.current)setLinkBusy(false);}
  }
  const eligible=status?.eligible===true;
  const active=status?.active===true && status?.can_receive_email===true;
@@ -101,6 +132,23 @@ export default function CampaignEmailAddon(){
            </button>
            {saved&&status.requested_address&&<span className="break-all text-sm font-medium">{status.requested_address}</span>}
          </div>
+       </form>}
+       {saved&&eligible&&<form onSubmit={connectCampaign} className="space-y-3 rounded-xl border border-cyan-500/25 bg-background/70 p-4">
+         <div><h3 className="font-semibold">Connect your address to a campaign</h3>
+           <p className="mt-1 text-xs text-muted-foreground">Choose one of your own campaigns. This labels future incoming messages in your private iFund Inbox. Linking does not activate delivery or publish anything.</p></div>
+         {campaignError&&<p role="alert" className="text-sm text-destructive">{campaignError}</p>}
+         <label htmlFor="ifund-email-campaign" className="block text-sm font-semibold">Campaign</label>
+         <select id="ifund-email-campaign" value={linkedCampaign} onChange={e=>{setLinkedCampaign(e.target.value);setNotice("");}}
+           disabled={busy||linkBusy||!!campaignError}
+           className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm">
+           <option value="">No specific campaign (account inbox only)</option>
+           {campaigns.map(item=><option value={item.id} key={item.id}>{item.title||"Untitled campaign"}</option>)}
+         </select>
+         <button type="submit" disabled={busy||linkBusy||!!campaignError||linkedCampaign===(status.linked_campaign_id||"")}
+           className="min-h-11 rounded-xl border border-cyan-500/40 px-4 text-sm font-semibold disabled:opacity-50">
+           {linkBusy?"Verifying campaign…":"Save campaign connection"}
+         </button>
+         {campaigns.length===0&&!campaignError&&<p className="text-xs text-muted-foreground">No saved campaigns found. <Link className="underline" to="/create">Create a campaign</Link> first to associate it with this email.</p>}
        </form>}
        {saved&&<div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm" role="status">
          {active?<span className="inline-flex items-center gap-2"><CheckCircle2 aria-hidden="true" className="size-4"/>Verified active email identity.</span>
