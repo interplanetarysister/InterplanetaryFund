@@ -122,7 +122,7 @@ test("Growth routes only its own paths/RPCs with independent activation", async 
   const fetcher = async (url) => {
     urls.push(url);
     return Response.json(
-      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : { brief: null, recommendations: [] },
     );
@@ -158,7 +158,7 @@ test("Growth Cloudflare entrypoint ignores execution context and unauthenticated
   try {
     globalThis.fetch = async (url) =>
       Response.json(
-        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+        url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
           ? { id: uid, email_confirmed_at: "today" }
           : { brief: null, recommendations: [] },
       );
@@ -217,7 +217,7 @@ test("Growth inference uses its own context, quota and stored receipt with fact-
   const fetcher = async (url, init) => {
     calls.push(url);
     return Response.json(
-      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
+      url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.includes("/ifund_ai_permission_preferences?") ? [{ owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }
         : url.endsWith("ifund_growth_context")
           ? context
