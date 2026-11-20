@@ -95,7 +95,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
         const [status, subscription, preferences, identityResponse] = await Promise.all([
           fetch("/api/agents/team/status", { signal: controller.signal, cache: "no-store" }),
           client.rpc("ifund_story_subscription"),
-          client.from("ifund_ai_permission_preferences").select("owner_id,allow_ai_campaign_drafts,allow_future_internal_ai_assistance").eq("owner_id", owner).maybeSingle(),
+          client.from("ifund_ai_permission_preferences").select("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance").eq("owner_id", owner).maybeSingle(),
           client.auth.getUser(),
         ]);
         const gateway = await status.json().catch(() => null);
