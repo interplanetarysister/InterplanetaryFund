@@ -158,6 +158,113 @@ async function start(request,env){
    return error("checkout_not_confirmed");
  }
 }
+const WEBHOOK_EVENT_TYPES=Object.freeze({
+ "PAYMENT.SALE.COMPLETED":"payment",
+ "PAYMENT.SALE.REFUNDED":"refund",
+ "PAYMENT.SALE.REVERSED":"refund",
+ "BILLING.SUBSCRIPTION.CANCELLED":"cancel",
+ "BILLING.SUBSCRIPTION.EXPIRED":"cancel",
+ "BILLING.SUBSCRIPTION.SUSPENDED":"suspend",
+ "BILLING.SUBSCRIPTION.PAYMENT.FAILED":"suspend"
+});
+const WEBHOOK_EVENT=/^WH-[A-Z0-9-]{8,90}$/;
+const PROVIDER_ID=/^[A-Za-z0-9_-]{8,100}$/;
+async function receiveVerifiedEmailWebhook(request,env){
+ // An independently registered PayPal webhook identity is mandatory; an
+ // arbitrary HTTP request cannot act as a provider payment receipt.
+ if(env.IFUND_PAYPAL_MODE!=="live"||
+    !/^[A-Z0-9]{8,80}$/.test(env.IFUND_EMAIL_ADDON_WEBHOOK_ID||"")||
+    !PLAN.test(env.IFUND_EMAIL_ADDON_PLAN_ID||""))
+   return error("email_provider_webhook_not_configured");
+ const size=Number(request.headers.get("content-length")||0);
+ if(!Number.isFinite(size)||size>24000)return error("invalid_paypal_webhook_size",413);
+ const raw=await request.text();
+ if(!raw||raw.length>24000)return error("invalid_paypal_webhook_size",413);
+ let event;
+ try{event=JSON.parse(raw)}catch{return error("invalid_paypal_webhook",400)}
+ if(!event||typeof event!=="object"||!WEBHOOK_EVENT.test(event.id||"")||
+   typeof event.event_type!=="string"||typeof event.create_time!=="string")
+   return error("invalid_paypal_webhook",400);
+ const h=request.headers;
+ const trans=h.get("paypal-transmission-id"),time=h.get("paypal-transmission-time");
+ const sig=h.get("paypal-transmission-sig"),algo=h.get("paypal-auth-algo");
+ const cert=h.get("paypal-cert-url");
+ let certUrl;
+ try{certUrl=new URL(cert||"")}catch{return error("paypal_webhook_signature_missing",401)}
+ if(!trans||!time||!sig||!algo||!certUrl||
+    certUrl.protocol!=="https:"||
+    !["api.paypal.com","api-m.paypal.com"].includes(certUrl.hostname)||
+    !certUrl.pathname.startsWith("/v1/notifications/certs/"))
+   return error("paypal_webhook_signature_missing",401);
+ const verification=await paypal(env,"/v1/notifications/verify-webhook-signature","POST",{
+   auth_algo:algo,cert_url:cert,transmission_id:trans,transmission_sig:sig,
+   transmission_time:time,webhook_id:env.IFUND_EMAIL_ADDON_WEBHOOK_ID,
+   webhook_event:event
+ });
+ if(verification?.verification_status!=="SUCCESS")
+   return error("paypal_webhook_not_verified",401);
+ const kind=WEBHOOK_EVENT_TYPES[event.event_type];
+ if(!kind)return json({ok:true,ignored:true});
+ const resource=event.resource;
+ const subscriptionId=kind==="payment"||kind==="refund"
+   ?resource?.billing_agreement_id:resource?.id;
+ if(!SUB.test(subscriptionId||""))return error("paypal_subscription_identity_missing");
+ const subscription=await paypal(env,"/v1/billing/subscriptions/"+subscriptionId);
+ if(subscription?.id!==subscriptionId||
+    subscription.plan_id!==env.IFUND_EMAIL_ADDON_PLAN_ID||
+    !/^ifund-email-addon:[0-9a-f-]{36}$/i.test(subscription.custom_id||""))
+   return error("paypal_subscription_identity_mismatch");
+ const intentId=subscription.custom_id.slice("ifund-email-addon:".length);
+ if(!UUID.test(intentId))return error("paypal_intent_identity_mismatch");
+ const providerPlan=await paypal(env,"/v1/billing/plans/"+subscription.plan_id);
+ if(!exactPlan(providerPlan))return error("paypal_provider_plan_unverified");
+ const registered=await signedLedger(env,"plan_identity",{p_plan_id:subscription.plan_id});
+ if(!registered||registered.verified!==true||registered.plan_id!==subscription.plan_id||
+    typeof registered.merchant_id!=="string"||!registered.merchant_id)
+   return error("paypal_merchant_identity_unavailable");
+ let resourceId=subscriptionId;
+ let paidThrough=null;
+ if(kind==="payment"||kind==="refund"){
+   const saleId=resource?.id;
+   if(!PROVIDER_ID.test(saleId||""))return error("paypal_sale_identity_missing");
+   const sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(saleId));
+   const state=String(sale?.state||"").toLowerCase();
+   if(sale?.id!==saleId||sale.billing_agreement_id!==subscriptionId||
+      sale?.amount?.currency!=="USD"||sale?.amount?.total!=="1.00"||
+      sale?.payee?.merchant_id!==registered.merchant_id||
+      (kind==="payment"?state!=="completed":
+       !["refunded","partially_refunded","reversed"].includes(state)))
+     return error("paypal_sale_receipt_unverified");
+   resourceId=saleId;
+   if(kind==="payment"){
+     if(subscription.status!=="ACTIVE")
+       return error("paypal_active_recurring_subscription_not_verified");
+     const next=new Date(subscription.billing_info?.next_billing_time||"");
+     if(!Number.isFinite(next.getTime())||next.getTime()<=Date.now()||
+       next.getTime()>Date.now()+35*86400_000)
+       return error("paypal_recurring_period_not_verified");
+     paidThrough=next.toISOString();
+   }
+ }else{
+   const allowed=kind==="cancel"?["CANCELLED","EXPIRED"]:["SUSPENDED","CANCELLED","EXPIRED"];
+   if(!allowed.includes(subscription.status))
+     return error("paypal_recurring_revocation_not_verified");
+ }
+ const staged=await signedLedger(env,"event_stage",{p_event:{
+   event_id:event.id,intent_id:intentId,subscription_id:subscriptionId,
+   kind,resource_id:resourceId,merchant_id:registered.merchant_id,
+   occurred_at:event.create_time,currency:"USD",amount_cents:100,
+   environment:"live",provider_verified:true,webhook_verified:true
+ }});
+ if(!staged?.accepted)return error("paypal_evidence_staging_failed");
+ const reconciled=await signedLedger(env,"event_reconcile",{
+   p_event_id:event.id,p_provider_paid_through:paidThrough
+ });
+ if(!reconciled?.accepted)return error("paypal_email_billing_reconciliation_failed");
+ return json({ok:true,event_recorded:true,
+   recurring_billing_state:reconciled.billing_state||"already_processed",
+   mailbox_activated:false});
+}
 export default {
  async fetch(request,env){
   const path=new URL(request.url).pathname;
@@ -168,6 +275,10 @@ export default {
   if(path==="/api/payments/email-addon/start"&&request.method==="POST"){
     try{return await start(request,env)}
     catch(e){return error(e?.message||"billing_unavailable",e?.status||503)}
+  }
+  if(path==="/api/payments/email-addon/webhook"&&request.method==="POST"){
+    try{return await receiveVerifiedEmailWebhook(request,env)}
+    catch{return error("paypal_email_webhook_retry_required")}
   }
   return error("not_found",404);
  }
