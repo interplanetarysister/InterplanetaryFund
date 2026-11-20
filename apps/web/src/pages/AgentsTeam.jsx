@@ -42,6 +42,7 @@ export default function AgentsTeam() {
   const [gateway,setGateway]=useState({status:"loading",configured:false});
   const [membership,setMembership]=useState({status:"loading",active:false,ownerId:null});
   const [aiPermission,setAiPermission]=useState({status:"loading",allowed:false,ownerId:null});
+  const [consentRevision,setConsentRevision]=useState(0);
   const membershipActive=Boolean(user?.id && membership.ownerId===user.id && membership.status==="ready" && membership.active);
   const aiPermissionGranted=Boolean(user?.id && aiPermission.ownerId===user.id && aiPermission.status==="ready" && aiPermission.allowed);
   const requestRef=useRef({generation:0,controller:null});
@@ -76,6 +77,16 @@ export default function AgentsTeam() {
     return()=>{active=false;};
   },[user?.id]);
   useEffect(()=>{
+    const changed=event=>{
+      if(event.detail?.ownerId !== user?.id)return;
+      requestRef.current.controller?.abort();
+      setQuestionBusy(false);
+      setConsentRevision(n=>n+1);
+    };
+    window.addEventListener("ifund-ai-consent-changed",changed);
+    return()=>window.removeEventListener("ifund-ai-consent-changed",changed);
+  },[user?.id]);
+  useEffect(()=>{
     let active=true;
     const owner=user?.id||null;
     setAiPermission({status:owner?"loading":"signed-out",allowed:false,ownerId:owner});
@@ -101,7 +112,7 @@ export default function AgentsTeam() {
       if(active)setAiPermission({status:"unavailable",allowed:false,ownerId:owner});
     }
     return()=>{active=false;};
-  },[user?.id]);
+  },[user?.id,consentRevision]);
   useEffect(()=>{
     requestRef.current.generation++;
     requestRef.current.controller?.abort();
