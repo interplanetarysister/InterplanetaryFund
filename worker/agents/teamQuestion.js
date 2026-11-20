@@ -73,7 +73,7 @@ export function validateTeamAnswer(raw,selected) {
   const response=typeof raw === "string" ? raw : raw?.response;
   if (typeof response !== "string" || !response.trim() || response.trim().length > 6000)
     fail(503,"The selected agent did not return a usable answer.");
-  return {agent:selected,agent_name:SPECIALISTS[selected],answer:response.trim(),type:"advisory",actions_performed:false};
+  return {agent:selected,agent_name:SPECIALISTS[selected],answer:redactTeamCredentials(response.trim()).slice(0,6000),type:"advisory",actions_performed:false};
 }
 
 export async function routeTeamQuestion(request, env, fetcher=fetch) {

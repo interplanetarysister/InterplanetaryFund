@@ -45,3 +45,17 @@ test("runtime capabilities never claim action execution, even when history is re
  }
  assert.match(specialistSkillBoundary("story"),/has not been verified/);
 });
+
+test("team history clips very long messages and excludes invalid provenance",()=>{
+ const row={agent_id:"nexus",speaker:"user",recorded_at:"2026-11-20T10:00:00Z",content:"x".repeat(20000)};
+ const result=verifiedTeamHistoryBrief([row],{trustedOwnerRead:true});
+ assert.equal(result[0].content.length,450);
+ assert.deepEqual(verifiedTeamHistoryBrief([{...row,recorded_at:"invalid-date"}],{trustedOwnerRead:true}),[]);
+});
+test("skill catalog never grants external provider permissions",()=>{
+ for(const agent of all){
+  const card=specialistSkillCard(agent);
+  assert.notEqual(card.tool.execution,"enabled");
+  assert.ok(["advisory","owner_draft"].includes(card.tool.kind));
+ }
+});

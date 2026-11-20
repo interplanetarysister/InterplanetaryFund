@@ -2,6 +2,7 @@
 // Only the authenticated, quota-gated agent endpoint executes these suggestions.
 import { TRAINING_ROLES, recommendAgent } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
+import { redactTeamCredentials } from "./teamContext.js";
 export const MAX_NEXUS_SPECIALISTS=2;
 export function planAgentConsultations({question,selected,recommendation}){
   if(selected!=="nexus") return [];
@@ -16,7 +17,7 @@ export function validateConsultation(raw,agent){
   const text=typeof raw==="string"?raw:raw?.response;
   if(typeof text!=="string" || !text.trim() || text.trim().length>3000)
     throw Error("The specialist did not return a valid advisory analysis.");
-  return {agent,status:"completed",kind:"advisory_analysis",summary:text.trim().slice(0,1600)};
+  return {agent,status:"completed",kind:"advisory_analysis",summary:redactTeamCredentials(text.trim()).slice(0,1600)};
 }
 export function nexusSynthesisMessages({question,consultations,history=[]}){
   if(!Array.isArray(consultations) || consultations.length<1 ||
@@ -36,8 +37,8 @@ export function nexusSynthesisMessages({question,consultations,history=[]}){
       specialistSkillBoundary("nexus",{memoryVerified:history.length>0})
     ].join("\n")},
     {role:"user",content:JSON.stringify({
-      original_question:question,
-      completed_read_only_specialist_analyses:consultations.map(({agent,summary})=>({agent,summary})),
+      original_question:redactTeamCredentials(question),
+      completed_read_only_specialist_analyses:consultations.map(({agent,summary})=>({agent,summary:redactTeamCredentials(summary).slice(0,1600)})),
       verified_owner_team_history:verifiedTeamHistoryBrief(history,{trustedOwnerRead:true,maxEvents:6})
     })}
   ];
