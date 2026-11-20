@@ -190,7 +190,7 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     400,
   );
-  assert.equal(p.calls.length, 3);
+  assert.equal(p.calls.length, 2);
   assert.ok(!p.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_request_action")));
   const big = provider();
   assert.equal(
@@ -203,9 +203,10 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     413,
   );
-  assert.equal(big.calls.length, 3);
+  assert.equal(big.calls.length, 2);
   assert.ok(!big.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_grant_help")));
   const denied = async (url) =>
+    url.endsWith("/rpc/ifund_current_account_is_active") ? Response.json(true) :
     url.endsWith("/auth/v1/user")
       ? Response.json({ id: uid, email_confirmed_at: "yes" })
       : Response.json({ code: "42501" }, { status: 403 });
@@ -227,7 +228,7 @@ test("expired plan can still read connection workspace while the canonical actio
   const calls = [];
   const requestProvider = async (url, options) => {
     calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
-    return url.endsWith("/auth/v1/user")
+    return url.endsWith("/rpc/ifund_current_account_is_active") ? Response.json(true) : url.endsWith("/auth/v1/user")
       ? Response.json({ id: uid, email_confirmed_at: "yes" })
       : Response.json({ code: "42501" }, { status: 403 });
   };
