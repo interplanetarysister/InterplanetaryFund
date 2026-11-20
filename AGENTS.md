@@ -1,3 +1,7 @@
+## Mandatory repair-first build sequence (owner directive — 2026-11-20)
+
+Before executing automated checks, tests, preview/production builds or deployments, inspect affected code, its dependencies, recent regressions and active runtime contracts. Repair all identifiable defects first and add regression assertions. **Only then run checks and builds.** When checks reveal new defects, repair them and rerun. A green build cannot replace this proactive audit, and a successful preview is not authenticated end-to-end acceptance. Preserve existing release, security and payment controls.
+
 ## Owner-wide rules and historical restoration checkpoint — 2026-11-20
 
 For **every build, repair, audit, agent workflow, branch integration and release**, read [the numbered standing owner rules](docs/operations/IFUND_STANDING_OWNER_RULES_20261120.md) and [the restored-file audit](docs/operations/HISTORICAL_FILE_RESTORATION_AUDIT_20261120.md). The 61 rules collect current owner preferences and safety controls; the newest explicit owner decision and verified live implementation resolve conflicts. Do not treat archived migration contracts as active production configuration. Review the purposes of every apparently duplicate file before modification or removal. Do not discard unfinished or unverified tasks.
