@@ -1,3 +1,4 @@
+import { routeMissionExplore } from './missions/explore.js';
 import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
@@ -18,6 +19,7 @@ import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, 
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
