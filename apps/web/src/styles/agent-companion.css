@@ -1,0 +1,35 @@
+/* Workspace companion and refined dashboard. Scoped, accessible, no page overlay on desktop. */
+.ifund-agent-side-panel {
+  display:flex; flex-direction:column; flex:0 0 clamp(335px,36vw,520px);
+  min-width:0; min-height:0; background:#090f1e; color:#eff6ff;
+  border-left:1px solid #35435b; box-shadow:-10px 0 35px #0002;
+  z-index:45;
+}
+.ifund-agent-panel-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 16px 10px; }
+.ifund-agent-panel-choices { display:flex; gap:6px; padding:12px 16px; overflow-x:auto; scrollbar-width:thin; }
+.ifund-agent-panel-choices button { padding:5px; flex:0 0 auto; border:1px solid #34445b; border-radius:12px; }
+.ifund-agent-panel-choices button[aria-pressed="true"] { border-color:#5fe6ed; background:#0c293d; }
+.ifund-agent-panel-choices button:focus-visible,.ifund-agent-side-panel button:focus-visible,.ifund-agent-side-panel a:focus-visible { outline:2px solid #70e3ef; outline-offset:2px; }
+.ifund-agent-panel-messages { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:14px; background:#151f30; margin:0 12px; border:1px solid #304057; border-radius:15px; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
+.ifund-agent-panel-welcome { background:#25354d; border:1px solid #344a68; padding:14px; border-radius:15px; font-size:13px; line-height:1.65; }
+.ifund-agent-message { max-width:94%; padding:12px 14px; border-radius:16px; font-size:13px; line-height:1.6; }
+.ifund-agent-message.user { align-self:flex-end; background:#175d7e; color:white; }
+.ifund-agent-message.answer { align-self:flex-start; background:#26364d; border:1px solid #36495f; }
+.ifund-agent-panel-compose { padding:12px 14px max(14px,env(safe-area-inset-bottom)); }
+.ifund-agent-side-panel textarea:focus-visible { outline:2px solid #70e3ef; outline-offset:2px; }
+.ifund-dashboard-hero { position:relative; isolation:isolate; overflow:hidden; border-radius:24px; padding:clamp(22px,4vw,42px); border:1px solid #466282; background:radial-gradient(ellipse at 90% 0%,#3b3a85a8,transparent 55%),radial-gradient(ellipse at 0% 100%,#12687477,transparent 55%),linear-gradient(120deg,#081322,#18233c); color:#fff; }
+.ifund-dashboard-eyebrow { font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#0e8caa; }
+.ifund-dashboard-primary,.ifund-dashboard-secondary { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; border-radius:13px; padding:10px 16px; font-size:13px; font-weight:750; }
+.ifund-dashboard-primary { background:#77e7e6; color:#07172b; }
+.ifund-dashboard-secondary { border:1px solid #94a6c1; background:#ffffff12; color:#f7fbff; }
+.ifund-dashboard-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.ifund-dashboard-shortcut { display:flex; align-items:center; gap:10px; width:100%; min-width:0; text-align:left; background:hsl(var(--card)); color:hsl(var(--foreground)); border:1px solid hsl(var(--border)); border-radius:16px; min-height:64px; padding:15px; font-weight:700; font-size:13px; }
+.ifund-dashboard-shortcut:hover,.ifund-dashboard-mini-link:hover { border-color:hsl(var(--primary)); }
+.ifund-dashboard-card { min-width:0; border:1px solid hsl(var(--border)); border-radius:21px; background:hsl(var(--card)); padding:clamp(17px,2vw,24px); }
+.ifund-dashboard-mini-link { display:flex; justify-content:space-between; align-items:center; gap:8px; border:1px solid hsl(var(--border)); border-radius:12px; padding:12px; font-size:13px; font-weight:650; }
+@media (min-width:800px) { .ifund-dashboard-shortcuts { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media (max-width:767px) {
+  .ifund-agent-side-panel { position:fixed; inset:0 0 0 auto; width:min(100vw,480px); max-width:100vw; height:100dvh; border-left:0; z-index:90; box-shadow:-18px 0 70px #0009; padding-top:env(safe-area-inset-top); }
+  .ifund-agent-panel-messages { flex:1; }
+}
+@media (prefers-reduced-motion:reduce) { .ifund-agent-panel-messages { scroll-behavior:auto; } }
