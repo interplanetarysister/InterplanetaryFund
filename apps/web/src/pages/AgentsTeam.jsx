@@ -171,6 +171,7 @@ export default function AgentsTeam() {
         <span className="ifund-agents-chip">You approve external actions</span>
       </div>
     </header>
+    {user && <AgentOperationsRoom key={user.id} user={user}/>}
     <section aria-label="Agent specialties" className="space-y-4">
       <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to chat in a side panel while you browse</p></div>
       <div aria-label="IFund agents" className="ifund-agents-grid">
@@ -265,7 +266,6 @@ export default function AgentsTeam() {
       </div>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
-    {user && <AgentOperationsRoom key={user.id} user={user}/>}
     {user && <EditorialAgentQueue />}
     {user && <TeamConversationHistory />}
     <section className="ifund-agents-writing">
