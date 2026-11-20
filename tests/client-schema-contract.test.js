@@ -39,10 +39,21 @@ const PENDING = [
   "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
   "supabase/migrations/20261110_ifund_current_legal_terms_sync.sql",
   "supabase/migrations/20261110225840_ifund_campaign_creation_state_20261110.sql",
-  // Private operations room (NEXUS advisory analysis): table + RLS contract.
-  "supabase/migrations/20261120033000_ifund_agent_operations_messages.sql",
+  // Private operations room (NEXUS advisory analysis): canonical upstream
+  // contract — table + RLS + browser write grants.
+  "supabase/migrations/20261120114500_ifund_agent_operations_room.sql",
   // Review-completed PUBLIC revocation for the managed-campaign audit guard.
   "supabase/migrations/20261120034000_ifund_guard_public_revocation.sql",
+  // What-If mission foundation: mission plan versions selected by apps/web.
+  // The foundation migration references the Base44 entity table contract.
+  "supabase/migrations/pending/20261102_ifund_base44_entity_tables.sql",
+  "supabase/migrations/20261111_ifund_verified_external_opportunities.sql",
+  // Additive reconciliation: grants on requirements_complete exist, but the
+  // column was never created by any migration; create it before the grant.
+  "supabase/migrations/20261120122000_ifund_opportunity_read_columns.sql",
+  "supabase/migrations/20261120122219_ifund_what_if_verified_opportunity_catalog_read.sql",
+  "supabase/migrations/20261120042045_ifund_what_if_mission_foundation.sql",
+  "supabase/migrations/20261120042253_ifund_what_if_mission_rls_and_indexes.sql",
   // Fundraising events (ifund_events) and external-activity receipts the
   // browser reads directly; execute the real DDL so client reads cannot pass
   // against a hand-written imitation of the application schema.
@@ -237,6 +248,18 @@ const getDb = () =>
       create schema if not exists ifund_private;
       create function ifund_private.verified_email_creator() returns boolean
       language sql stable set search_path = '' as $$ select false $$;
+      -- Hosted RPC used by the verified-administrator ops-room policies; the
+      -- hosted catalog defines it in production, so create a stand-in when
+      -- the migration runs against this isolated harness.
+      create or replace function public.ifund_current_user_is_verified_admin()
+      returns boolean
+      language sql stable set search_path = '' as $$
+        select coalesce((select true
+          from auth.users u
+          where u.id = auth.uid()
+            and u.is_anonymous is not true
+            and u.email_confirmed_at is not null), false)
+      $$;
     `);
     await applyMigrations(db, COMMITTED_MIGRATIONS);
     await applyMigrations(db, PENDING);

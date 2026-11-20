@@ -192,6 +192,21 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_begin_campaign_email_checkout",
   "public.ifund_admin_review_outreach_candidate",
   "public.ifund_cancel_account_deletion",
+  // What-If Mission definers (Nov 20, upstream migrations): owner-scoped
+  // reviewed-plan writes with optimistic-revision guards, owner-verified
+  // campaign bridges, owner-scoped audit triggers and tentative resource
+  // bookmarks; none is financial, cross-owner or publication-authorizing, and
+  // the upstream migrations revoke PUBLIC execute for these definers.
+  "public.ifund_mission_save_reviewed_plan",
+  "public.ifund_mission_link_owned_campaign",
+  "public.ifund_mission_audit_change",
+  "public.ifund_mission_bookmark_verified_resource",
+  // Operations-room background runtime (Nov 20, upstream migrations):
+  // token-gated bot claims against the private room, with a hard daily
+  // claim cap, plus run completion and failure. Revoked from public.
+  "public.ifund_ops_bot_claim",
+  "public.ifund_ops_bot_complete",
+  "public.ifund_ops_bot_fail",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
