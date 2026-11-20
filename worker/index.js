@@ -50,8 +50,8 @@ export default {
     if (pathname === '/api/ai/images/improve') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageImprove(request, env);
     if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
-    if (pathname === '/api/studio/generate') return routeStudioGenerateRequest(request, env);
-    if (pathname === '/api/studio/status') return routeStudioStatusRequest(request, env);
+    if (pathname === '/api/studio/generate') return env.IFUND_STUDIO_AI_SERVICE?.fetch ? env.IFUND_STUDIO_AI_SERVICE.fetch(request) : routeStudioGenerateRequest(request, env);
+    if (pathname === '/api/studio/status') return env.IFUND_STUDIO_AI_SERVICE?.fetch ? env.IFUND_STUDIO_AI_SERVICE.fetch(request) : routeStudioStatusRequest(request, env);
     if (/^\/api\/studio\/pages\/[0-9a-f-]+\/versions(?:\/[0-9]+\/restore)?$/i.test(pathname)) return routeStudioVersionRequest(request, env);
     if (/^\/api\/public\/studio\/pages\/[a-z0-9-]+$/i.test(pathname)) return routePublicStudioPage(request, env);
     if (pathname === '/api/health') {
