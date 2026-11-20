@@ -174,7 +174,7 @@ export default function Home() {
             ))}
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to={whatIfEnabled ? "/what-if" : "/create"} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-semibold text-white"><Sparkles className="h-4 w-4" aria-hidden="true" /> Start free</Link>
+            <Link to="/create?manual=1" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 font-semibold text-white"><Sparkles className="h-4 w-4" aria-hidden="true" /> Start free</Link>
             <Link to="/plans" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-5 font-semibold">See plans</Link>
           </div>
         </div>
