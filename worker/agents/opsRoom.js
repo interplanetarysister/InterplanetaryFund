@@ -59,6 +59,18 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
        fail(403,"Only a saved administrator assignment can be analyzed.");
      assignedText=rows[0].body.trim();
    }
+   if(byAssignment){
+     const existing=await fetcher(SUPABASE_ORIGIN+
+       "/rest/v1/ifund_agent_operations_messages?select=id,source_receipt"+
+       "&thread_id=eq."+ROOM+"&source_receipt=like.assignment-"+input.message_id+"*&limit=1",{
+       headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+api.jwt},
+       signal:AbortSignal.timeout(12000)
+     });
+     if(!existing.ok)fail(503,"Previous assignment processing could not be checked.");
+     const prior=await existing.json().catch(()=>null);
+     if(!Array.isArray(prior))fail(503,"Invalid assignment processing history.");
+     if(prior.length)fail(409,"This assignment has already been reviewed by NEXUS.");
+   }
    // Read only the admin's private room under their verified JWT and RLS.
    const historyResponse=await fetcher(SUPABASE_ORIGIN+
      "/rest/v1/ifund_agent_operations_messages?select=speaker_type,agent_id,body,event_type&thread_id=eq."+
@@ -96,7 +108,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      c.agent==="nexus" || c.status!=="completed" ||
      c.kind!=="advisory_analysis" || typeof c.summary!=="string" || !c.summary.trim() ||
      c.summary.length>1600))fail(503,"Invalid specialist execution evidence.");
-   const receipt=crypto.randomUUID();
+   const receipt=byAssignment?"assignment-"+input.message_id:crypto.randomUUID();
    const entries=[...consultations.map(c=>({
      thread_id:ROOM,speaker_type:"agent",agent_id:c.agent,body:c.summary,
      event_type:"analysis",source_kind:"verified_agent_runtime",source_receipt:receipt+":"+c.agent
