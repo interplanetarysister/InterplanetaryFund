@@ -9,7 +9,9 @@ const EVENTS=new Set(["discussion","assignment","analysis","result","blocker"]);
 async function privateRoomCall(env,key,method,path,payload,fetcher){
  const resp=await fetcher(SUPABASE_ORIGIN+"/rest/v1/"+path,{
    method,
-   headers:{"Content-Type":"application/json",apikey:key,Authorization:"Bearer "+key,
+   headers:{"Content-Type":"application/json",apikey:key,
+     // Modern sb_secret keys must only be sent as apikey, not Bearer JWTs.
+     ...(!key.startsWith("sb_secret_")?{Authorization:"Bearer "+key}:{}),
      ...(method==="POST"?{Prefer:"return=representation"}:{})},
    ...(payload?{body:JSON.stringify(payload)}:{}),
    signal:AbortSignal.timeout(12000)
