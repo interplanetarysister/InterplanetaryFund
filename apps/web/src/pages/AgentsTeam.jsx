@@ -161,7 +161,7 @@ export default function AgentsTeam() {
     <header className="ifund-agents-hero">
       <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
       <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>
-      <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and account connections. Find the right specialist, ask a question, or open the tools available to your account.</p>
+      <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to open a conversation that stays visible as you explore the site.</p>
       <a href="#ask-mission-control" className="ifund-agents-hero-link">Ask Mission Control <span aria-hidden="true">↗</span></a>
       <div className="ifund-agents-hero-foot" aria-label="Agent Team capabilities">
         <span className="ifund-agents-chip">Specialist matching included</span>
@@ -170,10 +170,10 @@ export default function AgentsTeam() {
       </div>
     </header>
     <section aria-label="Agent specialties" className="space-y-4">
-      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to explore its tools</p></div>
+      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to chat in a side panel while you browse</p></div>
       <div aria-label="IFund agents" className="ifund-agents-grid">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
-        onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); }}
+        onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: id } })); }}
         className="ifund-agents-card" style={{"--agent-accent": agent.color}}>
         <AgentIdentityIcon identity={id} size={70}/>
         <span className="ifund-agents-name">{agent.name}</span>
