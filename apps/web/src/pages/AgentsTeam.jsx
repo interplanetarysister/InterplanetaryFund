@@ -143,13 +143,26 @@ export default function AgentsTeam() {
       <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
       <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>
       <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and account connections. Find the right specialist, ask a question, or open the tools available to your account.</p>
+      <a href="#ask-mission-control" className="ifund-agents-hero-link">Ask Mission Control <span aria-hidden="true">↗</span></a>
       <div className="ifund-agents-hero-foot" aria-label="Agent Team capabilities">
         <span className="ifund-agents-chip">Specialist matching included</span>
         <span className="ifund-agents-chip">Account-scoped assistance</span>
         <span className="ifund-agents-chip">You approve external actions</span>
       </div>
     </header>
-    <section className="ifund-agents-console" aria-label="Ask the IFund agent team">
+    <section aria-label="Agent specialties" className="space-y-4">
+      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to explore its tools</p></div>
+      <div aria-label="IFund agents" className="ifund-agents-grid">
+      {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
+        onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); }}
+        className="ifund-agents-card" style={{"--agent-accent": agent.color}}>
+        <AgentIdentityIcon identity={id} size={70}/>
+        <span className="ifund-agents-name">{agent.name}</span>
+        <span className="ifund-agents-role">{agent.role}</span><span className="ifund-agents-arrow" aria-hidden="true">↗</span>
+      </button>; })}
+      </div>
+    </section>
+    <section id="ask-mission-control" className="ifund-agents-console" aria-label="Ask the IFund agent team">
       <div className="ifund-agents-section-heading"><h2>Ask Mission Control</h2><p>One question. The right specialist.</p></div>
       <p className="ifund-agents-muted max-w-2xl text-sm leading-relaxed">Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization.</p>
       <form className="mt-4 space-y-3" onSubmit={submitAgentQuestion}>
@@ -198,18 +211,6 @@ export default function AgentsTeam() {
       <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
       <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
-    </section>
-    <section aria-label="Agent specialties" className="space-y-4">
-      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to explore its tools</p></div>
-      <div aria-label="IFund agents" className="ifund-agents-grid">
-      {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
-        onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); }}
-        className="ifund-agents-card" style={{"--agent-accent": agent.color}}>
-        <AgentIdentityIcon identity={id} size={70}/>
-        <span className="ifund-agents-name">{agent.name}</span>
-        <span className="ifund-agents-role">{agent.role}</span><span className="ifund-agents-arrow" aria-hidden="true">↗</span>
-      </button>; })}
-      </div>
     </section>
     {selection.invalidCampaign&&<p role="alert">The campaign link is invalid. Choose a saved campaign in the workspace.</p>}
     {selected && <section aria-live="polite" className="ifund-agents-detail space-y-3">
