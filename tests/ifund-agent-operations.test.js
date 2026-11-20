@@ -13,7 +13,7 @@ function harness({isAdmin=true,configured=true,agentFailure=false,assignment=nul
    if(path.endsWith("/auth/v1/user"))return Response.json({id:USER,email_confirmed_at:"2026-11-01",is_anonymous:false});
    if(path.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(true);
    if(path.endsWith("/rpc/ifund_current_user_is_verified_admin"))return Response.json(isAdmin);
-   if(path.includes("ifund_ai_permission_preferences"))return Response.json([{owner_id:USER,allow_future_internal_ai_assistance:true}]);
+   if(path.includes("ifund_ai_permission_preferences"))return Response.json([{owner_id:USER,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true}]);
    if(path.includes("ifund_agent_operations_messages?")){
      if(path.includes("&id=eq."))return Response.json(assignment?[assignment]:[]);
      if(path.includes("source_receipt=like.assignment-"))return Response.json(alreadyReviewed?[{id:"existing",source_receipt:"assignment-prior:nexus"}]:[]);
