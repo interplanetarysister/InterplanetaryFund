@@ -29,6 +29,8 @@ import { linkCampaignToMission, loadMission } from "@/api/missions";
 export default function CreateCampaign() {
   const [params] = useSearchParams();
   const draftId = params.get("draft");
+  if (!draftId && params.get("manual") !== "1" && !params.has("mission") && import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled")
+    return <Navigate to="/what-if" replace />;
   return <NewCampaign draftId={draftId} />;
 }
 
