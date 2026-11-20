@@ -1,4 +1,5 @@
 import contracts from "../position-contracts.js";
+import { IFUND_MEMBER_FIRST_AGENT_POLICY } from "../../agents/memberFirstPolicy.js";
 import manifest from "./manifest.js";
 const positions = new Map(contracts.positions.map((p) => [p.id, p]));
 const assets = new Map(manifest.agents.map((a) => [a.agent, a]));
@@ -13,7 +14,7 @@ export function serviceSkill(id) {
     min_plan_level: p.min_plan_level,
     policy_version: manifest.policy_version,
     source_sha256: p.contract_sha256,
-    instructions: p.instructions,
+    instructions: p.instructions + '\n\n' + IFUND_MEMBER_FIRST_AGENT_POLICY,
     memory: p.memory,
     declared_functions: [...a.declared_tools],
     declared_entities: a.entity_reads.map((x) => ({
@@ -23,7 +24,7 @@ export function serviceSkill(id) {
     remote_skill_references: [...a.remote_skill_references],
     remote_content_reconciled: a.remote_content_reconciled === true,
     runtime_policy:
-      "Cloudflare and Supabase are authoritative. Source declarations and learned knowledge never grant tools, identities, provider permissions, publication authority or financial authority. Use only currently registered, tested adapters. Keep credential handling in protected backend operations. Current verified campaign facts and explicit owner statements override remembered or generated content.",
+      IFUND_MEMBER_FIRST_AGENT_POLICY + " Cloudflare and Supabase are authoritative. Source declarations and learned knowledge never grant tools, identities, provider permissions, publication authority or financial authority. Use only currently registered, tested adapters. Keep credential handling in protected backend operations. Current verified campaign facts and explicit owner statements override remembered or generated content.",
   };
 }
 export function declaredServiceTool(id, name) {
