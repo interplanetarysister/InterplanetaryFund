@@ -23,17 +23,19 @@ test("account navigation consolidates user-facing permissions", () => {
   assert.match(hub, /<AIPermissionPreferences\s*\/>/);
 });
 
-test("signup interest never silently grants third party authorization", () => {
+test("signup offers one AI Assistance switch without allowing outside actions", () => {
   assert.match(signupChoices, /ifund-signup-ai-interest-v1/);
-  assert.match(signup, /allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true,interested_in_future_automation:false/);
-  assert.match(signup, /all current and future private AI drafting, analysis, and recommendations/);
-  assert.match(signup, /To decline any of these options, uncheck them before signup/);
-  assert.match(onboarding, /To revoke either preference now or later/);
-  assert.match(ai, /uncheck the option here and select Save AI preferences/);
+  assert.match(signup, /Let iFund AI help me/);
+  assert.match(signup, /role="switch"/);
+  assert.match(signup, /allow_ai_campaign_drafts:event.target.checked/);
+  assert.match(signup, /allow_ai_outreach_drafts:event.target.checked/);
+  assert.match(signup, /allow_future_internal_ai_assistance:event.target.checked/);
+  assert.match(onboarding, /turn iFund AI help on or off anytime/);
+  assert.match(ai, /What does this include\?/);
   assert.match(ai, /email_confirmed_at/);
-  assert.match(ai, /userData\?\.user\?\.id/);
+  assert.match(ai, /identity\?\.user/);
   assert.match(ai, /upsert\(payload/);
-  assert.match(ai, /No external platform access was granted/);
+  assert.match(ai, /It does not automatically post to other websites/);
   assert.doesNotMatch(sql, /grant\s+all\s+on\s+public\.ifund_ai_permission_preferences\s+to\s+anon/i);
   assert.match(sql, /owner_id = \(select auth\.uid\(\)\)/);
   assert.match(sql, /default 'ask'/);
