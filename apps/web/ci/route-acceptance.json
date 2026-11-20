@@ -475,6 +475,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/fund-your-mission",
+      "role": "public",
+      "component": "FundYourMission",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/FundYourMission.jsx; apps/web/src/lib/scoutCatalog.mjs; apps/web/src/App.jsx",
+      "behavior_evidence": "apps/web/tests/fund-your-mission.test.mjs validates route, separate earning states and non-partner research",
+      "backend_evidence": "Existing read-only /api/public/opportunity-sources; independent hosted member and provider acceptance still pending. No sponsor payments or reward enrollment enabled.",
+      "owner": "frontend+opportunity"
+    },
+    {
       "route": "/fundraising-hub",
       "role": "member",
       "component": "ExternalFundingHub",
