@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from "react";
+import {Link} from "react-router-dom";
 import {authClient} from "@/api/auth";
 import {OFFICIAL_OUTREACH_COPY,fetchOfficialOutreachCandidates,reviewOfficialOutreachCandidate} from "@/lib/officialOutreach.mjs";
 import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
@@ -73,6 +74,7 @@ export default function OfficialOutreachRecovery(){
        <div className="flex flex-wrap gap-4 text-xs">
         {row.historical_url&&<a href={row.historical_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-primary underline">Inspect historical link <ExternalLink size={13}/></a>}
         <a href={ORIGIN} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline">Legacy source</a>
+        {row.provider!=="whatsapp"&&<Link to={"/connections?platform="+encodeURIComponent(row.provider)} className="font-semibold text-primary underline">Open iFund connection flow</Link>}
        </div>
        <label className="block text-xs font-semibold" htmlFor={"outreach-review-"+row.provider}>Review stage</label>
        <select id={"outreach-review-"+row.provider} className="min-h-11 w-full rounded-xl border bg-background px-3 text-sm" value={statuses[row.provider]||"unverified"} onChange={e=>setStatuses(v=>({...v,[row.provider]:e.target.value}))}>
