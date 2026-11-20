@@ -12,7 +12,8 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
     throw Error('Invalid authenticated inventory request');
   const queue = await rpc('ifund_super_admin_private_document_reviewed_queue', {}, jwt);
   if (!Array.isArray(queue) ||
-      !queue.some(r => r?.request_id === requestId && r.review_ready === true))
+      queue.filter(r => r?.request_id === requestId).length !== 1 ||
+      queue.find(r => r?.request_id === requestId)?.review_ready !== true)
     throw Error('Private document review is not authorized');
   const requests = await rpc('ifund_super_admin_account_deletion_queue', { p_limit: 200 }, jwt);
   if (!Array.isArray(requests)) throw Error('Invalid authenticated deletion queue');
@@ -25,8 +26,13 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
     { p_request_id: requestId, p_limit: 100 }, jwt);
   if (!Array.isArray(rows) || rows.length > 100) throw Error('Invalid private document inventory');
   const verified = [];
+  const seen = new Set();
   for (const row of rows) {
-    if (!row || !valid(row.document_id)) throw Error('Invalid document inventory identity');
+    if (!row || !valid(row.document_id) || seen.has(row.document_id) ||
+        typeof row.storage_path !== 'string' || seen.has(row.storage_path))
+      throw Error('Duplicate or invalid document inventory identity');
+    seen.add(row.document_id);
+    seen.add(row.storage_path);
     const receipt = await resolveReceipt({ documentId: row.document_id, ownerId, jwt });
     if (!receipt || receipt.id !== row.document_id || receipt.owner_id !== ownerId ||
         receipt.storage_path !== row.storage_path ||
