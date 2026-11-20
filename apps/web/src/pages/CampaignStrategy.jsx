@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
@@ -21,6 +21,8 @@ const CHECKS = [
 ];
 export default function CampaignStrategy() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedMerchCampaign = searchParams.get("campaign");
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function CampaignStrategy() {
       </p>
     </header>
     <CampaignBudgetPlanner />
-    {state.status === "ready" && <CampaignMerchDesigner campaigns={state.items.map(item => item.ownedCampaign).filter(Boolean)} />}
+    {state.status === "ready" && <CampaignMerchDesigner campaigns={state.items.map(item => item.ownedCampaign).filter(Boolean)} initialCampaignId={requestedMerchCampaign} />}
     {state.status === "loading" && <p role="status">Checking your owned campaign drafts…</p>}
     {state.status === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button className="mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
