@@ -62,6 +62,7 @@ export default function CommunicationsWorkspace() {
     load();
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
   },[requestedCampaign]);
+  // Preparing this local template does not call an AI model or send email.
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
     if(!item){setStatus("Select one of your campaigns.");return}
