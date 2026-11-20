@@ -50,6 +50,15 @@ async function authorizeRequest({fetcher,url,key,jwt,requestId}){
  const item=rows.find(row=>row.request_id===requestId);
  if(!item||item.request_status!=="reviewing"||!UUID.test(item.requested_user_id||""))
    throw Error("An independently reviewed account deletion request is required.");
+ // A generic reviewing state is NOT document-erasure approval. The protected
+ // RPC validates the current super-admin session and exposes only readiness.
+ const approvals=await fetchJson(fetcher,url+"/rest/v1/rpc/ifund_super_admin_private_document_reviewed_queue",{
+   method:"POST",headers:{"apikey":key,Authorization:"Bearer "+jwt,"content-type":"application/json"},
+   body:"{}"
+ });
+ if(!Array.isArray(approvals)||approvals.length>200||
+    !approvals.some(row=>row?.request_id===requestId&&row?.review_ready===true))
+   throw Error("Explicit private-document cleanup approval is required.");
  return item.requested_user_id;
 }
 async function listOwnerDocuments({fetcher,url,key,owner,requestId,jwt}){
