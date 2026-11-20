@@ -24,18 +24,20 @@ test("revocation, unverified and different account deny future AI",()=>{
   assert.equal(mayUseFutureInternalAI({user:{...user,id:"another"},preferences,capability:"draft"}),false);
 });
 
-test("signup discloses default and account permissions can revoke without third party grant",()=>{
+test("signup offers one AI choice while high-impact actions remain separately authorized",()=>{
   const signup=read("../src/pages/AuthPage.jsx");
   const setting=read("../src/components/permissions/AIPermissionPreferences.jsx");
   const onboarding=read("../src/pages/MemberOnboarding.jsx");
   const signupService=read("../src/lib/signupAIPreferences.js");
   const sql=read("../../../supabase/migrations/20261119110000_ifund_future_internal_ai_assistance_preference.sql");
   assert.match(signup,/allow_future_internal_ai_assistance:true/);
-  assert.match(signup,/To decline any of these options, uncheck them before signup/);
-  assert.match(signup,/handle payments, or represent other people\. Those actions require separate authorization/);
-  assert.match(setting,/uncheck the option here and select Save AI preferences/);
-  assert.match(setting,/allow_future_internal_ai_assistance: false/);
-  assert.match(onboarding,/To revoke either preference now or later/);
+  assert.match(signup,/Let iFund AI help me/);
+  assert.match(signup,/allow_future_internal_ai_assistance:event.target.checked/);
+  assert.match(signup,/move money without separate approval/);
+  assert.match(setting,/Save AI setting/);
+  assert.match(setting,/It does not automatically post to other websites/);
+  assert.match(setting,/AI_FIELDS\.map\(field => \[field, enabled\]\)/);
+  assert.match(onboarding,/turn iFund AI help on or off anytime/);
   assert.match(signupService,/"allow_future_internal_ai_assistance"/);
   assert.match(sql,/add column if not exists allow_future_internal_ai_assistance boolean not null default false/);
   assert.doesNotMatch(sql,/update\s+public\.ifund_ai_permission_preferences\s+set\s+allow_future_internal_ai_assistance\s*=\s*true/i);

@@ -350,18 +350,32 @@ export default function AuthPage({ mode = "login" }) {
                 />
               </label>
             )}
-            {isRegister && !confirmationPending && <fieldset className="space-y-3 rounded-xl border border-cyan-400/30 p-4">
-              <legend className="px-1 font-semibold">AI assistance included with your account — you control it</legend>
-              <p className="text-xs text-slate-300">When you sign up, iFund enables all current and future private AI drafting, analysis, and recommendations for your own account by default. To decline any of these options, uncheck them before signup. To revoke later, go to My Profile → Manage iFund Permissions → AI assistance and turn the option off, then save. The selected preferences are recorded only after your email is verified. This does not allow iFund or its owner to impersonate you, access external accounts, publish or send messages, handle payments, or represent other people. Those actions require separate authorization.</p>
-              {[
-                ["allow_future_internal_ai_assistance","Allow all current and future private AI drafting, analysis, and recommendations (on by default; revoke anytime in My Profile → Permissions)"],
-                ["allow_ai_campaign_drafts","Help me prepare campaign drafts"],
-                ["allow_ai_outreach_drafts","Help me prepare outreach drafts"],
-                ["interested_in_future_automation","Tell me when new automation is available (interest only; no marketing opt-in)"]
-              ].map(([key,label])=><label key={key} className="flex min-h-11 items-start gap-3 text-sm">
-                <input type="checkbox" className="mt-1" checked={signupAIChoices[key]} onChange={event=>setSignupAIChoices(current=>({...current,[key]:event.target.checked}))}/>
-                <span>{label}</span>
-              </label>)}
+            {isRegister && !confirmationPending && <fieldset className="space-y-3 rounded-2xl border border-cyan-400/30 p-4">
+              <legend className="px-1 font-semibold">AI Assistance</legend>
+              <label className="flex min-h-24 cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/15 bg-white/5 p-4">
+                <span className="space-y-1">
+                  <strong className="block text-base text-white">Let iFund AI help me</strong>
+                  <span className="block text-xs text-slate-300">Get help with campaigns, ideas, and planning. Change this anytime.</span>
+                </span>
+                <span className="relative shrink-0">
+                  <input type="checkbox" role="switch" aria-label="AI Assistance" className="peer sr-only"
+                    checked={signupAIChoices.allow_ai_campaign_drafts === true &&
+                      signupAIChoices.allow_ai_outreach_drafts === true &&
+                      signupAIChoices.allow_future_internal_ai_assistance === true}
+                    onChange={event=>setSignupAIChoices(current=>({...current,
+                      allow_ai_campaign_drafts:event.target.checked,
+                      allow_ai_outreach_drafts:event.target.checked,
+                      allow_future_internal_ai_assistance:event.target.checked}))}/>
+                  <span aria-hidden="true" className="relative block h-9 w-16 rounded-full border-2 border-white/30 bg-slate-600 transition-colors peer-checked:border-cyan-400 peer-checked:bg-cyan-500 peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-cyan-400">
+                    <span className={"absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition-transform "+(signupAIChoices.allow_ai_campaign_drafts?"translate-x-7":"")}/>
+                  </span>
+                </span>
+              </label>
+              <details className="rounded-xl border border-white/15 p-3 text-xs text-slate-300">
+                <summary className="cursor-pointer font-medium text-slate-100">What does AI Assistance include?</summary>
+                <p className="mt-2">AI can offer private writing, outreach drafts, suggestions, and planning help. It cannot post externally, contact people, access connected accounts, or move money without separate approval.</p>
+                <p className="mt-2">Your choice is saved for your verified account when signup completes.</p>
+              </details>
             </fieldset>}
             {isRegister && confirmationPending && (
               <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
