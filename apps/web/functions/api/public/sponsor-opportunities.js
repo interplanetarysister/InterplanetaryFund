@@ -16,7 +16,7 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
  const sponsorsUrl=ORIGIN+"/rest/v1/ifund_sponsor_organizations?select="+encodeURIComponent("id,display_name,official_url,partner_claim_allowed")+"&verification_state=eq.approved&limit=100";
  try {
   const [a,b]=await Promise.all([offersUrl,sponsorsUrl].map(url=>get(url,{headers,redirect:"error",signal:AbortSignal.timeout(8000)})));
-  if(!a.ok||!b.ok)return json({error:"Sponsor catalog unavailable"},503);
+  if(!a.ok||!b.ok)return json({error:"Sponsor catalog unavailable"},503,"upstream_"+a.status+"_"+b.status);
   const [offers,sponsors]=await Promise.all([a.json(),b.json()]);
   if(!Array.isArray(offers)||!Array.isArray(sponsors))return json({error:"Invalid sponsor catalog"},503,"invalid_json");
   const sponsorsById=new Map(sponsors.filter(x=>safeHttps(x.official_url)&&typeof x.display_name==="string").map(x=>[x.id,x]));
@@ -39,5 +39,5 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
   return json({opportunities:records,count:records.length,
    member_enrollment_enabled:false,reward_payout_enabled:false,
    source:"supabase_rls_verified_sponsor_offers"});
- } catch {return json({error:"Sponsor catalog unavailable"},503);}
+ } catch {return json({error:"Sponsor catalog unavailable"},503,"fetch_exception");}
 }
