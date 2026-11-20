@@ -78,7 +78,7 @@ const navSections = [
   {
     label: "Campaigns & Giving",
     items: [
-      { to: "/create", label: WHAT_IF_LAUNCHED ? "Start a Mission" : "New Campaign", icon: PlusCircle },
+      { to: WHAT_IF_LAUNCHED ? "/what-if" : "/create", label: WHAT_IF_LAUNCHED ? "Start a Mission" : "New Campaign", icon: PlusCircle },
       { to: "/donors", label: "Supporters", icon: Users },
       { to: "/finances", label: "Financial Center", icon: Wallet },
       { to: "/following", label: "Following", icon: Heart },
