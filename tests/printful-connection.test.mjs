@@ -32,3 +32,17 @@ test("wrong store identity and failures fail closed", async () => {
   assert.deepEqual(await inspectPrintfulStore(env,async()=>({ok:false})),{configured:true,connected:false});
   assert.deepEqual(await inspectPrintfulStore(env,async()=>{throw Error("offline")}),{configured:true,connected:false});
 });
+
+test("malformed and coerced Printful identities fail closed", async () => {
+  const env={PRINTFUL_API_TOKEN:"s".repeat(30),PRINTFUL_STORE_ID:"42"};
+  for (const payload of [null, {}, {result:null}, {result:[]},
+    {result:{id:"42",name:"iFund"}}, {result:{id:42}},
+    {result:{id:42,name:" "}}, {result:{id:43,name:"iFund"}}]) {
+    assert.deepEqual(await inspectPrintfulStore(env,async()=>({ok:true,json:async()=>payload})),
+      {configured:true,connected:false});
+  }
+  assert.deepEqual(await inspectPrintfulStore(env,async()=>({ok:true,json:async()=>{throw Error("invalid JSON")}})),
+    {configured:true,connected:false});
+  assert.deepEqual(await inspectPrintfulStore(env,async()=>{throw Error("timeout")}),
+    {configured:true,connected:false});
+});
