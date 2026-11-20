@@ -12,14 +12,16 @@ From your authenticated clone of `interplanetarysister/InterplanetaryFund`:
 
 ```powershell
 node --version
-# If needed (without writing a lockfile): npm install --no-save --package-lock=false playwright
-# If Chromium is missing: npx playwright install chromium
-node --test tests/agent-browser-policy.test.mjs
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --mobile --json browser-mobile.local
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --json browser-desktop.local
+# Root package-lock.json includes Playwright
+npm ci --no-audit --no-fund
+# One-time explicit Chromium download
+npm run setup:browser
+npm run test:browser:policy
+npm run audit:browser:mobile
+npm run audit:browser:desktop
 ```
 
-Your preinstalled Playwright may already satisfy the dependency. If it is installed elsewhere, point `IFUND_PLAYWRIGHT_MODULE` to its installed module path. Files ending in `.local` are ignored by Git.
+Playwright is a pinned root development dependency, so no `IFUND_PLAYWRIGHT_MODULE` override is needed after `npm ci`. Audit reports ending in `.local` are ignored by Git.
 
 ## Boundaries
 
