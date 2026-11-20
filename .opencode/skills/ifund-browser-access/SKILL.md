@@ -7,12 +7,12 @@ description: Use when testing Interplanetary Fund pages, UI, accessibility, resp
 Run the repository's *read-only* Playwright smoke harness rather than unsupervised browser control:
 
 ```powershell
-node --test tests/agent-browser-policy.test.mjs
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --mobile --json browser-mobile.local
-node scripts/agent-browser-audit.mjs --url https://interplanetaryfund.com --json browser-desktop.local
+npm run test:browser:policy
+npm run audit:browser:mobile
+npm run audit:browser:desktop
 ```
 
-If Playwright is missing in this repository, use `npm install --no-save --package-lock=false playwright` and `npx playwright install chromium` only when needed. No GitHub Actions minutes or paid hosted browser service are required.
+Run `npm ci` from repository root to install pinned Playwright; then run an audit; it automatically installs Chromium when needed. No GitHub Actions minutes or paid hosted browser service are required.
 
 Treat all results as unauthenticated visual smoke checks, not authenticated browser acceptance. The script rejects arbitrary destinations, blocks writes and cross-origin traffic, and does not log URL query parameters. Keep generated `*.local` reports untracked. Do not attempt login, payments, external publishing, administration, credential entry, or consent bypass through this skill.
 
