@@ -54,5 +54,8 @@ test("readiness deep links target actual editor fields, not missing anchors", ()
   for (const field of targetFields) {
     assert.match(editor, new RegExp('id="' + field + '"'),
       "Readiness deep link #" + field + " must resolve to an actual editor control");
+    assert.ok(editor.includes('"' + field + '"') &&
+      /const targetId = location\\.hash\\.slice\\(1\\);[\\s\\S]*?\\]\\.includes\\(targetId\\)/.test(editor),
+      "Readiness deep link #" + field + " must be included in the editor hash focus allowlist");
   }
 });
