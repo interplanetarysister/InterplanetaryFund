@@ -46,3 +46,14 @@ test("speech synthesis cancels previous audio and obeys agent profiles",()=>{
   stopSpeaking(browser);
   assert.equal(calls.at(-1),"cancel");
 });
+
+test("agents select separate installed voices when nine are available",()=>{
+  class SpeechSynthesisUtterance {constructor(text){this.text=text;}}
+  const chosen=[];
+  const voices=Array.from({length:9},(_,index)=>({name:"Voice "+index,lang:"en-US",localService:true}));
+  const browser={SpeechSynthesisUtterance,speechSynthesis:{
+    cancel(){},getVoices(){return voices;},speak(utterance){chosen.push(utterance.voice?.name)}
+  }};
+  for(const agent of Object.keys(AGENT_VOICE_PROFILES)) assert.equal(speakAgent("Hello",agent,{browser}),true);
+  assert.equal(new Set(chosen).size,9);
+});
