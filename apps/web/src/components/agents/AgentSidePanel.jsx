@@ -7,6 +7,7 @@ import { askIFundAgent } from "@/lib/agentQuestions";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
+import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 
 const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
@@ -132,7 +133,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     try {
       const response = await askIFundAgent(authClient(), { question: text, agent: identity, ownerId: user.id, signal: controller.signal });
       if (!controller.signal.aborted) {
-        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer }]);
+        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer, consultations:response.consultations }]);
         if (voiceEnabled && speakAgent(response.answer, response.agent, {onEnd: () => setSpeaking(false)})) setSpeaking(true);
       }
     } catch (cause) {
@@ -163,6 +164,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       </div>}
       {messages.map((message, index) => <div key={index} className={"ifund-agent-message " + message.kind}>
         {message.kind === "answer" && <strong className="block mb-1">{AGENT_IDENTITIES[message.agent]?.name || "Agent"}</strong>}
+        {message.kind==="answer" && <AgentConsultationTrail consultations={message.consultations}/>}
         <p className="whitespace-pre-wrap break-words">{message.text}</p>
       </div>)}
       {busy && <p role="status" className="text-sm text-slate-400">Checking your question…</p>}
