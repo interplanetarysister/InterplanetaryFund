@@ -462,7 +462,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setWizard(previous=>({...previous,ai_profile:{...previous.ai_profile,[field]:value}}));
   }
   async function advanceWizard(next){
-    if(disabled||saveLock.current||!Number.isInteger(next)||next<0||next>=WIZARD_STEPS.length)return;
+    if(disabled||saveLock.current||!Number.isInteger(next)||next<0||next>2)return;
     if(form.title.trim()&&(ownerId||next>step)){
       wizardSaveStep.current=next;
       try{if(await save("draft")){if(alive.current)setWizard(previous=>({...previous,draft_step:next}));}}
