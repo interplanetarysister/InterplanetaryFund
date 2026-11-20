@@ -60,6 +60,27 @@ export async function addExternalFundraisingSource(client,{groupId,platform,url}
    owner_id:id,group_id:groupId,platform,campaign_url:canonical,currency:"USD",provenance:"owner_reported"
  }));
 }
+// One request, one transaction: no empty group on network/insert failure.
+export async function linkExternalFundraiser(client, { platform, url, title, groupId = null }) {
+ const id=await owner(client);
+ const canonical=canonicalExternalFundraiserUrl(platform,url);
+ if(typeof title!=="string"||title.trim().length<3||title.trim().length>160)throw Error("Choose a fundraiser title.");
+ if(groupId!==null && !UUID.test(groupId))throw Error("Choose a valid existing fundraiser.");
+ const response=await client.rpc("ifund_link_external_fundraiser",{
+  p_platform:platform,p_campaign_url:canonical,p_title:title.trim(),p_group_id:groupId
+ });
+ const info=response.data?.[0];
+ if(response.error||!UUID.test(info?.source_id||"")||typeof info.already_linked!=="boolean")
+  throw Error("This fundraiser could not be saved. Please try again.");
+ const record=await client.from(SOURCES)
+  .select("id,owner_id,group_id,platform,campaign_url,amount_cents,currency,provenance,reported_at,updated_at")
+  .eq("id",info.source_id).eq("owner_id",id).maybeSingle();
+ if(record.error||record.data?.owner_id!==id||record.data.campaign_url!==canonical||
+    record.data.platform!==platform||record.data.provenance!=="owner_reported")
+  throw Error("The linked fundraiser could not be verified. Refresh your hub.");
+ await sameOwner(client,id);
+ return { source:record.data,alreadyLinked:info.already_linked };
+}
 export async function setExternalReportedAmount(client,source,amount,currency="USD"){
  const id=await owner(client);
  if(!UUID.test(source?.id||"")||source?.owner_id!==id)throw Error("Choose one of your connected campaign links.");
