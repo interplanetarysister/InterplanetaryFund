@@ -24,7 +24,7 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const WHAT_IF_LAUNCHED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const PAGE_TITLES = {
-  "/what-if": "What If?", "/missions": "My Missions", "/fund-your-mission": "Fund Your Mission",
+  "/what-if": "What If?", "/missions": "My Missions", "/fund-your-mission": "Fund Your Mission", "/sponsor": "Sponsor with IFund", "/admin/sponsor-inquiries": "Sponsor Inquiries",
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
   "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "AI Team", "/messaging": "Messaging", "/mail": "Mail",
@@ -117,6 +117,7 @@ const navSections = [
       { to: "/admin/studio", label: "Website Studio", icon: Sparkles },
       { to: "/platform", label: "Platform", icon: Server },
       { to: "/admin/integrations", label: "Admin Integrations", icon: Plug },
+      { to: "/admin/sponsor-inquiries", label: "Sponsor Inquiries", icon: Building2 },
       { to: "/admin/audit", label: "Audit Log", icon: Server },
       { to: "/admin/sustainability", label: "Planet Impact", icon: Leaf },
       { to: "/admin/social-moderation", label: "Community Moderation", icon: Radio },
