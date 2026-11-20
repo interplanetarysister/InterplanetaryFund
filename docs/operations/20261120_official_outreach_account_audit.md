@@ -11,7 +11,7 @@ The archived account tracker contains 19 rows, of which 15 are social or fundrai
 - `ifund_provider_tokens`: no saved provider grants at this audit.
 - Connection-management and specialist Workers exist; `ifund-managed-connections-agent-preview`, `ifund-growth-agent-preview` and `ifund-communications-agent-preview` are configured, but communications outbound send is disabled. Provider binding presence does not establish social publishing permissions.
 - 15 historic account/handle candidates are preserved in the **private** table `ifund_ops.official_outreach_account_candidates`. Legacy login emails are only visible via `ifund_admin_outreach_candidates()` to verified administrators. Browser users, anonymous users and agents cannot directly read the table.
-- The administrator recovery board in `/admin/connections` supports review stages and notes but deliberately has no “mark connected”, “grant publishing”, password entry or OAuth token import. Provider-backed member connection and explicit scope approval remain separate.
+- The administrator recovery board in `/admin/integrations` supports review stages and notes but deliberately has no “mark connected”, “grant publishing”, password entry or OAuth token import. Provider-backed member connection and explicit scope approval remain separate.
 
 ## Official promotion messaging
 Use truthful, descriptive language for iFund, explaining AI-assisted campaign writing, campaign management, discovery and optional connected-platform sharing, without promising currently unavailable integrations, guaranteed donations, investor returns, verified partnerships, or live features not accepted as a real user.
