@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bot, Compass, PlusCircle, FolderKanban, ArrowUpRight, Sparkles } from "lucide-react";
 import FollowFeed from "@/components/dashboard/FollowFeed";
+import ReferralRewards from "@/components/referrals/ReferralRewards";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
@@ -136,6 +137,7 @@ export default function Dashboard() {
       </section>
       <FollowFeed ownerId={user?.id}/>
     </div>
+    <ReferralRewards ownerId={user?.id} />
     <EventsDashboardSection />
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
