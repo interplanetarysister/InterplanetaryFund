@@ -67,9 +67,9 @@ export default function Dashboard() {
           variant="hero"
           label="What would you like to make possible?"
           placeholder="Describe a need, an idea or a question. Nothing is published without you."
-          submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
+          submitLabel="Continue"
           note="Private by default. Turn on AI assistance in Permissions if you want suggestions."
-          onSubmit={(prompt) => navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt } })}
+          onSubmit={(prompt) => navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } })}
           className="mt-5 max-w-2xl"
         />
       </div>
