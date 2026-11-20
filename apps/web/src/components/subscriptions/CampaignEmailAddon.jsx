@@ -1,13 +1,16 @@
 import {useCallback,useEffect,useRef,useState} from "react";
-import {Link} from "react-router-dom";
+import {Link,useSearchParams} from "react-router-dom";
 import {AtSign,CheckCircle2,ShieldCheck,Loader2} from "lucide-react";
 import {authClient} from "@/api/auth";
 import {readEmailAddon,selectEmailAddon,linkCampaignEmail,readEmailAddonCheckoutReadiness,IFUND_EMAIL_DOMAIN} from "@/lib/campaignEmailAddon.mjs";
 import {listOwnerCampaigns} from "@/api/ownerCampaigns";
+import {readRecurringEmailCheckoutService,beginRecurringEmailCheckout} from "@/lib/campaignEmailCheckout.mjs";
 
 // Requests a reserved address only. The backend independently checks a real
 // active paid plan and separate provider-verified addon payment and routing.
 export default function CampaignEmailAddon(){
+ const [query]=useSearchParams();
+ const checkoutReturn=query.get("email_addon_checkout");
  const [phase,setPhase]=useState("loading");
  const [status,setStatus]=useState(null);
  const [handle,setHandle]=useState("");
@@ -17,6 +20,9 @@ export default function CampaignEmailAddon(){
  const [linkBusy,setLinkBusy]=useState(false);
  const [campaignError,setCampaignError]=useState("");
  const [checkoutStatus,setCheckoutStatus]=useState(null);
+ const [providerCheckout,setProviderCheckout]=useState(null);
+ const [checkoutBusy,setCheckoutBusy]=useState(false);
+ const checkoutRequest=useRef(null);
  const [busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("");
  const [error,setError]=useState("");
@@ -30,6 +36,9 @@ export default function CampaignEmailAddon(){
      if(!alive.current||generationNumber!==generation.current)return;
      setStatus(result);setHandle(result.requested_handle||"");
      setOptIn(result.opted_in);setLinkedCampaign(result.linked_campaign_id||"");setPhase("ready");
+     readRecurringEmailCheckoutService(authClient()).then(state=>{
+       if(alive.current&&generationNumber===generation.current)setProviderCheckout(state);
+     }).catch(()=>{if(alive.current&&generationNumber===generation.current)setProviderCheckout(null);});
      readEmailAddonCheckoutReadiness(authClient()).then(ready=>{
        if(alive.current&&generationNumber===generation.current)setCheckoutStatus(ready);
      }).catch(()=>{if(alive.current&&generationNumber===generation.current)setCheckoutStatus(null);});
@@ -70,6 +79,23 @@ export default function CampaignEmailAddon(){
          :"Your address preference is reserved. Email delivery is NOT active. The separately billed $1/month add-on and address routing must be verified before use.");
    }catch(e){if(alive.current)setError(e?.message||"Email add-on selection was not saved.");}
    finally{if(alive.current)setBusy(false);}
+ }
+ async function startRecurringCheckout(){
+   if(busy||checkoutBusy||checkoutStatus?.checkout_ready!==true||
+      providerCheckout?.checkout_ready!==true)return;
+   setCheckoutBusy(true);setNotice("");setError("");
+   try{
+     // Reuse the request ID if the browser retries after a provider/network error.
+     if(!checkoutRequest.current)checkoutRequest.current=crypto.randomUUID();
+     const approved=await beginRecurringEmailCheckout(authClient(),{
+       requestId:checkoutRequest.current
+     });
+     // This navigates to PayPal's agreement. It does NOT record a payment or
+     // activate iFund mail; only a verified provider sale and routing may do so.
+     window.location.assign(approved.approvalUrl);
+   }catch(cause){
+     if(alive.current)setError(cause?.message||"The recurring checkout is unavailable.");
+   }finally{if(alive.current)setCheckoutBusy(false);}
  }
  async function connectCampaign(event){
    event.preventDefault();
@@ -139,10 +165,21 @@ export default function CampaignEmailAddon(){
        </form>}
        {saved&&basic&&<div className="rounded-xl border border-cyan-500/25 bg-background/70 p-4 text-sm" aria-label="Recurring email billing readiness">
          <p className="font-semibold">Separate PayPal email subscription · $1/month</p>
+         {checkoutReturn==="return"&&<p role="status" className="mt-2 rounded-lg border border-cyan-500/40 p-3">You returned from PayPal. Your email address stays inactive until iFund independently verifies a completed recurring payment and mailbox routing. An approval or return URL is not proof of payment.</p>}
+         {checkoutReturn==="cancel"&&<p role="status" className="mt-2 rounded-lg border border-border p-3">You returned without completing this checkout flow. Check your PayPal subscription activity if you approved anything separately.</p>}
          {checkoutStatus===null
            ?<p role="status" className="mt-2 text-amber-600">PayPal plan verification is unavailable. Checkout is disabled; no payment has been made.</p>
            :checkoutStatus.checkout_ready
-             ?<p role="status" className="mt-2">The recurring payment plan is verified. Checkout activation and payment confirmation are processed separately; your mailbox remains inactive until a paid receipt and verified routing are recorded.</p>
+             ?<div className="mt-3 space-y-3">
+               {providerCheckout?.checkout_ready===true
+                 ?<><p role="status">The separate PayPal plan is verified. You can review a recurring $1/month agreement directly with PayPal. Your mailbox remains inactive until payment and routing are verified.</p>
+                   <button type="button" onClick={startRecurringCheckout}
+                     disabled={busy||checkoutBusy}
+                     className="min-h-11 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground disabled:opacity-50">
+                     {checkoutBusy?"Preparing PayPal…":"Review $1/month subscription with PayPal"}
+                   </button></>
+                 :<p role="status" className="text-amber-600">The PayPal agreement service is not enabled yet. No payment is being requested and your mailbox is not active.</p>}
+             </div>
              :<p role="status" className="mt-2 text-amber-600">The separate recurring PayPal checkout is not yet available. Your address is reserved only; selecting this add-on does not charge you or enable mail delivery.</p>}
          <p className="mt-2 text-xs text-muted-foreground">No one-time payment link or approval redirect counts as a recurring add-on payment.</p>
        </div>}
