@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "test": "node --test tests/*.test.js tests/*.test.mjs worker/agents/*.test.mjs workers/ifund-payments/*.test.mjs integrations/*.test.mjs",
     "reconcile": "node scripts/reconcile-production-schema.mjs",
-    "audit:release": "node scripts/verify-dependency-audit.mjs"
+    "audit:release": "node scripts/verify-dependency-audit.mjs",
+    "test:release": "node --test tests/verify-scoped-release.test.mjs",
+    "release:scoped": "node scripts/verify-scoped-release.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.4",
