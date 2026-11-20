@@ -11,7 +11,7 @@ import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
-import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
+import { Loader2, Save, PlayCircle, PauseCircle, ShoppingBag } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
@@ -162,6 +162,11 @@ export default function EditCampaign() {
       <p className="text-muted-foreground">Changes are private until you publish. {donationsEnabled ? "Published, active campaigns can accept verified PayPal donations." : "Live donation checkout is temporarily unavailable."}</p>
     </header>
 
+    <section className="rounded-2xl border border-cyan-300/30 bg-gradient-to-r from-cyan-50 via-white to-violet-50 p-5 text-slate-900 shadow-sm dark:from-slate-900 dark:via-slate-800 dark:to-violet-950 dark:text-white" aria-label="Optional iFund merchandise">
+      <h2 className="flex items-center gap-2 text-lg font-semibold"><ShoppingBag className="h-5 w-5 text-cyan-600 dark:text-cyan-300" /> iFund Shop to Support</h2>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-200">Create one meaningful campaign item in three visual styles using authorized campaign artwork and an approved beneficiary name. Design proofs are available now; live Printful fulfillment is not enabled.</p>
+      <Link to={"/strategy?campaign=" + encodeURIComponent(id) + "#campaign-merch-studio"} className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800">Design a campaign item</Link>
+    </section>
     {!donationsEnabled && <PrelaunchNotice compact />}
 
     <form className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8" onSubmit={(event) => { event.preventDefault(); save(status); }}>
