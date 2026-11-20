@@ -10,6 +10,7 @@ import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrai
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages } from "./teamOrchestration.js";
 import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
+import { routeAgentPracticeTask } from "./teamPracticeTask.mjs";
 import { runSpecialistPractice } from "./agentPracticalSkills.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -79,6 +80,8 @@ export function validateTeamAnswer(raw,selected) {
 
 export async function routeTeamQuestion(request, env, fetcher=fetch) {
   const path = new URL(request.url).pathname;
+  if (path === "/api/agents/team/practice" || path === "/api/agents/team/research")
+    return routeAgentPracticeTask(request,env,fetcher);
   if (path === "/api/agents/team/status") {
     if (request.method !== "GET") return noStore(405,{error:"Method not allowed."});
     return noStore(200,{configured:env.IFUND_TEAM_QUESTIONS_ENABLED === "enabled" &&
