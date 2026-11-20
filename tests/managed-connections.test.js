@@ -35,7 +35,7 @@ function provider(overrides = {}) {
     calls,
     fetch: async (url, options) => {
       calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
-      const payload = url.endsWith("/auth/v1/user")
+      const payload = url.endsWith("/rpc/ifund_current_account_is_active") ? true : url.endsWith("/auth/v1/user")
         ? { id: uid, email_confirmed_at: "2026-01-01" }
         : url.endsWith("/rpc/ifund_story_subscription")
           ? (overrides.subscription || { active: true, level: 2 })
@@ -125,9 +125,9 @@ test("workspace checks fresh auth then authoritative backend and returns all43 c
     w = await r.json();
   assert.equal(r.status, 200);
   assert.equal(w.providers.length, 43);
-  assert.equal(p.calls.length, 2);
+  assert.equal(p.calls.length, 3);
   assert.ok(p.calls[0].url.endsWith("/auth/v1/user"));
-  assert.ok(p.calls[1].url.endsWith("/rpc/ifund_connections_workspace"));
+  assert.ok(p.calls[2].url.endsWith("/rpc/ifund_connections_workspace"));
   assert.ok(
     w.providers.every(
       (x) => !("access_token" in x) && !("legacy_auth_hint" in x),
@@ -156,7 +156,7 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     p.fetch,
   );
   assert.equal(r.status, 200);
-  assert.deepEqual(p.calls[1].body, permissionInput(grant));
+  assert.deepEqual(p.calls[2].body, permissionInput(grant));
   const q = provider({
     response: { request: { id: revision, state: "setup_required" } },
   });
@@ -170,9 +170,9 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     q.fetch,
   );
   assert.equal(r.status, 200);
-  assert.equal(q.calls[1].body.p_provider, "discord");
-  assert.equal(q.calls[1].body.p_campaign_id, null);
-  assert.ok(!("p_owner_id" in q.calls[1].body));
+  assert.equal(q.calls[2].body.p_provider, "discord");
+  assert.equal(q.calls[2].body.p_campaign_id, null);
+  assert.ok(!("p_owner_id" in q.calls[2].body));
 });
 test("invalid or oversized commands never reach an action RPC and backend denial is preserved", async () => {
   const p = provider();
@@ -190,7 +190,7 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     400,
   );
-  assert.equal(p.calls.length, 1);
+  assert.equal(p.calls.length, 3);
   assert.ok(!p.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_request_action")));
   const big = provider();
   assert.equal(
@@ -203,7 +203,7 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     413,
   );
-  assert.equal(big.calls.length, 1);
+  assert.equal(big.calls.length, 3);
   assert.ok(!big.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_grant_help")));
   const denied = async (url) =>
     url.endsWith("/auth/v1/user")
@@ -241,8 +241,8 @@ test("expired plan can still read connection workspace while the canonical actio
     requestProvider,
   );
   assert.equal(request.status, 403);
-  assert.equal(calls.length, 2);
-  assert.ok(calls[1].url.endsWith("/rpc/ifund_connections_request_action"));
+  assert.equal(calls.length, 3);
+  assert.ok(calls[2].url.endsWith("/rpc/ifund_connections_request_action"));
 });
 test("worker rejects foreign routes/methods and never leaks upstream errors or raw provider state", async () => {
   const p = provider();
