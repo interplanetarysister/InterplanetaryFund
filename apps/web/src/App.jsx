@@ -64,6 +64,7 @@ const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
+const Messaging = lazy(() => import("./pages/Messaging"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
@@ -134,6 +135,7 @@ function AppRoutes() {
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<AgentsTeam />} />
+      <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
       <Route path="/mission" element={<AgentsTeam />} />
       <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
@@ -185,6 +187,8 @@ function AppRoutes() {
       <Route path="/fundraising-hub" element={<MemberAccess><ExternalFundingHub /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
+      <Route path="/mail" element={<MemberAccess><Inbox /></MemberAccess>} />
+      {/* Legacy deep links remain valid; do not lose saved /inbox message destinations. */}
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/blog" element={<Navigate to="/social" replace />} />
