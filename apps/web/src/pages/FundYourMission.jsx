@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, HeartHandshake, BriefcaseBusiness, Compass, Radar, ShieldCheck, Sparkles, Wallet } from "lucide-react";
-import { SCOUT_PROVIDERS, SCOUT_POLICY, safeScoutUrl } from "@/lib/scoutCatalog.mjs";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { ArrowUpRight, HeartHandshake, BriefcaseBusiness, Compass, Radar, ShieldCheck, Sparkles } from "lucide-react";
+import { SCOUT_PROVIDERS, safeScoutUrl } from "@/lib/scoutCatalog.mjs";
 
 const tiles=[
  {title:"Raise",subtitle:"Grow your fundraising reach",detail:"Create a fundraiser or bring one you already run on another trusted platform. Donations stay with the original host when linked externally.",to:"/fundraising-hub",secondary:"Manage connected fundraisers",icon:HeartHandshake},
@@ -10,7 +9,6 @@ const tiles=[
  {title:"Discover",subtitle:"Explore grants and support",detail:"Find source-checked programs and opportunity directories. Eligibility, awards, and availability must be confirmed with each provider.",to:"/institutions",secondary:"Browse research opportunities",icon:Compass}
 ];
 export default function FundYourMission() {
- const {user}=useAuthSession();
  const [state,setState]=useState({phase:"loading",items:[],error:""});
  useEffect(()=>{
    const controller=new AbortController();
