@@ -21,7 +21,7 @@
 15. **A PR is not a completed feature.** Do not stop at a plan, comment, PR, code commit or successful build; verify deployment and actual intended behavior.
 16. **Continue through blockers.** Diagnose and repair failures rather than stopping after each test, success or interval; report genuine external limitations accurately.
 17. **Revisit truncated work.** Inspect deferred, paused, disconnected, stubbed, mocked, skipped, failing and incomplete tasks before declaring a milestone finished.
-18. **Prevent regressions proactively.** Inspect dependent code and prior incidents before changes; add negative/regression tests and repair new failures.
+18. **Prevent regressions proactively; repair before building.** Before any checks, test suite, build or deployment, audit the changed behavior and its dependencies, proactively fix identifiable defects and regressions, and add focused positive/negative regression coverage. Only after this preflight repair pass, run checks/builds; if those checks reveal additional problems, repair them and repeat verification. Never use a test/build as a substitute for the initial repair audit.
 19. **Bring reviewed work into main.** Reconcile relevant feature branches with current main safely; retain unique changes and avoid stale branch merges.
 20. **Do not burn GitHub Actions minutes.** Use local testing and controlled Cloudflare manual builds while Actions minutes are exhausted.
 21. **Default to zero mandatory costs.** Prefer free services, budget-checked quotas and open-source tools; do not activate metered or paid providers without approval.
