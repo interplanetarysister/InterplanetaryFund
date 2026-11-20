@@ -6,7 +6,7 @@ const api = read("src/lib/accountDeletion.js");
 const compiled = new Function("authClient", api
   .replace(/^import[^\n]*\n/gm, "")
   .replace(/\bexport\s+(?=async|function|const)/g, "")+
-  ";return {requestAccountDeletion,getMyAccountDeletionRequests};");
+  ";return {requestAccountDeletion,getMyAccountDeletionRequests,cancelAccountDeletion};");
 const id = "11111111-1111-4111-8111-111111111111";
 const ref = "22222222-2222-4222-8222-222222222222";
 
@@ -18,6 +18,7 @@ function stub({ guest=false, verified=true, fail=false }={}) {
     rpc:async(name)=>{
       calls.push(name);
       if (fail) return {data:null,error:{message:"service denied"}};
+      if(name==="ifund_cancel_account_deletion")return {data:[{request_id:ref,request_status:"cancelled",updated_at:"2026-11-20T10:00:00Z"}],error:null};
       return name==="ifund_request_account_deletion" ?
         {data:[{request_id:ref,request_status:"requested",submitted_at:"2026-11-15T22:00:00Z"}],error:null}:
         {data:[{request_id:ref,request_status:"requested",submitted_at:"2026-11-15T22:00:00Z",updated_at:"2026-11-15T22:00:00Z"}],error:null};
@@ -75,4 +76,37 @@ test("restricted deletion administration provides a read-only dependency review"
   assert.ok(migration.includes("revoke all on function public.ifund_admin_account_erasure_preflight(uuid) from public, anon, authenticated;"));
   assert.match(migration,/safe_to_erase', false/);
   assert.ok(!migration.toLowerCase().includes("delete from auth.users"));
+});
+
+test("owner can cancel a pending request only with an independently verified result",async()=>{
+  const {cancelAccountDeletion}=compiled(()=>{throw Error("No implicit client");});
+  for(const user of [stub(),stub({guest:true,verified:false})]){
+    const returned=await cancelAccountDeletion(ref,user);
+    assert.equal(returned.id,ref);
+    assert.equal(returned.status,"cancelled");
+    assert.deepEqual(user.calls,["ifund_cancel_account_deletion"]);
+  }
+  const invalid=stub();
+  await assert.rejects(()=>cancelAccountDeletion("not-a-uuid",invalid),/valid deletion request reference/);
+  assert.deepEqual(invalid.calls,[]);
+  const unconfirmed=stub({verified:false});
+  await assert.rejects(()=>cancelAccountDeletion(ref,unconfirmed),/Verified account sign-in/);
+  assert.deepEqual(unconfirmed.calls,[]);
+  const failure=stub({fail:true});
+  await assert.rejects(()=>cancelAccountDeletion(ref,failure),/service denied/);
+});
+
+test("cancelled requests remain audited and never enter the active deletion queue",()=>{
+  const migration=read("../../supabase/migrations/20261120_ifund_account_deletion_cancellation.sql");
+  const mobile=read("src/mobile/MobileStoreDeleteAccount.jsx");
+  assert.match(migration,/status='cancelled',cancelled_at=now\(\)/);
+  assert.match(migration,/r.status in \('requested','reviewing','requires_legal_retention'\)/);
+  assert.match(migration,/r.account_disabled_at is not null/);
+  assert.match(migration,/v_row.erasure_started_at is not null/);
+  assert.match(migration,/v_row.document_cleanup_reviewed_at is not null/);
+  assert.match(migration,/revoke all on function public.ifund_cancel_account_deletion\(uuid\) from public,anon,authenticated/);
+  assert.doesNotMatch(migration,/delete from (auth\.users|public\.ifund_profiles)/i);
+  assert.match(mobile,/cancelAccountDeletion\(requestId\)/);
+  assert.match(mobile,/Keep my account — cancel deletion/);
+  assert.match(mobile,/cancelConfirmed/);
 });
