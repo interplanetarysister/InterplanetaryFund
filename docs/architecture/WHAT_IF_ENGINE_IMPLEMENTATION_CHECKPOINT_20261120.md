@@ -55,3 +55,12 @@ Not yet proven:
 - End-to-end production feature publication and approved rollout.
 
 **Release checklist:** reconcile with latest main, execute local Node 22/Vite/test suite plus Postgres/RLS tests (no Github Actions minutes); verify standalone Worker flags and AI binding in isolated preview, then one controlled Pages preview, run browser-role acceptance and rollback checks. Only after evidence-backed approval: merge and promote. Never enable the new frontend/server flags on production to skip QA.
+
+## 2026-11-20 provenance and authorization hardening
+- Applied **migration \`20261120105701_ifund_what_if_plan_provenance_and_verified_identity_guard.sql\`** to canonical Supabase. The owner-reviewed plan RPC now requires a genuinely confirmed, non-anonymous account from auth.users, in addition to active status and current terms.
+- RPC canonicalizes plan JSON on the server. It retains only summary, limited steps with safe specialist names, and planning metadata; disregards arbitrary provider or financial claims even when an authenticated member sends them directly to PostgREST. Each saved step is marked \`suggested / not_checked\`; verified monetary amounts remain \`null\`; completed external actions remain \`false\`; evidence stays \`suggested_unverified\`.
+- Idempotent retries compare the canonicalized JSON and still cannot create duplicate versions. No existing Mission rows needed backfill (observed 0 Mission rows before and after).
+- Read-only Supabase verification: anon lacks RPC execution; member EXECUTE available under owner restrictions; installed function includes normalization and email confirmation checks. This does **not** replace an authenticated two-owner negative acceptance test, and Supabase flags intentional member-callable SECURITY DEFINER RPCs for continued review.
+- Mocked member-client checks **6/6** passed: confirmed owner creation and denial for anonymous, unconfirmed-email, missing terms, foreign-owner receipt, and stale revision. Model normalization checks remain isolated source-level checks, not deployed AI acceptance.
+- Latest inspected code branch \`feature/what-if-engine-integrated-20261120\` is ahead of \`main\`, with no behind commits at the last comparison. Do not assume this remains true indefinitely while agents continue parallel work.
+
