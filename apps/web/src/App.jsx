@@ -94,7 +94,7 @@ const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 function CampaignEntryPoint() {
   const location=useLocation();
   const params=new URLSearchParams(location.search);
-  return !WHAT_IF_ENABLED || params.has("draft") || params.get("manual")==="1"
+  return !WHAT_IF_ENABLED || params.has("draft") || params.has("mission") || params.get("manual")==="1"
     ? <CreateCampaign/> : <Navigate to="/what-if" replace/>;
 }
 
