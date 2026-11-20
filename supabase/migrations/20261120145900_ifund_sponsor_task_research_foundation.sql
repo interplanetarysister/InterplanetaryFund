@@ -102,8 +102,7 @@ create policy ifund_sponsor_public_funded on public.ifund_sponsor_opportunities
    and not requires_purchase and (starts_at is null or starts_at <= now())
    and (ends_at is null or ends_at > now()) and exists (
      select 1 from public.ifund_sponsor_organizations s where s.id=sponsor_id
-       and s.verification_state='approved' and s.identity_verified_at is not null
-       and s.agreement_verified_at is not null
+       and s.verification_state='approved'
    )
  );
 create policy ifund_sponsor_participation_owner_read on public.ifund_sponsor_participations
