@@ -2,7 +2,7 @@ import {useCallback,useEffect,useRef,useState} from "react";
 import {Link} from "react-router-dom";
 import {AtSign,CheckCircle2,ShieldCheck,Loader2} from "lucide-react";
 import {authClient} from "@/api/auth";
-import {readEmailAddon,selectEmailAddon,linkCampaignEmail,IFUND_EMAIL_DOMAIN} from "@/lib/campaignEmailAddon.mjs";
+import {readEmailAddon,selectEmailAddon,linkCampaignEmail,readEmailAddonCheckoutReadiness,IFUND_EMAIL_DOMAIN} from "@/lib/campaignEmailAddon.mjs";
 import {listOwnerCampaigns} from "@/api/ownerCampaigns";
 
 // Requests a reserved address only. The backend independently checks a real
@@ -16,6 +16,7 @@ export default function CampaignEmailAddon(){
  const [linkedCampaign,setLinkedCampaign]=useState("");
  const [linkBusy,setLinkBusy]=useState(false);
  const [campaignError,setCampaignError]=useState("");
+ const [checkoutStatus,setCheckoutStatus]=useState(null);
  const [busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("");
  const [error,setError]=useState("");
@@ -29,6 +30,9 @@ export default function CampaignEmailAddon(){
      if(!alive.current||generationNumber!==generation.current)return;
      setStatus(result);setHandle(result.requested_handle||"");
      setOptIn(result.opted_in);setLinkedCampaign(result.linked_campaign_id||"");setPhase("ready");
+     readEmailAddonCheckoutReadiness(authClient()).then(ready=>{
+       if(alive.current&&generationNumber===generation.current)setCheckoutStatus(ready);
+     }).catch(()=>{if(alive.current&&generationNumber===generation.current)setCheckoutStatus(null);});
      setCampaignError("");
      if(result.eligible && result.opted_in){
        listOwnerCampaigns(authClient()).then(rows=>{
@@ -133,6 +137,15 @@ export default function CampaignEmailAddon(){
            {saved&&status.requested_address&&<span className="break-all text-sm font-medium">{status.requested_address}</span>}
          </div>
        </form>}
+       {saved&&basic&&<div className="rounded-xl border border-cyan-500/25 bg-background/70 p-4 text-sm" aria-label="Recurring email billing readiness">
+         <p className="font-semibold">Separate PayPal email subscription · $1/month</p>
+         {checkoutStatus===null
+           ?<p role="status" className="mt-2 text-amber-600">PayPal plan verification is unavailable. Checkout is disabled; no payment has been made.</p>
+           :checkoutStatus.checkout_ready
+             ?<p role="status" className="mt-2">The recurring payment plan is verified. Checkout activation and payment confirmation are processed separately; your mailbox remains inactive until a paid receipt and verified routing are recorded.</p>
+             :<p role="status" className="mt-2 text-amber-600">The separate recurring PayPal checkout is not yet available. Your address is reserved only; selecting this add-on does not charge you or enable mail delivery.</p>}
+         <p className="mt-2 text-xs text-muted-foreground">No one-time payment link or approval redirect counts as a recurring add-on payment.</p>
+       </div>}
        {saved&&eligible&&<form onSubmit={connectCampaign} className="space-y-3 rounded-xl border border-cyan-500/25 bg-background/70 p-4">
          <div><h3 className="font-semibold">Connect your address to a campaign</h3>
            <p className="mt-1 text-xs text-muted-foreground">Choose one of your own campaigns. This labels future incoming messages in your private iFund Inbox. Linking does not activate delivery or publish anything.</p></div>
