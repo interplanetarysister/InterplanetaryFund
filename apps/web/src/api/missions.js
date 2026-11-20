@@ -148,3 +148,85 @@ export async function getMissionIntegrationStatus(client,missionId){
  await sessionStillOwner(client,ownerId);
  return {connections:c.data||[],agents:a.data||[],opportunities:o.data||[]};
 }
+
+// A plan is saved only AFTER the owner reviews it; this RPC atomically versions it
+// and creates initial tasks. It never authenticates a provider or publishes anything.
+export async function saveReviewedMissionPlan(client,missionId,expectedRevision,structuredPlan,{requestId}={}){
+ ensureUuid(missionId,"Mission ID");
+ if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)throw new Error("Missing plan revision.");
+ const id=ensureUuid(requestId||crypto.randomUUID(),"plan request ID");
+ if(!structuredPlan||typeof structuredPlan!=="object"||Array.isArray(structuredPlan)||
+    typeof structuredPlan.summary!=="string"||!structuredPlan.summary.trim()||
+    !Array.isArray(structuredPlan.steps)||structuredPlan.steps.length>20)
+    throw new Error("Review a summary and up to 20 steps before saving.");
+ const owner=await verifiedOwner(client,true);
+ const r=await client.rpc("ifund_mission_save_reviewed_plan",{
+   p_mission_id:missionId,p_request_id:id,p_expected_revision:expectedRevision,p_plan:structuredPlan
+ });
+ if(r.error||r.data?.id!==id||r.data?.mission_id!==missionId||
+    !Number.isInteger(r.data?.version)||!Number.isInteger(r.data?.revision))
+   throw new Error(r.error?.code==="40001"?"Mission changed. Reload before saving this plan.":
+     "Plan save could not be verified; retry with the same request ID.");
+ await sessionStillOwner(client,owner);
+ return r.data;
+}
+export async function linkCampaignToMission(client,missionId,campaignId){
+ ensureUuid(missionId,"Mission ID");ensureUuid(campaignId,"campaign ID");
+ const owner=await verifiedOwner(client,true);
+ const r=await client.rpc("ifund_mission_link_owned_campaign",{
+   p_mission_id:missionId,p_campaign_id:campaignId
+ });
+ if(r.error||r.data?.mission_id!==missionId||r.data?.campaign_id!==campaignId)
+   throw new Error("Your campaign saved but could not be linked to this Mission. Reopen the Mission to retry.");
+ await sessionStillOwner(client,owner);
+ return r.data;
+}
+export async function listMissionCampaignLinks(client,missionId){
+ ensureUuid(missionId,"Mission ID");
+ const owner=await verifiedOwner(client);
+ const r=await client.from("ifund_mission_campaign_links")
+   .select("id,mission_id,owner_id,campaign_id,linked_at")
+   .eq("mission_id",missionId).eq("owner_id",owner)
+   .order("linked_at",{ascending:false}).limit(30);
+ if(r.error||!Array.isArray(r.data)||r.data.some(x=>x.owner_id!==owner))
+   throw new Error("Campaign associations could not be verified.");
+ await sessionStillOwner(client,owner);return r.data;
+}
+// Guest: the response is intentionally provisional and does not persist a prompt.
+export async function exploreMission(prompt,{fetcher=fetch}={}){
+ const response=await fetcher("/api/missions/explore",{
+   method:"POST",headers:{"content-type":"application/json"},
+   body:JSON.stringify({prompt}),signal:AbortSignal.timeout(16000)
+ });
+ const data=await response.json().catch(()=>null);
+ if(!response.ok)throw new Error(data?.error||"Planning preview unavailable; saving privately is still possible.");
+ if(data?.provisional!==true||data.provider_actions_executed!==0||
+    data.provider_funding_confirmed!==false)throw new Error("Planning preview could not be verified.");
+ return data;
+}
+// Signed-in AI inference generates an UNPERSISTED draft requiring explicit Save.
+export async function suggestMissionPlan(client,missionId,revision,{requestId=crypto.randomUUID(),fetcher=fetch}={}){
+ ensureUuid(missionId,"Mission ID");ensureUuid(requestId,"planning request ID");
+ const owner=await verifiedOwner(client);
+ const {data:auth,error}=await client.auth.getSession();
+ if(error||auth?.session?.user?.id!==owner||!auth?.session?.access_token)
+   throw new Error("Sign in before requesting AI planning.");
+ const response=await fetcher("/api/missions/plan",{
+   method:"POST",
+   headers:{"content-type":"application/json",authorization:"Bearer "+auth.session.access_token},
+   body:JSON.stringify({mission_id:missionId,revision,request_id:requestId}),
+   signal:AbortSignal.timeout(90000)
+ });
+ const data=await response.json().catch(()=>null);
+ await sessionStillOwner(client,owner);
+ if(!response.ok)throw Object.assign(
+   new Error(data?.error||"Mission planning is unavailable; manual tasks still work."),
+   {code:data?.code||"unavailable"}
+ );
+ if(data?.saved!==false||data.ai_inference!==true||
+    data.requires_owner_review!==true||data.mission_id!==missionId||
+    data.input_revision!==revision||
+    !data.plan||!Array.isArray(data.plan.steps))
+   throw new Error("AI planning returned an unverified response. Nothing was saved.");
+ return data.plan;
+}
