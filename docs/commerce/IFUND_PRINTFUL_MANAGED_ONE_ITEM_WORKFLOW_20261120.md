@@ -27,6 +27,10 @@
 
 The Agent 1, Agent 3, Agent 4 and Agent 5 existing scheduled workflows have additive assignments, without overwriting their historical duties. This document is a capability contract, not proof that autonomous agent maintenance is connected to a live Printful account.
 
+## Owner-private saved design drafts
+
+`supabase/migrations/20261120090000_ifund_private_merch_design_drafts.sql` adds an owner-scoped table with no public read or live product status. Do not apply it as a substitute for provider checkout approval. The `VITE_IFUND_MERCH_DRAFTS_ENABLED=enabled` frontend flag must remain **unset by default** until additive schema, authenticated owner and cross-owner denial, session-switch, consent and deletion tests have passed. The editor can still generate an unsaved local PNG design proof with this flag off. Enabled members can save a private design choice and approved name, reopen it, or explicitly remove it. A locally uploaded reference photo, generated AI file or production-ready print file is **not** persisted by saving a design preference.
+
 ## Merchant account prerequisites
 
 The authenticated iFund owner must have an actual Printful account, ownership-verified business profile, a Manual Order/API store, private API token scoped to that store, actual Printful payment/billing authorization and accepted service terms. The signup email and store ID must be recorded **only after provider verification**. The tool environment has no connected Printful plugin, and no existing linked account was verified on November 20.
