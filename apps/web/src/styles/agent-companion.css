@@ -1,3 +1,19 @@
+/* A single agent companion lives outside route transitions, including public pages. */
+.ifund-global-companion-shell { display:flex; width:100%; min-width:0; height:100dvh; overflow:hidden; }
+.ifund-global-companion-main { flex:1 1 auto; min-width:0; height:100dvh; overflow-y:auto; overscroll-behavior:contain; }
+.ifund-global-agent-launcher {
+  position:fixed; bottom:max(26px,env(safe-area-inset-bottom)); right:18px;
+  z-index:44; display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  min-height:48px; padding:11px 16px; border-radius:999px; border:1px solid #6ce1f1;
+  background:#101b37; color:#e9faff; font-size:14px; font-weight:750;
+  box-shadow:0 8px 30px #0008;
+}
+.ifund-global-agent-launcher:focus-visible { outline:3px solid #67e8f9; outline-offset:3px; }
+@media(max-width:767px) { .ifund-global-agent-launcher {
+  bottom:calc(82px + env(safe-area-inset-bottom)); right:12px;
+  min-height:46px; padding:10px 13px;
+} }
+
 /* Workspace companion and refined dashboard. Scoped, accessible, no page overlay on desktop. */
 .ifund-agent-side-panel {
   display:flex; flex-direction:column; flex:0 0 clamp(335px,36vw,520px);
