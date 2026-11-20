@@ -136,7 +136,7 @@ export default function Subscriptions(){
         </div>}
     </section>
 
-    <CampaignEmailAddon />
+    <div id="campaign-email" className="scroll-mt-24"><CampaignEmailAddon /></div>
 
     <section className="grid gap-4 sm:grid-cols-2">
       {plans.map(plan=>{
