@@ -24,10 +24,13 @@ import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
 import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
+import { linkCampaignToMission, loadMission } from "@/api/missions";
 
 export default function CreateCampaign() {
   const [params] = useSearchParams();
   const draftId = params.get("draft");
+  if (!draftId && params.get("manual") !== "1" && import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled")
+    return <Navigate to="/what-if" replace />;
   return <NewCampaign draftId={draftId} />;
 }
 
