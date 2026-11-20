@@ -74,6 +74,10 @@ export async function memberApi(request, env, fetcher = fetch) {
   const user = await upstream("/auth/v1/user");
   if (!UUID.test(user?.id || "") || !user.email_confirmed_at || user.is_anonymous === true)
     fail(401, "Confirm your email before continuing.");
+  // A valid JWT can outlive account suspension/deletion. Always recheck
+  // server-side account status before giving an agent any account services.
+  const active = await upstream("/rest/v1/rpc/ifund_current_account_is_active", {});
+  if (active !== true) fail(403, "Your IFund account must be active to use agent services.");
   return {
     user,
     jwt: bearer.slice(7),
