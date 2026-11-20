@@ -56,7 +56,22 @@
   background:rgba(8,18,33,.78); color:#f3f8ff; border:1px solid #38506a;
   border-radius:15px; transition:border-color .2s ease,box-shadow .2s ease;
 }
-.ifund-agents-console textarea::placeholder { color:#93a9c5; }
+.ifund-agents-console textarea::placeholder {
+  color:#b3c8e2 !important; opacity:1 !important;
+  -webkit-text-fill-color:#b3c8e2 !important;
+}
+.ifund-agents-console textarea,.ifund-agents-console select {
+  color:#f3f8ff !important; -webkit-text-fill-color:#f3f8ff;
+}
+.ifund-agents-hero-link { display:inline-flex; align-items:center; gap:.65rem; margin-top:1.15rem;
+  min-height:42px; padding:.55rem 1rem; border-radius:13px;
+  background:linear-gradient(110deg,#80f6eb,#99aeff); color:#071529; font-weight:800;
+  box-shadow:0 10px 28px rgba(71,205,220,.18); text-decoration:none; }
+.ifund-agents-hero-link:hover { filter:brightness(1.07); }
+.ifund-agents-hero-link:focus-visible { outline:3px solid #e9faff; outline-offset:3px; }
+#ifund-agents-ask { scroll-margin-top:96px; }
+#ask-mission-control { scroll-margin-top:96px; }
+
 .ifund-agents-console textarea:focus-visible,.ifund-agents-console select:focus-visible {
   outline:2px solid #73e9e5; outline-offset:2px; border-color:#73e9e5; box-shadow:0 0 0 4px rgba(76,220,218,.12);
 }
