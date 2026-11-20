@@ -35,7 +35,7 @@ test("a foreign owner row, unreadable row, or invalid receipt does not count as 
 test("no guest or browser-direct recipient creation is exposed",()=>{
  const ui=readFileSync(new URL("../src/pages/Notifications.jsx",import.meta.url),"utf8");
  const api=readFileSync(new URL("../src/lib/notifications.js",import.meta.url),"utf8");
- const sql=readFileSync(new URL("../../supabase/migrations/20261119194500_ifund_owner_notification_delivery_selfcheck.sql",import.meta.url),"utf8");
+ const sql=readFileSync(new URL("../../../supabase/migrations/20261119194500_ifund_owner_notification_delivery_selfcheck.sql",import.meta.url),"utf8");
  assert.match(ui,/onClick=\{testDelivery\}/);
  assert.match(ui,/verifyInAppNotificationDelivery\(authClient\(\)\)/);
  assert.match(api,/\.rpc\("ifund_notification_delivery_selfcheck"\)/);
