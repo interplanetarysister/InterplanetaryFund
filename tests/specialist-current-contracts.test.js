@@ -43,7 +43,7 @@ function service({ preferences, anonymous = false, malformed = "", claims = { st
     if (malformed && url.includes(malformed)) return new Response("not JSON");
     if (url.endsWith("/rpc/ifund_current_account_is_active")) return Response.json(true);
     if (url.endsWith("/auth/v1/user")) return Response.json({ id: owner, is_anonymous: anonymous, email_confirmed_at: "2026-11-01" });
-    if (url.includes("/ifund_ai_permission_preferences?")) return Response.json(preferences ?? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }]);
+    if (url.includes("/ifund_ai_permission_preferences?")) return Response.json(preferences ?? [{ owner_id:owner,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:true }]);
     if (url.endsWith("_context")) return Response.json(context);
     if (url.endsWith("_begin")) return Response.json(claims);
     if (url.endsWith("_workspace")) return Response.json({ brief: null, recommendations: [], messages: [], campaigns: [], ai_available: true });
@@ -61,7 +61,7 @@ test("all specialist generation checks current saved AI permission before contex
     }, backend.fetcher);
     assert.equal(response.status, 403, agent.name);
     assert.equal(backend.calls.length, 3);
-    assert.match(backend.calls[2].url, new RegExp(`select=${agent.permission}&owner_id=eq.${owner}$`));
+    assert.match(backend.calls[2].url, /select=owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance/);
   }
 });
 
