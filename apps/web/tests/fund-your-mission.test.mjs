@@ -39,6 +39,14 @@ test("Fund Your Mission routes to genuine existing fundraising and research flow
  assert.match(page,/Sponsor submissions, offer enrollment, commissions and payouts are not enabled/);
  assert.doesNotMatch(page,/member.*earnings.*\$[0-9]+/i);
 });
+test("Fund Your Mission entry links respect the What If feature gate",()=>{
+ const page=read("../src/pages/FundYourMission.jsx");
+ assert.match(page,/VITE_IFUND_WHAT_IF_ENABLED === "enabled"/);
+ assert.match(page,/to=\{whatIfEnabled \? "\/what-if" : "\/create\?manual=1"\}/);
+ assert.match(page,/to=\{whatIfEnabled \? "\/missions" : "\/campaigns"\}/);
+ assert.match(page,/Private Missions are not available yet\./);
+});
+
 test("Route registry tracks source and runtime evidence independently",()=>{
  const routes=JSON.parse(read("../ci/route-acceptance.json")).routes;
  const row=routes.find(x=>x.route==="/fund-your-mission");
