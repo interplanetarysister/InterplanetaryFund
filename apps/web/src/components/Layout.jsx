@@ -27,8 +27,8 @@ const PAGE_TITLES = {
   "/what-if": "What If?", "/missions": "My Missions",
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
-  "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
+  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "AI Team", "/messaging": "Messaging", "/mail": "Mail",
+  "/inbox": "Mail", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
@@ -55,6 +55,7 @@ const navSections = [
     label: "AI Tools",
     items: [
       { to: "/agents", label: "AI Team", icon: Bot },
+      { to: "/messaging", label: "Messaging", icon: MessageSquare },
       { to: "/mission", label: "Mission Control", icon: Sparkles },
       ...(WHAT_IF_LAUNCHED ? [{ to: "/what-if", label: "What If? Engine", icon: Orbit }] : []),
       { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
@@ -93,8 +94,8 @@ const navSections = [
       { to: "/community", label: "Public Discussions", icon: Users },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
-          { to: "/communications", label: "ECHO Drafts", icon: MessageSquare },
-      { to: "/inbox", label: "Inbox", icon: MailOpen },
+          { to: "/communications", label: "ECHO Outreach", icon: Sparkles },
+      { to: "/mail", label: "Mail", icon: MailOpen },
     ],
   },
   {
@@ -190,7 +191,7 @@ export default function Layout() {
     : ["/discover", "/campaign", "/community", "/help"].some(v => pathname.startsWith(v)) ? "Explore"
     : "Your workspace";
   const navigate = useNavigate();
-  const isRoot = ["/", "/dashboard", "/discover", "/social", "/inbox",
+  const isRoot = ["/", "/dashboard", "/discover", "/social", "/inbox", "/mail", "/messaging",
     "/profile", "/community", "/help", "/globe", "/campaigns"].includes(pathname);
   const goBack = () => {
     if (canReturnWithinApp(window.history.state)) navigate(-1);
