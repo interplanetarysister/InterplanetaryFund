@@ -46,8 +46,8 @@ export default {
       return new Response(result.body, { status: result.status, headers });
     }
     if (pathname === '/api/public/help/index') return routePublicHelpIndex(request, env);
-    if (pathname === '/api/ai/images/generate') return routeImageStudio(request, env);
-    if (pathname === '/api/ai/images/improve') return routeImageImprove(request, env);
+    if (pathname === '/api/ai/images/generate') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageStudio(request, env);
+    if (pathname === '/api/ai/images/improve') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageImprove(request, env);
     if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
     if (pathname === '/api/studio/generate') return routeStudioGenerateRequest(request, env);
