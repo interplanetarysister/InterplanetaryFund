@@ -72,3 +72,13 @@ test("recovered builder instructions point to current platform rather than retir
   assert.match(file("BUILD_AGENT_RULES.md"),/Never delete, deduplicate, move or overwrite/);
   assert.match(file("docs/operations/IFUND_STANDING_OWNER_RULES_20261120.md"),/^61\. /m);
 });
+
+test("owner-only preferences grant reconciliation is source-controlled and fail-closed", () => {
+  const sql=file("supabase/migrations/20261120123320_ifund_restore_owner_communication_preference_update_grant_20261120.sql");
+  assert.match(sql, /GRANT UPDATE \(comm_prefs\) ON TABLE public\.ifund_profiles TO authenticated/);
+  assert.match(sql, /permissive='RESTRICTIVE'/);
+  assert.match(sql, /ifund_profiles_update/);
+  assert.match(sql, /ifund_current_account_is_active/);
+  assert.match(sql, /REVOKE UPDATE \(comm_prefs\) ON TABLE public\.ifund_profiles FROM PUBLIC, anon/);
+  assert.doesNotMatch(sql, /GRANT UPDATE ON TABLE public\.ifund_profiles/i);
+});
