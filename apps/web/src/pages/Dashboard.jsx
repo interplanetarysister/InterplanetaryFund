@@ -54,7 +54,7 @@ export default function Dashboard() {
   return <main className="ifund-dashboard mx-auto max-w-7xl space-y-7 px-4 py-6 sm:px-8 sm:py-9">
     <header className="ifund-dashboard-hero">
       <div className="relative z-10 max-w-2xl">
-        <p className="ifund-dashboard-eyebrow !text-cyan-200">Your IFund workspace</p>
+        <p className="ifund-dashboard-eyebrow !text-cyan-200">Your iFund workspace</p>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
         <div className="mt-5 flex flex-wrap gap-3">
@@ -67,7 +67,7 @@ export default function Dashboard() {
           label="What would you like to make possible?"
           placeholder="Describe a need, an idea or a question. Nothing is published without you."
           submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
-          note="Private by default. AI Assistance is off unless you switch it on in Permissions."
+          note="Private by default. Turn on AI assistance in Permissions if you want suggestions."
           onSubmit={(prompt) => navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt } })}
           className="mt-5 max-w-2xl"
         />
@@ -78,7 +78,7 @@ export default function Dashboard() {
       <h2 className="text-xl font-semibold">Your next possibility starts here</h2>
       <p className="text-sm text-muted-foreground">Build a private Mission from an idea or need. A fundraiser is optional, and nothing is published without your review.</p>
       <div className="flex flex-wrap gap-3">
-        <Link to="/what-if" className="ifund-dashboard-primary">Explore What If?</Link>
+        <Link to="/what-if" className="ifund-dashboard-primary">Open What If</Link>
         <Link to="/missions" className="ifund-dashboard-secondary">My Missions</Link>
       </div>
     </section>}
@@ -121,12 +121,12 @@ export default function Dashboard() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">AI Assistance is one switch for the whole team. Manage it in <Link to="/permissions?section=ai" className="underline">Permissions</Link>. Turning it off stops AI suggestions everywhere.</p>
+      <p className="mt-3 text-xs text-muted-foreground">AI assistance is one switch for the whole team. Manage it in <Link to="/permissions?section=ai" className="underline">Permissions</Link>. Turning it off stops suggestions everywhere.</p>
     </section>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
       <section className="ifund-dashboard-card ifund-dashboard-module space-y-4">
         <div><p className="ifund-dashboard-eyebrow">Build and manage</p><h2 className="text-xl font-bold">Your fundraising hub</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Keep campaigns, external fundraisers and verified finances organized. No estimated donation totals.</p></div>
+          <p className="mt-2 text-sm text-muted-foreground">Keep campaigns, external fundraisers and verified finances organized. Only donation totals confirmed by the payment provider are shown.</p></div>
         <div className="grid gap-2 sm:grid-cols-2">
           <Link to="/campaigns" className="ifund-dashboard-mini-link">Manage campaigns <ArrowUpRight size={15}/></Link>
           <Link to="/fundraising-hub" className="ifund-dashboard-mini-link">Connected fundraisers <ArrowUpRight size={15}/></Link>

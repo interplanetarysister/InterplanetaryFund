@@ -43,7 +43,7 @@ export default function FundYourMission() {
      <div className="relative max-w-3xl space-y-4">
        <p className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Your possibilities, your progress</p>
        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Fund your Mission</h1>
-       <p className="max-w-2xl text-base leading-7 text-slate-200">Raise support, find relevant opportunities and discover legitimate ways to earn toward your goals—all in one place.</p>
+       <p className="max-w-2xl text-base leading-7 text-slate-200">Raise support and explore relevant opportunities in one place. Earning and marketplace ideas are future research, not available income today.</p>
        <div className="flex flex-wrap gap-3">
          <Link to="/what-if" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950"><Sparkles size={17}/>Start a private Mission</Link>
          <Link to="/missions" className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-5 py-3 font-semibold text-white">My Missions</Link>

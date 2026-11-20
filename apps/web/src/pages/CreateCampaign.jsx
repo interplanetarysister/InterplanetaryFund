@@ -576,7 +576,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
+    <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p>{templateParam && <p role="status" className="mt-2 text-sm font-medium text-primary">Starting layout: {templateStyle(previewStyle).name}. You can change it below.</p>}<div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
@@ -596,7 +596,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
     <AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} />
     <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
-    <section hidden={step!==0&&step!==1} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+    <section hidden={step!==0&&step!==1} className="ifund-cosmic-panel space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <div hidden={step!==0} className="space-y-4">
       <h2 className="text-xl font-semibold">Your campaign details</h2>
@@ -685,7 +685,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </>}
       </div></fieldset>
     </section>
-    <form hidden={step===2} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <form hidden={step===2} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="ifund-cosmic-panel space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <fieldset disabled={disabled} className="space-y-5">
       <div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       </div><div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Short description (optional)<textarea id="campaign-summary" aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
@@ -741,7 +741,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </details>}
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     {step===2&&<p className="text-sm text-muted-foreground">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>}
-    <section hidden={step!==2} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <section hidden={step!==2} aria-label="Save or publish campaign" className="ifund-cosmic-panel space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
         {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>

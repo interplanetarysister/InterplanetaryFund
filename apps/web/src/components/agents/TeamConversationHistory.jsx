@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/api/auth";
 import { loadTeamHistory, eraseTeamEvent, correctTeamStatement } from "@/api/teamContext";
-import { AGENT_IDENTITIES } from "./AgentIdentityIcon";
+import { AGENT_IDENTITIES, AgentIdentityIcon } from "./AgentIdentityIcon";
 
 /** Member-only, read-only by default. No claim all agents have migrated yet. */
 export default function TeamConversationHistory(){
@@ -87,7 +87,10 @@ export default function TeamConversationHistory(){
       {state.message&&<p className="text-sm" role="status">{state.message}</p>}
       {state.items.length===0 ? <p className="text-sm text-muted-foreground">No recorded team exchanges yet.</p> : state.items.map(item=><article key={item.id} className="rounded-xl border border-border p-3">
         <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
-          <strong>{AGENT_IDENTITIES[item.agent_id]?.name||"iFund agent"} · {item.speaker==="user"?"You":"Agent"}</strong>
+          <strong className="inline-flex min-w-0 items-center gap-2">
+            {Object.hasOwn(AGENT_IDENTITIES, item.agent_id) && <AgentIdentityIcon identity={item.agent_id} size={22}/>}
+            <span className="break-words">{AGENT_IDENTITIES[item.agent_id]?.name||"iFund agent"} · {item.speaker==="user"?"You":"Agent"}</span>
+          </strong>
           <time dateTime={item.recorded_at}>{new Date(item.recorded_at).toLocaleString()}</time>
         </div>
         <p className="mt-2 whitespace-pre-wrap break-words text-sm">{item.content}</p>

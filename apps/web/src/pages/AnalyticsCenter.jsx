@@ -26,11 +26,11 @@ export default function AnalyticsCenter() {
     ["analysis", "AI Analysis & refinement"],
     ["engagement", "Supporter engagement"],
     ["finance", "Verified finances"],
-    ["atlas", "Campaign atlas"],
+    ["atlas", "Campaign Atlas"],
   ];
   return <div className="mx-auto max-w-6xl space-y-5 px-4 py-8 sm:px-7">
     <header className="space-y-2">
-      <h1 className="text-3xl font-bold">Campaign command center</h1>
+      <h1 className="text-3xl font-bold">Campaign Command Center</h1>
       <p className="text-sm text-muted-foreground">Review and refine campaign quality, supporter engagement, verified finances, and public campaign geography. Writing advice does not guarantee fundraising results.</p>
     </header>
     <div role="tablist" aria-label="Analytics views" aria-orientation="horizontal" className="flex flex-wrap gap-2">

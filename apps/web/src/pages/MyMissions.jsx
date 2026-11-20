@@ -31,13 +31,13 @@ export default function MyMissions(){
   {phase==="error"&&<div role="alert" className="space-y-3 rounded-2xl border border-destructive/30 p-5">
    <p>{error}</p><button type="button" onClick={()=>setRevision(v=>v+1)} className="min-h-11 rounded-xl border px-4">Retry</button>
   </div>}
-  {phase==="ready"&&items.length===0&&<section className="space-y-4 rounded-2xl border border-border bg-card p-8 text-center">
+  {phase==="ready"&&items.length===0&&<section className="ifund-cosmic-panel space-y-4 rounded-2xl border border-border bg-card p-8 text-center">
    <Orbit className="mx-auto" size={36}/><h2 className="text-xl font-semibold">It starts with a possibility</h2>
    <p className="text-sm text-muted-foreground">Describe something you want to make happen, then build your private plan.</p>
    <Link className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground" to="/what-if">Create your first Mission <ArrowRight size={17}/></Link>
   </section>}
   {phase==="ready"&&items.length>0&&<section aria-label="Saved private Missions" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-   {items.map(m=><Link key={m.id} to={"/missions/"+encodeURIComponent(m.id)} className="group flex min-h-48 flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-cyan-400/60 focus-visible:ring-2 focus-visible:ring-cyan-400">
+   {items.map(m=><Link key={m.id} to={"/missions/"+encodeURIComponent(m.id)} className="ifund-cosmic-panel group flex min-h-48 flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-5 transition hover:border-cyan-400/60 focus-visible:ring-2 focus-visible:ring-cyan-400">
     <div><div className="mb-4 flex items-center justify-between gap-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><LockKeyhole size={14}/> Private</span><span className="capitalize">{m.status?.replaceAll("_"," ")}</span></div>
      <h2 className="line-clamp-2 text-lg font-semibold group-hover:text-primary">{m.title||"Untitled Mission"}</h2>
      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{m.summary||m.original_prompt}</p>

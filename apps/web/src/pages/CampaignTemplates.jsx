@@ -123,7 +123,7 @@ export default function CampaignTemplates() {
             </p>
           </section>
 
-          <details className="rounded-2xl border border-border p-4 text-sm">
+          <details className="ifund-cosmic-panel rounded-2xl border border-border p-4 text-sm">
             <summary className="cursor-pointer font-semibold">Writing prompts for this category</summary>
             <ul className="mt-3 space-y-2 text-muted-foreground">
               {templateOutline(category).map((item) => (

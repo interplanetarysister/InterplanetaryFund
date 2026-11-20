@@ -37,3 +37,10 @@ test("Messaging uses real existing agent icons and separate guarded operations r
  assert.match(room,/ifund_agent_operations_messages/);
  assert.doesNotMatch(page,/ifund_inbox_items/);
 });
+test("Messaging actions use readable iFund wording and touch-sized links",()=>{
+ const page=read("apps/web/src/pages/Messaging.jsx");
+ assert.match(page,/Talk with your iFund agents/);
+ assert.match(page,/inline-flex min-h-11 items-center font-semibold text-cyan-500 underline/);
+ assert.match(page,/text-sm text-muted-foreground/);
+ assert.doesNotMatch(page,/Talk with your IFund agents/);
+});

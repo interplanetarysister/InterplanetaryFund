@@ -10,7 +10,7 @@ const STEPS = [
 export default function FundraisingTips() {
   return <section className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
     <header>
-      <p className="text-sm font-semibold uppercase tracking-wider text-primary">IFund / Fundraising Guide</p>
+      <p className="text-sm font-semibold uppercase tracking-wider text-primary">iFund / Fundraising Guide</p>
       <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Build a fundraiser people can understand and trust</h1>
       <p className="mt-3 text-muted-foreground">Practical steps for clearer campaigns, stronger communication and respectful supporter outreach. These ideas improve campaign quality; they cannot guarantee donations.</p>
     </header>

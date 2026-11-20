@@ -58,7 +58,7 @@ export default function CampaignCategoryGrid({
           </>
         );
         const className = [
-          "ifund-tap group flex min-h-[92px] items-start gap-3 rounded-2xl border p-4 text-left transition",
+          "ifund-tap ifund-cosmic-panel group flex min-h-[92px] items-start gap-3 rounded-2xl border p-4 text-left transition",
           active
             ? "border-cyan-400 bg-cyan-400/10 shadow-[0_0_0_1px_rgba(34,211,238,0.25)]"
             : "border-border bg-card hover:-translate-y-0.5 hover:border-cyan-400/60 hover:shadow-lg",

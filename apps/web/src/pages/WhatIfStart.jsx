@@ -107,7 +107,7 @@ export default function WhatIfStart(){
          <p className="text-sm text-slate-200">{preview.understood}</p>
          <div className="grid gap-3 sm:grid-cols-3">{preview.pathways.map(p=><article key={p.kind} className="rounded-xl border border-white/15 p-3"><h3 className="text-sm font-semibold">{p.title}</h3><p className="mt-2 text-xs leading-relaxed text-slate-300">{p.next_step}</p></article>)}</div>
          <p className="text-xs text-slate-300">This is an unresearched planning preview. No sponsor, aid program, donation, or external action has been verified.</p>
-         <button type="button" onClick={save} disabled={!!busy} className="min-h-11 rounded-xl bg-cyan-400 px-5 font-semibold text-slate-950">Make this a private Mission <ArrowRight className="ml-1 inline" size={17}/></button>
+         <button type="button" onClick={save} disabled={!!busy} className="min-h-11 rounded-xl bg-cyan-400 px-5 font-semibold text-slate-950">Save private Mission <ArrowRight className="ml-1 inline" size={17}/></button>
        </section>}
      </div>
    </section>
@@ -117,7 +117,7 @@ export default function WhatIfStart(){
    </section>
    <div className="flex flex-wrap items-center gap-5 text-sm">
      <Link className="inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline" to="/missions">My private Missions <ArrowRight size={16}/></Link>
-     <Link className="inline-flex items-center gap-2 text-muted-foreground underline-offset-4 hover:underline" to="/create?manual=1"><HeartHandshake size={16}/> Prefer the existing campaign editor?</Link>
+     <Link className="inline-flex items-center gap-2 text-muted-foreground underline-offset-4 hover:underline" to="/create?manual=1"><HeartHandshake size={16}/> Use the standard campaign editor instead</Link>
    </div>
  </main>;
 }

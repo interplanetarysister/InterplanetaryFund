@@ -4,6 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSpecialistService } from "@/hooks/useSpecialistService";
 import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { selectedRevisions, verifiedMessagePreview } from "@/lib/specialistSession";
+import { AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
 const button = "min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40";
 const field = "mt-2 min-h-11 w-full rounded-lg border border-border bg-background p-3";
@@ -63,7 +64,7 @@ export function PlanningServiceWorkspace({ agent, ownerId, initialCampaignId=nul
   }
   const growth = agent === "growth";
   return <section className="space-y-5" aria-label={growth ? "FORGE saved growth reports" : "POLARIS saved strategy plans"}>
-    <h3 className="text-xl font-semibold">{growth ? "Saved growth reports" : "Saved strategy plans"}</h3>
+    <h3 className="flex items-center gap-2 text-xl font-semibold"><AgentIdentityIcon identity={growth ? "forge" : "polaris"} size={30}/>{growth ? "Saved growth reports" : "Saved strategy plans"}</h3>
     <p className="text-sm text-muted-foreground">Review priorities and save decisions without changing campaigns or publishing content. New report generation is available only when the service verifies its AI capability.</p>
     <SelectionNotice missing={missingCampaign}/>
     <ServiceStatus service={service} onReload={() => service.reload(() => { setSelected([]); setReview(null); })}/>
@@ -145,7 +146,7 @@ export function CommunicationsServiceWorkspace({ ownerId, initialCampaignId=null
     } catch (error) { setValidation(error.message); }
   }
   return <section className="space-y-5" aria-label="ECHO saved supporter updates">
-    <h3 className="text-xl font-semibold">Saved supporter updates</h3>
+    <h3 className="flex items-center gap-2 text-xl font-semibold"><AgentIdentityIcon identity="echo" size={30}/>Saved supporter updates</h3>
     <SelectionNotice missing={missingCampaign}/>
     <p className="text-sm text-muted-foreground">Save editable messages and review exact text and eligible audiences before in-app delivery. Email, social posting and autonomous messaging are not authorized here.</p>
     <ServiceStatus service={service}/>
@@ -219,7 +220,7 @@ export function ManagedConnectionsServiceWorkspace({ ownerId, initialCampaignId=
   }
   return <section className="space-y-5" aria-label="LINK scoped connection help">
     <SelectionNotice missing={missingCampaign}/>
-    <h3 className="text-xl font-semibold">Scoped connection help</h3><p className="text-sm text-muted-foreground">Save provider-specific requests and review permissions. A saved request or public link is not provider authorization, account creation or permission to publish or move money.</p>
+    <h3 className="flex items-center gap-2 text-xl font-semibold"><AgentIdentityIcon identity="link" size={30}/>Scoped connection help</h3><p className="text-sm text-muted-foreground">Save provider-specific requests and review permissions. A saved request or public link is not provider authorization, account creation or permission to publish or move money.</p>
     <ServiceStatus service={service}/>
     {service.phase !== "changed" && workspace && <>
       <section className="space-y-4 rounded-xl border border-border p-4" aria-label="Connection request scope">

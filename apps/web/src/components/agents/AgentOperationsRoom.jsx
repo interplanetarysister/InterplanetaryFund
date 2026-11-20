@@ -4,6 +4,7 @@ import {AGENT_IDENTITIES,AgentIdentityIcon} from "./AgentIdentityIcon";
 
 const THREAD="00000000-0000-4000-8000-000000000a61";
 const TYPES=["discussion","assignment","analysis","result","blocker"];
+const TYPE_LABELS={discussion:"Question",assignment:"Task",analysis:"Analysis",result:"Result",blocker:"Risk"};
 export default function AgentOperationsRoom({user}){
   const ownerId=user?.id || null;
   const ownerGuard=React.useRef(ownerId);
@@ -109,50 +110,50 @@ export default function AgentOperationsRoom({user}){
     <div className="flex items-center gap-3">
       <AgentIdentityIcon identity="nexus" size={45}/>
       <div><h2 className="text-lg font-bold">Agent Operations Room</h2>
-        <p className="text-xs text-slate-400">Private administrator room · Agent messages require verified runtime receipts</p>
+        <p className="text-sm text-slate-300">Admins only · Replies appear after verification</p>
       </div>
     </div>
-    <p className="text-xs text-slate-400">Only verified administrators can read or post. Posting a discussion or assignment (8–1,100 characters) automatically requests a bounded, advisory NEXUS specialist response. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
+    <p className="text-sm text-slate-300">Only verified administrators can read or post. A question or task automatically requests a short advisory NEXUS review. Replies appear only after the backend confirms them.</p>
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
         {item.speaker_type==="agent"?<AgentIdentityIcon identity={item.agent_id} size={35}/>:<span className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-500 bg-slate-900 text-xs font-bold">A</span>}
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold">{item.speaker_type==="agent"?(AGENT_IDENTITIES[item.agent_id]?.name||"Agent"):"Administrator"}
-            <span className="ml-2 font-normal text-slate-400">{item.event_type} · {new Date(item.created_at).toLocaleString()}</span></p>
+            <span className="ml-2 font-normal text-slate-300">{TYPE_LABELS[item.event_type]||item.event_type} · {new Date(item.created_at).toLocaleString()}</span></p>
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.body}</p>
-          {item.speaker_type==="agent"&&<p className="mt-1 text-[11px] text-slate-400">Verified agent runtime · receipt {item.source_receipt?.slice(0,12)}</p>}
+          {item.speaker_type==="agent"&&<p className="mt-1 text-sm text-slate-300">Verified reply · receipt {item.source_receipt?.slice(0,12)}</p>}
           {item.speaker_type==="admin"&&["assignment","discussion"].includes(item.event_type)&&
             <button type="button" disabled={analyzing||sending||
                 items.some(entry=>entry.speaker_type==="agent" &&
                   entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))}
-              className="mt-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40"
+              className="ifund-agent-panel-tool mt-2 rounded-lg border border-cyan-500/50 px-4 text-sm text-cyan-200 disabled:opacity-40"
               onClick={()=>askNexus(item.id)}>
-              {analyzingAssignment===item.id?"Specialists reviewing…":
+              {analyzingAssignment===item.id?"Reviewing…":
                 items.some(entry=>entry.speaker_type==="agent" &&
-                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))?"Response recorded":
-                  "Ask NEXUS to reply"}
+                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))?"Review recorded":
+                  "Get NEXUS review"}
             </button>}
         </div>
       </article>)}
     </div>
     {error&&<p role="alert" className="text-sm text-red-400">{error}</p>}
     <form onSubmit={send} className="space-y-2">
-      <label htmlFor="ifund-ops-kind" className="block text-xs font-medium">Message type</label>
-      <select id="ifund-ops-kind" value={kind} onChange={e=>setKind(e.target.value)} className="rounded-lg border border-slate-600 bg-slate-900 p-2 text-sm">
-        {TYPES.map(type=><option value={type} key={type}>{type}</option>)}
+      <label htmlFor="ifund-ops-kind" className="block text-sm font-medium">Message type</label>
+      <select id="ifund-ops-kind" value={kind} onChange={e=>setKind(e.target.value)} className="ifund-agent-panel-tool rounded-lg border border-slate-600 bg-slate-900 p-2 text-sm">
+        {TYPES.map(type=><option value={type} key={type}>{TYPE_LABELS[type]}</option>)}
       </select>
-      <label htmlFor="ifund-ops-post" className="block text-xs font-medium">Administrator message</label>
+      <label htmlFor="ifund-ops-post" className="block text-sm font-medium">Administrator message</label>
       <textarea id="ifund-ops-post" value={body} onChange={e=>setBody(e.target.value)}
         maxLength={4000} rows={3} className="w-full rounded-xl border border-slate-600 bg-slate-900 p-3 text-sm"
         placeholder="Describe an assignment, question, decision or blocker…"/>
       <div className="flex flex-wrap gap-2">
-        <button disabled={!body.trim()||sending||analyzing} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
+        <button disabled={!body.trim()||sending||analyzing} className="ifund-agent-panel-tool rounded-xl bg-cyan-700 px-4 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
         <button type="button" onClick={()=>askNexus()} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
-          className="rounded-xl border border-cyan-500/70 px-4 py-2 text-sm font-semibold text-cyan-200 disabled:opacity-40">
-          {analyzing?"Consulting specialists…":"Ask NEXUS to analyze"}
+          className="ifund-agent-panel-tool rounded-xl border border-cyan-500/70 px-4 text-sm font-semibold text-cyan-200 disabled:opacity-40">
+          {analyzing?"Getting a review…":"Get NEXUS review"}
         </button>
-        <button type="button" onClick={()=>refresh().catch(()=>setError("Room refresh failed."))} className="rounded-xl border border-slate-600 px-4 py-2 text-sm">Refresh</button>
+        <button type="button" onClick={()=>refresh().catch(()=>setError("Room refresh failed."))} className="ifund-agent-panel-tool rounded-xl border border-slate-600 px-4 text-sm">Refresh</button>
       </div>
     </form>
   </section>;

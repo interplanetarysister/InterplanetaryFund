@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { nexusCampaignPriorities } from "@/lib/nexusTriage.mjs";
 import NexusBriefSchedule from "@/components/agents/NexusBriefSchedule";
+import { AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
 /** Read-only NEXUS triage from verified member campaign aggregates. */
 export default function NexusBrief() {
@@ -39,7 +40,7 @@ export default function NexusBrief() {
     return ()=>{active=false};
   },[refresh]);
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="NEXUS mission brief">
-    <h2 className="text-xl font-semibold">NEXUS · Campaign priorities</h2>
+    <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold"><AgentIdentityIcon identity="nexus" size={30}/>NEXUS · Campaign priorities</h2>
     <p className="text-sm text-muted-foreground">
       Free, read-only checklist built from your account's verified campaign records. No AI credits used.
       NEXUS does not send messages, delegate tasks, or alter a campaign from this report.

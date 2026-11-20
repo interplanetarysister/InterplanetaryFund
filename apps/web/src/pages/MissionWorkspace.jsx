@@ -150,7 +150,7 @@ export default function MissionWorkspace(){
    <Link to="/missions" className="underline-offset-4 hover:underline">My Missions</Link><ArrowRight size={15} aria-hidden="true"/><span className="truncate">Private workspace</span>
   </nav>
   <header className="rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white sm:p-9">
-    <p className="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-[.18em] text-cyan-200"><Orbit size={18}/> What If? Engine · <LockKeyhole size={14}/> Private</p>
+    <p className="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-[.18em] text-cyan-200"><Orbit size={18}/> Private Mission workspace · <LockKeyhole size={14}/> Private</p>
     <label htmlFor="mission-title" className="block text-sm font-medium text-slate-200">Mission title</label>
     <div className="mt-2 flex flex-wrap items-center gap-2">
      <input id="mission-title" className="min-h-12 min-w-0 flex-1 rounded-xl border border-white/20 bg-slate-950/70 px-4 text-lg font-semibold text-white focus-visible:ring-2 focus-visible:ring-cyan-400"
@@ -158,7 +158,7 @@ export default function MissionWorkspace(){
      <button className="min-h-12 rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-50" type="button" disabled={!!busy||!titleDraft.trim()||titleDraft===mission.title} onClick={updateTitle}><Save size={17} className="mr-2 inline"/> Save</button>
     </div>
     <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-200">{mission.original_prompt}</p>
-    <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-slate-300"><span className="rounded-full border border-white/20 px-3 py-1 capitalize">{mission.status.replaceAll("_"," ")}</span><span>{done} of {tasks.length} tasks completed</span><span>Plan version {mission.current_plan_version}</span></div>
+    <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-slate-300"><span className="rounded-full border border-white/20 px-3 py-1 capitalize">{mission.status.replaceAll("_"," ")}</span><span>{done} of {tasks.length} tasks completed</span><span>Saved plan</span></div>
   </header>
   {error&&<div role="alert" className="rounded-xl border border-rose-400/40 bg-rose-950/10 p-4 text-sm text-rose-600 dark:text-rose-200">{error}</div>}
   {notice&&<p role="status" className="rounded-xl border border-cyan-400/30 bg-cyan-500/5 p-4 text-sm">{notice}</p>}
@@ -167,7 +167,7 @@ export default function MissionWorkspace(){
     <article className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-7">
      <h2 className="flex items-center gap-2 text-xl font-semibold"><BrainCircuit size={22} aria-hidden="true"/> Your action plan</h2>
      {current?<><p className="text-sm leading-relaxed text-muted-foreground">{current.summary}</p>
-       <p className="text-xs text-muted-foreground">Saved plan #{plans[0].version} · Owner-reviewed. Opportunities remain unverified until supported by external evidence.</p>
+       <p className="text-xs text-muted-foreground">Saved plan · Owner-reviewed. Opportunities remain unverified until supported by external evidence.</p>
        <div className="space-y-3">{(Array.isArray(current.steps)?current.steps:[]).map((step,i)=><div key={step.id||i} className="rounded-xl border border-border p-4">
         <div className="flex items-start gap-3"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i+1}</span>
           <div><h3 className="font-semibold">{step.title}</h3><p className="mt-1 text-sm text-muted-foreground">{step.detail||""}</p></div></div>
@@ -220,7 +220,7 @@ export default function MissionWorkspace(){
     <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
      <h2 className="text-lg font-semibold">Opportunities and connections</h2>
      <p className="text-sm text-muted-foreground">Potential programs and partners need real source checks. A website link alone never proves a verified connection or approved support.</p>
-     <p className="text-xs text-muted-foreground">{integration?.opportunities?.length||0} opportunity matches · {integration?.connections?.length||0} connection requests · {integration?.agents?.length||0} agent records</p>
+     <p className="text-xs text-muted-foreground">{integration?.opportunities?.length||0} opportunity matches · {integration?.connections?.length||0} connection requests · {integration?.agents?.length||0} agents</p>
      <div className="space-y-3 border-t border-border pt-4" aria-label="Potential outside resources">
        <h3 className="font-semibold">Programs and resources to investigate</h3>
        <p className="text-xs text-muted-foreground">These are independently checked official website links, not offers or grants to your Mission. Eligibility, deadlines, availability and benefits have not been confirmed for you. Visiting an external site is your choice.</p>
@@ -242,7 +242,7 @@ export default function MissionWorkspace(){
     </section>
     <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
      <h2 className="text-lg font-semibold">Mission progress</h2>
-     <p className="text-sm text-muted-foreground">Completion is based on your checklist, never on a made-up donation estimate.</p>
+     <p className="text-sm text-muted-foreground">Your checklist sets progress. Donation amounts are never estimated.</p>
      <div className="h-3 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={tasks.length?Math.round(done/tasks.length*100):0} aria-valuemin={0} aria-valuemax={100} aria-label="Task completion">
        <div className="h-full rounded-full bg-cyan-500 transition-all" style={{width:(tasks.length?done/tasks.length*100:0)+"%"}}/>
      </div>

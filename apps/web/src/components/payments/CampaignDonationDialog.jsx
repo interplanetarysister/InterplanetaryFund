@@ -18,8 +18,8 @@ function loadPayPal(clientId) {
     script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId)
       + "&components=buttons,card-fields,googlepay&currency=USD&intent=capture";
     script.async = true;
-    script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("PayPal SDK unavailable"));
-    script.onerror = () => reject(new Error("PayPal SDK unavailable"));
+    script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("Secure checkout is unavailable."));
+    script.onerror = () => reject(new Error("Secure checkout is unavailable."));
     document.head.appendChild(script);
   }).catch(e => { sdkPromise = null; sdkClient = null; throw e; });
   return sdkPromise;
@@ -31,7 +31,7 @@ async function api(path, options={}) {
   if(!response.ok||data.ok===false) {
     if(data.error==="payments_disabled") throw new Error("Campaign checkout is temporarily unavailable. No payment was started.");
     if(data.error==="capture_failed_check_receipt_before_retry") throw new Error("Payment confirmation is delayed. Check your receipt or donation history before attempting another payment.");
-    throw new Error(data.error||"Payment API unavailable");
+    throw new Error(data.error||"Checkout is temporarily unavailable.");
   }
   return data;
 }
@@ -79,7 +79,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       payment_channel:channel,request_key:key,checkout_token:checkoutToken,
     })});
     if(!data.id||data.checkout_token!==checkoutToken||data.environment!=="live")
-      throw new Error("Payment checkout requires reconciliation");
+      throw new Error("This payment needs review. No payment was started or recorded.");
     if(!Number.isSafeInteger(data.amount_cents)||
        data.amount_cents!==paymentQuoteCents(gift,tip,channel)?.totalCents)
       throw new Error("The payment charge changed. Do not approve checkout. Please retry.");
@@ -88,12 +88,12 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   };
   const capture=async data=>{
     const id=data?.orderID,token=tokens.current.get(id);
-    if(!id||!token)throw new Error("Unknown payment order");
+    if(!id||!token)throw new Error("This payment needs review. No payment was confirmed.");
     setStatus("capturing");
     const result=await api("/api/payments/capture-order",{
       method:"POST",body:JSON.stringify({order_id:id,checkout_token:token}),
     });
-    if(result.ok!==true||result.status!=="captured"||!result.donation_id)throw new Error("Capture requires reconciliation");
+    if(result.ok!==true||result.status!=="captured"||!result.donation_id)throw new Error("This payment needs review. No payment was confirmed.");
     tokens.current.delete(id);setComplete(true);setStatus("complete");latestPaid.current?.(result);
   };
   useEffect(()=>{
@@ -138,7 +138,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           }else if(!cancelled)setEligible(false);
         }else if(!cancelled)setEligible(false);
         if(!cancelled)setStatus("ready");
-      }catch(e){if(!cancelled){setError(e.message||"Secure checkout unavailable");setStatus("error");}}
+      }catch(e){if(!cancelled){setError(e.message||"Secure checkout is unavailable.");setStatus("error");}}
     })();
     return ()=>{
       cancelled=true;
@@ -158,8 +158,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <DialogHeader>
           <DialogTitle>Mobile donations are not available yet</DialogTitle>
           <DialogDescription>
-            This app cannot begin or complete a donation until its payment flow
-            has passed the required app-store and provider checks. No payment
+            Donations are not available in this app yet because the required
+            app-store and provider checks are not complete. No payment
             was started or recorded.
           </DialogDescription>
         </DialogHeader>
@@ -185,11 +185,11 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c5d6ee] bg-white px-3 py-1 text-[11px] font-semibold text-[#003087]"><LockKeyhole className="h-3.5 w-3.5" /> Secure checkout by PayPal</span>
         </div>
         <DialogTitle className="pr-9 text-xl font-bold leading-snug text-[#11264b] sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
-        <DialogDescription className="text-sm text-slate-600">Review your entire payment before approving it securely with PayPal. No IFund account is needed.</DialogDescription>
+        <DialogDescription className="text-sm text-slate-600">Review your payment before approving it securely with PayPal. You do not need an iFund account, and you can choose to donate as a guest. PayPal decides whether guests can pay by card. Guest donations are not automatically added to an iFund giving history.</DialogDescription>
       </DialogHeader>
       {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
         <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />Donation verified with PayPal and recorded. Thank you!</p>
-        <p className="text-sm">Signed-in donors can find their verified campaign receipts in My Giving. Guest donations remain private and are not automatically assigned to an account.</p>
+        <p className="text-sm">If you were signed in, you can find your verified receipt in My Giving. Guest donations are private and are not automatically added to an iFund giving history.</p>
         <Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>
       </div>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
@@ -228,7 +228,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
-              <p className="text-xs text-slate-500">PayPal-hosted secure card fields. You may not need a PayPal account.</p>
+              <p className="text-xs text-slate-500">PayPal provides these secure card fields. PayPal decides whether guests can pay by card; you may not need a PayPal account.</p>
               <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
