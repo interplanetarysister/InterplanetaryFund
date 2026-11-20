@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
 const LABELS = {
   story:"STORY", polaris:"POLARIS", echo:"ECHO", orbit:"ORBIT", nexus:"NEXUS", owner:"You",
 };
+function AgentLabel({ agent, children }) {
+  const identity = Object.hasOwn(AGENT_IDENTITIES, agent) ? agent : null;
+  return <span className="inline-flex min-w-0 flex-wrap items-center gap-2">
+    {identity && <AgentIdentityIcon identity={identity} size={22}/>}
+    <span className="break-words">{children}</span>
+  </span>;
+}
 /** Displays rule-based suggestions persisted in the account's private editorial queue.
  * This does not claim that any model has independently deliberated or executed a task.
  */
@@ -77,12 +85,12 @@ export default function EditorialAgentQueue() {
       {state.phase==="ready" && (state.rows.length===0
         ? <p className="text-sm text-muted-foreground">No editorial proposals recorded yet. Save a draft and use its Prepublication quality review.</p>
         : <ul className="space-y-4">{state.rows.map(item=><li key={item.review_id} className="rounded-xl border p-4 space-y-2">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{LABELS[item.lead_agent]||"Agent"} · {item.review_status||"Queued"}</p>
+          <p className="text-sm uppercase tracking-wide text-muted-foreground"><AgentLabel agent={item.lead_agent}>{LABELS[item.lead_agent]||"Agent"} · {item.review_status||"Queued"}</AgentLabel></p>
           <h3 className="font-semibold">{item.task_title}</h3>
           <p className="text-sm">{item.suggested_action}</p>
           {Array.isArray(item.discussion) && item.discussion.length>0 &&
             <ol className="space-y-2">{item.discussion.map((note,i)=><li key={i} className="rounded-lg bg-muted/50 p-3 text-sm">
-              <strong>{LABELS[note.agent]||"Agent"} — {note.kind==="owner_comment"?"Your feedback":note.kind==="rule_based_proposal"?"Rule-based proposal":note.kind==="rule_based_next_step"?"Suggested follow-up":note.kind==="agent_analysis"?"Worker-reported analysis":note.kind==="agent_critique"?"Worker-reported critique":note.kind==="agent_synthesis"?"Worker-reported synthesis":"Rule-based cross-review"}</strong>
+              <strong><AgentLabel agent={note.agent}>{LABELS[note.agent]||"Agent"} — {note.kind==="owner_comment"?"Your feedback":note.kind==="rule_based_proposal"?"Rule-based proposal":note.kind==="rule_based_next_step"?"Suggested follow-up":note.kind==="agent_analysis"?"Worker-reported analysis":note.kind==="agent_critique"?"Worker-reported critique":note.kind==="agent_synthesis"?"Worker-reported synthesis":"Rule-based cross-review"}</AgentLabel></strong>
               <p className="mt-1">{note.text}</p>
               {note.provenance==="service_worker_report"&&<p className="mt-1 text-xs text-muted-foreground">Reported by a specialist worker; independent AI/provider execution proof is not provided by this record alone.</p>}
             </li>)}</ol>}

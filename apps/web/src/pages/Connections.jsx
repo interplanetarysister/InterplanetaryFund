@@ -337,6 +337,9 @@ export default function Connections() {
           <RefreshCw size={16}/>{busy==="refresh"?"Checking…":"Check connection"}
         </button>}
       </div>
+      {selectedOAuth && !canStart && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-900 dark:text-amber-200">
+        Secure sign-in is unavailable right now. You can still save a public page link or open the official site.
+      </p>}
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.
       </div>}
@@ -399,11 +402,11 @@ export default function Connections() {
         <summary className="cursor-pointer font-semibold">Administrator diagnostics</summary>
         <div className="mt-3 space-y-2 break-words">
           <p>Provider ID: {selectedOAuth || selected.id}</p>
-          <p>OAuth API ready: {selectedOAuth?String(providerReady[selectedOAuth]===true):"not applicable"}</p>
+          <p>Secure sign-in ready: {selectedOAuth?String(providerReady[selectedOAuth]===true):"not applicable"}</p>
           <p>Provider grant: {account?.status || "no stored record"}</p>
-          <p>LINK publishing readiness: {connectionCapabilityReadiness({record:account,authorizationEnabled:canStart}).reason}</p>
+          <p>LINK publishing check: {connectionCapabilityReadiness({record:account,authorizationEnabled:canStart}).reason}</p>
           {diagnosticError && <p>Read errors: {diagnosticError}</p>}
-          <Link to="/admin/integrations" className="underline">Open admin integrations</Link>
+          <Link to="/admin/integrations" className="inline-flex min-h-11 items-center underline">Open admin integrations</Link>
         </div>
       </details>}
     </section>
@@ -435,7 +438,7 @@ export default function Connections() {
     {loading && <div role="status" className="flex items-center gap-2 text-sm"><Loader2 size={16} className="animate-spin"/>Updating your connections…</div>}
     {sessionStatus==="signed-out" && <div className="rounded-2xl border border-border p-4 text-sm">
       <p>Explore the platforms above. Sign in when you're ready to save your account links and sharing preferences.</p>
-      <Link className="mt-2 inline-flex text-primary underline" to="/login?returnTo=%2Fconnections">Sign in to iFund</Link>
+      <Link className="mt-2 inline-flex min-h-11 items-center text-primary underline" to="/login?returnTo=%2Fconnections">Sign in to iFund</Link>
     </div>}
     <section className="flex flex-wrap gap-3 border-t border-border pt-5 text-sm">
       <Link to="/agents" className={BUTTON}>Ask the iFund team for help</Link>

@@ -133,7 +133,7 @@ export default function CampaignDetail() {
             <CampaignFundingCard campaign={campaign} onDonate={() => setDonationOpen(true)} />
           </div>
           <CampaignShareButton campaign={campaign} />
-          <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}`} className="block rounded-xl border border-primary/30 bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">Share this campaign on IFund Social</Link>
+          <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}`} className="block rounded-xl border border-primary/30 bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">Share this campaign on iFund Social</Link>
           {blogAuthor && <Link to={`/blogs?author=${encodeURIComponent(blogAuthor)}`} className="block rounded-xl border border-border bg-card px-4 py-3 text-center text-sm text-primary underline">Read the creator’s blog</Link>}
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
         </div>
@@ -161,7 +161,7 @@ export default function CampaignDetail() {
       <button
         onClick={campaignCanDonate ? () => setDonationOpen(true) : scrollToFunding}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
-        aria-label={campaignCanDonate ? "Donate to this campaign" : "Live donation checkout unavailable. Show funding details"}
+        aria-label={campaignCanDonate ? "Donate to this campaign" : "Donations are unavailable. Show funding details"}
       >
         <span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {campaignCanDonate ? "Donate Now" : "Funding details"}</span>
       </button>

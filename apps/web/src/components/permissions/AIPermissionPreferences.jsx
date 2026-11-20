@@ -104,7 +104,7 @@ export default function AIPermissionPreferences() {
       <p className="text-sm text-muted-foreground">Choose whether iFund AI can help you with your campaigns, ideas, and planning.</p>
     </header>
     {phase === "loading" && <p role="status">Loading your AI setting…</p>}
-    {phase === "error" && <p role="alert" className="text-sm text-destructive">{error} <button type="button" className="underline" onClick={() => setRetry(value => value + 1)}>Try again</button></p>}
+    {phase === "error" && <p role="alert" className="text-sm text-destructive">{error} <button type="button" className="inline-flex min-h-11 items-center underline" onClick={() => setRetry(value => value + 1)}>Try again</button></p>}
     {(phase === "ready" || phase === "saving") && <form onSubmit={save} className="space-y-5">
       <label className="flex min-h-28 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-background/70 p-4 transition hover:border-cyan-400/60 sm:p-5">
         <span className="space-y-1">

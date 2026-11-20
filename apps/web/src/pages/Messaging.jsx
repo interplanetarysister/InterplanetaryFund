@@ -34,13 +34,13 @@ export default function Messaging() {
         </div>
       </div>
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Talk with your IFund agents while navigating the site. NEXUS can consult other specialists
+        Talk with your iFund agents while navigating the site. NEXUS can consult other specialists
         when your question spans several topics. Their answers are advisory and never authorize
         publishing, payments, account changes, or external messages.
       </p>
       <p className="text-sm text-muted-foreground">
-        Looking for messages delivered to your account? <Link to="/mail" className="font-semibold text-cyan-500 underline">Open Mail</Link>.
-        For campaign outreach drafts, use <Link to="/communications" className="font-semibold text-cyan-500 underline">ECHO Outreach</Link>.
+        Looking for messages delivered to your account? <Link to="/mail" className="inline-flex min-h-11 items-center font-semibold text-cyan-500 underline">Open Mail</Link>.
+        For campaign outreach drafts, use <Link to="/communications" className="inline-flex min-h-11 items-center font-semibold text-cyan-500 underline">ECHO Outreach</Link>.
       </p>
     </header>
 
@@ -61,7 +61,7 @@ export default function Messaging() {
           </button>;
         })}
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         Selecting an agent opens a side conversation; you can keep it open while browsing.
         Agent messages are not email and do not contact outside platforms.
       </p>
@@ -73,7 +73,7 @@ export default function Messaging() {
       </section>}
     <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
       <MessageSquare className="size-4 text-cyan-400"/>
-      <Link to="/agents" className="text-sm font-medium text-cyan-500 underline">Explore agent tools and specialties</Link>
+      <Link to="/agents" className="inline-flex min-h-11 items-center text-sm font-medium text-cyan-500 underline">Explore agent tools and specialties</Link>
     </div>
   </main>;
 }

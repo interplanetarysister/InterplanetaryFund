@@ -54,7 +54,7 @@ body {
 }
 .ifund-sidebar .ifund-nav-link {
   border: 1px solid transparent;
-  min-height: 43px;
+  min-height: 44px;
 }
 .ifund-sidebar .ifund-nav-link:hover {
   border-color: rgb(125 182 255 / .11);
@@ -354,7 +354,7 @@ body {
 .dark .ifund-connection-browser { background: #162440; border-color: #344668; }
 .ifund-platform-filter {
   display: inline-flex; align-items: center; gap: .4rem;
-  min-height: 42px; white-space: nowrap; border-radius: 999px;
+  min-height: 44px; white-space: nowrap; border-radius: 999px;
   background: rgb(255 255 255 / .70); color: #5c6375;
   border: 1px solid transparent; padding: .5rem .85rem;
   font-weight: 650; font-size: .83rem;
@@ -479,6 +479,15 @@ body {
 .ifund-sidebar .ifund-nav-link:focus-visible {
   outline: 2px solid #6f9cf1;
   outline-offset: -2px;
+}
+@media (prefers-contrast: more) {
+  .ifund-sidebar .ifund-nav-link:focus-visible,
+  .ifund-platform-filter:focus-visible,
+  .ifund-platform-choice:focus-visible {
+    outline: 3px solid #0b5e8a;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #fff;
+  }
 }
 .ifund-sidebar .ifund-nav-section-title {
   letter-spacing: .13em;

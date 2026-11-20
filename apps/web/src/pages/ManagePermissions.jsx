@@ -24,7 +24,7 @@ export default function ManagePermissions() {
     </div>
     {open==="ai" && <AIPermissionPreferences />}
     {open==="platforms" && <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">Connections and actual provider authorization are managed here. A connected identity is not automatically a publishing grant.</p>
+      <p className="text-sm text-muted-foreground">Connect your accounts and manage their permissions here. Connecting an account does not give iFund permission to publish for you.</p>
       <Connections/>
     </div>}
     {open==="marketing" && <MarketingPreferences/>}

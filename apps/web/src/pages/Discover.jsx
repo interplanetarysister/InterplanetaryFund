@@ -64,7 +64,7 @@ export default function Discover() {
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-foreground mb-2">Discover campaigns</h1>
           <p className="text-stone-500">
-            What if your support changed everything for someone today? These causes need help right now.
+            Browse published campaigns and learn what each organizer is asking for.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">{shortsLink}<Link to="/globe" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
@@ -102,7 +102,7 @@ export default function Discover() {
         </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
+          {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
         </div>
       )}
     </PullToRefresh>

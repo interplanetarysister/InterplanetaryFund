@@ -195,7 +195,7 @@ export default function AgentsTeam() {
       </button>; })}
       </div>
     </section>
-    <section id="ask-mission-control" className="ifund-agents-console" aria-label="Ask the IFund agent team">
+    <section id="ask-mission-control" className="ifund-agents-console" aria-label="Ask the iFund agent team">
       <div className="ifund-agents-section-heading"><h2>Ask Mission Control</h2><p>One question. The right specialist.</p></div>
       <p className="ifund-agents-muted max-w-2xl text-sm leading-relaxed">Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization.</p>
       <form className="mt-4 space-y-3" onSubmit={submitAgentQuestion}>
@@ -211,7 +211,11 @@ export default function AgentsTeam() {
           {TEAM.map(id=><option key={id} value={id}>{AGENT_IDENTITIES[id].name} — {AGENT_IDENTITIES[id].role}</option>)}
         </select>
         {recommendation && <div className="rounded-xl border border-border p-3" aria-live="polite">
-          <p className="text-sm">Recommended: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm"><span>Recommended:</span>
+            <AgentIdentityIcon identity={recommendation.target} size={25}/>
+            <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong>
+            <span>— {recommendation.reason}</span>
+          </p>
           {recommendation.requiresCoordination && <div className="mt-2 flex flex-wrap items-center gap-2" aria-label="Proposed NEXUS specialist routing">
             <AgentIdentityIcon identity="nexus" size={30}/>
             <span className="text-xs text-muted-foreground">Proposed specialist calls:</span>

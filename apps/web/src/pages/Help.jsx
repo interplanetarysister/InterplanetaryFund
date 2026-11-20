@@ -53,7 +53,7 @@ export default function Help() {
         </div>
         <h1 className="font-display text-3xl sm:text-4xl text-center text-white">How can we help?</h1>
         <p className="text-slate-300 mt-2 text-center">The Interplanetary Fund Help Center</p>
-        <label htmlFor="help-search" className="sr-only">Search IFund help articles</label>
+        <label htmlFor="help-search" className="sr-only">Search iFund help articles</label>
         <div className="relative mt-7 max-w-2xl mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" aria-hidden="true" />
           <Input id="help-search" type="search" value={query}
@@ -90,7 +90,7 @@ export default function Help() {
       <section aria-labelledby="help-legal-heading" className="rounded-2xl border border-border bg-card p-5 sm:p-7">
         <h2 id="help-legal-heading" className="text-xl font-semibold text-foreground">Legal documents &amp; rights</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Public IFund agreements and privacy information. No sign-in required.
+          Public iFund agreements and privacy information. No sign-in required.
         </p>
         <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[["/terms", "Terms of Service"], ["/privacy", "Privacy Policy"]].map(([path, label]) =>

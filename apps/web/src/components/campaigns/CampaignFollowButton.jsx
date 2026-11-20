@@ -31,7 +31,7 @@ export default function CampaignFollowButton({ campaignId, status }){
   if(status!=="active")return null;
   if(state.phase==="anonymous")return <Link
     to={"/login?returnTo="+encodeURIComponent("/campaign/"+campaignId)}
-    className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 font-semibold">
+    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 py-3 font-semibold">
     <Heart className="h-4 w-4" aria-hidden="true"/>Sign in to follow
   </Link>;
   if(state.phase==="loading")return <p role="status" className="text-sm">Checking follow status…</p>;
@@ -54,7 +54,7 @@ export default function CampaignFollowButton({ campaignId, status }){
       <Heart aria-hidden="true" className={"h-4 w-4 "+(state.following?"fill-current":"")}/>
       {busy?"Saving…":state.following?"Following · Unfollow":"Follow this campaign"}
     </button>
-    {state.following&&<p className="text-xs"><Link to="/following" className="underline">Manage notification preferences</Link></p>}
+    {state.following&&<p className="text-xs"><Link to="/following" className="inline-flex min-h-11 items-center underline">Manage notification preferences</Link></p>}
     {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>;
 }

@@ -219,7 +219,7 @@ export default function Home() {
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
           <Link to="/discover"><Button variant="outline" className="!min-h-12 rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-          <Link to="/create"><Button className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
+          <Link to="/create"><Button className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign</Button></Link>
           <div className="max-w-sm mx-auto mt-9 rounded-2xl border border-border p-4 text-center">
             <p className="text-sm font-medium text-foreground mb-2">Support Interplanetary Fund itself</p>
             <p className="text-xs text-muted-foreground mb-3">This donation helps operate the platform. It is not credited to any individual campaign.</p>
