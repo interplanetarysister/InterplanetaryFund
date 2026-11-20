@@ -118,6 +118,9 @@ test("actual wizard controller advances only after the campaign and setup save i
   const good=stepController();await good.advance(2);assert.equal(good.getWizard().draft_step,2);assert.deepEqual(good.savedTargets,[2]);
   const failed=stepController({saved:false});await failed.advance(2);assert.equal(failed.getWizard().draft_step,1);
   const blocked=stepController({blocked:true});await blocked.advance(2);assert.deepEqual(blocked.savedTargets,[]);
+  const invalid=stepController();for(const step of [-1,1.5,3])await invalid.advance(step);
+  assert.deepEqual(invalid.savedTargets,[],"out-of-range or fractional wizard steps are ignored");
+  assert.equal(invalid.getWizard().draft_step,1);
 });
 test("actual writing preference changes immediately invalidate in-flight proposals",()=>{
   let invalidated=false,wizard=emptyWizard();
