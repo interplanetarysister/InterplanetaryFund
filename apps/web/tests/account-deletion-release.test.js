@@ -110,3 +110,22 @@ test("cancelled requests remain audited and never enter the active deletion queu
   assert.match(mobile,/Keep my account — cancel deletion/);
   assert.match(mobile,/cancelConfirmed/);
 });
+
+test("financial closure review is authenticated, nonmutating and cannot certify zero activity",()=>{
+  const migration=read("../../supabase/migrations/20261120_ifund_account_financial_evidence.sql");
+  const admin=read("src/pages/AdminDeletionQueue.jsx");
+  assert.match(migration,/ifund_current_user_is_verified_super_admin\(\)/);
+  assert.match(migration,/revoke all on function public\.ifund_admin_account_financial_evidence\(uuid\)/);
+  assert.match(migration,/zero_activity_verified',false/);
+  assert.match(migration,/provider_reconciliation_complete',false/);
+  assert.match(migration,/legal_retention_resolved',false/);
+  assert.match(migration,/safe_to_erase',false/);
+  for(const source of ["ifund_donations","ifund_payment_intents","ifund_subscription_intents","ifund_subscription_ledger","ifund_ledger_entries","ifund_finance.donation","ifund_finance.withdrawal"]){
+    assert.ok(migration.includes(source),source+" must be part of the partial evidence inventory");
+  }
+  assert.doesNotMatch(migration,/delete from|truncate table|update auth\.users/i);
+  assert.match(admin,/ifund_admin_account_financial_evidence/);
+  assert.match(admin,/financialEvidence/);
+  assert.match(admin,/Zero matches never proves/);
+  assert.match(admin,/financial\?\.zero_activity_verified!==false/);
+});
