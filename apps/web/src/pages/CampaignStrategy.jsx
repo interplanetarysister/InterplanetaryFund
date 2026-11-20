@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
 import { reviewCampaignWideEditorial } from "@/lib/campaignEditorialImprovements.mjs";
 import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
 import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
+import CampaignMerchDesigner from "@/components/campaigns/CampaignMerchDesigner";
 
 const fieldId = finding => finding.field === "title" || finding.id === "title_repetition" ? "campaign-title"
   : finding.field === "summary" || finding.id === "summary_repeated" ? "campaign-summary"
@@ -19,6 +20,9 @@ const CHECKS = [
   ["has_cover_reference", "A campaign cover reference", "Choose an image you own or can use"],
 ];
 export default function CampaignStrategy() {
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedMerchCampaign = searchParams.get("campaign");
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function CampaignStrategy() {
       const owned=new Map(campaigns.filter(c=>c.owner_id===owner).map(c=>[c.id,c]));
       const items=data.filter(item=>owned.has(item.campaign_id)).map(item=>{
         const campaign=owned.get(item.campaign_id);
-        return {...item,editorial:reviewCampaignPublication(campaign),
+        return {...item,ownedCampaign:campaign,editorial:reviewCampaignPublication(campaign),
           campaignWide:reviewCampaignWideEditorial(campaign)};
       });
       if(items.length!==data.length)throw Error("Strategy results did not match your owned campaigns.");
@@ -51,6 +55,11 @@ export default function CampaignStrategy() {
     return () => { active = false };
   }, [retry]);
 
+  useEffect(() => {
+    if (state.status !== "ready" || location.hash !== "#campaign-merch-studio") return;
+    const handle = requestAnimationFrame(() => document.getElementById("campaign-merch-studio")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => cancelAnimationFrame(handle);
+  }, [state.status, location.hash]);
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">Strategy workspace</h1>
@@ -61,6 +70,7 @@ export default function CampaignStrategy() {
       </p>
     </header>
     <CampaignBudgetPlanner />
+    {state.status === "ready" && <CampaignMerchDesigner campaigns={state.items.map(item => item.ownedCampaign).filter(Boolean)} initialCampaignId={requestedMerchCampaign} />}
     {state.status === "loading" && <p role="status">Checking your owned campaign drafts…</p>}
     {state.status === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button className="mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
