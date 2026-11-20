@@ -14,12 +14,12 @@ export default function ManagePermissions() {
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
       <h1 className="font-display text-3xl font-bold">Manage iFund Permissions</h1>
-      <p className="text-muted-foreground">One place to review your AI preferences, optional communications, and third-party account authorizations. Unfinished integrations cannot receive permission in advance; you will be asked again when they are ready.</p>
+      <p className="text-muted-foreground">Manage AI help, connected accounts, and notifications in one place. You can change your choices anytime.</p>
       <Link className="inline-flex min-h-11 items-center underline" to="/profile">Back to My Profile</Link>
     </header>
     <div className="flex flex-wrap gap-2" role="group" aria-label="Permission categories">
       {[
-        ["ai","AI assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"]
+        ["ai","AI Assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"]
       ].map(([id,label])=><button key={id} type="button" onClick={()=>setOpen(id)} aria-pressed={open===id} className={`min-h-11 rounded-xl border px-4 font-semibold ${open===id ? "border-primary bg-primary/10" : "border-border"}`}>{label}</button>)}
     </div>
     {open==="ai" && <AIPermissionPreferences />}
