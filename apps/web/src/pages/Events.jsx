@@ -234,15 +234,16 @@ export default function Events() {
       setError("Sign in with a verified account before saving an event.");
       return;
     }
+    // Verify the active owner before any server mutation, not just after it returns.
+    if(!await verifiedMutationOwner(ownerId,identityGeneration))return;
     setSaving(true);setError("");setNotice("");
     try {
       const payload={...form,status,campaign_id:form.campaign_id||null};
       if(payload.starts_at)payload.starts_at=new Date(payload.starts_at).toISOString();
       if(payload.ends_at)payload.ends_at=new Date(payload.ends_at).toISOString();
+      if(!await verifiedMutationOwner(ownerId,identityGeneration))return;
       const saved=await saveOwnerEvent(client,payload,{id:editingEventId});
-      if(identityGeneration!==authGeneration.current)return;
-      const {data:{user:verifiedUser}}=await client.auth.getUser();
-      if(identityGeneration!==authGeneration.current||verifiedUser?.id!==ownerId)return;
+      if(!await verifiedMutationOwner(ownerId,identityGeneration))return;
       setEvent(saved);
       setNotice(status==="published"?"Your event is published.":"Your event draft was saved.");
       setEditingEventId(saved.id);
