@@ -40,12 +40,6 @@ const STORY = [
   { h: "Our ambition is global", p: "And that's why we're here today. We're looking for partners who see the potential to build a much larger ecosystem around how people fund ideas, causes, projects, and possibilities. Our ambition is global. Our technology is being built with scalability in mind. And our long-term goal is simple: Create a world where great ideas have a better chance of finding the people, resources, and momentum they need to become reality." },
 ];
 
-const EXAMPLE_PROMPTS = [
-  "I need help with medical bills after a diagnosis.",
-  "What if our neighbourhood had a shared community space?",
-  "I want to launch a small business with my family.",
-];
-
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
@@ -96,32 +90,9 @@ export default function Home() {
             placeholder="I want to… I need help with… What if we could…"
             submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
             note="Start privately. A campaign or donation is never required."
-            examples={EXAMPLE_PROMPTS}
             onSubmit={startFromPrompt}
-            className="mb-6 mx-auto max-w-xl"
+            className="mx-auto max-w-xl"
           />
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {isAuthenticated ? (
-              <Link to="/dashboard"><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
-            ) : (
-              <>
-                <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> {whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Button></Link>
-                <Link to="/discover"><Button size="lg" variant="outline" className="!min-h-12 rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-              </>
-            )}
-          </div>
-          <Link to="/download" className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-slate-950/75 px-5 py-3 text-sm font-semibold text-cyan-100 transition-colors hover:border-cyan-200 hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-            <Download className="h-4 w-4" aria-hidden="true" /> Get the IFund app
-          </Link>
-          <p className="mt-2 text-xs text-slate-300">Install the web app on iPhone, Android, or desktop.</p>
-          <div className="mt-7 mx-auto max-w-md rounded-2xl border border-cyan-400/30 bg-slate-950/65 px-5 py-5 text-center">
-            <p className="text-lg font-semibold text-white">Be here from the beginning.</p>
-            <p className="mt-1 mb-4 text-sm text-slate-300">Create a free Interplanetary Fund account to follow campaigns, share ideas and start building a fundraiser.</p>
-            <Link to="/register" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Create your free account <ArrowRight className="ml-2 h-4 w-4" /></Link>
-          </div>
-          {!isAuthenticated && (
-            <p className="mt-8 text-sm text-slate-400">Already have an account? <Link to="/login" className="inline-flex min-h-11 items-center text-cyan-300 hover:text-cyan-200 font-medium">Log in</Link> · <Link to="/register" className="inline-flex min-h-11 items-center text-cyan-300 hover:text-cyan-200 font-medium">Create one</Link></p>
-          )}
         </div>
       </section>
 
