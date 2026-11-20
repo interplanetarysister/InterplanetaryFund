@@ -1,0 +1,151 @@
+/* iFund Cosmic Geometry: ambient surfaces and interaction feedback.
+   Cosmetic layer only. It never changes ownership, consent, payment, agent
+   permission or provider behavior, and never restyles hosted payment widgets. */
+
+:root {
+  --ifund-aurora: #47e0ee;
+  --ifund-orbit-purple: #a88fff;
+  --ifund-deep-ink: #071123;
+}
+
+.ifund-stage {
+  background:
+    radial-gradient(52rem 30rem at 11% 12%, rgb(35 196 228 / .10), transparent 67%),
+    radial-gradient(58rem 28rem at 92% 36%, rgb(157 99 242 / .10), transparent 67%),
+    radial-gradient(40rem 23rem at 52% 94%, rgb(254 164 99 / .06), transparent 74%),
+    linear-gradient(159deg, #eef8fd 0%, #f7f4ff 40%, #edf7fb 77%, #eff9f6 100%);
+  background-attachment: scroll;
+  min-height: 100dvh;
+}
+html.dark .ifund-stage {
+  background:
+    radial-gradient(50rem 32rem at 10% 9%, rgb(32 176 220 / .20), transparent 68%),
+    radial-gradient(57rem 28rem at 93% 35%, rgb(149 99 237 / .21), transparent 73%),
+    radial-gradient(47rem 24rem at 53% 105%, rgb(242 131 121 / .10), transparent 76%),
+    #09142b;
+}
+
+.ifund-public {
+  background:
+    radial-gradient(56rem 25rem at 85% 10%, rgb(141 105 240 / .13), transparent 64%),
+    radial-gradient(50rem 33rem at 6% 55%, rgb(34 213 219 / .11), transparent 68%),
+    linear-gradient(159deg, #edf7ff 4%, #f8f3ff 51%, #ecf9fb 100%);
+}
+html.dark .ifund-public {
+  background:
+    radial-gradient(55rem 27rem at 88% 10%, rgb(141 105 240 / .23), transparent 65%),
+    radial-gradient(52rem 30rem at 5% 64%, rgb(31 201 235 / .16), transparent 72%),
+    linear-gradient(152deg, #060d23, #161435 56%, #091b31 100%);
+}
+
+/* First-party controls only. Hosted checkout iframes keep their own styling. */
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]),
+:where(.ifund-shell, .ifund-public) a.ifund-action {
+  transition: transform .18s ease, box-shadow .22s ease, opacity .2s ease,
+    background-color .2s ease, border-color .2s ease, filter .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]):hover,
+:where(.ifund-shell, .ifund-public) a.ifund-action:hover {
+  filter: brightness(1.045);
+  transform: translateY(-1px);
+}
+:where(.ifund-shell, .ifund-public) button:not(:disabled):not([aria-disabled="true"]):active,
+:where(.ifund-shell, .ifund-public) a.ifund-action:active {
+  transform: translateY(1px) scale(.986);
+  filter: brightness(.97);
+}
+:where(.ifund-shell, .ifund-public) button:is([aria-busy="true"], [data-loading="true"]),
+:where(.ifund-shell, .ifund-public) a[aria-busy="true"] {
+  cursor: progress;
+  opacity: .75;
+  pointer-events: none;
+}
+:where(.ifund-shell, .ifund-public) button:focus-visible,
+:where(.ifund-shell, .ifund-public) a.ifund-action:focus-visible {
+  outline: 3px solid var(--ifund-aurora);
+  outline-offset: 3px;
+}
+
+/* Generic loading affordance for controls that do not render an icon. */
+:where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  margin-right: .35em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ifund-button-spin .9s linear infinite;
+}
+@keyframes ifund-button-spin { to { rotate: 360deg; } }
+
+.ifund-dashboard {
+  --ifund-dashboard-text: #eefbff;
+  position: relative;
+}
+/* The base hero gradient lives with the dashboard component styles; this
+   pseudo-element adds subtle orbit geometry without overriding its content. */
+.ifund-dashboard-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .48;
+  background:
+    repeating-radial-gradient(circle at 82% 72%, transparent 0 58px, rgb(155 212 252 / .20) 59px 60px, transparent 61px 98px),
+    radial-gradient(1px 1px at 12px 16px, #cfe6ff 90%, transparent);
+  background-size: auto, 91px 83px;
+}
+.ifund-dashboard-module {
+  min-width: 0;
+  border: 1px solid rgb(120 163 193 / .30);
+  border-radius: 1.45rem;
+  background: linear-gradient(136deg, rgb(255 255 255 / .93), rgb(242 250 255 / .89));
+  box-shadow: 0 11px 37px rgb(9 21 48 / .065);
+}
+html.dark .ifund-dashboard-module {
+  border-color: rgb(117 174 244 / .20);
+  background: linear-gradient(130deg, rgb(21 40 66 / .96), rgb(33 26 71 / .93));
+}
+.ifund-dashboard-stat {
+  min-width: 0;
+  border: 1px solid rgb(177 228 255 / .23);
+  border-radius: 1.15rem;
+  background: linear-gradient(128deg, rgb(255 255 255 / .11), rgb(130 168 255 / .08));
+}
+.ifund-dashboard .ifund-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .7rem 1.1rem;
+  border-radius: .9rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.ifund-dashboard .ifund-action:hover {
+  box-shadow: 0 8px 21px rgb(45 107 171 / .15);
+}
+
+@media (max-width: 640px) {
+  .ifund-dashboard-hero { border-radius: 1.2rem; }
+  .ifund-dashboard-module { border-radius: 1.1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.ifund-shell, .ifund-public) button,
+  :where(.ifund-shell, .ifund-public) a.ifund-action,
+  .ifund-dashboard .ifund-action,
+  :where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+    animation: none !important;
+    transition-duration: .01ms !important;
+    transform: none !important;
+  }
+  :where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+    border-right-color: currentColor;
+  }
+}
