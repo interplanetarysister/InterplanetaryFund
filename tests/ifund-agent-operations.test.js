@@ -6,7 +6,7 @@ const USER="11111111-1111-4111-8111-111111111111";
 const REQUEST=(question,token="good.token")=>new Request("https://ifund.test/api/agents/ops/analyze",{
  method:"POST",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:JSON.stringify(typeof question==="string"?{question}:question)
 });
-function harness({isAdmin=true,configured=true,agentFailure=false,assignment=null}={}){
+function harness({isAdmin=true,configured=true,agentFailure=false,assignment=null,alreadyReviewed=false}={}){
  const calls=[];
  const fetcher=async(url,options={})=>{
    const path=String(url);calls.push({path,method:options.method||"GET",auth:options.headers?.Authorization});
@@ -16,6 +16,7 @@ function harness({isAdmin=true,configured=true,agentFailure=false,assignment=nul
    if(path.includes("ifund_ai_permission_preferences"))return Response.json([{owner_id:USER,allow_future_internal_ai_assistance:true}]);
    if(path.includes("ifund_agent_operations_messages?")){
      if(path.includes("&id=eq."))return Response.json(assignment?[assignment]:[]);
+     if(path.includes("source_receipt=like.assignment-"))return Response.json(alreadyReviewed?[{id:"existing",source_receipt:"assignment-prior:nexus"}]:[]);
      return Response.json([]);
    }
    if(path.endsWith("/ifund_agent_operations_messages") && options.method==="POST"){
@@ -95,4 +96,21 @@ test("invalid references and mixed payloads are refused",async()=>{
    const h=harness();
    assert.equal((await routeAgentOperations(REQUEST(payload),h.env,h.fetcher)).status,400);
  }
+});
+
+test("reviewed assignment is idempotently rejected without invoking the model",async()=>{
+ const id="33333333-3333-4333-8333-333333333333";
+ const assignment={id,body:"Improve the campaign budget and narrative",event_type:"assignment",speaker_type:"admin",source_kind:"admin_post"};
+ const h=harness({assignment,alreadyReviewed:true});
+ const response=await routeAgentOperations(REQUEST({message_id:id}),h.env,h.fetcher);
+ assert.equal(response.status,409);
+ assert.equal(h.calls.some(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages")),false);
+});
+test("long assignments cannot be silently shortened before specialist analysis",async()=>{
+ const id="33333333-3333-4333-8333-333333333333";
+ const assignment={id,body:"Review "+("detailed work ".repeat(100)),event_type:"assignment",speaker_type:"admin",source_kind:"admin_post"};
+ const h=harness({assignment});
+ const response=await routeAgentOperations(REQUEST({message_id:id}),h.env,h.fetcher);
+ assert.equal(response.status,400);
+ assert.equal(h.calls.some(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages")),false);
 });
