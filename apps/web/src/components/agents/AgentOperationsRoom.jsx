@@ -6,6 +6,8 @@ const THREAD="00000000-0000-4000-8000-000000000a61";
 const TYPES=["discussion","assignment","analysis","result","blocker"];
 export default function AgentOperationsRoom({user}){
   const ownerId=user?.id || null;
+  const ownerGuard=React.useRef(ownerId);
+  ownerGuard.current=ownerId;
   const [permitted,setPermitted]=useState(false);
   const [checking,setChecking]=useState(true);
   const [items,setItems]=useState([]);
@@ -18,6 +20,7 @@ export default function AgentOperationsRoom({user}){
     if(!ownerId)return;
     const client=authClient();
     const [identity,admin]=await Promise.all([client.auth.getUser(),client.rpc("ifund_current_user_is_verified_admin")]);
+    if(ownerGuard.current!==ownerId)return;
     if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true){
       setPermitted(false);setItems([]);setChecking(false);return;
     }
@@ -25,6 +28,7 @@ export default function AgentOperationsRoom({user}){
     const {data,error:readError}=await client.from("ifund_agent_operations_messages")
       .select("id,speaker_type,agent_id,body,event_type,source_kind,source_receipt,created_at,author_user_id")
       .eq("thread_id",THREAD).order("created_at",{ascending:false}).limit(80);
+    if(ownerGuard.current!==ownerId)return;
     if(readError) setError("The private room could not be refreshed.");
     else {setItems((data||[]).reverse());setError("");}
     setChecking(false);
