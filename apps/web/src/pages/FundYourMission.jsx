@@ -10,6 +10,7 @@ const tiles=[
  {title:"Discover",subtitle:"Explore grants and support",detail:"Find source-checked programs and opportunity directories. Eligibility, awards, and availability must be confirmed with each provider.",to:"/institutions",secondary:"Browse research opportunities",icon:Compass}
 ];
 export default function FundYourMission() {
+ const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
  const [state,setState]=useState({phase:"loading",items:[],error:""});
  const [sponsors,setSponsors]=useState({phase:"loading",items:[],error:""});
  useEffect(()=>{
@@ -45,9 +46,10 @@ export default function FundYourMission() {
        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Fund your Mission</h1>
        <p className="max-w-2xl text-base leading-7 text-slate-200">Raise support and explore relevant opportunities in one place. Earning and marketplace ideas are future research, not available income today.</p>
        <div className="flex flex-wrap gap-3">
-         <Link to="/what-if" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950"><Sparkles size={17}/>Start a private Mission</Link>
-         <Link to="/missions" className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-5 py-3 font-semibold text-white">My Missions</Link>
+         <Link to={whatIfEnabled ? "/what-if" : "/create?manual=1"} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950"><Sparkles size={17}/>{whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Link>
+         <Link to={whatIfEnabled ? "/missions" : "/campaigns"} className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-5 py-3 font-semibold text-white">{whatIfEnabled ? "My Missions" : "My campaigns"}</Link>
        </div>
+       {!whatIfEnabled && <p className="text-sm text-slate-300">Private Missions are not available yet. You can still start a campaign.</p>}
      </div>
    </header>
    <section aria-label="Ways to fund your Mission" className="grid gap-4 md:grid-cols-3">
