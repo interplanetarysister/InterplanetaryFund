@@ -16,6 +16,7 @@ export default function AgentOperationsRoom({user}){
   const [error,setError]=useState("");
   const [sending,setSending]=useState(false);
   const [analyzing,setAnalyzing]=useState(false);
+  const [analyzingAssignment,setAnalyzingAssignment]=useState(null);
   const refresh=useCallback(async()=>{
     if(!ownerId)return;
     const client=authClient();
@@ -57,10 +58,12 @@ export default function AgentOperationsRoom({user}){
     }catch(cause){setError(cause?.message||"Message failed.");}
     finally{setSending(false);}
   }
-  async function askNexus(){
+  async function askNexus(messageId=null){
     const prompt=body.trim();
-    if(!permitted||analyzing||sending||prompt.length<8||prompt.length>1100||!ownerId)return;
-    setAnalyzing(true);setError("");
+    if(!permitted||analyzing||sending||!ownerId)return;
+    if(messageId===null && (prompt.length<8||prompt.length>1100))return;
+    if(messageId!==null && !items.some(item=>item.id===messageId && item.speaker_type==="admin" && item.event_type==="assignment"))return;
+    setAnalyzing(true);setAnalyzingAssignment(messageId);setError("");
     try{
       const client=authClient();
       const [identity,session,admin]=await Promise.all([
@@ -72,14 +75,14 @@ export default function AgentOperationsRoom({user}){
       const response=await fetch("/api/agents/ops/analyze",{
         method:"POST",headers:{"Content-Type":"application/json",
           Authorization:"Bearer "+session.data.session.access_token},
-        body:JSON.stringify({question:prompt})
+        body:JSON.stringify(messageId===null?{question:prompt}:{message_id:messageId})
       });
       const result=await response.json().catch(()=>null);
       if(!response.ok || !Number.isInteger(result?.saved) || result.saved<1)
         throw Error(typeof result?.error==="string"?result.error:"NEXUS could not complete this analysis.");
-      setBody("");await refresh();
+      if(messageId===null)setBody("");await refresh();
     }catch(cause){setError(cause?.message||"Agent analysis was not completed.");}
-    finally{setAnalyzing(false);}
+    finally{setAnalyzing(false);setAnalyzingAssignment(null);}
   }
   if(checking)return null;
   if(!permitted)return null;
@@ -100,6 +103,12 @@ export default function AgentOperationsRoom({user}){
             <span className="ml-2 font-normal text-slate-400">{item.event_type} · {new Date(item.created_at).toLocaleString()}</span></p>
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.body}</p>
           {item.speaker_type==="agent"&&<p className="mt-1 text-[11px] text-slate-400">Verified agent runtime · receipt {item.source_receipt?.slice(0,12)}</p>}
+          {item.speaker_type==="admin"&&item.event_type==="assignment"&&
+            <button type="button" disabled={analyzing||sending}
+              className="mt-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40"
+              onClick={()=>askNexus(item.id)}>
+              {analyzingAssignment===item.id?"Specialists reviewing…":"Assign to NEXUS for specialist review"}
+            </button>}
         </div>
       </article>)}
     </div>
@@ -115,7 +124,7 @@ export default function AgentOperationsRoom({user}){
         placeholder="Describe an assignment, question, decision or blocker…"/>
       <div className="flex flex-wrap gap-2">
         <button disabled={!body.trim()||sending||analyzing} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{sending?"Saving…":"Post to private room"}</button>
-        <button type="button" onClick={askNexus} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
+        <button type="button" onClick={()=>askNexus()} disabled={analyzing||sending||body.trim().length<8||body.trim().length>1100}
           className="rounded-xl border border-cyan-500/70 px-4 py-2 text-sm font-semibold text-cyan-200 disabled:opacity-40">
           {analyzing?"Consulting specialists…":"Ask NEXUS to analyze"}
         </button>
