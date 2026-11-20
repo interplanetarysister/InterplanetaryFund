@@ -86,6 +86,8 @@ export default function AIPermissionPreferences() {
           AI_FIELDS.some(field => check.data[field] !== enabled))
         throw Error("Unable to verify the saved setting. Reload before trying again.");
       setSaved(enabled);
+      // Refresh any open agent workspace only after the account setting is verified.
+      window.dispatchEvent(new CustomEvent("ifund-ai-consent-changed", {detail:{ownerId:user.id,enabled}}));
       try { sessionStorage.removeItem("ifund-signup-ai-interest-v1"); } catch { /* Optional */ }
       setMessage(enabled ? "AI assistance is on for your account." : "AI assistance is off for your account.");
     } catch (cause) {
