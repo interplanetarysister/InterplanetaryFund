@@ -30,7 +30,8 @@ test("agent messages cannot be forged by admin browser writes",()=>{
 });
 test("operations room is private and usable with a single administrator message input",()=>{
  assert.match(source,/Private Agent Operations Room/);
- assert.match(source,/Checking private operations-room access/);
+ assert.match(source,/if\\(checking\\)return null/);
+ assert.match(source,/if\\(!permitted\\)return null/);
  assert.match(source,/Only verified administrators can read or post/);
  assert.match(source,/Message type/);
  assert.match(source,/Administrator message/);
