@@ -73,7 +73,6 @@ const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const ManagePermissions = lazy(() => import("./pages/ManagePermissions"));
-const Connections = lazy(() => import("./pages/Connections"));
 const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
 const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
@@ -173,7 +172,7 @@ function AppRoutes() {
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
       <Route path="/my-profile" element={<Navigate to="/profile" replace />} />
       <Route path="/u/:id" element={<PublicMemberProfile />} />
-      <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
+      <Route path="/connections" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/fundraising-partners" element={<FundraisingPartners />} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
