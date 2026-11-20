@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, HeartHandshake, BriefcaseBusiness, Compass, Radar, ShieldCheck, Sparkles } from "lucide-react";
 import { SCOUT_PROVIDERS, safeScoutUrl } from "@/lib/scoutCatalog.mjs";
+import ScoutResearchPanel from "@/components/missions/ScoutResearchPanel";
 
 const tiles=[
  {title:"Raise",subtitle:"Grow your fundraising reach",detail:"Create a fundraiser or bring one you already run on another trusted platform. Donations stay with the original host when linked externally.",to:"/fundraising-hub",secondary:"Manage connected fundraisers",icon:HeartHandshake},
@@ -91,6 +92,7 @@ export default function FundYourMission() {
        </article>)}
      </div>
    </section>
+   <ScoutResearchPanel />
    <section className="space-y-4" aria-labelledby="opportunity-title">
      <div className="flex items-center gap-3"><Compass className="text-cyan-600" size={25}/><h2 id="opportunity-title" className="text-xl font-bold">Source-checked opportunities</h2></div>
      <p className="text-sm text-muted-foreground">Research listings are not paid IFund tasks, endorsements, verified eligibility or guaranteed funding.</p>
