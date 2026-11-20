@@ -15,7 +15,6 @@ node --version
 # Root package-lock.json includes Playwright
 npm ci --no-audit --no-fund
 # One-time explicit Chromium download
-npm run setup:browser
 npm run test:browser:policy
 npm run audit:browser:mobile
 npm run audit:browser:desktop
