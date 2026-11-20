@@ -5,6 +5,7 @@
  * Unknown or security-sensitive changes always require the full-site gate.
  */
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 
 export const SENSITIVE_PATH = /^(?:supabase\/|workers\/|worker\/|functions\/|\.github\/|apps\/mobile\/|apps\/web\/ci\/|apps\/web\/src\/(?:lib\/(?:auth|payment|donation|withdraw|ledger|oauth|consent|agent|subscription|campaignDocument)|contexts\/|hooks\/useAuth|integrations\/)|package(?:-lock)?\.json$|apps\/web\/package(?:-lock)?\.json$)/i;
@@ -40,11 +41,36 @@ export function assess(input) {
   return {eligible:issues.length===0,mode:'SCOPED_PRODUCTION_ELIGIBILITY_ONLY',issues};
 }
 
+/**
+ * CLI safeguard: the declared scope must be exactly the committed diff.
+ * Never approve a self-reported file list without independently reading Git.
+ */
+export function verifyGitScope(input, {cwd=process.cwd()}={}) {
+  const sha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/i.test(value);
+  if (!sha(input?.base_sha)||!sha(input?.commit_sha)) return ['Missing exact base/head Git SHAs'];
+  const git=(...args)=>spawnSync('git',args,{cwd,encoding:'utf8'});
+  const head=git('rev-parse','HEAD');
+  if (head.status!==0||head.stdout.trim()!==input.commit_sha) return ['Git checkout HEAD differs from release SHA'];
+  const ancestor=git('merge-base','--is-ancestor',input.base_sha,input.commit_sha);
+  if (ancestor.status!==0) return ['Git base is not an ancestor of release SHA'];
+  const dirty=git('status','--porcelain');
+  if (dirty.status!==0||dirty.stdout.trim()) return ['Git checkout is dirty or unreadable'];
+  const diff=git('diff','--name-only','--no-renames',input.base_sha,input.commit_sha);
+  if(diff.status!==0) return ['Cannot independently read Git changed-file diff'];
+  const actual=diff.stdout.trim()?diff.stdout.trim().split('\n').sort():[];
+  const claimed=Array.isArray(input.changed_files)?[...input.changed_files].sort():[];
+  if (actual.length!==claimed.length||actual.some((file,i)=>file!==claimed[i])) return ['Claimed changed files disagree with committed Git diff'];
+  return [];
+}
+
 if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
   try {
     if (process.argv.length!==3) throw Error('Usage: node scripts/verify-scoped-release.mjs evidence.json');
     const input=JSON.parse(readFileSync(process.argv[2],'utf8'));
     const result=assess(input);
+    const gitIssues=verifyGitScope(input);
+    result.issues.push(...gitIssues);
+    result.eligible=result.eligible&&gitIssues.length===0;
     console.log(JSON.stringify(result,null,2));
     if(!result.eligible) process.exitCode=1;
   } catch(error) { console.error('Scoped release FAIL CLOSED: '+error.message);process.exitCode=1; }
