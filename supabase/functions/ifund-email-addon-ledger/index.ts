@@ -29,7 +29,7 @@ async function providerRequest(req:Request){
  if(!valid)throw Error("Invalid provider signature");
  const parsed=JSON.parse(body);
  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)||
-   !["plan_register","intent_bind","event_stage"].includes(parsed.op)||
+   !["plan_register","intent_bind","event_stage","plan_identity","event_reconcile"].includes(parsed.op)||
    !parsed.data||typeof parsed.data!=="object"||Array.isArray(parsed.data))
    throw Error("Unsupported operation");
  return parsed as {op:string,data:Record<string,unknown>};
@@ -66,6 +66,17 @@ Deno.serve(async(req:Request)=>{
   }else if(op==="event_stage"){
    if(!data.p_event||typeof data.p_event!=="object")throw Error("Invalid PayPal evidence");
    result=await rpc("ifund_stage_campaign_email_provider_event",data);
+  }else if(op==="plan_identity"){
+   if(typeof data.p_plan_id!=="string"||!/^P-[A-Z0-9]{20,32}$/.test(data.p_plan_id))
+     throw Error("Invalid registered PayPal plan");
+   result=await rpc("ifund_campaign_email_provider_plan_identity",data);
+  }else if(op==="event_reconcile"){
+   if(typeof data.p_event_id!=="string"||
+     !/^WH-[A-Z0-9-]{8,90}$/.test(data.p_event_id)||
+     !(data.p_provider_paid_through===null||
+        typeof data.p_provider_paid_through==="string"))
+     throw Error("Invalid provider reconciliation");
+   result=await rpc("ifund_reconcile_campaign_email_provider_event",data);
   }
   return Response.json({ok:true,result},{headers:{"cache-control":"no-store"}});
  }catch{
