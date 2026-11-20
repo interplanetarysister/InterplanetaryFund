@@ -131,7 +131,7 @@ const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/events", label: "Fundraising Events", icon: CalendarDays },
-  { to: "/create", label: WHAT_IF_LAUNCHED ? "What If? Start here" : "Create a campaign", icon: PlusCircle },
+  { to: "/create", label: "Create a campaign", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/social", label: "Social Feed", icon: Radio },
   { to: "/globe", label: "Global Globe", icon: Globe2 },
