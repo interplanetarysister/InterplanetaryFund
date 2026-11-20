@@ -1,0 +1,104 @@
+/* Interplanetary Fund: Agent Team / Cosmic Geometry.
+   The styles are scoped to the Team experience; authentication is enforced
+   by React and the Worker, never by hidden CSS. */
+.ifund-agents-page {
+  --team-ink:#edf5ff; --team-subtle:#adc0d9;
+  position:relative; isolation:isolate; margin-inline:auto; max-width:1180px;
+  padding:clamp(1rem,2.5vw,2rem) clamp(.85rem,2vw,1.75rem) 6rem;
+}
+.ifund-agents-page * { min-width:0; }
+.ifund-agents-hero {
+  position:relative; overflow:hidden; isolation:isolate;
+  border:1px solid rgba(157,191,241,.30); border-radius:28px;
+  background:
+    radial-gradient(ellipse 68% 98% at 94% 13%,rgba(82,75,193,.42),transparent 72%),
+    radial-gradient(ellipse 80% 90% at 12% 105%,rgba(4,188,207,.21),transparent 78%),
+    linear-gradient(125deg,#07111f,#101c35 61%,#131635);
+  color:var(--team-ink); box-shadow:0 26px 60px rgba(4,13,34,.18);
+  padding:clamp(1.35rem,3.4vw,2.6rem);
+}
+.ifund-agents-hero::before {
+  content:""; position:absolute; inset:-48% -16% auto 43%; height:185%;
+  border:1px solid rgba(121,227,234,.20); border-radius:50%;
+  transform:rotate(-28deg); pointer-events:none; z-index:-1;
+  box-shadow:0 0 0 29px rgba(132,111,248,.035),0 0 0 72px rgba(99,199,243,.04),0 0 0 115px rgba(213,125,238,.035);
+}
+.ifund-agents-hero::after {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background-image:radial-gradient(rgba(225,238,255,.35) .8px,transparent 1px);
+  background-size:39px 43px; opacity:.13;
+  -webkit-mask-image:linear-gradient(90deg,transparent 12%,black 100%);
+  mask-image:linear-gradient(90deg,transparent 12%,black 100%);
+}
+.ifund-agents-kicker { color:#6ef1e7; font-size:.71rem; font-weight:800; letter-spacing:.22em; text-transform:uppercase; }
+.ifund-agents-headline { font-family:var(--font-heading,'Manrope',sans-serif); font-size:clamp(2rem,4.8vw,3.45rem); font-weight:800; letter-spacing:-.045em; line-height:1.08; margin-top:.75rem; max-width:740px; }
+.ifund-agents-headline span { color:#88f2eb; }
+.ifund-agents-lede { max-width:640px; color:#c6d5e8; font-size:clamp(.94rem,1.45vw,1.075rem); line-height:1.7; margin-top:1rem; }
+.ifund-agents-hero-foot { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.4rem; }
+.ifund-agents-chip { display:inline-flex; align-items:center; gap:.5rem; padding:.5rem .8rem; color:#e2eefc; background:rgba(255,255,255,.07); border:1px solid rgba(181,220,252,.2); border-radius:999px; font-size:.75rem; font-weight:650; }
+.ifund-agents-chip::before { content:""; height:7px; width:7px; border-radius:50%; background:#63e8dc; box-shadow:0 0 10px rgba(99,232,220,.6); }
+.ifund-agents-section-heading { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:.65rem; margin-bottom:1rem; }
+.ifund-agents-section-heading h2 { font-size:1.25rem; font-weight:800; letter-spacing:-.025em; }
+.ifund-agents-section-heading p { font-size:.82rem; color:var(--team-subtle); }
+.ifund-agents-console {
+  position:relative; padding:clamp(1.1rem,2.8vw,2rem); border-radius:25px; color:var(--team-ink);
+  border:1px solid rgba(124,176,237,.27);
+  background:linear-gradient(152deg,rgba(15,31,55,.98),rgba(8,16,31,.99));
+  box-shadow:0 16px 46px rgba(4,14,38,.17),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.ifund-agents-console::before { content:""; pointer-events:none; position:absolute; inset:0; border-radius:inherit; padding:1px;
+  background:linear-gradient(120deg,rgba(83,234,222,.38),transparent 38%,rgba(151,120,246,.23));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; }
+.ifund-agents-console .ifund-agents-muted { color:#b3c5db; }
+.ifund-agents-console label { color:#ddeafa; }
+.ifund-agents-console textarea,.ifund-agents-console select {
+  background:rgba(8,18,33,.78); color:#f3f8ff; border:1px solid #38506a;
+  border-radius:15px; transition:border-color .2s ease,box-shadow .2s ease;
+}
+.ifund-agents-console textarea::placeholder { color:#93a9c5; }
+.ifund-agents-console textarea:focus-visible,.ifund-agents-console select:focus-visible {
+  outline:2px solid #73e9e5; outline-offset:2px; border-color:#73e9e5; box-shadow:0 0 0 4px rgba(76,220,218,.12);
+}
+.ifund-agents-console select option { color:#eaf2ff; background:#101d34; }
+.ifund-agents-submit { display:inline-flex; align-items:center; justify-content:center; gap:.65rem; min-height:46px; min-width:160px; border-radius:14px;
+  padding:.7rem 1.25rem; background:linear-gradient(110deg,#5be6dc,#83a3ff); color:#061327; font-weight:800;
+  box-shadow:0 9px 24px rgba(28,168,201,.21); transition:transform .18s ease,filter .18s ease; }
+.ifund-agents-submit:enabled:hover { transform:translateY(-2px); filter:brightness(1.07); }
+.ifund-agents-submit:disabled { opacity:.51; box-shadow:none; cursor:not-allowed; }
+.ifund-agents-console a { color:#82e7f6; text-underline-offset:3px; }
+.ifund-agents-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem; }
+.ifund-agents-card {
+  --agent-accent:#8de5e5; position:relative; display:flex; flex-direction:column; align-items:flex-start; text-align:left;
+  gap:.35rem; overflow:hidden; min-height:168px; padding:1.05rem;
+  border:1px solid rgba(157,187,227,.19); border-radius:21px;
+  background:linear-gradient(145deg,#0b1424,#111b30 80%,#131b31);
+  color:#eff6ff; box-shadow:0 12px 27px rgba(6,16,39,.10);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.ifund-agents-card::before { content:""; position:absolute; inset:0 0 auto; height:2px; opacity:.75; background:linear-gradient(90deg,var(--agent-accent),transparent 80%); }
+.ifund-agents-card::after { content:""; position:absolute; height:125px; width:125px; right:-65px; top:-70px; border:1px solid var(--agent-accent); border-radius:50%; opacity:.20; pointer-events:none; }
+.ifund-agents-card:hover { transform:translateY(-3px); border-color:var(--agent-accent); box-shadow:0 19px 35px rgba(5,18,38,.20); }
+.ifund-agents-card[aria-pressed="true"] { border-color:var(--agent-accent); box-shadow:0 0 0 1px var(--agent-accent),0 15px 36px rgba(4,21,43,.22); }
+.ifund-agents-card:focus-visible { outline:3px solid #63ebe0; outline-offset:3px; }
+.ifund-agents-card .ifund-agents-role { color:#a9bdd5; font-size:.75rem; line-height:1.45; }
+.ifund-agents-card .ifund-agents-name { margin-top:.8rem; font-size:.93rem; font-weight:800; letter-spacing:.17em; }
+.ifund-agents-card .ifund-agents-arrow { position:absolute; right:1rem; bottom:1.05rem; color:var(--agent-accent); font-size:1rem; }
+.ifund-agents-detail { color:var(--team-ink); border-radius:23px; border:1px solid rgba(142,194,238,.28);
+  background:linear-gradient(140deg,#101d33,#0d1629); padding:clamp(1.1rem,2.5vw,1.75rem); }
+.ifund-agents-detail .ifund-agents-muted { color:#b9cce1; }
+.ifund-agents-detail a { color:#8de9f5; }
+.ifund-agents-detail .ifund-agents-action { display:inline-flex; align-items:center; justify-content:center;
+  min-height:44px; padding:.6rem 1rem; border:1px solid rgba(143,223,233,.48); border-radius:13px;
+  background:rgba(82,182,218,.12); color:#eafaff; font-weight:700; }
+.ifund-agents-reply { background:rgba(11,29,51,.92); border:1px solid rgba(112,238,221,.32); border-radius:19px; padding:1.1rem; }
+.ifund-agents-reply .ifund-agents-reply-body { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
+.ifund-agents-writing { border:1px solid rgba(132,166,219,.24); border-radius:23px; background:linear-gradient(135deg,#141f34,#1b2441); color:#f2f7ff; padding:clamp(1rem,2.5vw,1.75rem); }
+.ifund-agents-writing p { color:#c5d3e8; }
+.ifund-agents-writing a { color:#85eaf5; }
+.ifund-agents-page .ifund-agents-action:focus-visible,.ifund-agents-page button:focus-visible { outline:3px solid #6be9dc; outline-offset:3px; }
+.ifund-agents-page button:disabled { cursor:not-allowed; }
+@media (min-width:640px) { .ifund-agents-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .ifund-agents-card { min-height:178px; padding:1.3rem; } }
+@media (min-width:1000px) { .ifund-agents-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; } }
+@media (max-width:420px) { .ifund-agents-card { min-height:151px; padding:.9rem; } .ifund-agents-card .ifund-agents-name { font-size:.84rem; } .ifund-agents-hero { border-radius:22px; } }
+@media (prefers-reduced-motion:reduce) { .ifund-agents-card,.ifund-agents-submit { transition:none; } .ifund-agents-card:hover,.ifund-agents-submit:enabled:hover { transform:none; } }
