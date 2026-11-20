@@ -29,8 +29,7 @@ begin
  return jsonb_build_object('id',v_link.id,'mission_id',v_link.mission_id,
    'campaign_id',v_link.campaign_id,'linked_at',v_link.linked_at);
 end
-$function$
-
+$function$;
 revoke all on function public.ifund_mission_link_owned_campaign(uuid,uuid) from public,anon,authenticated;
 grant execute on function public.ifund_mission_link_owned_campaign(uuid,uuid) to authenticated;
 comment on function public.ifund_mission_link_owned_campaign(uuid,uuid) is 'Link only the authenticated owner’s preexisting Mission and campaign; does not publish, charge or transfer funds.';
