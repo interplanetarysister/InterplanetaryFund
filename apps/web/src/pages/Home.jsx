@@ -42,7 +42,6 @@ const STORY = [
 
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
-  const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
   const navigate = useNavigate();
   const { user } = useAuthSession();
   const isAuthenticated = Boolean(user);
@@ -59,7 +58,7 @@ export default function Home() {
   }, []);
 
   function startFromPrompt(prompt) {
-    navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt } });
+    navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } });
   }
 
   return (
@@ -88,8 +87,8 @@ export default function Home() {
             variant="hero"
             label="Describe a goal, a problem to solve, or a financial burden."
             placeholder="What would you like help making possible?"
-            submitLabel={whatIfEnabled ? "Explore my possibilities" : "Start my campaign"}
-            note="Start privately. A campaign or donation is never required."
+            submitLabel="Continue"
+            note="We'll fill in your draft. You can edit everything before publishing."
             onSubmit={startFromPrompt}
             className="mb-6 mx-auto max-w-xl"
           />
@@ -98,7 +97,7 @@ export default function Home() {
               <Link to="/dashboard"><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
             ) : (
               <>
-                <Link to={whatIfEnabled ? "/what-if" : "/create"}><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> {whatIfEnabled ? "Start a private Mission" : "Start a campaign"}</Button></Link>
+                <Link to="/create?manual=1"><Button size="lg" className="!min-h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Create a campaign</Button></Link>
                 <Link to="/discover"><Button size="lg" variant="outline" className="!min-h-12 rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
               </>
             )}
