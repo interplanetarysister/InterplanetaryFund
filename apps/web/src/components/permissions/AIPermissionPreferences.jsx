@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
+import { AI_CONSENT_FIELDS, hasUnifiedAIConsent, hasMixedLegacyAIConsent } from "@/lib/unifiedAIConsent.mjs";
 
 // The product exposes one choice; the existing backend columns remain for compatibility
 // with the separate campaign, outreach, and internal-agent authorization checks.
-const AI_FIELDS = ["allow_ai_campaign_drafts", "allow_ai_outreach_drafts", "allow_future_internal_ai_assistance"];
+const AI_FIELDS = AI_CONSENT_FIELDS;
 const COLUMNS = ["owner_id", "default_action", ...AI_FIELDS].join(",");
-export const aiEnabled = preferences => AI_FIELDS.some(field => preferences?.[field] === true);
 
 export default function AIPermissionPreferences() {
   const [enabled, setEnabled] = useState(false);
@@ -31,19 +31,20 @@ export default function AIPermissionPreferences() {
       if (readError || (data && data.owner_id !== user.id)) throw Error("Unable to load your saved AI setting.");
       if (!active) return;
       // No record: preserve opt-in interest from signup only as an unsaved proposal.
-      let next = aiEnabled(data);
+      let next = hasUnifiedAIConsent(data, user.id);
+      if (hasMixedLegacyAIConsent(data, user.id)) setMessage("Your earlier AI choices were different. AI stays off until you choose On and save.");
       if (!data) {
         try {
           const pending = JSON.parse(sessionStorage.getItem("ifund-signup-ai-interest-v1") || "null");
           if (pending?.email === user.email?.toLowerCase() &&
               Number.isFinite(pending.timestamp) && Date.now() >= pending.timestamp &&
               Date.now() - pending.timestamp < 86400000) {
-            next = AI_FIELDS.some(field => pending.choices?.[field] === true);
+            next = AI_FIELDS.every(field => pending.choices?.[field] === true);
             setMessage("Review this choice from sign-up, then save it to your account.");
           }
         } catch { /* Storage is optional. */ }
       }
-      setSaved(aiEnabled(data));
+      setSaved(hasUnifiedAIConsent(data, user.id));
       setEnabled(next);
       setPhase("ready");
     })().catch(cause => {
