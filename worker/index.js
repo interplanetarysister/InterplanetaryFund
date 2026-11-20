@@ -52,7 +52,14 @@ export default {
     }
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
-    if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
+    if (pathname.startsWith('/api/agents/communications/')) {
+      // Production Pages binds the isolated Communications Worker. Direct local
+      // invocation has no IFUND_COMMUNICATIONS_* flags and falsely reports 503.
+      // Do not synthesize successful delivery when the service is unavailable.
+      if (typeof env.IFUND_COMMUNICATIONS_AGENT?.fetch === 'function')
+        return env.IFUND_COMMUNICATIONS_AGENT.fetch(request);
+      return communicationsRoute(request, env);
+    }
     if (pathname.startsWith('/api/agents/connections/')) return handleManagedConnections(request, env);
     if (pathname.startsWith('/api/oauth/')) {
       const origin = oauthCorsOrigin(request, env);
