@@ -76,13 +76,13 @@ export default function AgentOperationsRoom({user}){
       if(writeError||!data?.id)throw Error("The message was not saved.");
       setBody("");
       await refresh();
-      if(kind==="assignment" && message.length<=1100){
+      if(["assignment","discussion"].includes(kind) && message.length>=8 && message.length<=1100){
         setAnalyzing(true);setAnalyzingAssignment(data.id);
         try{
           await runNexus({message_id:data.id});
           await refresh();
         }catch(cause){
-          if(ownerGuard.current===ownerId)setError("Assignment saved, but specialist analysis needs retry: "+
+          if(ownerGuard.current===ownerId)setError("Message saved, but specialist analysis needs retry: "+
             (cause?.message||"Agent unavailable"));
         }finally{setAnalyzing(false);setAnalyzingAssignment(null);}
       }
@@ -94,7 +94,7 @@ export default function AgentOperationsRoom({user}){
     if(!permitted||analyzing||sending||!ownerId)return;
     if(messageId===null && (prompt.length<8||prompt.length>1100))return;
     if(messageId!==null && !items.some(item=>item.id===messageId &&
-      item.speaker_type==="admin" && item.event_type==="assignment"))return;
+      item.speaker_type==="admin" && ["assignment","discussion"].includes(item.event_type)))return;
     setAnalyzing(true);setAnalyzingAssignment(messageId);setError("");
     try{
       await runNexus(messageId===null?{question:prompt}:{message_id:messageId});
@@ -112,7 +112,7 @@ export default function AgentOperationsRoom({user}){
         <p className="text-xs text-slate-400">Private administrator room · Agent messages require verified runtime receipts</p>
       </div>
     </div>
-    <p className="text-xs text-slate-400">Only verified administrators can read or post. Posting an assignment of up to 1,100 characters automatically requests a bounded, advisory NEXUS specialist review. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
+    <p className="text-xs text-slate-400">Only verified administrators can read or post. Posting a discussion or assignment (8–1,100 characters) automatically requests a bounded, advisory NEXUS specialist response. Other posts remain messages only. Agent replies appear only after verified backend execution.</p>
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
@@ -122,16 +122,16 @@ export default function AgentOperationsRoom({user}){
             <span className="ml-2 font-normal text-slate-400">{item.event_type} · {new Date(item.created_at).toLocaleString()}</span></p>
           <p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.body}</p>
           {item.speaker_type==="agent"&&<p className="mt-1 text-[11px] text-slate-400">Verified agent runtime · receipt {item.source_receipt?.slice(0,12)}</p>}
-          {item.speaker_type==="admin"&&item.event_type==="assignment"&&
+          {item.speaker_type==="admin"&&["assignment","discussion"].includes(item.event_type)&&
             <button type="button" disabled={analyzing||sending||
                 items.some(entry=>entry.speaker_type==="agent" &&
-                  entry.source_receipt?.startsWith("assignment-"+item.id+":"))}
+                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))}
               className="mt-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-xs text-cyan-200 disabled:opacity-40"
               onClick={()=>askNexus(item.id)}>
               {analyzingAssignment===item.id?"Specialists reviewing…":
                 items.some(entry=>entry.speaker_type==="agent" &&
-                  entry.source_receipt?.startsWith("assignment-"+item.id+":"))?"Review recorded":
-                  "Assign to NEXUS for specialist review"}
+                  entry.source_receipt?.startsWith(item.event_type+"-"+item.id+":"))?"Response recorded":
+                  "Ask NEXUS to reply"}
             </button>}
         </div>
       </article>)}
