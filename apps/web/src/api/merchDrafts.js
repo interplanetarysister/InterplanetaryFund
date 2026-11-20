@@ -1,7 +1,7 @@
 import { authClient } from "@/api/auth";
 import { validateMerchDesignRequest } from "@/lib/campaignMerch.mjs";
 
-export const MERCH_DRAFTS_ENABLED = import.meta.env.VITE_IFUND_MERCH_DRAFTS_ENABLED === "enabled";
+export const MERCH_DRAFTS_ENABLED = import.meta.env?.VITE_IFUND_MERCH_DRAFTS_ENABLED === "enabled";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function ownerCampaign(client, campaignId) {
