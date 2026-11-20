@@ -9,6 +9,8 @@ import { routeImageImprove } from './imageImprove.js';
 import { routeGeocodeCity } from './geocodeCity.js';
 import { strategyRoute } from './agents/strategy.js';
 import { routeTeamQuestion } from './agents/teamQuestion.js';
+import { routeMissionExplore } from './missions/explore.js';
+import { routeMissionPlan } from './missions/plan.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
@@ -25,6 +27,11 @@ export default {
       if (typeof env.IFUND_EMAIL_ADDON_BILLING?.fetch !== 'function')
         return response(503, { error: 'Recurring email checkout is not configured.' });
       return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
+    }
+    if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
+    if (pathname === '/api/missions/plan') {
+      if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') return env.IFUND_AGENT_SERVICE.fetch(request);
+      return routeMissionPlan(request, env);
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
