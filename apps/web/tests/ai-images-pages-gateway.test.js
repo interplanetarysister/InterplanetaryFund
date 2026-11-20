@@ -52,3 +52,20 @@ test("Pages artwork gateway reuses the Worker security, quota and model implemen
   assert.match(gateway, /routeImageImprove\(request, env\)/);
   assert.doesNotMatch(gateway, /SUPABASE_SECRET_KEY|OAUTH_ENCRYPTION_KEY|service_role|api\.cloudflare\.com/);
 });
+
+test("Pages image gateway reaches bound Workers AI service and preserves denied auth",async()=>{
+  for(const action of ["generate","improve"]){
+    let called=0;
+    const env={IFUND_IMAGE_STUDIO:{async fetch(req){
+      called++;
+      assert.equal(new URL(req.url).pathname,"/api/ai/images/"+action);
+      assert.equal(req.headers.get("authorization"),null);
+      return Response.json({error:"Sign in to use campaign artwork."},{status:401});
+    }}};
+    const result=await onRequest({request:request(action),env});
+    assert.equal(called,1);
+    assert.equal(result.status,401);
+    assert.equal(result.headers.get("cache-control"),"no-store");
+    assert.equal(result.headers.get("x-content-type-options"),"nosniff");
+  }
+});
