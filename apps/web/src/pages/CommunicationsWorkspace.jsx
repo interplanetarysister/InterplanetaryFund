@@ -4,6 +4,7 @@ import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
 import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
+import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWorkspace";
 import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
 
 const TEMPLATES = {
@@ -82,7 +83,7 @@ export default function CommunicationsWorkspace() {
   return <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-8">
     <header>
       <h1 className="text-3xl font-bold">ECHO · Communications workspace</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message using one of your own campaigns. This tool does not call an AI model or send email, direct messages, or social posts.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message, or use the connected ECHO message service below to save drafts and review consent-based in-app delivery. External email, direct messaging and social posting are separate provider capabilities.</p>
     </header>
     {state.phase==="loading"&&<p role="status">Loading your campaigns…</p>}
     {state.phase==="error"&&<p role="alert" className="rounded-xl border border-red-500/50 p-4">{state.error}</p>}
@@ -120,6 +121,11 @@ export default function CommunicationsWorkspace() {
       {status&&<p role="status" className="text-sm text-muted-foreground">{status}</p>}
       <p className="text-xs text-muted-foreground">A template is not a verified fact. Only share an active public campaign, avoid unapproved contact lists, and confirm you have permission to message each recipient.</p>
       <Link className="text-sm underline" to="/preferences">Review your own optional outreach preferences</Link>
+    </section>}
+    {state.phase==="ready" && <section aria-label="Connected saved-message service" className="space-y-3">
+      <h2 className="text-xl font-semibold">Saved messages and in-app delivery</h2>
+      <p className="text-sm text-muted-foreground">ECHO uses your verified account and campaign permissions. Drafts remain private until you review the exact text and eligible in-app recipients. If delivery is unavailable, drafts remain editable.</p>
+      <SpecialistServiceWorkspace identity="echo" initialCampaignId={campaignId||requestedCampaign||null}/>
     </section>}
   </main>;
 }
