@@ -15,6 +15,6 @@ test('performance repair cannot weaken security or mutate user/financial records
   const code = sql.replace(/--[^\n]*/g, '').trim();
   const statements = code.split(';').map(x=>x.trim()).filter(Boolean);
   assert.equal(statements.length, 18);
-  for(const statement of statements) assert.match(statement, /^CREATE INDEX IF NOT EXISTS [a-z0-9_]+ ON public\\.[a-z0-9_]+ \\([a-z0-9_, ]+\\)$/i);
-  assert.doesNotMatch(code,/\\b(ALTER|DROP|DELETE|UPDATE|INSERT|GRANT|REVOKE|TRUNCATE|POLICY|FUNCTION)\\b/i);
+  for(const statement of statements) assert.match(statement, /^CREATE INDEX IF NOT EXISTS [a-z0-9_]+ ON public\.[a-z0-9_]+ \([a-z0-9_, ]+\)$/i);
+  assert.doesNotMatch(code,/\b(ALTER|DROP|DELETE|UPDATE|INSERT|GRANT|REVOKE|TRUNCATE|POLICY|FUNCTION)\b/i);
 });
