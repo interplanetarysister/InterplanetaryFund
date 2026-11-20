@@ -180,7 +180,8 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
     return reply(200, {
       service: "ifund-communications-agent",
       enabled: env.IFUND_COMMUNICATIONS_ENABLED === "enabled",
-      sending_in_app: env.IFUND_COMMUNICATIONS_SEND_ENABLED === "enabled" && await verifiedDeliveryContract(api),
+      // Health is unauthenticated; per-member delivery is checked by workspace.
+      sending_in_app: false,
       email: false,
     });
   const action = path.startsWith("/api/agents/communications/")
