@@ -1,7 +1,7 @@
 // Public read-only sponsor offers. Postgres RLS is authoritative.
 // No enrolment, payment capture, sponsorship claims, payout or reward mutation.
 const ORIGIN="https://ssibsfmtodgximseeqsv.supabase.co";
-const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
+const json=(body,status=200,stage="ok")=>Response.json(body,{status,headers:{"cache-control":"no-store","x-content-type-options":"nosniff","x-ifund-catalog-stage":stage}});
 const safeHttps=value=>{try{const u=new URL(value);return u.protocol==="https:"&&!u.username&&!u.password;}catch{return false;}};
 const validAmount=value=>Number.isSafeInteger(Number(value))&&Number(value)>0&&Number(value)<=100000000;
 export async function onRequest({request,env,fetch:incomingFetch}) {
@@ -9,7 +9,7 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
  const serviceUrl=env.SUPABASE_URL||env.VITE_SUPABASE_URL;
  const publishableKey=env.SUPABASE_PUBLISHABLE_KEY||env.VITE_SUPABASE_PUBLISHABLE_KEY;
  if(serviceUrl!==ORIGIN || !publishableKey)
-  return json({error:"Sponsor catalog unavailable"},503);
+  return json({error:"Sponsor catalog unavailable"},503,"config");
  const get=typeof incomingFetch==="function"?incomingFetch:fetch;
  const headers={apikey:publishableKey,accept:"application/json"};
  const offersUrl=ORIGIN+"/rest/v1/ifund_sponsor_opportunities?select="+encodeURIComponent("id,sponsor_id,source_kind,title,summary,requirements,official_url,geography,eligibility,reward_minor,currency,compensation_basis,starts_at,ends_at,verified_at")+"&state=eq.published&order=verified_at.desc&limit=30";
@@ -18,7 +18,7 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
   const [a,b]=await Promise.all([offersUrl,sponsorsUrl].map(url=>get(url,{headers,redirect:"error",signal:AbortSignal.timeout(8000)})));
   if(!a.ok||!b.ok)return json({error:"Sponsor catalog unavailable"},503);
   const [offers,sponsors]=await Promise.all([a.json(),b.json()]);
-  if(!Array.isArray(offers)||!Array.isArray(sponsors))return json({error:"Invalid sponsor catalog"},503);
+  if(!Array.isArray(offers)||!Array.isArray(sponsors))return json({error:"Invalid sponsor catalog"},503,"invalid_json");
   const sponsorsById=new Map(sponsors.filter(x=>safeHttps(x.official_url)&&typeof x.display_name==="string").map(x=>[x.id,x]));
   const now=Date.now();
   const records=offers.filter(x=>x&&sponsorsById.has(x.sponsor_id)&&
