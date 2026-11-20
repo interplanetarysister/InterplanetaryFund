@@ -59,8 +59,9 @@ create or replace function public.ifund_cancel_account_deletion(p_request_id uui
 returns table(request_id uuid,request_status text,updated_at timestamptz)
 language plpgsql security definer set search_path=''
 as $fn$
-declare v_user uuid:=auth.uid();
-declare v_row record;
+declare
+ v_user uuid:=auth.uid();
+ v_row record;
 begin
  if v_user is null or not exists(
    select 1 from auth.users u where u.id=v_user
