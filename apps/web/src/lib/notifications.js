@@ -63,3 +63,29 @@ export async function acknowledgeAllNotifications(client){
     throw new Error("Notification acknowledgements not confirmed.");
   return data.length;
 }
+
+
+/**
+ * Verify the complete free in-app delivery path as the signed-in owner.
+ * The database RPC is idempotent for the owner and UTC date. It produces no
+ * external message and grants no capability to contact another account.
+ */
+export async function verifyInAppNotificationDelivery(client){
+  const owner=await ownerId(client);
+  const {data,error}=await client.rpc("ifund_notification_delivery_selfcheck");
+  if(error || !Array.isArray(data) || data.length!==1 ||
+    !UUID.test(data[0]?.notification_id||""))
+    throw new Error("An in-app delivery receipt was not created. No external message was sent.");
+  const receipt=data[0];
+  const {data:record,error:readError}=await client.from("ifund_notifications")
+    .select(COLUMNS).eq("owner_id",owner)
+    .eq("id",receipt.notification_id).maybeSingle();
+  if(readError || !record || record.id!==receipt.notification_id ||
+    record.owner_id!==owner ||
+    record.canonical_operation_id!==undefined && record.canonical_operation_id!==null)
+    throw new Error("The private inbox could not confirm the delivered notice.");
+  if(record.title!=="Your iFund inbox is connected" || record.type!=="system")
+    throw new Error("The inbox returned an unexpected delivery receipt.");
+  return {id:record.id,deliveredAt:receipt.delivered_at,
+    alreadyExists:receipt.already_exists===true};
+}
