@@ -8,7 +8,7 @@ export function createAuthenticatedDocumentReceiptResolver({rpc}) {
   if(typeof rpc!=='function') throw Error('Authenticated receipt RPC is required');
   return async function resolveReceipt({documentId,ownerId,jwt}) {
     if(!UUID.test(documentId||'')||!UUID.test(ownerId||'')||
-       typeof jwt!=='string'||!/^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/.test(jwt))
+       typeof jwt!=='string'||!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(jwt))
       throw Error('Invalid receipt identity');
     const rows=await rpc('ifund_super_admin_private_document_receipt',
       {p_document_id:documentId,p_owner_id:ownerId},jwt);
