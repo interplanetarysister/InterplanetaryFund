@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {OFFICIAL_OUTREACH_COPY,fetchOfficialOutreachCandidates,reviewOfficialOutreachCandidate} from "@/lib/officialOutreach.mjs";
+import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 import {CheckCircle2,ClipboardCopy,ExternalLink,RefreshCw,ShieldAlert} from "lucide-react";
 const MODES=[["unverified","Unverified lead"],["needs_login","Needs account login"],["provider_verification_required","Needs provider approval"],["unsupported","Unavailable / unsupported"]];
 const LABEL={historical_active:"Historically marked active",historical_pending:"Historically pending"};
@@ -92,6 +93,13 @@ export default function OfficialOutreachRecovery(){
         <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-xs font-semibold" onClick={()=>copyText(body,key+" introduction")}><ClipboardCopy size={16}/>Copy for review</button>
        </div>
        <p className="whitespace-pre-wrap text-sm text-muted-foreground">{body}</p>
+       {key==="short"&&<div className="flex flex-wrap gap-3">
+         {socialComposeTargets(body).map(target=><a key={target.id} href={target.href}
+           rel="noopener noreferrer" target="_blank"
+           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold text-primary">
+           {target.label}<ExternalLink size={14}/>
+         </a>)}
+       </div>}
      </article>)}
    </div>
    <div className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle2 aria-hidden="true" size={16}/>Source inventory and drafting are available without granting external platform credentials.</div>
