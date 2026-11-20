@@ -203,3 +203,38 @@ html.dark .ifund-dashboard-module {
     transform: none !important;
   }
 }
+
+/* The public home and standalone pages should not collapse to a single flat fill. */
+.ifund-public {
+  background:
+    radial-gradient(56rem 25rem at 85% 10%, rgb(141 105 240 / .15), transparent 64%),
+    radial-gradient(50rem 33rem at 6% 55%, rgb(34 213 219 / .13), transparent 68%),
+    linear-gradient(159deg, #edf7ff 4%, #f8f3ff 51%, #ecf9fb 100%);
+}
+html.dark .ifund-public {
+  background:
+    radial-gradient(55rem 27rem at 88% 10%, rgb(141 105 240 / .26), transparent 65%),
+    radial-gradient(52rem 30rem at 5% 64%, rgb(31 201 235 / .18), transparent 72%),
+    linear-gradient(152deg, #060d23, #161435 56%, #091b31 100%);
+}
+:where(.ifund-shell, .ifund-public) button[aria-busy="true"]::before,
+:where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  width: 1em; height: 1em;
+  margin-right: .35em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ifund-button-spin .9s linear infinite;
+}
+@keyframes ifund-button-spin { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  :where(.ifund-shell, .ifund-public) button[aria-busy="true"]::before,
+  :where(.ifund-shell, .ifund-public) button[data-loading="true"]::before {
+    animation: none !important;
+    border-right-color: currentColor;
+  }
+}
