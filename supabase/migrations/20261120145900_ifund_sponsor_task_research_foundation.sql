@@ -108,9 +108,7 @@ create policy ifund_sponsor_public_funded on public.ifund_sponsor_opportunities
  );
 create policy ifund_sponsor_participation_owner_read on public.ifund_sponsor_participations
  for select to authenticated using (
-   owner_id=(select auth.uid()) and
-   exists (select 1 from auth.users u where u.id=(select auth.uid()) and
-     coalesce((u.raw_app_meta_data->>'provider'),'email') <> 'anonymous')
+   owner_id=(select auth.uid())
  );
 create policy ifund_sponsor_reward_owner_read on public.ifund_sponsor_reward_events
  for select to authenticated using (
