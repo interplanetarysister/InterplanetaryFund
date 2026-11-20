@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {assess} from '../scripts/verify-scoped-release.mjs';
+import {assess,verifyGitScope} from '../scripts/verify-scoped-release.mjs';
+import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {spawnSync} from 'node:child_process';
 const A='a'.repeat(40),B='b'.repeat(40);
 function fixture(files=['apps/web/src/styles/landing.css']) {return {commit_sha:A,changed_files:files,evidence:{local_tests:{passed:true,commit_sha:A,reference:'local-node-output-1'},security_regressions:{passed:true,commit_sha:A,reference:'negative-suite-1'},role_browser_qa:{passed:true,commit_sha:A,reference:'role-browser-1'},preview_qa:{passed:true,commit_sha:A,reference:'preview-browser-1'},preview_deployment:{id:'cf-preview-123',status:'success',commit_sha:A},independent_reviewer:{identity:'independent-qa',approved:true,reference:'qa-record-1'},outstanding_critical_defects:0}}}
 test('eligible for narrowly scoped styling only with complete proof',()=>assert.equal(assess(fixture()).eligible,true));
@@ -21,3 +25,30 @@ test('negative suite failure prevents release',()=>{const x=fixture();x.evidence
 test('docs involving security architecture require full gate',()=>assert.equal(assess(fixture(['docs/architecture/FINANCIAL_RULES.md'])).eligible,false));
 test('login page requires full gate',()=>assert.equal(assess(fixture(['apps/web/src/pages/Login.jsx'])).eligible,false));
 test('campaign creator requires full gate',()=>assert.equal(assess(fixture(['apps/web/src/pages/CreateCampaign.jsx'])).eligible,false));
+
+test('CLI rejects unverified base commit and absent checkout',()=>{
+ const x=fixture();x.base_sha=B;
+ assert.ok(verifyGitScope(x,{cwd:'/nonexistent-path-for-ifund-qa'}).length);
+});
+test('CLI independently verifies exact Git diff, refuses omitted changed files and dirty checkout',()=>{
+ const cwd=mkdtempSync(join(tmpdir(),'ifund-release-git-'));
+ const run=(...args)=>spawnSync('git',args,{cwd,encoding:'utf8'});
+ try {
+  assert.equal(run('init','-q').status,0);
+  assert.equal(run('config','user.email','qa@example.invalid').status,0);
+  assert.equal(run('config','user.name','iFund QA').status,0);
+  writeFileSync(join(cwd,'one.css'),'one');
+  run('add','.');run('commit','-qm','first');
+  const base=run('rev-parse','HEAD').stdout.trim();
+  writeFileSync(join(cwd,'one.css'),'two');
+  run('add','.');run('commit','-qm','second');
+  const commit=run('rev-parse','HEAD').stdout.trim();
+  const x=fixture(['one.css']);x.base_sha=base;x.commit_sha=commit;
+  assert.deepEqual(verifyGitScope(x,{cwd}),[]);
+  x.changed_files=[];
+  assert.match(verifyGitScope(x,{cwd}).join(),/disagree/);
+  x.changed_files=['one.css'];
+  writeFileSync(join(cwd,'untracked'),'dirty');
+  assert.match(verifyGitScope(x,{cwd}).join(),/dirty/);
+ } finally {rmSync(cwd,{recursive:true,force:true});}
+});
