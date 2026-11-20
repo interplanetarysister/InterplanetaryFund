@@ -113,7 +113,7 @@ export default function AIPermissionPreferences() {
             checked={enabled} onChange={event => {setEnabled(event.target.checked); setMessage("");setError("");}}
             className="peer sr-only"/>
           <span aria-hidden="true" className="relative h-9 w-16 rounded-full border-2 border-border bg-muted transition-colors peer-checked:border-cyan-500 peer-checked:bg-cyan-500 peer-focus-visible:outline peer-focus-visible:outline-4 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-cyan-400 peer-disabled:opacity-50">
-            <span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition-transform peer-checked:translate-x-7"/>
+            <span className={"absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow transition-transform " + (enabled ? "translate-x-7" : "")}/>
           </span>
         </span>
       </label>
