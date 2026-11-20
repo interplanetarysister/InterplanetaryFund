@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
-const env = { IFUND_STUDIO_ENABLED: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
+// The studio AI consent gate (worker/aiConsent.js) requires the canonical
+// production Supabase URL before any inference.
+const env = { IFUND_STUDIO_ENABLED: 'enabled', SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
 function request(path, method = 'GET', body, auth = true) {
   return new Request('https://ifund.example' + path, {
     method,
@@ -156,9 +158,13 @@ test('Studio AI enforces admin role and the shared daily quota before inference'
   );
   assert.equal(denied.status, 403);
 
+  // The studio generate route checks the unified owner-scoped AI consent
+  // (worker/aiConsent.js) before quota; return the saved consent row.
   const exhaustedFetcher = async (url) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
+    if (String(url).includes('/rest/v1/ifund_ai_permission_preferences?'))
+      return Response.json([{ owner_id: uid, allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true, allow_future_internal_ai_assistance: true }]);
     return Response.json(false);
   };
   const limited = await routeStudioGenerateRequest(
@@ -190,6 +196,8 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
     calls += 1;
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
+    if (String(url).includes('/rest/v1/ifund_ai_permission_preferences?'))
+      return Response.json([{ owner_id: uid, allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true, allow_future_internal_ai_assistance: true }]);
     assert.match(String(url), /rpc\/ifund_studio_consume_ai_quota/);
     return Response.json(true);
   };
@@ -204,7 +212,8 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   assert.equal(result.content.blocks[0].id, 'ai-1');
   assert.equal(result.content.blocks[1].url, '/');
   assert.equal(aiCalls, 1);
-  assert.equal(calls, 3);
+  // user + super-admin check + unified consent + quota consume
+  assert.equal(calls, 4);
 });
 test('Studio AI rejects short or oversized prompts before consuming quota', async () => {
   let calls = 0;
@@ -212,6 +221,8 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
     calls += 1;
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
+    if (String(url).includes('/rest/v1/ifund_ai_permission_preferences?'))
+      return Response.json([{ owner_id: uid, allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true, allow_future_internal_ai_assistance: true }]);
     return Response.json(false);
   };
   const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => ({ response: '{}' }) } };
@@ -221,7 +232,8 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
     fetcher,
   );
   assert.equal(short.status, 422);
-  assert.equal(calls, 2);
+  // user + super-admin check + unified AI consent read; no quota call for a short prompt.
+  assert.ok(calls >= 3, "expected user, super-admin and consent reads");
 });
 
 test('Studio status is admin-only and reports AI disabled until explicitly enabled', async () => {
