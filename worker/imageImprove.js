@@ -1,4 +1,5 @@
 import { authenticatedUser, response } from './reads.js';
+import { verifyOwnerAIConsent } from './aiConsent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
 import { imageAIReady, consumeImageQuota, validateImageRequest, validImageBase64 } from './imageStudio.js';
 
@@ -48,6 +49,8 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account)
       return response(401, { error: 'Sign in with a verified account to improve artwork.' });
+    const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
+    if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
