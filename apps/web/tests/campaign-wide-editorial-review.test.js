@@ -69,7 +69,9 @@ test("agent submission validates saved owner campaign and batches all findings",
  assert.match(editor,/onApplyFields=\{/);
  // Creator entry remains a simplified three-step editor; deep editorial
  // repairs are available after saving in Edit Campaign / Command Center.
- assert.match(create,/Optional campaign readiness insights/);
+ assert.match(create,/Publishing does not require an AI review or a story-length target/);
+assert.match(create,/You may improve your campaign afterward in Command Center/);
+assert.doesNotMatch(create,/CampaignReadinessScore/);
  assert.match(create,/Command Center/);
  assert.doesNotMatch(create,/<PrepublicationGate/);
 });

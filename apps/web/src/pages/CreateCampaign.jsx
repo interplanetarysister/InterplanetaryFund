@@ -21,7 +21,6 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 
-import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
 import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
@@ -740,7 +739,6 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <CampaignTemplatePreview template={previewStyle} category={form.category} content={form} viewport={previewViewport} />
       </div>
     </details>}
-    {step===2&&<details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Optional campaign readiness insights</summary><div className="mt-3"><CampaignReadinessScore form={form} /></div><p className="mt-3 text-sm text-muted-foreground">These suggestions are optional. You can refine your campaign later in Command Center.</p>{ownerId&&<Link to="/analytics" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline">Open Command Center</Link>}</details>}
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     {step===2&&<p className="text-sm text-muted-foreground">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>}
     <section hidden={step!==2} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
