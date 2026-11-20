@@ -166,7 +166,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       questions_remaining_today:quota.remaining,
-      provider_verified:true});
+      inference_completed:true});
   } catch(error) {
     if (api && quotaReservation && !quotaCompleted) {
       try { await api.rpc("ifund_release_agent_question", quotaReservation); } catch { /* Expiring reservation is the fallback. */ }

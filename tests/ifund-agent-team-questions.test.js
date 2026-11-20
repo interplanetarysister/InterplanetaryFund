@@ -18,7 +18,7 @@ const request=(question,opts={})=>new Request("https://ifund.test/api/agents/tea
   method:"POST",headers:{Authorization:"Bearer good.token", "content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent:"auto",...opts})
 });
-function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false}={}){
+function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit"}={}){
   const calls=[];
   const fetcher=async(url,options={})=>{
     calls.push([url,options.method]);
@@ -33,7 +33,7 @@ function mockBackend({quota=true,active=true,permission=true,futureAI=false,fore
       }]);
     }
     if(url.endsWith("/rpc/ifund_reserve_agent_question"))
-      return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:"daily_limit",limit:20});
+      return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:quotaState,limit:20});
     if(url.endsWith("/rpc/ifund_complete_agent_question"))
       return Response.json(true);
     if(url.endsWith("/rpc/ifund_release_agent_question"))
@@ -74,6 +74,8 @@ test("member permission and quota lead to real model response, without tool acti
   assert.equal(result.actions_performed,false);
   assert.equal(result.questions_remaining_today,19);
   assert.equal(result.context_saved,false);
+  assert.equal(result.inference_completed,true);
+  assert.equal(result.provider_verified,undefined);
   assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_reserve_agent_question")));
   assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
 });
@@ -87,6 +89,17 @@ test("disabled provider, missing authorization and exhausted quotas fail closed"
   assert.equal((await routeTeamQuestion(request("Explain my fundraising goals"),env,suspended.fetcher)).status,403);
   const optedOut=mockBackend({permission:false});
   assert.equal((await routeTeamQuestion(request("Explain my fundraising goals"),env,optedOut.fetcher)).status,403);
+});
+test("a duplicate question reservation replays 409 without inference or counter mutation",async()=>{
+  const backend=mockBackend({quota:false,quotaState:"already_reserved"});
+  let modelCalls=0;
+  const duplicateEnv={...env,AI:{run:async()=>{modelCalls+=1;throw Error("model must not run for a duplicate");}}};
+  const response=await routeTeamQuestion(request("Explain my fundraising goals"),duplicateEnv,backend.fetcher);
+  assert.equal(response.status,409);
+  assert.match((await response.json()).error,/already submitted/i);
+  assert.equal(modelCalls,0);
+  assert.equal(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")),false);
+  assert.equal(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_release_agent_question")),false);
 });
 test("source wiring exposes account-safe question UI without pretending external action",()=>{
   const app=readFileSync(new URL("../apps/web/src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
@@ -155,4 +168,12 @@ test("team questions use only read-only recommendation permission, not external 
   assert.match(member,/hasUnifiedAIConsent\(preferences\[0\], user\.id\)/);
   assert.match(member,/owner_id=eq\." \+ user\.id/);
   assert.doesNotMatch(gateway,/futureInternalAIPermission\("(?:publish|send|payment|withdraw)"/);
+});
+
+test("team question receipts name inference completion without claiming factual verification",()=>{
+  const gateway=readFileSync(new URL("../worker/agents/teamQuestion.js",import.meta.url),"utf8");
+  const client=readFileSync(new URL("../apps/web/src/lib/agentQuestions.js",import.meta.url),"utf8");
+  assert.match(gateway,/inference_completed:true/);
+  assert.doesNotMatch(gateway,/provider_verified/);
+  assert.doesNotMatch(client,/provider_verified/);
 });

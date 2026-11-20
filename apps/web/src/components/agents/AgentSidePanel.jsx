@@ -205,7 +205,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   }
 
   if (!agent) return null;
-  return <aside ref={panel} className="ifund-agent-side-panel" aria-label="Agent conversation" aria-live="off"
+  return <aside ref={panel} className="ifund-agent-side-panel" aria-label="Agent advisory panel" aria-live="off"
     role={compact ? "dialog" : undefined} aria-modal={compact ? "true" : undefined} tabIndex={compact ? -1 : undefined}>
     <header className="ifund-agent-panel-header">
       <div className="flex items-center gap-3 min-w-0"><AgentIdentityIcon identity={identity} size={42}/>
@@ -213,10 +213,10 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       </div>
       <button type="button" onClick={() => { stopListening(); stopAudio(); onClose(); }} className="ifund-agent-panel-close inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-white/10" aria-label="Close agent panel"><X size={22}/></button>
     </header>
-    <p className="px-4 pb-2 text-sm text-slate-300">Keep browsing iFund while this conversation stays open.</p>
+    <p className="px-4 pb-2 text-sm text-slate-300">Keep browsing iFund while this advisory panel stays open.</p>
     <div className="ifund-agent-panel-choices" aria-label="Switch agent">
       {choices.map(id => <button type="button" key={id} title={AGENT_IDENTITIES[id].name}
-        aria-label={"Talk to " + AGENT_IDENTITIES[id].name} aria-pressed={identity === id}
+        aria-label={"Ask " + AGENT_IDENTITIES[id].name} aria-pressed={identity === id}
         onClick={() => { active.current?.abort(); stopListening(); stopAudio(); setBusy(false); onSelect(id); }}>
         <AgentIdentityIcon identity={id} size={35}/><span>{AGENT_IDENTITIES[id].name}</span></button>)}
     </div>

@@ -170,7 +170,7 @@ export default function Layout() {
   const isAdmin = useAdminAccess(user) === "admin";
   const isSuperAdmin = useSuperAdminAccess(user) === "super-admin";
   // The Story writing workspace is implemented; do not hide it behind an
-  // unverified seven-agent chat rollout. Individual agent capabilities remain
+  // unverified direct agent advisory chat. Individual agent capabilities remain
   // described accurately on the destination page.
   const hasAiAgents = true;
   const { pathname } = useLocation();

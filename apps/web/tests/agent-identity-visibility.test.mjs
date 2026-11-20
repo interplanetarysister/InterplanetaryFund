@@ -54,7 +54,7 @@ test("mobile agent panel manages focus, Escape and background scroll", () => {
 });
 
 test("agent messaging changes remain advisory and do not add external actions", () => {
-  assert.match(panel, /Keep browsing iFund while this conversation stays open\./);
+  assert.match(panel, /Keep browsing iFund while this advisory panel stays open\./);
   assert.match(team, /aria-label="Ask the iFund agent team"/);
   assert.match(panel, /Spoken words do not approve any action\./);
   assert.match(team, /This answer does not send messages, change campaigns, move money or publish content\./);

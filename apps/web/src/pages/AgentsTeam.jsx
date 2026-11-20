@@ -21,8 +21,9 @@ import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/l
 const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent => agent.identity);
 /**
  * The independent application has an authorized Story service, but does not
- * yet have a verified seven-specialist conversational endpoint. Never send
- * messages to Base44 or present a placeholder as an active AI conversation.
+ * yet have verified direct advisory chat for the registered specialist
+ * identities. Never send messages to Base44 or present a placeholder as an
+ * active AI conversation.
  */
 export default function AgentsTeam() {
   const navigate=useNavigate();
@@ -174,7 +175,7 @@ export default function AgentsTeam() {
     <header className="ifund-agents-hero">
       <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
       <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>
-      <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to open a conversation that stays visible as you explore the site.</p>
+      <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site.</p>
       <a href="#ask-mission-control" className="ifund-agents-hero-link">Ask Mission Control <span aria-hidden="true">↗</span></a>
       <div className="ifund-agents-hero-foot" aria-label="Agent Team capabilities">
         <span className="ifund-agents-chip">Specialist matching included</span>
@@ -184,7 +185,7 @@ export default function AgentsTeam() {
     </header>
     {user && <AgentOperationsRoom key={user.id} user={user}/>}
     <section aria-label="Agent specialties" className="space-y-4">
-      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to chat in a side panel while you browse</p></div>
+      <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to ask an advisory question in a side panel while you browse</p></div>
       <div aria-label="IFund agents" className="ifund-agents-grid">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
         onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: id } })); }}
