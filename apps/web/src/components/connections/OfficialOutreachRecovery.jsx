@@ -69,7 +69,7 @@ export default function OfficialOutreachRecovery(){
        </div>
        <dl className="space-y-1 text-xs">
          <div><dt className="inline font-semibold">Historical login email: </dt><dd className="inline break-all">{row.historical_login_email}</dd></div>
-         <div><dt className="inline font-semibold">Verified iFund connections: </dt><dd className="inline">{row.verified_provider_connections}</dd></div>
+         <div><dt className="inline font-semibold">Verified official account grants: </dt><dd className="inline">{row.verified_provider_connections}</dd></div>
        </dl>
        <div className="flex flex-wrap gap-4 text-xs">
         {row.historical_url&&<a href={row.historical_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-primary underline">Inspect historical link <ExternalLink size={13}/></a>}
