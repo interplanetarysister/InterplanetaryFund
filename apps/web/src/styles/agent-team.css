@@ -39,7 +39,8 @@
 .ifund-agents-chip::before { content:""; height:7px; width:7px; border-radius:50%; background:#63e8dc; box-shadow:0 0 10px rgba(99,232,220,.6); }
 .ifund-agents-section-heading { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:.65rem; margin-bottom:1rem; }
 .ifund-agents-section-heading h2 { font-size:1.25rem; font-weight:800; letter-spacing:-.025em; }
-.ifund-agents-section-heading p { font-size:.82rem; color:var(--team-subtle); }
+.ifund-agents-section-heading p { font-size:.82rem; color:#526784; }
+.ifund-agents-console .ifund-agents-section-heading p { color:#b4cbe5; }
 .ifund-agents-console {
   position:relative; padding:clamp(1.1rem,2.8vw,2rem); border-radius:25px; color:var(--team-ink);
   border:1px solid rgba(124,176,237,.27);
