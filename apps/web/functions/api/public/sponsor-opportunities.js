@@ -16,7 +16,7 @@ export async function onRequest({request,env,fetch:incomingFetch}) {
  const sponsorsUrl=ORIGIN+"/rest/v1/ifund_sponsor_organizations?select="+encodeURIComponent("id,display_name,official_url,partner_claim_allowed")+"&verification_state=eq.approved&limit=100";
  let stage="request";
  try {
-  const [a,b]=await Promise.all([offersUrl,sponsorsUrl].map(url=>get(url,{headers,redirect:"error",signal:AbortSignal.timeout(8000)})));
+  const [a,b]=await Promise.all([offersUrl,sponsorsUrl].map(url=>get(url,{headers,signal:AbortSignal.timeout(8000)})));
   if(!a.ok||!b.ok)return json({error:"Sponsor catalog unavailable"},503,"upstream_"+a.status+"_"+b.status);
   stage="json";
   const [offers,sponsors]=await Promise.all([a.json(),b.json()]);
