@@ -85,6 +85,7 @@ export default function Dashboard() {
     <div className="ifund-dashboard-shortcuts">
       <Link to={whatIfEnabled?"/missions":"/campaigns"} className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>{whatIfEnabled?"My Missions":"My campaigns"}</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/fund-your-mission" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Fund your Mission</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/messaging" className="ifund-dashboard-shortcut"><Bot size={21}/><span>Messaging</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
     </div>
