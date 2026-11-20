@@ -198,6 +198,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <div className="mx-auto max-w-3xl px-5 pb-8 text-center">
+        <Link to="/download" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent">
+          <Download className="h-4 w-4" aria-hidden="true" /> Get the IFund app
+        </Link>
+        <p className="mt-2 text-xs text-muted-foreground">Install on iPhone, Android, or desktop.</p>
+      </div>
       <LegalFooter />
     </div>
   );
