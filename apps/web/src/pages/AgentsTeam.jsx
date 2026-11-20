@@ -14,6 +14,7 @@ import TeamConversationHistory from "@/components/agents/TeamConversationHistory
 import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWorkspace";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
+import AgentOperationsRoom from "@/components/agents/AgentOperationsRoom";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
 
@@ -264,6 +265,7 @@ export default function AgentsTeam() {
       </div>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
+    {user && <AgentOperationsRoom key={user.id} user={user}/>}
     {user && <EditorialAgentQueue />}
     {user && <TeamConversationHistory />}
     <section className="ifund-agents-writing">
