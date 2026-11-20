@@ -71,7 +71,7 @@ export default function Dashboard() {
     <div className="ifund-dashboard-shortcuts">
       <Link to={whatIfEnabled?"/missions":"/campaigns"} className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>{whatIfEnabled?"My Missions":"My campaigns"}</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <button type="button" className="ifund-dashboard-shortcut" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={21}/><span>Agent chat</span><ArrowUpRight size={15} className="ml-auto"/></button>
+      <Link to="/messaging" className="ifund-dashboard-shortcut"><Bot size={21}/><span>Messaging</span><ArrowUpRight size={15} className="ml-auto"/></Link>
       <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
     </div>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
