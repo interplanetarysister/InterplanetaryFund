@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, Compass, LockKeyhole, Orbit, Sparkles, HeartHandshake } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { createMission, exploreMission } from "@/api/missions";
@@ -23,8 +23,13 @@ function restore(){
 }
 export default function WhatIfStart(){
  const navigate=useNavigate();
+ const location=useLocation();
  const session=useAuthSession();
- const [prompt,setPrompt]=useState(restore);
+ const [prompt,setPrompt]=useState(()=>{
+   const transferred=location.state?.prompt;
+   return typeof transferred==="string"&&transferred.length<=12000&&transferred.trim()
+     ? transferred : restore();
+ });
  const [preview,setPreview]=useState(null);
  const [error,setError]=useState("");
  const [busy,setBusy]=useState("");
