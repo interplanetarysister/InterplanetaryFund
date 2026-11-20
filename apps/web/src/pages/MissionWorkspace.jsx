@@ -6,7 +6,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import {
  loadMission,listMissionPlans,listMissionTasks,listMissionCampaignLinks,
  addMissionTask,setMissionTaskState,saveReviewedMissionPlan,suggestMissionPlan,
- updateMission,getMissionIntegrationStatus,listVerifiedMissionResources,bookmarkMissionResource
+ updateMission,getMissionIntegrationStatus,listVerifiedMissionResources,bookmarkMissionResource,removeMissionResourceBookmark
 } from "@/api/missions";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -102,6 +102,16 @@ export default function MissionWorkspace(){
    await refreshData();
    setNotice("Saved as a possible resource. Eligibility, funding and provider permissions are not confirmed.");
   }catch(cause){setError(cause.message||"Resource could not be saved.");}
+  finally{setBusy("");}
+ }
+ async function unbookmarkResource(item){
+  if(!ready||busy)return;
+  setBusy("resource");setError("");setNotice("");
+  try{
+   await removeMissionResourceBookmark(authClient(),mission.id,item.id);
+   await refreshData();
+   setNotice("Removed the tentative resource bookmark from this Mission.");
+  }catch(cause){setError(cause.message||"The bookmark could not be removed.");}
   finally{setBusy("");}
  }
  async function updateTitle(){
@@ -231,7 +241,10 @@ export default function MissionWorkspace(){
          <div className="mt-2 flex flex-wrap items-center gap-3">
            <a href={item.official_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-1 text-sm font-medium text-primary underline">Review official website <ArrowRight size={14} aria-hidden="true"/></a>
            {integration?.opportunities?.some(x=>x.opportunity_id===item.id)
-             ? <span className="text-xs font-medium text-cyan-600">Saved as a possible resource</span>
+             ? <span className="inline-flex flex-wrap items-center gap-3 text-xs font-medium text-cyan-600">
+                Saved as a possible resource
+                <button type="button" disabled={!!busy} onClick={()=>unbookmarkResource(item)} className="min-h-10 rounded-xl border border-border px-3 text-xs font-semibold text-foreground disabled:opacity-50">Remove bookmark</button>
+               </span>
              : <button type="button" disabled={!!busy} onClick={()=>bookmarkResource(item)} className="min-h-10 rounded-xl border border-border px-3 text-xs font-semibold disabled:opacity-50">Save to this Mission</button>}
          </div>
        </article>)}
