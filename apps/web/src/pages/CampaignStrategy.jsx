@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
@@ -20,6 +20,7 @@ const CHECKS = [
   ["has_cover_reference", "A campaign cover reference", "Choose an image you own or can use"],
 ];
 export default function CampaignStrategy() {
+  const location = useLocation();
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -52,6 +53,11 @@ export default function CampaignStrategy() {
     return () => { active = false };
   }, [retry]);
 
+  useEffect(() => {
+    if (state.status !== "ready" || location.hash !== "#campaign-merch-studio") return;
+    const handle = requestAnimationFrame(() => document.getElementById("campaign-merch-studio")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => cancelAnimationFrame(handle);
+  }, [state.status, location.hash]);
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">Strategy workspace</h1>
