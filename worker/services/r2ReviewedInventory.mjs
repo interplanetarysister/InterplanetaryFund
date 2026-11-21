@@ -37,6 +37,7 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
     seen.add(row.storage_path);
     const receipt = await resolveReceipt({ documentId: row.document_id, ownerId, jwt });
     if (!receipt || receipt.id !== row.document_id || receipt.owner_id !== ownerId ||
+        receipt.object_store !== 'r2' ||
         receipt.storage_path !== row.storage_path ||
         receipt.object_etag !== row.object_etag ||
         receipt.object_sha256 !== row.object_sha256 ||
