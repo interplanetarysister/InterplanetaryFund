@@ -21,6 +21,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import CampaignVoiceInput from "@/components/campaigns/CampaignVoiceInput";
+import CampaignVoiceGuide from "@/components/campaigns/CampaignVoiceGuide";
 import CampaignImageChoices from "@/components/campaigns/CampaignImageChoices";
 import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
@@ -659,6 +660,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
+      <CampaignVoiceGuide
+        supportType={supportType}
+        onDetails={text=>changeWritingBrief(setDraftDetails,text)}
+        onBeneficiary={text=>changeWritingBrief(setDraftBeneficiary,text)}
+        onNeed={text=>changeWritingBrief(setDraftNeed,text)}
+        onGoal={amount=>change("goal_amount",amount)}
+        onStory={text=>change("story",text)}
+        onTone={text=>changeWritingPreference("tone",text)}
+        disabled={disabled}
+      />
       <label className="block font-semibold">Who or what is this for? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={busy}
           onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
