@@ -616,7 +616,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
     finally { saveLock.current = false; if(alive.current)setBusy(false); }
   }
-  const stepIcons=[Target,BookOpen,Rocket],stepNames=["Your idea","Your story","Ready to share"];
+  const stepIcons = [Target, BookOpen, Rocket];
+  const stepNames=["Your idea","Your story","Ready to share"];
   const fld="mt-2 w-full min-h-12 rounded-2xl border border-white/20 bg-slate-950/60 px-4 py-3 text-base text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
   const btn="min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
   const primary="min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
@@ -645,10 +646,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {progressNotice&&<p role="status" className="text-xs text-slate-300">{progressNotice}</p>}
         {!storageReadable&&<div role="alert" className="space-y-2 text-sm"><p>Browser storage is unavailable. Saving is paused to protect your work.</p><button type="button" className={btn} onClick={retryStorageRead}>Retry storage</button></div>}
         {guestDecisionPending&&<div role="region" aria-label="Guest draft transfer" className="space-y-2 text-sm"><p>A guest draft was found on this device. Import only your own work; existing account drafts will not be overwritten.</p><div className="flex gap-2"><button type="button" className={btn} onClick={()=>decideGuestDraft(true)}>Import</button><button type="button" className={btn} onClick={()=>decideGuestDraft(false)}>Keep separate</button></div></div>}
-        {guestImportMessage&&<div aria-live="polite" className="text-sm"><p>{guestImportMessage}</p>{guestCopyRetained&&<button type="button" disabled={disabled||!ownerId} className={btn} onClick={retryGuestCopyCleanup}>Retry cleanup</button>}</div>}
-        {loadingDraft&&<p role="status" className="text-sm">Loading draft…</p>}
+        {guestImportMessage&&<div aria-live="polite" className="text-sm"><p>{guestImportMessage}</p>{guestCopyRetained && <button type="button" disabled={disabled||!ownerId} className={btn} onClick={retryGuestCopyCleanup}>Retry cleanup</button>}</div>}
+        {loadingDraft && <p role="status" className="text-sm">Loading draft…</p>}
         {draftLoadError&&<p role="alert" className="text-sm text-amber-200">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
-        <form id="campaign-editor" hidden={step===2} onSubmit={event=>{event.preventDefault();void save("draft");}} className="space-y-5">
+        <form id="campaign-editor" hidden={step===2} onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5">
           <fieldset disabled={disabled} className="space-y-5">
             {step===0&&<div className="space-y-5">
               <label className="block text-sm font-medium">Campaign name<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} placeholder="Give it a short name" className={fld}/></label>
@@ -675,7 +676,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             </div>}
             {step===1&&<div className="space-y-5">
               <label className="block text-sm font-medium">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={5} value={form.story} onChange={e=>change("story",e.target.value)} placeholder="What should supporters know?" className={fld}/></label>
-              <button type="button" onClick={suggestDraft} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"}>{suggesting?"Preparing ideas…":"Help me write this with AI"}</button>
+              <button type="button" onClick={suggestDraft} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"} title="Generate campaign ideas">{suggesting?"Preparing ideas…":"Help me write this with AI"}</button>
               {suggestionError&&<p role="alert" className="text-sm text-amber-200">{suggestionError} <Link to="/permissions" className="underline">AI permissions</Link></p>}
               {writingQueued&&<Link to="/agents" className="text-sm underline">View queued writing request</Link>}
               {suggestions&&<details open className="border-t border-white/10 pt-3"><summary className="cursor-pointer text-sm text-cyan-100">Review AI suggestions</summary><p className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-sm">{suggestions.story}</p><button type="button" className={btn} onClick={()=>change("story",suggestions.story)}>Use suggested story</button>
@@ -694,8 +695,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
                 <div className="mt-3 space-y-4"><label className="block text-sm">Short description<textarea id="campaign-summary" aria-label="Short description" rows={2} maxLength={SUMMARY_MAX} value={form.summary} onChange={e=>change("summary",e.target.value)} className={fld}/></label>
                   <div className="text-slate-900 dark:text-white"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId}/></div>
                   <div className="text-slate-900 dark:text-white"><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId||null} disabled={disabled} onApply={copy=>{applyCampaignFields(copy);setError("");}}/></div>
-                  <div className="text-slate-900 dark:text-white"><AgentAdviceReview ownerId={ownerId} campaignId={draftId||null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={v=>change("story",v)}/></div>
-                  {storySections.length>0&&<details><summary className="cursor-pointer text-sm">Story sections</summary>{storySections.map((v,i)=><div key={i} className="mt-2"><textarea rows={3} value={v} onChange={e=>editSection(i,e.target.value)} className={fld}/><button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i)}>Suggest revision</button>{sectionProposals[i]&&<button type="button" className={btn} onClick={()=>editSection(i,sectionProposals[i])}>Use revision</button>}</div>)}{sectionError&&<p role="alert">{sectionError}</p>}</details>}
+                  <div className="text-slate-900 dark:text-white"><AgentAdviceReview ownerId={ownerId} campaignId={draftId||null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)}/></div>
+                  {storySections.length>0&&<><details aria-label="Story section editor"><summary className="cursor-pointer text-sm">Story sections</summary>{storySections.map((v,i)=><div key={i} className="mt-2"><textarea rows={3} value={v} onChange={e=>editSection(i,e.target.value)} className={fld}/><button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i)}>Suggest revision</button>{sectionProposals[i]&&<button type="button" className={btn} onClick={()=>editSection(i,sectionProposals[i])}>Use revision</button>}</div>)}{sectionError&&<p role="alert">{sectionError}</p>}</details></>}
                   {wizard.story_versions.length>0&&<details><summary>Previous story versions</summary>{wizard.story_versions.map((v,i)=><div key={i} className="mt-2"><p className="max-h-28 overflow-auto whitespace-pre-wrap text-sm">{v.text}</p><button type="button" className={btn} onClick={()=>change("story",v.text)}>Restore</button></div>)}</details>}
                 </div>
               </details>
@@ -723,7 +724,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           <button type="button" className={btn} disabled={disabled||step===0} onClick={()=>next(step-1)}>Back</button>
           {step<2&&<button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>}
           {step<2&&<button type="button" className={primary} disabled={disabled} onClick={()=>next(step+1)}>Continue</button>}
-          {step===2&&<button type="button" className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness" onClick={()=>save("active")}>{busy==="active"?"Publishing…":"Publish campaign"}</button>}
+          {step===2&&<button type="button" className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness" onClick={() => save("active")}>{busy==="active"?"Publishing…":"Publish campaign"}</button>}
         </footer>
       </div>
     </section>
