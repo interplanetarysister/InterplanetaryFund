@@ -38,6 +38,6 @@ test('storage errors and forged image receipts never become successful uploads',
 });
 test('composer locks save/publish during upload and guests retain only local drafts',()=>{
  const src=readFileSync(new URL('../src/pages/CreateCampaign.jsx',import.meta.url),'utf8');
- assert.match(src,/coverUploading \|\| handoffBusy/);assert.match(src,/await uploadCampaignCover\(authClient\(\), file\)/);assert.match(src,/change\("cover_image_url", url\)/);
+ assert.match(src,/coverUploading \|\| handoffBusy/);assert.match(src,/await uploadCampaignCover\(authClient\(\), file\)/);assert.match(src,/applyCampaignFields\(\{cover_image_url:coverImageUrl\(url\),cover_image_is_ai:false\}\)/);
  assert.match(src,/user\.is_anonymous === true \|\| !user\.email_confirmed_at/);assert.match(src,/rememberBrowserCampaign\(sessionStorage, null, form/);
 });

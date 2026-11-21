@@ -24,6 +24,41 @@ export const SUMMARY_MAX = 600;
 export const STORY_MAX = 15000;
 export const COVER_URL_MAX = 2000;
 
+// The canonical campaign table has no cover_image_is_ai column. Private setup
+// metadata records the flag; the public cover URL carries a non-networked
+// fragment so public disclosure survives without a new SQL dependency.
+const AI_COVER_FRAGMENT = "ifund-ai-artwork";
+
+export function coverIsAI(value) {
+  try {
+    const parsed = new URL(String(value || ""));
+    return parsed.hash.slice(1).split("&").includes(AI_COVER_FRAGMENT);
+  } catch { return false; }
+}
+
+export function coverImageUrl(value) {
+  const original = String(value || "").trim();
+  try {
+    const parsed = new URL(original);
+    if (!parsed.hash.slice(1).split("&").includes(AI_COVER_FRAGMENT)) return original;
+    const flags = parsed.hash.slice(1).split("&").filter(flag => flag && flag !== AI_COVER_FRAGMENT);
+    parsed.hash = flags.length ? flags.join("&") : "";
+    return parsed.href;
+  } catch { return original; }
+}
+
+export function withCoverProvenance(value, isAI) {
+  const clean = coverImageUrl(value);
+  if (!clean || isAI !== true) return clean;
+  try {
+    const parsed = new URL(clean);
+    const flags = parsed.hash.slice(1).split("&").filter(Boolean);
+    if (!flags.includes(AI_COVER_FRAGMENT)) flags.push(AI_COVER_FRAGMENT);
+    parsed.hash = flags.join("&");
+    return parsed.href;
+  } catch { return clean; }
+}
+
 const GOAL_PATTERN = /^\d+(?:\.\d{1,2})?$/;
 
 // draft may be published; active may be paused; paused may be resumed.
@@ -42,7 +77,7 @@ const text = (value) =>
 export function emptyCampaignForm() {
   return {
     title: "", summary: "", story: "",
-    category: "community", goal_amount: "", cover_image_url: "",
+    category: "community", goal_amount: "", cover_image_url: "", cover_image_is_ai: false,
     map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "",
   };
 }
@@ -127,13 +162,15 @@ export function buildCampaignPayload(form, status) {
   if (!isCampaignStatus(status)) throw new Error("Invalid campaign status.");
   const value = form || {};
   const goal = text(value.goal_amount);
+  const cover = text(value.cover_image_url);
+  const aiCover = value.cover_image_is_ai === true || coverIsAI(cover);
   return {
     title: text(value.title),
     summary: text(value.summary),
     story: text(value.story),
     category: value.category,
     goal_amount: goal ? Number(goal) : 0,
-    cover_image_url: text(value.cover_image_url),
+    cover_image_url: withCoverProvenance(cover, aiCover),
     map_opt_in: value.map_opt_in === true,
     public_location_label: value.map_opt_in === true ? text(value.public_location_label) : null,
     map_latitude: value.map_opt_in === true ? Number(value.map_latitude) : null,

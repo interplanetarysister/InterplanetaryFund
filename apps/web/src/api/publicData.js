@@ -2,6 +2,7 @@
 // Supabase project. RLS exposes only active rows to anonymous visitors.
 // No Base44 SDK, legacy preview RPC or fallback cross-project connection.
 import { createClient } from "@supabase/supabase-js";
+import { coverImageUrl, coverIsAI } from "../lib/campaignLifecycle.js";
 
 const PROJECT_REF = "ssibsfmtodgximseeqsv";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -43,8 +44,8 @@ export function mapCampaign(row = {}) {
     summary: row.summary || "",
     story: row.story || "",
     category: row.category || "other",
-    cover_image_url: row.cover_image_url || "",
-    cover_image_is_ai: false,
+    cover_image_url: coverImageUrl(row.cover_image_url || ""),
+    cover_image_is_ai: coverIsAI(row.cover_image_url || ""),
     location: row.map_opt_in === true && row.public_location_label ? row.public_location_label : "",
     map_opt_in: row.map_opt_in === true,
     latitude: row.map_opt_in === true && row.map_latitude !== null ? numOrNull(row.map_latitude) : null,

@@ -4,7 +4,7 @@
 Interplanetary Fund helps people accomplish goals using crowdfunding, grants, legitimate earning opportunities, volunteers, practical supplies, skills, mentoring, emotional support, and community connections. NEXUS is the main conversational guide. The eight specialists offer advice through existing permission-gated internal channels. It does not promise fundraising awards or third-party endorsement.
 
 ## Browser implementation
-The member-facing NEXUS panel uses browser speech recognition and synthesis. Spoken site commands open the existing registration, login, campaign editor, account, opportunities, external connections, and publishing review screens. Publication and authentication are not authorized by an unverified voice transcript. Users must explicitly opt in to hands-free question sending. Member AI access and consent are checked by the existing backend. The assistant never accepts spoken codes as identity proof.
+The member-facing NEXUS panel uses browser speech recognition and synthesis. Spoken site commands open the existing registration, login, campaign editor, dashboard, campaign discovery, external connections, and publishing review screens. Publication and authentication are not authorized by an unverified voice transcript. Users must explicitly opt in to hands-free question sending. Member AI access and consent are checked by the existing backend. The assistant never accepts spoken codes as identity proof.
 
 ## Alexa preparation — not an active Alexa skill
 `integrations/alexa/interaction-model.json` is the proposed custom-skill language model for invocation "interplanetary fund". It is **not** submitted, certified, hosted or discoverable automatically. No live Alexa endpoint or Amazon account linkage is configured. To enable:

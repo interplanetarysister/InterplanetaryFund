@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   emptyCampaignForm, validateCampaignForm, publishReadiness, buildCampaignPayload,
+  coverImageUrl, coverIsAI, withCoverProvenance,
   canTransition, campaignStatusLabel, CAMPAIGN_STATUSES,
 } from "../src/lib/campaignLifecycle.js";
 
@@ -71,6 +72,24 @@ test("payloads are trimmed and never carry owner_id or server-owned columns", ()
   assert.equal("owner_id" in payload, false);
   assert.equal("created_at" in payload, false);
   assert.throws(() => buildCampaignPayload(complete(), "published"), /Invalid campaign status/);
+});
+
+test("AI cover provenance survives canonical persistence without adding a campaign column", () => {
+  const aiUrl = withCoverProvenance("https://example.org/illustration.jpg", true);
+  assert.equal(coverIsAI(aiUrl), true);
+  assert.equal(coverImageUrl(aiUrl), "https://example.org/illustration.jpg");
+  const aiPayload = buildCampaignPayload({
+    ...complete(), cover_image_url: coverImageUrl(aiUrl), cover_image_is_ai: true,
+  }, "draft");
+  assert.equal(coverIsAI(aiPayload.cover_image_url), true);
+  assert.equal(coverImageUrl(aiPayload.cover_image_url), "https://example.org/illustration.jpg");
+  assert.equal("cover_image_is_ai" in aiPayload, false);
+  const manualPayload = buildCampaignPayload({
+    ...complete(), cover_image_url: "https://example.org/photo.jpg", cover_image_is_ai: false,
+  }, "draft");
+  assert.equal(coverIsAI(manualPayload.cover_image_url), false);
+  assert.equal(manualPayload.cover_image_url, "https://example.org/photo.jpg");
+  assert.equal(emptyCampaignForm().cover_image_is_ai, false);
 });
 
 test("status transitions follow the published lifecycle", () => {

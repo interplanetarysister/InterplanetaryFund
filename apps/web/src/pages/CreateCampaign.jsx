@@ -14,7 +14,7 @@ import { createOwnerSessionGuard } from "@/lib/ownerSessionGuard";
 import { createCampaignWritingRequests } from "@/lib/campaignWritingRequests";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
-import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
+import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, coverImageUrl, coverIsAI, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -150,7 +150,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           setSupportType(supportNeed(brief.support_type).id);
           const sections=splitStory(data.story || "");
           storySectionsRef.current=sections;setStorySections(sections);
-          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
+          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:coverImageUrl(data.cover_image_url||""), cover_image_is_ai:restoredSetup.cover_image_is_ai===true||coverIsAI(data.cover_image_url), map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
           setLoadedDraftId(draftId);
           setSaved(data.id);
           setSavedStatus("draft");
@@ -171,7 +171,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           summary:landingPrompt.slice(0, SUMMARY_MAX)};
       }
     } catch { /* session storage unavailable */ }
-    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
+    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", cover_image_is_ai: false, map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
   });
   // A template link chooses a starting category and layout preview for a new
   // campaign only. It never overwrites restored or typed content, and nothing
@@ -458,7 +458,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setter(value);
   }
   function wizardSnapshot(nextStep=step){
-    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed,support_type:supportType}},nextStep);
+    return campaignSetupPayload({...wizard,cover_image_is_ai:form.cover_image_is_ai===true,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed,support_type:supportType}},nextStep);
   }
   function changeWizard(field,value){
     invalidateWriting(true);setSaved("");setProgressNotice("");
@@ -498,7 +498,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try {
       const url = await uploadCampaignCover(authClient(), file);
       if (!alive.current) return;
-      change("cover_image_url", url);
+      applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:false});
       setCoverUploadMessage("Your cover image uploaded. Save this draft or publish to attach it to your campaign.");
     } catch (cause) {
       if (alive.current) setError(cause?.message || "The cover image could not be uploaded. Try a smaller JPG or PNG.");
@@ -765,13 +765,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
         <CampaignImageChoices
           title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)}
-          onApply={url=>{change("cover_image_url",url);setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}}
+          onApply={(url,provenance)=>{applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:provenance?.cover_image_is_ai===true});setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}}
           disabled={disabled}
         />
         {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
         <label className="block text-sm font-semibold">Or paste an image URL
           <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
-            onChange={event => { change("cover_image_url",event.target.value); setCoverUploadMessage(""); }}
+            onChange={event => { const url=event.target.value; applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:coverIsAI(url)}); setCoverUploadMessage(""); }}
             className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
         </label>
         {form.cover_image_url && <div className="rounded-xl border border-border p-3">

@@ -60,7 +60,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
   try{
    const url=await uploadCampaignCover(authClient(),file);
    if(!alive.current||token!==id.current)return;
-   onApply(url);
+   onApply(url,{cover_image_is_ai:true});
    setMessage("Illustration uploaded to your public cover storage and selected in this draft. Save your campaign to retain it.");
   }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Could not upload illustration.");}
   finally{busy.current=false;if(alive.current)setStatus("idle");}

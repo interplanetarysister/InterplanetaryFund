@@ -4,7 +4,7 @@ import { ArrowRight, Compass, LockKeyhole, Orbit, Sparkles, HeartHandshake } fro
 import { authClient } from "@/api/auth";
 import { createMission, exploreMission } from "@/api/missions";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { SUPPORT_NEEDS, missionGoalTypeForSupport, supportNeed } from "@/lib/supportNeeds.mjs";
+import { SUPPORT_NEEDS, missionGoalTypeForSupport, missionSupportFields, missionSupportPrompt, supportNeed } from "@/lib/supportNeeds.mjs";
 
 const PENDING_KEY="ifund-what-if-guest-explicit-handoff-v1";
 const EXAMPLES=[
@@ -23,7 +23,7 @@ function restore(){
  }catch{return "";}
 }
 function restoreSupport(){
- try{const data=JSON.parse(sessionStorage.getItem(PENDING_KEY)||"null");return data?.version===1&&data?.support_type?supportNeed(data.support_type).id:"other";}catch{return "other";}
+ try{const data=JSON.parse(sessionStorage.getItem(PENDING_KEY)||"null");return data?.version===1&&data?.support_type?supportNeed(data.support_type).id:"unspecified";}catch{return "unspecified";}
 }
 export default function WhatIfStart(){
  const navigate=useNavigate();
@@ -45,7 +45,9 @@ export default function WhatIfStart(){
  function update(value){setPrompt(value);setPreview(null);setError("");setAccountNeeded(false);}
  function retainExplicitly(){
   try{
-   sessionStorage.setItem(PENDING_KEY,JSON.stringify({version:1,at:Date.now(),prompt,support_type:supportType}));
+   const handoff={version:1,at:Date.now(),prompt};
+   if(supportType!=="unspecified")handoff.support_type=supportType;
+   sessionStorage.setItem(PENDING_KEY,JSON.stringify(handoff));
    setHandoffWarning("Idea kept temporarily in this browser tab for sign-in. It is not saved to an iFund account yet.");
   }catch{
    setHandoffWarning("Browser storage was unavailable. Copy your idea before signing in; it has not been saved.");
@@ -55,7 +57,7 @@ export default function WhatIfStart(){
   if(!prompt.trim()||busy)return;
   setBusy("explore");setError("");setPreview(null);
   try{
-    const p=await exploreMission(prompt+"\nType of support to investigate: "+supportNeed(supportType).label);
+    const p=await exploreMission(prompt+missionSupportPrompt(supportType));
     setPreview(p);
   }catch(cause){setError(cause.message||"The preview is unavailable. You can still save a private Mission.");}
   finally{setBusy("");}
@@ -71,7 +73,7 @@ export default function WhatIfStart(){
   try{
     const client=authClient();
     const title=prompt.trim().split(/[.!?\n]/u)[0].trim().slice(0,100);
-    const mission=await createMission(client,{prompt,title:title||"My Mission",goalType:missionGoalTypeForSupport(supportType),summary:"Support wanted: "+supportNeed(supportType).label});
+    const mission=await createMission(client,{prompt,title:title||"My Mission",goalType:missionGoalTypeForSupport(supportType),...missionSupportFields(supportType)});
     try{
       const raw=sessionStorage.getItem(PENDING_KEY);
       if(raw&&JSON.parse(raw)?.prompt===prompt)sessionStorage.removeItem(PENDING_KEY);

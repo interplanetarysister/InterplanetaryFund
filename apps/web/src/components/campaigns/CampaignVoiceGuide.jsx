@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from "react";
 import {makeRecognition,speakAgent,stopSpeaking} from "@/lib/agentSpeech.mjs";
+import {supportNeed} from "@/lib/supportNeeds.mjs";
 import {Mic,Volume2} from "lucide-react";
 
 const QUESTIONS={
@@ -24,7 +25,7 @@ export default function CampaignVoiceGuide({supportType,onDetails,onBeneficiary,
   if(previous==="mode")return "details";
   if(previous==="details")return "beneficiary";
   if(previous==="beneficiary")return "need";
-  if(previous==="need")return supportType==="money"?"goal":currentMode==="detailed"?"story":"tone";
+  if(previous==="need")return supportNeed(supportType).cash===true?"goal":currentMode==="detailed"?"story":"tone";
   if(previous==="goal")return currentMode==="detailed"?"story":"tone";
   if(previous==="story")return "tone";
   if(previous==="tone")return "image";
