@@ -76,7 +76,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     return transferredPrompt;
   });
   const missionSourceId = params.get("mission");
-  const validMissionSourceId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionSourceId || "");
+  const validMissionSourceId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(missionSourceId || "");
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
