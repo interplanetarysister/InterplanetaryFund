@@ -93,6 +93,6 @@ export default function CampaignImageChoices({title,description,onApply,disabled
      </button>
      <button type="button" onClick={clear} disabled={disabled||status!=="idle"} className="ml-2 min-h-11 rounded-xl border border-border px-3">Discard</button>
    </div>}
-   <p className="mt-2 text-xs text-muted-foreground">The trial is inactive until the verified image provider is enabled. Even during trial access, the shared daily provider budget can temporarily stop generation. No images are published automatically.</p>
+   <p className="mt-2 text-xs text-muted-foreground">Trial and subscription access are verified by the server. The service may be paused, and the shared daily provider budget can temporarily stop generation. No images are published automatically.</p>
  </details>;
 }
