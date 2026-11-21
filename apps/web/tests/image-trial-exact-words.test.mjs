@@ -42,5 +42,5 @@ test("server changes protect 24-hour trial/referral extension and subscription e
  assert.match(migration,/per_user_daily_limit',null/);
  const studio=read("../src/pages/AIImageStudio.jsx");
  assert.doesNotMatch(studio,/Generation is limited to three attempts/);
- assert.match(studio,/shared daily provider budget/);
+ assert.match(studio,/shared provider budget/);
 });
