@@ -29,7 +29,9 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
   const seen = new Set();
   for (const row of rows) {
     if (!row || !valid(row.document_id) || seen.has(row.document_id) ||
-        typeof row.storage_path !== 'string' || seen.has(row.storage_path))
+        typeof row.storage_path !== 'string' || seen.has(row.storage_path) ||
+        typeof row.deletion_requested_at !== 'string' ||
+        !Number.isFinite(Date.parse(row.deletion_requested_at)))
       throw Error('Duplicate or invalid document inventory identity');
     seen.add(row.document_id);
     seen.add(row.storage_path);
@@ -39,7 +41,9 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
         receipt.object_etag !== row.object_etag ||
         receipt.object_sha256 !== row.object_sha256 ||
         receipt.file_size !== row.file_size ||
-        receipt.campaign_id !== row.campaign_id)
+        receipt.campaign_id !== row.campaign_id ||
+        receipt.deletion_requested_at !== row.deletion_requested_at ||
+        receipt.allow_agent_use !== false)
       throw Error('Authenticated immutable metadata receipt mismatch');
     verifyDocumentIdentity({ ...row, object_verified_at: receipt.object_verified_at }, ownerId);
     verified.push(Object.freeze({ ...row, object_verified_at: receipt.object_verified_at }));
