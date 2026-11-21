@@ -260,6 +260,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
+  useEffect(()=>{
+    // The first sentence in a user's own words is sufficient to start a draft.
+    // Only seed EMPTY story/summary fields; never overwrite manually edited text.
+    if(step!==1||!draftDetails.trim()||loadingDraft||draftLoadError)return;
+    setForm(previous=>previous.story.trim()?previous:{
+      ...previous,
+      story:draftDetails.trim(),
+      summary:previous.summary||draftDetails.trim().slice(0,SUMMARY_MAX)
+    });
+  },[step,draftDetails,loadingDraft,draftLoadError]);
+
   const [supportType,setSupportType] = useState(()=>supportNeed(wizard.ai_profile?.writing_brief?.support_type).id);
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
