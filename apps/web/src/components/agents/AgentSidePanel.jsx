@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { interpretVoiceSiteCommand, voiceSiteGuidance, goalPromptFromVoice } from "@/lib/voiceSiteIntents.mjs";
 import { X, Send, ExternalLink, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
@@ -11,8 +12,9 @@ import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 
 const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
-export default function AgentSidePanel({ agent, onSelect, onClose }) {
+export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggestion }) {
   const { user } = useAuthSession();
+  const navigate=useNavigate();
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [availability, setAvailability] = useState({ loading: true, enabled: false, reason: "" });
@@ -21,12 +23,14 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [handsFree,setHandsFree]=useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState("");
   const [compact, setCompact] = useState(false);
   const speechRef = useRef(null);
   const dictationBase = useRef("");
   const speechToken = useRef(0);
+  const consumedSuggestion=useRef(null);
   const active = useRef(null);
   const scroll = useRef(null);
   const panel = useRef(null);
@@ -34,6 +38,12 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   const identity = choices.includes(agent) ? agent : "nexus";
+  useEffect(() => {
+    if(!voiceSuggestion?.text || !agent || consumedSuggestion.current===voiceSuggestion.id)return;
+    consumedSuggestion.current=voiceSuggestion.id;
+    setQuestion(value=>[value,voiceSuggestion.text].filter(Boolean).join(" ").slice(0,2000));
+    if(canSpeak())setVoiceEnabled(true);
+  },[voiceSuggestion,agent]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -91,7 +101,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   }
   function toggleDictation() {
     if (listening) { stopListening(); return; }
-    if (!availability.enabled || busy || !user?.id) return;
+    if (busy) return;
     const token = ++speechToken.current;
     dictationBase.current = question.trim();
     setVoiceError("");
@@ -99,9 +109,33 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     const recognition = makeRecognition({
       onText: ({ final, interim }) => {
         if (speechToken.current !== token) return;
-        const combined = [dictationBase.current, final || interim].filter(Boolean).join(" ").slice(0, 2000);
+        if (final) {
+          const action=interpretVoiceSiteCommand(final,{authenticated:Boolean(user?.id&&!user.is_anonymous&&user.email_confirmed_at)});
+          if(action){
+            const feedback=voiceSiteGuidance(action);
+            setVoiceError("NEXUS · "+feedback);
+            setQuestion("");
+            dictationBase.current="";
+            stopListening();
+            if(canSpeak())speakAgent(feedback,"nexus");
+            navigate(action.route);
+            return;
+          }
+        }
+        if(final && !availability.enabled){
+          const goal=goalPromptFromVoice(final);
+          if(goal){
+            const narration="Let's explore possible funding, supplies, skills, and other support for your goal. Nothing is being published.";
+            if(canSpeak())speakAgent(narration,"nexus");
+            stopListening();
+            navigate("/what-if",{state:{prompt:goal,source:"nexus-voice"}});
+            return;
+          }
+        }
+        const combined=[dictationBase.current,final||interim].filter(Boolean).join(" ").slice(0,2000);
         setQuestion(combined);
-        if (final) dictationBase.current = combined;
+        if(final)dictationBase.current=combined;
+        if(final && handsFree && availability.enabled){void sendAgentQuestion(combined);}
       },
       onError: message => { if (speechToken.current === token) { setVoiceError(message); setListening(false); } },
       onEnd: () => { if (speechToken.current === token) { speechRef.current = null; setListening(false); } }
@@ -178,9 +212,12 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
   }, [user?.id, consentRevision]);
 
   useEffect(() => () => { speechRef.current?.abort(); stopSpeaking(); }, []);
-  async function submit(event) {
-    event.preventDefault();
-    const text = question.trim();
+  async function sendAgentQuestion(raw) {
+    const text = String(raw||"").trim();
+    if(/(?:password|verification code|one.time code|secret code|security code)\s*(?:is|:)?\s*[\w-]+/i.test(text)){
+      setVoiceError("For your security, do not speak passwords or account codes. Use the secure sign-in form.");
+      setQuestion("");return;
+    }
     if (!availability.enabled || busy || text.length < 8 || text.length > 2000 || !user?.id) return;
     stopListening();
     stopAudio();
@@ -204,6 +241,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
     }
   }
 
+  function submit(event){event.preventDefault();void sendAgentQuestion(question);}
   if (!agent) return null;
   return <aside ref={panel} className="ifund-agent-side-panel" aria-label="Agent conversation" aria-live="off"
     role={compact ? "dialog" : undefined} aria-modal={compact ? "true" : undefined} tabIndex={compact ? -1 : undefined}>
@@ -249,7 +287,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
       </p>}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <button type="button" aria-label={listening ? "Stop dictation" : "Dictate a message"} aria-pressed={listening}
-          disabled={!availability.enabled || busy} onClick={toggleDictation}
+          disabled={busy} onClick={toggleDictation}
           className="ifund-agent-panel-tool inline-flex min-h-11 items-center gap-1 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white disabled:opacity-40">
           {listening ? <MicOff size={16}/> : <Mic size={16}/>}
           {listening ? "Stop listening" : "Speak"}
@@ -261,8 +299,13 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
           {voiceEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}
           {voiceEnabled ? "Voice on" : "Voice off"}
         </button>
+        <button type="button" aria-label={handsFree?"Disable hands-free voice questions":"Enable hands-free voice questions"} aria-pressed={handsFree}
+          onClick={()=>{setHandsFree(old=>!old);setVoiceEnabled(true);}}
+          className="ifund-agent-panel-tool min-h-11 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white">
+          {handsFree?"Hands-free on":"Hands-free questions"}
+        </button>
         {speaking && <button type="button" onClick={stopAudio} className="ifund-agent-panel-tool min-h-11 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white">Stop audio</button>}
-        {listening && <span role="status" className="text-xs text-cyan-300">Listening… review before sending</span>}
+        {listening && <span role="status" className="text-xs text-cyan-300">Listening… you can say “open signup”, “create a campaign”, or “publish my update”.</span>}
       </div>
       <form onSubmit={submit} className="flex gap-2">
         <label htmlFor="ifund-side-agent-question" className="sr-only">Ask the selected agent</label>
@@ -273,7 +316,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose }) {
           className="ifund-agent-panel-send inline-flex min-h-11 min-w-11 items-center justify-center self-end rounded-xl bg-cyan-600 p-3 text-white disabled:opacity-40"><Send size={18}/></button>
       </form>
       <Link to={"/agents?agent=" + encodeURIComponent(identity)} className="ifund-agent-panel-tool mt-2 inline-flex min-h-11 items-center gap-1 text-sm text-cyan-300">Open full workspace <ExternalLink size={12}/></Link>
-      <p className="mt-1 text-sm text-slate-300">Voice is optional. Check the words before sending. Spoken words do not approve any action.</p>
+      <p className="mt-1 text-sm text-slate-300">Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. Spoken words do not approve any action. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.</p>
     </div>
   </aside>;
 }
