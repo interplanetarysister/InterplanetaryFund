@@ -40,8 +40,8 @@ test('all CSS font references resolve locally and retain the three redistributio
   assert.match(index, /@import "\.\.\/public\/fonts\/ifund-fonts\.css"/);
   assert.doesNotMatch(index, /fonts\.googleapis\.com|fonts\.gstatic\.com/);
 });
-test('current homepage reuses the exact archived hero and PayPal artwork resolves from the local bundle', () => {
-  const home = read('src/pages/Home.jsx').toString();
+test('archived homepage in Our Story retains exact bundled hero and PayPal artwork', () => {
+  const home = read('src/pages/OurStory.jsx').toString();
   const path = home.match(/const HERO_IMAGE = "([^\"]+)"/)[1];
   const hero = manifest.assets.find(asset => asset.original_path === 'images/home-hero.jpg');
   assert.equal(path, '/' + hero.path);
