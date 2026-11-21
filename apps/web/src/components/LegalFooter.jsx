@@ -5,6 +5,8 @@ export default function LegalFooter() {
   return (
     <footer className="text-center text-[11px] text-muted-foreground py-4 px-4 border-t border-border">
       <div className="flex flex-wrap items-center justify-center gap-2 mb-1">
+        <Link to="/our-story" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">Our Story</Link>
+        <span>·</span>
         <Link to="/about" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">About</Link>
         <span>·</span>
         <Link to="/contact" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">Contact</Link>

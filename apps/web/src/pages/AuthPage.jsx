@@ -266,6 +266,7 @@ export default function AuthPage({ mode = "login" }) {
               </Link>
             </div>
             <p className="mt-5 text-xs text-slate-300">Terms version {TERMS_VERSION}. Your privacy rights remain yours whether or not you register.</p>
+            <p className="mt-3 text-sm text-slate-300">After sign-up, meet your AI helpers and get a one-time tour of each page. The floating account button helps you sign in or reach your profile; Ask IFund opens agent chat everywhere except the homepage.</p>
             <form className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); if (legalAgreed) setLegalReviewed(true); }}>
               <label className="flex items-start gap-3 rounded-2xl border border-slate-500/60 p-4 text-sm leading-6">
                 <input type="checkbox" required className="mt-1 h-5 w-5 shrink-0 accent-cyan-400" checked={legalAgreed} onChange={(event) => setLegalAgreed(event.target.checked)} />

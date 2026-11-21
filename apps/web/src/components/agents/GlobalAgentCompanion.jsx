@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { Bot, Compass } from "lucide-react";
+import { Bot, Compass, LogIn, UserRound } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import SiteTour from "@/components/onboarding/SiteTour";
 import AgentSidePanel from "@/components/agents/AgentSidePanel";
 import "@/styles/agent-companion.css";
 import ReferralTrialBootstrap from "@/components/referrals/ReferralTrialBootstrap";
@@ -11,15 +14,25 @@ import ReferralTrialBootstrap from "@/components/referrals/ReferralTrialBootstra
  */
 export default function GlobalAgentCompanion({ children }) {
   const [activeAgent, setActiveAgent] = useState(null);
+  const { pathname } = useLocation();
+  const { user } = useAuthSession();
+  const isHome = pathname === "/";
+  const signedIn = Boolean(user?.id && !user.is_anonymous);
   useEffect(() => {
-    const openAgent = event => setActiveAgent(event.detail?.agent || "nexus");
+    const openAgent = event => { if (window.location.pathname !== "/") setActiveAgent(event.detail?.agent || "nexus"); };
     window.addEventListener("ifund-open-agent", openAgent);
     return () => window.removeEventListener("ifund-open-agent", openAgent);
   }, []);
+  useEffect(() => { if (isHome) setActiveAgent(null); }, [isHome]);
   return <div className="ifund-global-companion-shell">
     <ReferralTrialBootstrap />
     <div className="ifund-global-companion-main">{children}</div>
-    {activeAgent == null && <button type="button"
+    <SiteTour />
+    <Link to={signedIn ? "/profile" : "/login"} className={"ifund-global-account-launcher " + (isHome ? "is-home" : "")} aria-label={signedIn ? "Open my account profile" : "Log in to Interplanetary Fund"}>
+      {signedIn ? <UserRound size={20} aria-hidden="true"/> : <LogIn size={20} aria-hidden="true"/>}
+      <span>{signedIn ? "Account" : "Log in"}</span>
+    </Link>
+    {!isHome && activeAgent == null && <button type="button"
       className="ifund-global-agent-launcher"
       aria-label="Ask IFund for guidance or help navigating this page"
       onClick={() => setActiveAgent("nexus")}>
@@ -27,6 +40,6 @@ export default function GlobalAgentCompanion({ children }) {
       <span>Ask IFund</span>
       <Compass size={15} aria-hidden="true" />
     </button>}
-    <AgentSidePanel agent={activeAgent} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />
+    {!isHome && <AgentSidePanel agent={activeAgent} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />}
   </div>;
 }

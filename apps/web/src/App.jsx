@@ -13,6 +13,7 @@ import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
+const OurStory = lazy(() => import("./pages/OurStory"));
 const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
@@ -110,6 +111,7 @@ function AppRoutes() {
   if (legacy) return <Navigate to={legacy} replace />;
   return <Suspense fallback={<Loading />}><Routes>
     <Route path="/" element={<Home />} />
+    <Route path="/our-story" element={<OurStory />} />
     <Route path="/hackathon" element={<HackathonDemo />} />
     <Route path="/hackathon/tracker" element={<MemberAccess><SuperAdminAccess><HackathonTracker /></SuperAdminAccess></MemberAccess>} />
     <Route path="/about" element={<About />} />

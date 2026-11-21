@@ -78,3 +78,35 @@
  .ifund-agent-side-panel *{scroll-behavior:auto;}
  .ifund-dashboard-shortcut,.ifund-dashboard-mini-link{transition:none;}
 }
+
+/* Shared two-button rail; keep the member login adjacent to agent chat and
+ * outside the QuickActions plus-button lane on every device. */
+.ifund-global-account-launcher {
+  position:fixed; z-index:47; right:177px;
+  bottom:max(26px,env(safe-area-inset-bottom));
+  min-height:48px; display:inline-flex; gap:9px; align-items:center;
+  padding:11px 16px; border-radius:999px;
+  border:1px solid #8ab0d5; background:#121c32; color:#f0f8ff;
+  font-size:14px; font-weight:750; box-shadow:0 8px 30px #0008;
+}
+.ifund-global-account-launcher.is-home { right:18px; }
+.ifund-global-account-launcher:focus-visible { outline:3px solid #67e8f9; outline-offset:3px; }
+.ifund-tour-card {
+  position:fixed; z-index:65; right:20px;
+  bottom:calc(98px + env(safe-area-inset-bottom));
+  width:min(420px,calc(100vw - 32px)); max-height:min(420px,60dvh); overflow:auto;
+  border:1px solid #5dbbd1; border-radius:19px; padding:21px;
+  background:#111d33; color:#f3f8ff; box-shadow:0 16px 50px #000a;
+}
+@media(max-width:767px) {
+  .ifund-global-account-launcher {
+    bottom:calc(82px + env(safe-area-inset-bottom));
+    right:151px; min-height:46px; padding:10px 12px;
+  }
+  .ifund-global-account-launcher.is-home { right:12px; }
+  .ifund-tour-card {
+    right:12px; left:12px; width:auto;
+    bottom:calc(146px + env(safe-area-inset-bottom));
+    max-height:48dvh;
+  }
+}

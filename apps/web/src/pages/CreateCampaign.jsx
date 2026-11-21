@@ -20,6 +20,8 @@ import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
+import CampaignVoiceInput from "@/components/campaigns/CampaignVoiceInput";
+import { Target, BookOpen, Rocket } from "lucide-react";
 
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
@@ -598,16 +600,18 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
     finally { saveLock.current = false; if(alive.current)setBusy(false); }
   }
+  const stepIcons = [Target, BookOpen, Rocket];
   const actions = <div className="flex flex-wrap gap-3">
     <button form="campaign-editor" type="submit" disabled={disabled} className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save draft"}</button>
     {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    {landingPrompt && <p role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-400/5 p-4 text-sm">Your idea was brought into this three-step draft. Review the title and details, then use Generate campaign ideas if you want AI help writing the story. Nothing has been published.</p>}
+    {landingPrompt && <p role="status" aria-label="Your starting idea" className="text-sm font-medium text-cyan-700 dark:text-cyan-200">Your idea is ready in the draft below. Edit it however you like.</p>}
     {!landingPrompt && transferredPrompt && <p role="status" className="rounded-xl border border-amber-400/40 p-4 text-sm">An existing draft was found, so your new idea was not merged into it. Your earlier work remains unchanged. To start a separate idea, save or finish that draft first.</p>}
-    <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p>{templateParam && <p role="status" className="mt-2 text-sm font-medium text-primary">Starting layout: {templateStyle(previewStyle).name}. You can change it below.</p>}<div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
-    <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
-    <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
+    <header className="flex items-center justify-between gap-3"><h1 ref={headingRef} tabIndex={-1} className="font-display text-xl font-bold">New Campaign</h1><span className="text-xs text-muted-foreground">{step+1} / 3</span></header>
+    {templateParam && <p role="status" className="text-xs text-primary">Starting layout: {templateStyle(previewStyle).name}</p>}
+    <nav aria-label="Campaign setup progress" className="mx-auto max-w-xl"><ol className="grid grid-cols-3 gap-3">{WIZARD_STEPS.map((label,index)=>{const Icon=stepIcons[index];return <li key={label} aria-current={step===index?"step":undefined} className="flex justify-center"><button type="button" title={label} aria-label={"Step "+(index+1)+": "+label} disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"flex h-14 w-14 items-center justify-center rounded-2xl border transition-colors disabled:opacity-60 "+(step===index?"border-cyan-300 bg-indigo-500 text-white shadow-lg shadow-indigo-700/30":"border-border bg-card text-muted-foreground")}><Icon size={24} aria-hidden="true"/></button></li>})}</ol></nav>
+    <details><summary className="cursor-pointer text-sm text-primary">More agent help (optional)</summary><div className="mt-3"><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} /></div></details>
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
     {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
     {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
@@ -621,45 +625,48 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </section>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link></p>}
-    <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
+    <div hidden={step!==0}><details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Already fundraising somewhere else? (optional)</summary><div className="mt-4"><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div></details></div>
     <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
-    <AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} />
+    {step===1&&<details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">More writing help (optional)</summary><div className="mt-4"><AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} /></div></details>}
     <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
-    <section hidden={step!==0&&step!==1} className="ifund-cosmic-panel space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+    <section hidden={step!==0&&step!==1} className="ifund-cosmic-panel mx-auto max-w-2xl space-y-4 rounded-3xl border border-cyan-400/20 bg-card p-5 shadow-xl sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <div hidden={step!==0} className="space-y-4">
-      <h2 className="text-xl font-semibold">Your campaign details</h2>
+      <h2 className="font-display text-2xl font-bold text-cyan-700 dark:text-cyan-300">Tell us what matters</h2>
+      <p className="text-sm text-muted-foreground">A few clues are enough. Everything else is optional.</p>
       <label className="block font-semibold">Working campaign title
         <input id="campaign-working-title" maxLength={TITLE_MAX} value={form.title} onChange={event=>change("title",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <p className="text-sm text-muted-foreground">Add a working title to save these answers as a private account draft. You can change it as you build your campaign.</p>
-      <fieldset className="space-y-3">
-        <legend className="font-semibold">What kind of campaign are you creating?</legend>
+
+      <details className="rounded-xl border border-border p-3"><summary className="cursor-pointer text-sm font-semibold">Campaign type (optional)</summary><fieldset className="mt-3 space-y-3">
+        <legend className="sr-only">What kind of campaign are you creating?</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
             <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => changeWritingBrief(setWritingPath, path.id)} disabled={busy || loadingDraft} />
             <span>{path.title}</span>
           </label>)}
         </div>
-        <p className="text-sm text-muted-foreground">Choose a starting direction. Generate five title ideas, two short descriptions and one editable story.</p>
-      </fieldset>
-      <p className="text-sm text-muted-foreground">Get writing suggestions, check the facts, and choose what to include in your campaign. Your setup answers, writing preferences and progress are saved privately with your campaign when you save your account draft. Apply the suggestions you want to keep to your campaign title, description, or story before leaving.</p>
-      <label className="block font-semibold">What is your fundraiser about?
+      </fieldset></details>
+
+      <label className="block font-semibold">What are we making possible?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={busy || loadingDraft || Boolean(draftLoadError)}
-          onChange={e => changeWritingBrief(setDraftDetails, e.target.value)} placeholder="Describe the situation and how funds would help."
+          onChange={e => changeWritingBrief(setDraftDetails, e.target.value)} placeholder="A short goal, in your own words…"
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
-      <label className="block font-semibold">Who benefits? (optional)
+      <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
+      <label className="block font-semibold">Who or what is this for? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={busy}
           onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <label className="block font-semibold">What is needed? (optional)
+      <label className="block font-semibold">What feeling should the story and images convey? (optional)<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="Let AI choose, hopeful, comforting, bold…" /></label>
+      <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">A little more context (optional)</summary><div className="mt-4 space-y-4">
+      <label className="block font-semibold">What resources or help would make this possible? (optional)
         <input maxLength={100} value={draftNeed} disabled={busy}
           onChange={e => changeWritingBrief(setDraftNeed, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <label className="block font-semibold">Preferred writing tone<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="For example: clear, warm and practical" /></label>
-      <label className="block font-semibold">Facts or wording to preserve<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <p className="text-sm text-muted-foreground">Writing preferences guide proposed copy. They never authorize publishing, messages or financial actions.</p>
+      <label className="block font-semibold">Essential facts or image details to depict accurately (optional)<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+
+      </div></details>
       </div><div hidden={step!==1} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
       <button type="button" onClick={suggestDraft}
