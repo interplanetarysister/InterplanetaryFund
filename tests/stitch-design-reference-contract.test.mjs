@@ -200,8 +200,13 @@ test("capture manifest covers the merged reference screens at two viewports", ()
       assert.match(capture.visibleTextPreview, /Money is only one kind of support/);
       assert.match(capture.visibleTextPreview, /Vehicles and transportation/);
     }
-    if (capture.id.startsWith("campaign-voice-artwork-")) {
+    if (capture.id.startsWith("campaign-creator-")) {
+      assert.match(capture.visibleTextPreview, /Talk through it with NEXUS \(optional\)/);
       assert.match(capture.visibleTextPreview, /Have NEXUS guide me by voice \(optional\)/);
+      assert.match(capture.visibleTextPreview, /What are we making possible\?/);
+    }
+    if (capture.id.startsWith("campaign-voice-artwork-")) {
+      assert.match(capture.visibleTextPreview, /Add photo or illustration \(optional\)/);
       assert.match(capture.visibleTextPreview, /Or create your own original iFund illustration/);
       assert.match(capture.visibleTextPreview, /Image words \(optional, exact spelling\)/);
       assert.match(capture.visibleTextPreview, /Use campaign title exactly/);
@@ -215,7 +220,8 @@ test("capture manifest covers the merged reference screens at two viewports", ()
       );
     }
     if (capture.id.startsWith("campaign-launch-eclipse-")) {
-      assert.match(capture.visibleTextPreview, /Your defining moment · Review before publishing/);
+      assert.match(capture.visibleTextPreview, /Review it, then decide when to publish\./);
+      assert.match(capture.visibleTextPreview, /Publishing does not require an AI review or a story-length target\./);
     }
   }
 });
@@ -232,8 +238,8 @@ test("design references describe the current merged UI contracts", () => {
   for (const phrase of [
     "Three-icon stepper",
     "CampaignVoiceInput",
-    "More agent help (optional)",
-    "Tell us what matters",
+    "Talk through it with NEXUS (optional)",
+    "What are we making possible?",
     "publishing requires neither AI review nor a story-length target",
   ]) {
     assert.ok(creator.includes(phrase), `campaign creator reference is stale: ${phrase}`);
@@ -245,7 +251,9 @@ test("design references describe the current merged UI contracts", () => {
   assert.match(agentTeam, /cannot move money or initiate withdrawals/);
   const design = readFileSync(designPath, "utf8");
   assert.match(design, /except the exact homepage/);
-  assert.match(design, /56px icon buttons/);
+  assert.match(design, /48px tall/);
+  assert.match(design, /Review it, then decide when to publish\./);
+  assert.doesNotMatch(design, /Your defining moment · Review before publishing/);
 
   const workspaces = readFileSync(
     path.join(repoDir, "apps/web/src/lib/agentWorkspaces.mjs"),
@@ -270,8 +278,8 @@ test("design references describe the current merged UI contracts", () => {
     "Grow with support",
   ]);
   for (const id of ["campaign-creator-desktop", "campaign-creator-mobile"]) {
-    assert.ok(capture(id).headings.includes("New Campaign"), `missing creator heading for ${id}`);
-    assert.ok(capture(id).headings.includes("Tell us what matters"), `missing compact prompt for ${id}`);
+    assert.ok(capture(id).headings.includes("Your idea"), `missing creator heading for ${id}`);
+    assert.ok(capture(id).headings.includes("Take your campaign to another fundraising platform"), `missing partner disclosure heading for ${id}`);
   }
 
   const authVoice = readFileSync(path.join(referencesDir, "auth-voice.md"), "utf8");
@@ -286,7 +294,8 @@ test("design references describe the current merged UI contracts", () => {
     assert.ok(whatIf.includes(phrase), `What If reference is stale: ${phrase}`);
   }
   assert.match(creator, /Optional NEXUS voice guide/);
-  assert.match(creator, /Step 2 — Launch review eclipse/);
+  assert.match(creator, /Step 2 — Ready to share/);
+  assert.doesNotMatch(creator, /Your defining moment · Review before publishing/);
   assert.match(creator, /AI-generated illustration/);
   assert.match(creator, /Image words \(optional, exact spelling\)/);
   assert.match(creator, /never machine-corrected/);
@@ -309,6 +318,8 @@ test("design references describe the current merged UI contracts", () => {
   ]) {
     assert.ok(stickerSheet.includes(`<!-- COMPONENT: ${marker} -->`), `missing sticker component: ${marker}`);
   }
+  assert.match(stickerSheet, /Review it, then decide when to publish\./);
+  assert.doesNotMatch(stickerSheet, /Your defining moment · Review before publishing/);
 
   const support = readFileSync(path.join(repoDir, "apps/web/src/lib/supportNeeds.mjs"), "utf8");
   assert.match(support, /id:"unspecified",label:"Not sure yet"/);

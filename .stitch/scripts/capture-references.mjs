@@ -81,6 +81,11 @@ const targets = [
     route: "/create?manual=1",
     source: "apps/web/src/pages/CreateCampaign.jsx",
     openAgent: false,
+    interactions: [
+      { type: "click", selector: 'summary:has-text("Talk through it with NEXUS (optional)")' },
+      { type: "click", selector: '[aria-label="NEXUS spoken campaign walkthrough"] summary' },
+    ],
+    renderState: "Unauthenticated manual entry; optional NEXUS voice guide expanded locally, no microphone, draft save, or publication",
   },
   {
     id: "campaign-voice-artwork",
@@ -94,11 +99,12 @@ const targets = [
     ],
     openAgent: false,
     interactions: [
-      { type: "click", selector: '[aria-label="NEXUS spoken campaign walkthrough"] summary' },
+      { type: "click", selector: 'button:has-text("Continue")', waitFor: "#campaign-story" },
+      { type: "click", selector: 'summary:has-text("Add photo or illustration (optional)")' },
       { type: "click", selector: '[aria-label="Generate optional iFund cover art"] summary' },
       { type: "fill", selector: 'input[placeholder="Approved words only; no AI lettering"]', value: "Mikki's lemonade stand" },
     ],
-    renderState: "Unauthenticated manual entry; optional panels expanded and exact caption text entered locally, no microphone, generation, upload, or draft save",
+    renderState: "Unauthenticated manual entry; step two artwork panel expanded and exact caption text entered locally, no microphone, generation, upload, or draft save",
   },
   {
     id: "campaign-launch-eclipse",
