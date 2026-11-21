@@ -260,6 +260,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
+  useEffect(()=>{
+    // The first sentence in a user's own words is sufficient to start a draft.
+    // Only seed EMPTY story/summary fields; never overwrite manually edited text.
+    if(step!==1||!draftDetails.trim()||loadingDraft||draftLoadError)return;
+    setForm(previous=>previous.story.trim()?previous:{
+      ...previous,
+      story:draftDetails.trim(),
+      summary:previous.summary||draftDetails.trim().slice(0,SUMMARY_MAX)
+    });
+  },[step,draftDetails,loadingDraft,draftLoadError]);
+
   const [supportType,setSupportType] = useState(()=>supportNeed(wizard.ai_profile?.writing_brief?.support_type).id);
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
@@ -606,218 +617,116 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     finally { saveLock.current = false; if(alive.current)setBusy(false); }
   }
   const stepIcons = [Target, BookOpen, Rocket];
-  const actions = <div className="flex flex-wrap gap-3">
-    <button form="campaign-editor" type="submit" disabled={disabled} className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save draft"}</button>
-    {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
-  </div>;
-  return <main className={"mx-auto max-w-3xl space-y-6 px-4 py-8"+(step===2?" ifund-eclipse-moment":"")}>
-    {landingPrompt && <p role="status" aria-label="Your starting idea" className="text-sm font-medium text-cyan-700 dark:text-cyan-200">Your idea is ready in the draft below. Edit it however you like.</p>}
-    {!landingPrompt && transferredPrompt && <p role="status" className="rounded-xl border border-amber-400/40 p-4 text-sm">An existing draft was found, so your new idea was not merged into it. Your earlier work remains unchanged. To start a separate idea, save or finish that draft first.</p>}
-    <header className="flex items-center justify-between gap-3"><h1 ref={headingRef} tabIndex={-1} className="font-display text-xl font-bold">New Campaign</h1><span className="text-xs text-muted-foreground">{step+1} / 3</span></header>
-    {step===2 && <p className="ifund-eclipse-caption text-center text-sm font-semibold">Your defining moment · Review before publishing</p>}
-    {templateParam && <p role="status" className="text-xs text-primary">Starting layout: {templateStyle(previewStyle).name}</p>}
-    <nav aria-label="Campaign setup progress" className="mx-auto max-w-xl"><ol className="grid grid-cols-3 gap-3">{WIZARD_STEPS.map((label,index)=>{const Icon=stepIcons[index];return <li key={label} aria-current={step===index?"step":undefined} className="flex justify-center"><button type="button" title={label} aria-label={"Step "+(index+1)+": "+label} disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"flex h-14 w-14 items-center justify-center rounded-2xl border transition-colors disabled:opacity-60 "+(step===index?"border-cyan-300 bg-indigo-500 text-white shadow-lg shadow-indigo-700/30":"border-border bg-card text-muted-foreground")}><Icon size={24} aria-hidden="true"/></button></li>})}</ol></nav>
-    <details><summary className="cursor-pointer text-sm text-primary">More agent help (optional)</summary><div className="mt-3"><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} /></div></details>
-    {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
-    {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
-    {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
-      <p>{draftId?"Browser draft storage could not be read. Your account draft can still be saved; a device copy may remain until storage is available.":"Browser draft storage could not be read. Saving is paused to protect any existing private draft. Copy your work before leaving this page."}</p>
-      <button type="button" onClick={retryStorageRead} className="min-h-12 rounded-xl border border-border px-4 font-semibold">Retry browser storage</button>
-    </section>}
-    {guestDecisionPending && <section role="region" aria-label="Guest draft transfer" className="space-y-3 rounded-xl border p-3"><p>A guest campaign draft is stored on this device and may belong to another person. Import it only if it is yours. Existing account drafts will not be overwritten.</p><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(true)}>Import my guest draft</button><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(false)}>Keep separate</button></div></section>}
-    {guestImportMessage && <section className="space-y-2 rounded-xl border border-border p-3" aria-live="polite">
-      <p className="text-sm break-words">{guestImportMessage}</p>
-      {guestCopyRetained && <button type="button" disabled={disabled || !ownerId} onClick={retryGuestCopyCleanup} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-50">Retry guest-copy cleanup</button>}
-    </section>}
-    {loadingDraft && <p role="status">Loading your saved draft…</p>}
-    {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="inline-flex min-h-11 items-center underline">My campaigns</Link></p>}
-    <div hidden={step!==0}><details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Already fundraising somewhere else? (optional)</summary><div className="mt-4"><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div></details></div>
-    <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
-    {step===1&&<details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">More writing help (optional)</summary><div className="mt-4"><AgentAdviceReview ownerId={ownerId} campaignId={draftId || null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)} /></div></details>}
-    <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
-    <section hidden={step!==0&&step!==1} className="ifund-cosmic-panel mx-auto max-w-2xl space-y-4 rounded-3xl border border-cyan-400/20 bg-card p-5 shadow-xl sm:p-8" aria-label="Campaign writing assistant">
-      <fieldset disabled={disabled} className="space-y-4">
-      <div hidden={step!==0} className="space-y-4">
-      <h2 className="font-display text-2xl font-bold text-cyan-700 dark:text-cyan-300">Tell us what matters</h2>
-      <p className="text-sm text-muted-foreground">A few clues are enough. Everything else is optional.</p>
-      <label className="block font-semibold">Working campaign title
-        <input id="campaign-working-title" maxLength={TITLE_MAX} value={form.title} onChange={event=>change("title",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
-      </label>
-
-      <details className="rounded-xl border border-border p-3"><summary className="cursor-pointer text-sm font-semibold">Campaign type (optional)</summary><fieldset className="mt-3 space-y-3">
-        <legend className="sr-only">What kind of campaign are you creating?</legend>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => changeWritingBrief(setWritingPath, path.id)} disabled={busy || loadingDraft} />
-            <span>{path.title}</span>
-          </label>)}
-        </div>
-      </fieldset></details>
-
-      <label className="block font-semibold">What are we making possible?
-        <textarea rows={4} maxLength={1500} value={draftDetails} disabled={busy || loadingDraft || Boolean(draftLoadError)}
-          onChange={e => changeWritingBrief(setDraftDetails, e.target.value)} placeholder="A short goal, in your own words…"
-          className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
-      </label>
-      <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
-      <CampaignVoiceGuide
-        supportType={supportType}
-        onDetails={text=>changeWritingBrief(setDraftDetails,text)}
-        onBeneficiary={text=>changeWritingBrief(setDraftBeneficiary,text)}
-        onNeed={text=>changeWritingBrief(setDraftNeed,text)}
-        onGoal={amount=>change("goal_amount",amount)}
-        onStory={text=>change("story",text)}
-        onTone={text=>changeWritingPreference("tone",text)}
-        disabled={disabled}
-      />
-      <label className="block font-semibold">Who or what is this for? (optional)
-        <input maxLength={100} value={draftBeneficiary} disabled={busy}
-          onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
-      </label>
-      <label className="block font-semibold">What feeling should the story and images convey? (optional)<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="Let AI choose, hopeful, comforting, bold…" /></label>
-      <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">A little more context (optional)</summary><div className="mt-4 space-y-4">
-      <label className="block font-semibold">What resources or help would make this possible? (optional)
-        <input maxLength={100} value={draftNeed} disabled={busy}
-          onChange={e => changeWritingBrief(setDraftNeed, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
-      </label>
-      <label className="block font-semibold">Essential facts or image details to depict accurately (optional)<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-
-      </div></details>
-      </div><div hidden={step!==1} className="space-y-4">
-      <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
-      <button type="button" onClick={suggestDraft}
-        disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
-        className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
-        {suggesting ? "Preparing ideas…" : "Generate campaign ideas"}
-      </button>
-      {suggestionError && <p role="alert" className="text-destructive">{suggestionError} <Link to="/permissions" className="underline">Review AI permissions in My Profile</Link></p>}
-      {writingQueued && <p className="text-sm"><Link to="/agents" className="underline">View saved writing requests</Link></p>}
-      {suggestions && <div aria-label="Campaign ideas" className="space-y-4" role="region">
-        <p role="status" className="text-sm">{suggesting || suggestionError ? (suggestions.assistance === "outline" ? "Your previous basic outline remains available below for review." : "Your previous writing suggestions remain available below for review.") : suggestions.assistance === "outline" ? "A basic outline is ready, using only the facts you supplied. Edit it and choose what to include." : "Writing suggestions are ready. Check the facts and choose which ideas to apply below."}</p>
-        <h3 className="font-semibold">Title ideas</h3>
-        {suggestions.titles.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
-          <p className="min-w-0 flex-1">{v}</p>
-          <button type="button" className="rounded-xl border border-border px-4 py-2"
-            onClick={() => change("title",v)}>Use title</button>
-        </div>)}
-        <h3 className="font-semibold">Short descriptions</h3>
-        {suggestions.summaries.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
-          <p className="min-w-0 flex-1">{v}</p>
-          <button type="button" className="rounded-xl border border-border px-4 py-2"
-            onClick={() => change("summary",v)}>Use description</button>
-        </div>)}
-        <h3 className="font-semibold">Story idea</h3>
-        <p className="whitespace-pre-wrap">{suggestions.story}</p>
-        <button type="button" className="rounded-xl border border-border px-4 py-2"
-          onClick={() => change("story",suggestions.story)}>Use story</button>
-        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
-          <p>{suggestions.imagePrompt}</p>
-        </details>}
-      </div>}
-      {storySections.length>0&&<>
-        <div className="space-y-4" aria-label="Story section editor">
-          <p className="text-sm text-muted-foreground">{suggestions?.assistance === "outline" ? "Edit this basic outline section by section, then apply your edited story below." : "Edit each section separately. Rewriting produces a suggestion for your review and never overwrites other sections."}</p>
-          {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
-            <label className="block font-semibold">Section {index + 1}
-              <textarea rows={5} value={part} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
-            </label>
-            <button type="button" disabled={suggestions?.assistance === "outline" || regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
-              {regeneratingSection === index ? "Generating…" : "Regenerate this section"}
-            </button>
-            {sectionProposals[index] && <div className="space-y-2 rounded-xl border border-primary/30 p-3">
-              <p className="font-semibold">Suggested replacement</p>
-              <p className="whitespace-pre-wrap">{sectionProposals[index]}</p>
-              <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => { editSection(index,sectionProposals[index]); setSectionProposals(previous => { const next = {...previous}; delete next[index]; return next; }); }}>Accept</button>
-              <button type="button" className="ml-2 rounded-xl border border-border px-4 py-2" onClick={() => setSectionProposals(previous => { const next = {...previous}; delete next[index]; return next; })}>Discard</button>
+  const stepNames=["Your idea","Your story","Ready to share"];
+  const fld="mt-2 w-full min-h-12 rounded-2xl border border-white/20 bg-slate-950/60 px-4 py-3 text-base text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
+  const btn="min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
+  const primary="min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
+  const next=(target)=>{
+    if(step===0&&target===1&&!form.story.trim()&&draftDetails.trim()){
+      setForm(previous=>previous.story.trim()?previous:{...previous,story:draftDetails.trim(),summary:previous.summary||draftDetails.trim().slice(0,SUMMARY_MAX)});
+    }
+    void advanceWizard(target);
+  };
+  return <main className="mx-auto w-full max-w-3xl px-3 py-4 pb-28 sm:px-6 sm:py-8" aria-label="Campaign creator">
+    <section className={"relative mx-auto w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-300/25 bg-slate-950 text-white shadow-2xl "+(step===2?"ifund-eclipse-moment":"")}
+      style={{backgroundImage:step===2?undefined:"radial-gradient(ellipse at 16% 5%,rgba(23,204,226,.19),transparent 43%),radial-gradient(ellipse at 88% 78%,rgba(178,82,226,.19),transparent 46%),repeating-linear-gradient(110deg,transparent,transparent 74px,rgba(170,210,255,.025) 75px,transparent 76px)"}}>
+      <div className="relative space-y-5 px-5 py-6 sm:px-10 sm:py-10">
+        <header className="space-y-2">
+          <div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[.2em] text-cyan-200">What If? · Campaign</p><span className="text-xs text-slate-300">{step+1} / 3</span></div>
+          <h1 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-semibold sm:text-3xl">{stepNames[step]}</h1>
+          <p className="text-sm text-slate-300">{["Tell us a little. We'll help with the rest.","Your words are enough. Add extras only if you want.","Review it, then decide when to publish."][step]}</p>
+          <nav aria-label="Campaign setup progress" className="pt-2"><ol className="grid grid-cols-3 gap-2">{WIZARD_STEPS.map((label,index)=>{const Icon=stepIcons[index];return <li key={label}><button type="button" title={label} aria-label={"Step "+(index+1)+": "+label}
+            aria-current={step===index?"step":undefined} disabled={disabled||index>step} onClick={()=>next(index)}
+            className={"flex min-h-12 w-full items-center justify-center rounded-xl border disabled:opacity-50 "+(step===index?"border-cyan-300 bg-cyan-300/20 text-cyan-100":"border-white/20 bg-white/[.05] text-slate-300")}><Icon size={20}/></button></li>})}</ol></nav>
+        </header>
+        {landingPrompt&&<p role="status" aria-label="Your starting idea" className="text-xs text-cyan-200">Your homepage idea is ready below.</p>}
+        {!landingPrompt&&transferredPrompt&&<p role="status" className="text-xs text-amber-200">An existing draft was found, so your new idea was not merged.</p>}
+        {templateParam&&<p role="status" className="text-xs text-cyan-200">Starting layout: {templateStyle(previewStyle).name}</p>}
+        {wizardError&&<p role="alert" className="text-sm text-amber-200">{wizardError}</p>}
+        {progressNotice&&<p role="status" className="text-xs text-slate-300">{progressNotice}</p>}
+        {!storageReadable&&<div role="alert" className="space-y-2 text-sm"><p>Browser storage is unavailable. Saving is paused to protect your work.</p><button type="button" className={btn} onClick={retryStorageRead}>Retry storage</button></div>}
+        {guestDecisionPending&&<div role="region" aria-label="Guest draft transfer" className="space-y-2 text-sm"><p>A guest draft was found on this device. Import only your own work; existing account drafts will not be overwritten.</p><div className="flex gap-2"><button type="button" className={btn} onClick={()=>decideGuestDraft(true)}>Import</button><button type="button" className={btn} onClick={()=>decideGuestDraft(false)}>Keep separate</button></div></div>}
+        {guestImportMessage&&<div aria-live="polite" className="text-sm"><p>{guestImportMessage}</p>{guestCopyRetained && <button type="button" disabled={disabled||!ownerId} className={btn} onClick={retryGuestCopyCleanup}>Retry cleanup</button>}</div>}
+        {loadingDraft && <p role="status">Loading draft…</p>}
+        {draftLoadError&&<p role="alert" className="text-sm text-amber-200">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
+        <form id="campaign-editor" hidden={step===2} onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5">
+          <fieldset disabled={disabled} className="space-y-5">
+            {step===0&&<div className="space-y-5">
+              <label className="block text-sm font-medium">Campaign name<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} placeholder="Give it a short name" className={fld}/></label>
+              <label className="block text-sm font-medium">What are we making possible?<textarea rows={3} maxLength={1500} value={draftDetails} onChange={e=>changeWritingBrief(setDraftDetails,e.target.value)} placeholder="Tell us what you hope to accomplish…" className={fld}/></label>
+              <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
+              <label className="block text-sm font-medium">How much would help? (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} placeholder="100" className={fld}/></label>
+              <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">A little more context (optional)</summary>
+                <div className="mt-3 space-y-4">
+                  <label className="block text-sm">Who or what is this for?<input maxLength={100} value={draftBeneficiary} onChange={e=>changeWritingBrief(setDraftBeneficiary,e.target.value)} className={fld}/></label>
+                  <label className="block text-sm">What resources or help would make this possible?<input maxLength={100} value={draftNeed} onChange={e=>changeWritingBrief(setDraftNeed,e.target.value)} className={fld}/></label>
+                  <label className="block text-sm">Type of support<select id="campaign-support-type" value={supportType} onChange={e=>changeWritingBrief(setSupportType,e.target.value)} className={fld}>{SUPPORT_NEEDS.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}</select></label>
+                  {supportType!=="money"&&<p className="text-xs text-slate-300">For noncash help, <Link to="/what-if" className="underline">create a private Mission</Link> without a cash goal.</p>}
+                  <label className="block text-sm">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className={fld}>{CAMPAIGN_CATEGORIES.map(v=><option key={v} value={v}>{categoryLabels[v]||v}</option>)}</select></label>
+                  <label className="block text-sm">What feeling should the story and images convey?<input maxLength={200} value={wizard.ai_profile.tone} onChange={e=>changeWritingPreference("tone",e.target.value)} className={fld}/></label>
+                  <label className="block text-sm">Important facts to preserve<textarea rows={2} maxLength={2000} value={wizard.ai_profile.never_change} onChange={e=>changeWritingPreference("never_change",e.target.value)} className={fld}/></label>
+                  <fieldset><legend className="text-sm">Writing style</legend>{CAMPAIGN_WRITING_PATHS.map(v=><label key={v.id} className="flex min-h-10 items-center gap-2 text-sm"><input type="radio" name="writingPath" checked={writingPath===v.id} onChange={()=>changeWritingBrief(setWritingPath,v.id)}/>{v.title}</label>)}</fieldset>
+                </div>
+              </details>
+              <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">Talk through it with NEXUS (optional)</summary>
+                <CampaignVoiceGuide supportType={supportType} onDetails={v=>changeWritingBrief(setDraftDetails,v)} onBeneficiary={v=>changeWritingBrief(setDraftBeneficiary,v)}
+                  onNeed={v=>changeWritingBrief(setDraftNeed,v)} onGoal={v=>change("goal_amount",v)} onStory={v=>change("story",v)} onTone={v=>changeWritingPreference("tone",v)} disabled={disabled}/>
+              </details>
+              <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">Already fundraising somewhere else? (optional)</summary><div className="mt-2 text-slate-900 dark:text-white"><ExternalCampaignHandoff form={form} disabled={disabled}/></div></details>
             </div>}
-          </div>)}
-          {sectionError && <p role="alert">{sectionError}</p>}
-          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
-        </div>
-      </>}
-      </div></fieldset>
-    </section>
-    <form hidden={step===2} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="ifund-cosmic-panel space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
-      <fieldset disabled={disabled} className="space-y-5">
-      <div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      </div><div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Short description (optional)<textarea id="campaign-summary" aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <p className="text-sm text-muted-foreground">Write as much or as little as you need. There is no minimum story length or required paragraph format.</p>
-      <label className="block font-semibold">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      </div><div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
-      <label className="block font-semibold">What kind of support would help you achieve your goal?
-        <select id="campaign-support-type" value={supportType} onChange={e=>changeWritingBrief(setSupportType,e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">
-          {SUPPORT_NEEDS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}
-        </select>
-        <span className="mt-1 block text-xs font-normal text-muted-foreground">{supportNeed(supportType).examples}</span>
-      </label>
-            <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      {supportType!=="money"&&<p className="text-sm text-muted-foreground">iFund can help find noncash support. Your private Mission can request {supportNeed(supportType).label.toLowerCase()} without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. <Link className="underline" to="/what-if">Explore a support-only Mission</Link>.</p>}
-      <div id="campaign-cover" className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
-        <div>
-          <h3 className="font-semibold">Campaign cover image (optional)</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission.</p>
-        </div>
-        <label className="block text-sm font-semibold">Upload your cover
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={disabled}
-            onChange={event => { const file=event.currentTarget.files?.[0]; event.currentTarget.value=""; if(file) void handleCoverUpload(file); }}
-            className="mt-2 block w-full rounded-xl border border-input bg-background p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" />
-        </label>
-        {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
-        <CampaignImageChoices
-          title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)}
-          onApply={url=>{change("cover_image_url",url);setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}}
-          disabled={disabled}
-        />
-        {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
-        <label className="block text-sm font-semibold">Or paste an image URL
-          <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
-            onChange={event => { change("cover_image_url",event.target.value); setCoverUploadMessage(""); }}
-            className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
-        </label>
-        {form.cover_image_url && <div className="rounded-xl border border-border p-3">
-          <p className="mb-2 text-xs text-muted-foreground">Cover preview — confirm the image displays before publishing</p>
-          <img src={form.cover_image_url} alt="Campaign cover preview" loading="lazy" className="max-h-56 w-full rounded-lg object-contain" />
+            {step===1&&<div className="space-y-5">
+              <label className="block text-sm font-medium">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={5} value={form.story} onChange={e=>change("story",e.target.value)} placeholder="What should supporters know?" className={fld}/></label>
+              <button type="button" onClick={suggestDraft} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"} title="Generate campaign ideas">{suggesting?"Preparing ideas…":"Help me write this with AI"}</button>
+              {suggestionError&&<p role="alert" className="text-sm text-amber-200">{suggestionError} <Link to="/permissions" className="underline">AI permissions</Link></p>}
+              {writingQueued&&<Link to="/agents" className="text-sm underline">View queued writing request</Link>}
+              {suggestions&&<details open className="border-t border-white/10 pt-3"><summary className="cursor-pointer text-sm text-cyan-100">Review AI suggestions</summary><p className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-sm">{suggestions.story}</p><button type="button" className={btn} onClick={()=>change("story",suggestions.story)}>Use suggested story</button>
+                <details className="mt-3"><summary className="cursor-pointer text-sm">More titles and descriptions</summary>{suggestions.titles.map((v,i)=><div key={i} className="mt-2 flex items-center gap-2 text-sm"><span className="flex-1">{v}</span><button type="button" className={btn} onClick={()=>change("title",v)}>Use</button></div>)}{suggestions.summaries.map((v,i)=><div key={i} className="mt-2 flex items-center gap-2 text-sm"><span className="flex-1">{v}</span><button type="button" className={btn} onClick={()=>change("summary",v)}>Use</button></div>)}</details>
+              </details>}
+              <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">Add photo or illustration (optional)</summary>
+                <div id="campaign-cover" className="mt-3 space-y-3">
+                  <label className="block text-sm">Upload your photo<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={disabled} onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value="";if(file)void handleCoverUpload(file);}} className="mt-2 block w-full rounded-xl border border-white/20 p-3 text-sm"/></label>
+                  {coverUploading&&<p role="status">Uploading photo…</p>}{coverUploadMessage&&<p role="status">{coverUploadMessage}</p>}
+                  <div className="text-slate-900 dark:text-white"><CampaignImageChoices title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)} onApply={url=>{change("cover_image_url",url);setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}} disabled={disabled}/></div>
+                  {form.cover_image_url&&<img src={form.cover_image_url} alt="Campaign cover preview" className="max-h-44 w-full rounded-xl object-contain"/>}
+                  <details><summary className="cursor-pointer text-sm text-cyan-100">Use an image URL instead</summary><input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className={fld}/></details>
+                </div>
+              </details>
+              <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">More editing tools (optional)</summary>
+                <div className="mt-3 space-y-4"><label className="block text-sm">Short description<textarea id="campaign-summary" aria-label="Short description" rows={2} maxLength={SUMMARY_MAX} value={form.summary} onChange={e=>change("summary",e.target.value)} className={fld}/></label>
+                  <div className="text-slate-900 dark:text-white"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId}/></div>
+                  <div className="text-slate-900 dark:text-white"><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId||null} disabled={disabled} onApply={copy=>{applyCampaignFields(copy);setError("");}}/></div>
+                  <div className="text-slate-900 dark:text-white"><AgentAdviceReview ownerId={ownerId} campaignId={draftId||null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)}/></div>
+                  {storySections.length>0&&<><details aria-label="Story section editor"><summary className="cursor-pointer text-sm">Story sections</summary>{storySections.map((v,i)=><div key={i} className="mt-2"><textarea rows={3} value={v} onChange={e=>editSection(i,e.target.value)} className={fld}/><button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i)}>Suggest revision</button>{sectionProposals[i]&&<button type="button" className={btn} onClick={()=>editSection(i,sectionProposals[i])}>Use revision</button>}</div>)}{sectionError&&<p role="alert">{sectionError}</p>}</details></>}
+                  {wizard.story_versions.length>0&&<details><summary>Previous story versions</summary>{wizard.story_versions.map((v,i)=><div key={i} className="mt-2"><p className="max-h-28 overflow-auto whitespace-pre-wrap text-sm">{v.text}</p><button type="button" className={btn} onClick={()=>change("story",v.text)}>Restore</button></div>)}</details>}
+                </div>
+              </details>
+            </div>}
+          </fieldset>
+        </form>
+        {step===2&&<div aria-label="Campaign launch review" className="space-y-4">
+          <div className="rounded-2xl border border-white/15 bg-white/[.06] p-4">{form.cover_image_url&&<img src={form.cover_image_url} alt="Campaign cover" className="mb-3 max-h-44 w-full rounded-xl object-cover"/>}<h2 className="text-xl font-semibold">{form.title||"Your campaign"}</h2><p className="mt-2 text-sm">{form.summary||draftDetails||"Your campaign description"}</p>{Number(form.goal_amount)>0&&<p className="mt-3 text-sm font-semibold text-cyan-200">Goal: {"$"+Number(form.goal_amount).toLocaleString("en-US")}</p>}{form.story&&<details className="mt-3"><summary className="cursor-pointer text-sm text-cyan-100">Read full story</summary><p className="mt-2 whitespace-pre-wrap text-sm">{form.story}</p></details>}</div>
+          <div id="campaign-publish-readiness" aria-live="polite" className="text-sm"><p className="font-semibold">{readiness.ready?"Ready to publish":"Before you publish"}</p>{!readiness.ready&&<ul className="mt-2 list-disc pl-5 text-amber-200">{readiness.missing.map(v=><li key={v}>{v}</li>)}</ul>}</div>
+          <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">Preview or advanced settings (optional)</summary><div className="mt-3 space-y-4">
+            <div className="flex gap-2"><button type="button" className={btn} onClick={()=>setPreviewViewport("mobile")}>Mobile</button><button type="button" className={btn} onClick={()=>setPreviewViewport("desktop")}>Desktop</button></div>
+            <div className="text-slate-900 dark:text-white"><CampaignTemplatePreview template={previewStyle} category={form.category} content={form} viewport={previewViewport}/></div>
+            <label className="block text-sm">Optional end date<input type="date" value={wizard.end_date||""} onChange={e=>changeWizard("end_date",e.target.value)} className={fld}/></label>
+            <label className="block text-sm">Private location note<input maxLength={160} value={wizard.location} onChange={e=>changeWizard("location",e.target.value)} className={fld}/></label>
+            <div className="text-slate-900 dark:text-white"><CampaignLocationFields form={form} change={change} disabled={disabled}/><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled}/></div>
+          </div></details>
+          <p className="text-xs text-slate-300">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>
+          <p className="text-xs text-slate-300">{donationsEnabled?"Publishing makes this active campaign eligible for verified PayPal donations.":"Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
         </div>}
+        {error&&<p role="alert" className="text-sm text-amber-200">{error}</p>}
+        {browserSaved&&<p role="status" className="text-xs text-slate-300">Draft saved in this browser tab only. It is not published.</p>}
+        {saved&&!loadingDraft&&!draftLoadError&&<p role="status" className="text-xs text-cyan-200">{savedStatus==="active"?"Campaign published.":"Private draft saved."} <Link className="underline" to={savedStatus==="active"?"/campaign/"+encodeURIComponent(saved):"/create?draft="+encodeURIComponent(saved)}>View saved campaign</Link></p>}
+        {autosaveError && <p role="alert" className="text-xs text-amber-200">{autosaveError}</p>}
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-4">
+          <button type="button" className={btn} disabled={disabled||step===0} onClick={()=>next(step-1)}>Back</button>
+          {step<2&&<button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>}
+          {step<2&&<button type="button" className={primary} disabled={disabled} onClick={()=>next(step+1)}>Continue</button>}
+          {step===2&&<button type="button" onClick={() => save("active")} className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness">{busy==="active"?"Publishing…":"Publish campaign"}</button>}
+        </footer>
       </div>
-      <label className="block font-semibold">Optional campaign end date<input type="date" value={wizard.end_date||""} onChange={event=>changeWizard("end_date",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Private location note<input maxLength={160} value={wizard.location} onChange={event=>changeWizard("location",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <p className="text-sm text-muted-foreground">This setup note stays private. Public Atlas placement below is a separate choice.</p>
-      <CampaignLocationFields form={form} change={change} disabled={disabled} />
-      </div>
-      </fieldset>
-    </form>
-      {error && <p role="alert" className="text-destructive">{error}</p>}
-      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
-      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
-
-    {step===1&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
-    {step===2&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"No optional short description added."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
-    {step===2&&<details className="rounded-xl border border-border p-4">
-      <summary className="cursor-pointer font-semibold">Preview your campaign layout</summary>
-      <div className="mt-3 space-y-3">
-        <p className="text-sm text-muted-foreground">This preview uses your current words. It never invents donations, supporters or progress: your published campaign shows only verified activity, and a goal is not a promise of funds.</p>
-        <div className="inline-flex rounded-xl border border-border p-1" role="group" aria-label="Preview size">
-          <button type="button" onClick={()=>setPreviewViewport("desktop")} aria-pressed={previewViewport==="desktop"} className={"min-h-11 rounded-lg px-4 text-sm font-medium "+(previewViewport==="desktop"?"bg-primary text-primary-foreground":"")}>Desktop</button>
-          <button type="button" onClick={()=>setPreviewViewport("mobile")} aria-pressed={previewViewport==="mobile"} className={"min-h-11 rounded-lg px-4 text-sm font-medium "+(previewViewport==="mobile"?"bg-primary text-primary-foreground":"")}>Mobile</button>
-        </div>
-        <CampaignTemplatePreview template={previewStyle} category={form.category} content={form} viewport={previewViewport} />
-      </div>
-    </details>}
-    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
-    {step===2&&<p className="text-sm text-muted-foreground">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>}
-    <section hidden={step!==2} aria-label="Save or publish campaign" className="ifund-cosmic-panel space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
-      <div id="campaign-publish-readiness" aria-live="polite">
-        <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
-        {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>
-          : <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{readiness.missing.map(item => <li key={item}>{item}</li>)}</ul>}
-      </div>
-      <p className="text-sm text-muted-foreground">{donationsEnabled ? "Publishing makes this active campaign eligible for verified PayPal donations." : "Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
-      {actions}
     </section>
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
-      <button type="button" disabled={disabled||step===0} onClick={()=>advanceWizard(step-1)} className="min-h-12 rounded-xl border border-border px-5 font-semibold disabled:opacity-50">Back</button>
-      {step<2&&<button type="button" disabled={disabled} onClick={()=>advanceWizard(step+1)} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">Continue</button>}
-      {step<2&&<button type="button" disabled={disabled} onClick={()=>save("draft")} className="min-h-12 rounded-xl border border-border px-5 font-semibold">Save private draft</button>}
-    </div>
   </main>;
 }
