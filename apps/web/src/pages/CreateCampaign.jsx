@@ -18,6 +18,7 @@ import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
+import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
@@ -141,6 +142,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           const brief=restoredSetup.ai_profile.writing_brief;
           setWritingPath(CAMPAIGN_WRITING_PATHS.some(path=>path.id===brief.writingPath)?brief.writingPath:"write");
           setDraftDetails(brief.details);setDraftBeneficiary(brief.beneficiary);setDraftNeed(brief.need);
+          setSupportType(supportNeed(brief.support_type).id);
           const sections=splitStory(data.story || "");
           storySectionsRef.current=sections;setStorySections(sections);
           setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
@@ -239,6 +241,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
+  const [supportType, setSupportType] = useState(() => supportNeed(wizard.ai_profile?.writing_brief?.support_type).id);
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -436,7 +439,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setter(value);
   }
   function wizardSnapshot(nextStep=step){
-    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed}},nextStep);
+    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed,support_type:supportType}},nextStep);
   }
   function changeWizard(field,value){
     invalidateWriting(true);setSaved("");setProgressNotice("");
@@ -642,7 +645,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <input maxLength={100} value={draftNeed} disabled={busy}
           onChange={e => changeWritingBrief(setDraftNeed, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <label className="block font-semibold">Preferred writing tone<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="For example: clear, warm and practical" /></label>
+      <label className="block font-semibold">Type of support<select id="campaign-support-type" value={supportType} disabled={busy || loadingDraft} onChange={e=>changeWritingBrief(setSupportType,e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{SUPPORT_NEEDS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
+       {supportType !== "money" && <p className="text-sm text-muted-foreground">For noncash help, <Link to="/what-if" className="underline">create a private Mission</Link> without a cash goal.</p>}
+       <label className="block font-semibold">Preferred writing tone<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="For example: clear, warm and practical" /></label>
       <label className="block font-semibold">Facts or wording to preserve<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <p className="text-sm text-muted-foreground">Writing preferences guide proposed copy. They never authorize publishing, messages or financial actions.</p>
       </div><div hidden={step!==1} className="space-y-4">
