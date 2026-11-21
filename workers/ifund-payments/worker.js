@@ -722,7 +722,7 @@ export default {
       const route=path.slice("/api/payments/sandbox/".length);
       if(!["status","diagnostics","orders","capture","webhook"].includes(route))
         return asJson({ok:false,error:"sandbox_route_not_found"},404,cors);
-      const preview=/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/;
+      const preview=/^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/;
       if(url.protocol!=="https:"||!preview.test(url.hostname)||
         env.IFUND_PAYPAL_SANDBOX_ENABLED!=="enabled"||
         typeof env.IFUND_SANDBOX_BROKER?.fetch!=="function"||
@@ -739,7 +739,7 @@ export default {
       const cookie=result.headers.get("set-cookie");
       if(cookie&&route==="orders"){
         const response=new Response(result.body,result);
-        response.headers.set("set-cookie",cookie.replace(/Path=\\/api\\/paypal\\/sandbox(?=;|$)/i,
+        response.headers.set("set-cookie",cookie.replace(/Path=\/api\/paypal\/sandbox(?=;|$)/i,
           "Path=/api/payments/sandbox"));
         return response;
       }
