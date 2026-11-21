@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" fill="none" aria-hidden="true">
+<defs><linearGradient id="s" x1="80" y1="95" x2="735" y2="700" gradientUnits="userSpaceOnUse"><stop stop-color="#28e8ff"/><stop offset=".28" stop-color="#7688ff"/><stop offset=".52" stop-color="#ff69de"/><stop offset=".78" stop-color="#6effbb"/><stop offset="1" stop-color="#aafaff"/></linearGradient><filter id="g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+<g stroke="url(#s)" opacity=".16" stroke-width="3" filter="url(#g)"><circle cx="400" cy="400" r="290"/><circle cx="400" cy="400" r="215"/><path d="M400 90 669 245 669 555 400 710 131 555 131 245Z"/></g>
+<g stroke="url(#s)" stroke-width="1.15" opacity=".66" stroke-linejoin="round">
+<circle cx="400" cy="400" r="290"/><circle cx="400" cy="400" r="245"/><circle cx="400" cy="400" r="184"/><circle cx="400" cy="400" r="109"/>
+<path d="M400 110 651.1 255 651.1 545 400 690 148.9 545 148.9 255Z"/>
+<path d="M400 155 612.2 277.5 612.2 522.5 400 645 187.8 522.5 187.8 277.5Z"/>
+<path d="M400 216 559.3 308 559.3 492 400 584 240.7 492 240.7 308Z"/>
+<path d="M400 690 400 110 M148.9 255 651.1 545 M148.9 545 651.1 255"/>
+<path d="M400 110 651.1 545 148.9 545Z M400 690 651.1 255 148.9 255Z"/>
+<path d="M400 155 612.2 522.5 187.8 522.5Z M400 645 612.2 277.5 187.8 277.5Z"/>
+</g>
+<g fill="#76eaff" opacity=".64"><circle cx="400" cy="110" r="3"/><circle cx="400" cy="690" r="3"/><circle cx="148.9" cy="255" r="3"/><circle cx="651.1" cy="545" r="3"/><circle cx="148.9" cy="545" r="3"/><circle cx="651.1" cy="255" r="3"/></g>
+</svg>

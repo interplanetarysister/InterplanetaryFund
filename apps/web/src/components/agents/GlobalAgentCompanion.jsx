@@ -14,17 +14,21 @@ import ReferralTrialBootstrap from "@/components/referrals/ReferralTrialBootstra
  */
 export default function GlobalAgentCompanion({ children }) {
   const [activeAgent, setActiveAgent] = useState(null);
+  const [voiceSuggestion,setVoiceSuggestion]=useState(null);
   const { pathname } = useLocation();
   const { user } = useAuthSession();
   const isHome = pathname === "/";
   const signedIn = Boolean(user?.id && !user.is_anonymous);
   useEffect(() => {
-    const openAgent = event => { if (window.location.pathname !== "/") setActiveAgent(event.detail?.agent || "nexus"); };
+    const openAgent = event => { if (window.location.pathname !== "/") {
+      setActiveAgent(event.detail?.agent || "nexus");
+      if(typeof event.detail?.prefill==="string" && event.detail.prefill.trim())setVoiceSuggestion({id:Date.now(),text:event.detail.prefill.slice(0,1600)});
+    }};
     window.addEventListener("ifund-open-agent", openAgent);
     return () => window.removeEventListener("ifund-open-agent", openAgent);
   }, []);
   useEffect(() => { if (isHome) setActiveAgent(null); }, [isHome]);
-  return <div className="ifund-global-companion-shell">
+  return <div className={"ifund-global-companion-shell"+(pathname==="/dashboard"?" ifund-preserve-earth":"")}>
     <ReferralTrialBootstrap />
     <div className="ifund-global-companion-main">{children}</div>
     <SiteTour />
@@ -40,6 +44,6 @@ export default function GlobalAgentCompanion({ children }) {
       <span>Ask IFund</span>
       <Compass size={15} aria-hidden="true" />
     </button>}
-    {!isHome && <AgentSidePanel agent={activeAgent} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />}
+    {!isHome && <AgentSidePanel agent={activeAgent} voiceSuggestion={voiceSuggestion} onSelect={setActiveAgent} onClose={() => setActiveAgent(null)} />}
   </div>;
 }

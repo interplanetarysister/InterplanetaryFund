@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 950" preserveAspectRatio="xMidYMid slice">
+<defs>
+ <radialGradient id="sky"><stop stop-color="#253866"/><stop offset=".48" stop-color="#101b3b"/><stop offset="1" stop-color="#050a1c"/></radialGradient>
+ <radialGradient id="halo"><stop offset=".35" stop-color="#fffdf8"/><stop offset=".42" stop-color="#a8f4ff" stop-opacity=".9"/><stop offset=".58" stop-color="#9e80ed" stop-opacity=".5"/><stop offset="1" stop-color="#8f71e3" stop-opacity="0"/></radialGradient>
+ <radialGradient id="umbra"><stop offset=".79" stop-color="#050813"/><stop offset=".95" stop-color="#0a1121"/><stop offset="1" stop-color="#0d1429"/></radialGradient>
+ <linearGradient id="mist" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13a8bc" stop-opacity=".1"/><stop offset=".5" stop-color="#7758ce" stop-opacity=".04"/><stop offset="1" stop-color="#6a3fd9" stop-opacity=".2"/></linearGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="40"/></filter>
+ <filter id="glow"><feGaussianBlur stdDeviation="10"/></filter>
+</defs>
+<rect width="1600" height="950" fill="url(#sky)"/>
+<ellipse cx="800" cy="230" rx="570" ry="340" fill="url(#mist)" filter="url(#blur)"/>
+<ellipse cx="1300" cy="815" rx="420" ry="175" fill="#5725ab" opacity=".19" filter="url(#blur)"/>
+<ellipse cx="120" cy="900" rx="530" ry="195" fill="#127b9e" opacity=".15" filter="url(#blur)"/>
+<circle cx="800" cy="260" r="365" fill="url(#halo)"/>
+<circle cx="800" cy="260" r="185" fill="none" stroke="#a8f6ff" stroke-width="8" opacity=".45" filter="url(#glow)"/>
+<circle cx="800" cy="260" r="190" fill="none" stroke="#fffdfa" stroke-width="2.7" opacity=".95"/>
+<circle cx="800" cy="260" r="188" fill="url(#umbra)"/>
+<g stroke="#e8f5ff" opacity=".36"><path d="M990 75 1080 0 M990 75 1160 55 M990 75 1070 230 M990 75 900 -20" stroke-width="4"/></g>
+<circle cx="978" cy="106" r="12" fill="#fffef8" filter="url(#glow)"/>
+<circle cx="978" cy="106" r="4" fill="#fffef8"/>
+<g fill="#c4eaff" opacity=".55"><circle cx="75" cy="70" r="1.4"/><circle cx="276" cy="225" r="1.3"/><circle cx="350" cy="52" r="1.1"/><circle cx="1460" cy="151" r="1.5"/><circle cx="1300" cy="70" r="1"/><circle cx="1100" cy="470" r="1"/><circle cx="180" cy="485" r="1.5"/><circle cx="1400" cy="680" r="1.1"/></g>
+</svg>

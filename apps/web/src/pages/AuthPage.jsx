@@ -291,6 +291,14 @@ export default function AuthPage({ mode = "login" }) {
           <p className="mt-3 text-sm text-slate-300">
             {isRegister ? "Step 2 of 2 · Email signup is required to create content. Two-factor authentication comes at your first withdrawal." : "Sign in securely to Interplanetary Fund."}
           </p>
+          <div className="mt-3 rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-3">
+            <p className="text-sm text-slate-200">iFund helps people achieve goals using donations, grants, work, donated essentials, equipment, volunteers and trusted connections—not fundraising alone.</p>
+            <button type="button" className="mt-2 min-h-11 rounded-lg border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-100"
+              onClick={()=>window.dispatchEvent(new CustomEvent("ifund-open-agent",{detail:{agent:"nexus"}}))}>
+              Use NEXUS voice navigation
+            </button>
+            <p className="mt-2 text-xs text-slate-300">NEXUS can guide you to the correct screen by voice. Complete email verification and passwords securely on screen; never speak passwords or codes.</p>
+          </div>
           {isRegister && !confirmationPending && (
             <button type="button" onClick={() => { setLegalReviewed(false); setLegalAgreed(false); }} className="mt-3 text-sm text-cyan-200 underline">Review the policies again</button>
           )}

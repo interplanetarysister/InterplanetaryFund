@@ -21,6 +21,9 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import CampaignVoiceInput from "@/components/campaigns/CampaignVoiceInput";
+import CampaignVoiceGuide from "@/components/campaigns/CampaignVoiceGuide";
+import CampaignImageChoices from "@/components/campaigns/CampaignImageChoices";
+import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
 
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
@@ -144,6 +147,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           const brief=restoredSetup.ai_profile.writing_brief;
           setWritingPath(CAMPAIGN_WRITING_PATHS.some(path=>path.id===brief.writingPath)?brief.writingPath:"write");
           setDraftDetails(brief.details);setDraftBeneficiary(brief.beneficiary);setDraftNeed(brief.need);
+          setSupportType(supportNeed(brief.support_type).id);
           const sections=splitStory(data.story || "");
           storySectionsRef.current=sections;setStorySections(sections);
           setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
@@ -256,6 +260,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
+  const [supportType,setSupportType] = useState(()=>supportNeed(wizard.ai_profile?.writing_brief?.support_type).id);
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -453,7 +458,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setter(value);
   }
   function wizardSnapshot(nextStep=step){
-    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed}},nextStep);
+    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed,support_type:supportType}},nextStep);
   }
   function changeWizard(field,value){
     invalidateWriting(true);setSaved("");setProgressNotice("");
@@ -605,10 +610,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <button form="campaign-editor" type="submit" disabled={disabled} className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save draft"}</button>
     {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
   </div>;
-  return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+  return <main className={"mx-auto max-w-3xl space-y-6 px-4 py-8"+(step===2?" ifund-eclipse-moment":"")}>
     {landingPrompt && <p role="status" aria-label="Your starting idea" className="text-sm font-medium text-cyan-700 dark:text-cyan-200">Your idea is ready in the draft below. Edit it however you like.</p>}
     {!landingPrompt && transferredPrompt && <p role="status" className="rounded-xl border border-amber-400/40 p-4 text-sm">An existing draft was found, so your new idea was not merged into it. Your earlier work remains unchanged. To start a separate idea, save or finish that draft first.</p>}
     <header className="flex items-center justify-between gap-3"><h1 ref={headingRef} tabIndex={-1} className="font-display text-xl font-bold">New Campaign</h1><span className="text-xs text-muted-foreground">{step+1} / 3</span></header>
+    {step===2 && <p className="ifund-eclipse-caption text-center text-sm font-semibold">Your defining moment · Review before publishing</p>}
     {templateParam && <p role="status" className="text-xs text-primary">Starting layout: {templateStyle(previewStyle).name}</p>}
     <nav aria-label="Campaign setup progress" className="mx-auto max-w-xl"><ol className="grid grid-cols-3 gap-3">{WIZARD_STEPS.map((label,index)=>{const Icon=stepIcons[index];return <li key={label} aria-current={step===index?"step":undefined} className="flex justify-center"><button type="button" title={label} aria-label={"Step "+(index+1)+": "+label} disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"flex h-14 w-14 items-center justify-center rounded-2xl border transition-colors disabled:opacity-60 "+(step===index?"border-cyan-300 bg-indigo-500 text-white shadow-lg shadow-indigo-700/30":"border-border bg-card text-muted-foreground")}><Icon size={24} aria-hidden="true"/></button></li>})}</ol></nav>
     <details><summary className="cursor-pointer text-sm text-primary">More agent help (optional)</summary><div className="mt-3"><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} /></div></details>
@@ -654,6 +660,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
+      <CampaignVoiceGuide
+        supportType={supportType}
+        onDetails={text=>changeWritingBrief(setDraftDetails,text)}
+        onBeneficiary={text=>changeWritingBrief(setDraftBeneficiary,text)}
+        onNeed={text=>changeWritingBrief(setDraftNeed,text)}
+        onGoal={amount=>change("goal_amount",amount)}
+        onStory={text=>change("story",text)}
+        onTone={text=>changeWritingPreference("tone",text)}
+        disabled={disabled}
+      />
       <label className="block font-semibold">Who or what is this for? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={busy}
           onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
@@ -728,7 +744,14 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <p className="text-sm text-muted-foreground">Write as much or as little as you need. There is no minimum story length or required paragraph format.</p>
       <label className="block font-semibold">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       </div><div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
-      <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <label className="block font-semibold">What kind of support would help you achieve your goal?
+        <select id="campaign-support-type" value={supportType} onChange={e=>changeWritingBrief(setSupportType,e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">
+          {SUPPORT_NEEDS.map(option=><option key={option.id} value={option.id}>{option.label}</option>)}
+        </select>
+        <span className="mt-1 block text-xs font-normal text-muted-foreground">{supportNeed(supportType).examples}</span>
+      </label>
+            <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      {supportType!=="money"&&<p className="text-sm text-muted-foreground">iFund can help find noncash support. Your private Mission can request {supportNeed(supportType).label.toLowerCase()} without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. <Link className="underline" to="/what-if">Explore a support-only Mission</Link>.</p>}
       <div id="campaign-cover" className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
         <div>
           <h3 className="font-semibold">Campaign cover image (optional)</h3>
@@ -740,6 +763,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             className="mt-2 block w-full rounded-xl border border-input bg-background p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" />
         </label>
         {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
+        <CampaignImageChoices
+          title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)}
+          onApply={url=>{change("cover_image_url",url);setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}}
+          disabled={disabled}
+        />
         {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
         <label className="block text-sm font-semibold">Or paste an image URL
           <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
