@@ -70,6 +70,13 @@ colors:
     panelBottom: "#111B30"
     consoleTop: "#0F1F37"
     consoleBottom: "#08101F"
+    symmetryCyan: "#28E8FF"
+    symmetryBlue: "#7688FF"
+    symmetryPink: "#FF69DE"
+    symmetryMint: "#6EFFBB"
+    eclipseSky: "#253866"
+    eclipseHalo: "#A8F4FF"
+    eclipseUmbra: "#050813"
   agent:
     nexus: "#DCE3EB"
     echo: "#409EFF"
@@ -170,6 +177,14 @@ motion:
     duration: 900ms
     delay: 0ms
     timingFunction: linear
+  symmetry-drift:
+    duration: 22000ms
+    delay: 0ms
+    timingFunction: ease-in-out
+  eclipse-glimmer:
+    duration: 17000ms
+    delay: 0ms
+    timingFunction: ease-in-out
 components:
   button-primary:
     backgroundColor: "{colors.action}"
@@ -212,6 +227,33 @@ components:
     rounded: 0px
     padding: 14px
     width: 520px
+  voice-guide:
+    backgroundColor: "#FFFFFF"
+    textColor: "{colors.light.foreground}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: 12px
+    borderColor: "rgb(34 211 238 / .35)"
+  support-selector:
+    backgroundColor: "{colors.light.card}"
+    textColor: "{colors.light.foreground}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.md}"
+    padding: 12px
+    height: 48px
+  artwork-choice:
+    backgroundColor: "{colors.light.card}"
+    textColor: "{colors.light.foreground}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: 16px
+    borderColor: "rgb(34 211 238 / .30)"
+  eclipse-review-panel:
+    backgroundColor: "{colors.cosmic.deepInk}"
+    textColor: "#F4F8FF"
+    typography: "{typography.body-md}"
+    rounded: 28.8px
+    padding: 32px
 ---
 
 # Interplanetary Fund — Unified Cosmic Fundraising
@@ -241,6 +283,8 @@ The palette uses a light workspace default with dark cosmic surfaces for navigat
 - **Surface (#F8FAFC light / #0A0D1A dark):** page field. Cards use `#FFFFFF` or `#1A222E` so they lift without heavy borders.
 - **Deep ink (#071123):** reserved for hero fields, sidebar, agent panel, and console surfaces.
 - **Mint (#6EF1E7):** agent-team emphasis and high-contrast focus accents.
+- **Symmetry gradient (#28E8FF → #7688FF → #FF69DE → #6EFFBB):** the local `cosmic-symmetry.svg` geometry layered behind public and workspace surfaces at low opacity; it is atmosphere, never a status or CTA signal.
+- **Eclipse palette (#253866 halo sky, #A8F4FF ring, #050813 umbra):** reserved for the step-three launch-review moment in `cosmic-eclipse.svg`. Keep its caption text above `#D5E9FF` for contrast.
 - **Copper (#C59153):** a rare warmth accent for editorial moments; do not use for status or primary actions.
 - **Error (#EF4444 light / #7F1D1D dark):** destructive or blocked states only; pair with text, never color alone.
 
@@ -281,6 +325,8 @@ Depth comes from layered translucent surfaces, not heavy drop shadows.
 
 - Cosmic panels: subtle purple/cyan radial gradients over a card surface, 1px low-opacity border, soft 11–26px shadows.
 - Hero fields: large radial aurora gradients plus faint orbit rings or dot grids; pseudo-elements sit behind content and never intercept pointer events.
+- Symmetry geometry: `cosmic-symmetry.svg` is tiled at `clamp(350px,54vw,640px)` behind scrollable workspace/public surfaces and at 410px on phones; its drift is 22px or less and stops under reduced motion and print.
+- Eclipse review: `.ifund-eclipse-moment` uses `cosmic-eclipse.svg` cover over `#080D22`, an inset cyan border, and a soft outer shadow. Direct children receive `position: relative` so owner text stays above the artwork.
 - Dashboard modules: near-white gradient in light mode, midnight-to-purple gradient in dark; 1.45rem radius and a soft 37px shadow.
 - Agent cards: vertical gradient from `#0B1424` to `#111B30`, top accent rule, and a single orbit arc.
 - Focus: 3px aurora outline with 3px offset on first-party controls; high-contrast mode increases outline width to 4px.
@@ -298,7 +344,7 @@ Illustration should stay abstract: planets, orbital paths, stars, soft auroras, 
 
 Motion is brief and functional. Buttons lift 1px on hover and settle on active; cosmic panels transition border/shadow over 180–250ms; route transitions fade and slide 100% over 250ms with reduced-motion neutralized.
 
-Loading controls expose a spinner via `data-loading="true"` and become non-interactive. Voice/dictation, AI "queued" states, and session checks must always show textual status in addition to any animation.
+Loading controls expose a spinner via `data-loading="true"` and become non-interactive. Voice/dictation, AI "queued" states, and session checks must always show textual status in addition to any animation. Background symmetry drifts over 22 seconds; the eclipse review caption uses a separate 17-second glimmer. Buttons lift 1.5px and settle with a 0.97 active scale in 170ms.
 
 Respect `prefers-reduced-motion: reduce` in every generated surface: no route slide, no hover transform, no spinning progress affordance, and instant scroll behavior. Respect `prefers-contrast: more` by widening focus outlines. Never animate money amounts, consent checkboxes, or provider status as if they were celebratory.
 
@@ -310,6 +356,9 @@ Write as a capable mission partner, not a hype machine. The voice is warm, plain
 - Say "private by default," "advisory only," "verified totals only," and "review before publishing" where those conditions actually apply.
 - Distinguish provider-verified donations, owner-reported estimates, sandbox results, and unverified planning previews in the same sentence when they appear together.
 - AI copy must never claim it posted, paid, published, emailed, transferred money, or secured an external provider grant. Those actions require separate authorization and verified receipts.
+- Spoken navigation is advisory and local: member-only commands open secure sign-in first, and the assistant says plainly that no account action or outside post occurred. Never ask for a password or verification code in chat or voice.
+- Support type is optional and defaults to "Not sure yet". Money is one of twelve needs; never infer a cash goal, dollar amount, or fabricated support summary from an unanswered selector.
+- Generated campaign artwork is illustrative, not documentary evidence. Preserve its provenance on the public cover and label it "AI-generated illustration" where shown.
 - form labels should name the field directly; helper text explains consequence, not urgency. Error messages identify what happened and the safe recovery step.
 - Financial, legal, permission, and cancellation language stays literal. Do not soften a failed closed state into a success.
 
@@ -333,6 +382,12 @@ Reusable anatomy is documented in the component sticker sheet @components/sticke
 
 **Wizard stepper.** Three compact steps — Campaign basics, Your story, Review and publish — as an ordered list of 56px icon buttons (`Target`, `BookOpen`, `Rocket`) with `aria-current="step"`, visible `title`, and accessible labels. Panels are toggled with `hidden` rather than unmounted, so preserve field values and focus context in any redesign.
 
+**Voice guide and support selector.** The optional NEXUS walkthrough uses a cyan-bordered disclosure, a visible current question, Quick setup / Detailed guidance choices, and text-labeled Answer by voice / Hear question / Skip controls. spoken answers populate editable draft fields only. The support selector begins at "Not sure yet", lists twelve plain-language needs, and shows the chosen option's examples without assigning a value or cash goal. See @references/campaign-creator.md#campaign-creator and @references/what-if.md#what-if-private-mission-entry.
+
+**Original artwork and eclipse review.** Artwork choices are a collapsed disclosure with four styles, prerequisite copy, a reviewable preview, and a provenance notice; never make a generated illustration look like a verified photograph. Step three places the factual review above the local eclipse artwork, with the caption "Your defining moment · Review before publishing" and no invented progress or receipts. See @components/sticker-sheet.html#voice-guide and @components/sticker-sheet.html#eclipse-review-panel.
+
+**Sign-in voice entry.** The secure auth card may offer "Use NEXUS voice navigation" in a cyan callout, followed by explicit "never speak passwords or codes" guidance. It opens the same advisory panel; it does not replace the credential form. See @references/auth-voice.md#secure-sign-in-and-nexus-voice-entry.
+
 ### Design System Notes for Stitch Generation
 
 When generating new concepts, start from these tokens and the closest reference file; do not ask Stitch to rewrite source components. Preserve section order, accessible roles, and all state copy from the references. Generate *variations* in spacing, hierarchy, illustration, and polish while keeping the token names and legal/advisory language intact. If a new component is needed, add it to the sticker sheet with a `<!-- COMPONENT: name -->` marker and reference it from this section.
@@ -345,9 +400,11 @@ No Stitch MCP server or upload tool is configured in this build session. This fi
 - Do keep 44px minimum touch targets and visible 3px focus outlines.
 - Do preserve light and dark variants, reduced-motion behavior, and high-contrast rules.
 - Do label unverified, reported, sandbox, and provider-verified information differently.
+- Do keep support optional, default it to "Not sure yet", and preserve AI-artwork provenance.
 - Do keep the public/page shell, dashboard shell, editor shell, and advisory panel visually related but functionally distinct.
 - Don't restyle hosted payment widgets or imply that a source-level design change activated billing or withdrawals.
 - Don't use agent identity colors as general category colors or make DISCOVER appear as a separate active specialist in the current grid.
 - Don't fabricate supporter counts, donations, payout receipts, OAuth grants, or campaign outcomes.
+- Don't turn spoken navigation into an account action, infer money from an unanswered support selector, or label generated art as a documentary photograph.
 - Don't hide consent, permission, cancellation, or error states behind visual polish.
 - Don't replace the existing components in a Stitch output; treat Stitch as a design-reference and variation generator until explicit source acceptance.

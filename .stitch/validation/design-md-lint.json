@@ -2,6 +2,18 @@
   "findings": [
     {
       "severity": "warning",
+      "path": "components.voice-guide.borderColor",
+      "message": "'borderColor' is not a recognized component sub-token. Valid sub-tokens: backgroundColor, textColor, typography, rounded, padding, size, height, width.",
+      "rule": "broken-ref"
+    },
+    {
+      "severity": "warning",
+      "path": "components.artwork-choice.borderColor",
+      "message": "'borderColor' is not a recognized component sub-token. Valid sub-tokens: backgroundColor, textColor, typography, rounded, padding, size, height, width.",
+      "rule": "broken-ref"
+    },
+    {
+      "severity": "warning",
       "path": "colors.neutral",
       "message": "'neutral' is defined but never referenced by any component.",
       "rule": "orphaned-tokens"
@@ -254,12 +266,6 @@
     },
     {
       "severity": "warning",
-      "path": "colors.cosmic.deepInk",
-      "message": "'cosmic.deepInk' is defined but never referenced by any component.",
-      "rule": "orphaned-tokens"
-    },
-    {
-      "severity": "warning",
       "path": "colors.cosmic.mint",
       "message": "'cosmic.mint' is defined but never referenced by any component.",
       "rule": "orphaned-tokens"
@@ -292,6 +298,48 @@
       "severity": "warning",
       "path": "colors.cosmic.consoleBottom",
       "message": "'cosmic.consoleBottom' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.symmetryCyan",
+      "message": "'cosmic.symmetryCyan' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.symmetryBlue",
+      "message": "'cosmic.symmetryBlue' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.symmetryPink",
+      "message": "'cosmic.symmetryPink' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.symmetryMint",
+      "message": "'cosmic.symmetryMint' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.eclipseSky",
+      "message": "'cosmic.eclipseSky' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.eclipseHalo",
+      "message": "'cosmic.eclipseHalo' is defined but never referenced by any component.",
+      "rule": "orphaned-tokens"
+    },
+    {
+      "severity": "warning",
+      "path": "colors.cosmic.eclipseUmbra",
+      "message": "'cosmic.eclipseUmbra' is defined but never referenced by any component.",
       "rule": "orphaned-tokens"
     },
     {
@@ -350,7 +398,7 @@
     },
     {
       "severity": "info",
-      "message": "Design system defines 68 colors, 8 typography scales, 8 rounding levels, 10 spacing tokens, 6 components.",
+      "message": "Design system defines 75 colors, 8 typography scales, 8 rounding levels, 10 spacing tokens, 10 components.",
       "rule": "token-summary"
     },
     {
@@ -362,7 +410,7 @@
   ],
   "summary": {
     "errors": 0,
-    "warnings": 59,
+    "warnings": 67,
     "infos": 1
   }
 }

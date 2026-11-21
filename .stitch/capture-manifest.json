@@ -1,13 +1,17 @@
 {
-  "generatedAt": "2026-11-21T07:45:20.878Z",
+  "generatedAt": "2026-11-21T08:15:10.986Z",
   "browser": "Local Chromium-compatible browser: C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "generator": ".stitch/scripts/capture-references.mjs",
   "strategy": "Google Stitch code-to-design Strategy A (local built app, computed styles resolved)",
+  "buildVariables": {
+    "VITE_IFUND_WHAT_IF_ENABLED": "enabled (local reference build only; not a release or production setting)"
+  },
   "constraints": [
     "Local Vite preview only; no hosted origin was contacted",
     "Read-only: all non-GET requests and all non-local HTTP(S) requests were aborted",
     "No authentication, member-agent action, payment, provider, or Stitch upload was performed",
-    "Static HTML has scripts removed and same-origin CSS/images/fonts inlined as data URIs"
+    "Static HTML has scripts removed and same-origin CSS/images/fonts inlined as data URIs",
+    "Local clicks only expanded optional panels or advanced the guest wizard; no draft or account mutation occurred"
   ],
   "captures": [
     {
@@ -19,6 +23,8 @@
         "height": 900
       },
       "source": "apps/web/src/pages/Home.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "What if anything were possible?",
@@ -44,6 +50,8 @@
         "height": 844
       },
       "source": "apps/web/src/pages/Home.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "What if anything were possible?",
@@ -69,6 +77,8 @@
         "height": 900
       },
       "source": "apps/web/src/pages/Dashboard.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [],
       "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE Overview Help Center Account services are unavailable. Return to sign in. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
@@ -89,6 +99,8 @@
         "height": 844
       },
       "source": "apps/web/src/pages/Dashboard.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [],
       "visibleTextPreview": "Interplanetary Fund AI Team Profile IFund Social Forums Events Account services are unavailable. Return to sign in. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
@@ -101,6 +113,142 @@
       "renderState": "Unauthenticated; account services unavailable, no private dashboard content rendered"
     },
     {
+      "id": "auth-voice-desktop",
+      "label": "Secure sign-in with NEXUS voice entry (guest render state) — Desktop 1365x900",
+      "route": "/login?returnTo=%2Fwhat-if",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "source": [
+        "apps/web/src/pages/AuthPage.jsx",
+        "apps/web/src/components/agents/GlobalAgentCompanion.jsx",
+        "apps/web/src/components/agents/AgentSidePanel.jsx"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "Welcome back",
+        "NEXUS"
+      ],
+      "visibleTextPreview": "Interplanetary Fund Welcome back Sign in securely to Interplanetary Fund. iFund helps people achieve goals using donations, grants, work, donated essentials, equipment, volunteers and trusted connections—not fundraising alone. Use NEXUS voice navigation NEXUS can guide you to the correct screen by voice. Complete email verification and passwords securely on screen; never speak passwords or codes. Email address Password Sign in Resend confirmation link Create an account Forgot password? Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Hands-free questions Ask the selected agent Open full workspace Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. Spoken words do not approve any action. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.",
+      "panelOpened": "visible",
+      "html": ".stitch/html/auth-voice-desktop.html",
+      "screenshot": ".stitch/screenshots/auth-voice-desktop.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated; secure sign-in form visible with advisory panel opened locally, no password or verification code entered"
+    },
+    {
+      "id": "auth-voice-mobile",
+      "label": "Secure sign-in with NEXUS voice entry (guest render state) — Mobile 390x844",
+      "route": "/login?returnTo=%2Fwhat-if",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": [
+        "apps/web/src/pages/AuthPage.jsx",
+        "apps/web/src/components/agents/GlobalAgentCompanion.jsx",
+        "apps/web/src/components/agents/AgentSidePanel.jsx"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "Welcome back",
+        "NEXUS"
+      ],
+      "visibleTextPreview": "Interplanetary Fund Welcome back Sign in securely to Interplanetary Fund. iFund helps people achieve goals using donations, grants, work, donated essentials, equipment, volunteers and trusted connections—not fundraising alone. Use NEXUS voice navigation NEXUS can guide you to the correct screen by voice. Complete email verification and passwords securely on screen; never speak passwords or codes. Email address Password Sign in Resend confirmation link Create an account Forgot password? Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Hands-free questions Ask the selected agent Open full workspace Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. Spoken words do not approve any action. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.",
+      "panelOpened": "visible",
+      "html": ".stitch/html/auth-voice-mobile.html",
+      "screenshot": ".stitch/screenshots/auth-voice-mobile.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated; secure sign-in form visible with advisory panel opened locally, no password or verification code entered"
+    },
+    {
+      "id": "what-if-support-desktop",
+      "label": "What If? private Mission with optional support selection — Desktop 1365x900",
+      "route": "/what-if",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "source": [
+        "apps/web/src/pages/WhatIfStart.jsx",
+        "apps/web/src/lib/supportNeeds.mjs"
+      ],
+      "requiredBuildVariable": "VITE_IFUND_WHAT_IF_ENABLED=enabled",
+      "interactions": [
+        {
+          "type": "fill",
+          "selector": "#what-if-prompt",
+          "value": "I need help making reliable transportation possible for my family."
+        },
+        {
+          "type": "select",
+          "selector": "#what-if-support",
+          "value": "transport"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "What if?",
+        "Not sure where to begin?"
+      ],
+      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE What If? Help Center INTERPLANETARY FUND What if? Every dream, challenge, and possibility deserves a place to begin. Tell us what you want to make possible. Your idea, in your own words What kind of help would make it possible? (optional) Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Vehicles, repairs, replacement parts, transit passes, rides Money is only one kind of support. New Missions are private and do not need a fundraising goal. Explore possibilities Save private Mission Not sure where to begin? I need help making reliable transportation possible for my family. I'd like to start a community garden with neighbors. I have an invention idea, but I don't know where to start. My private Missions Use the standard campaign editor instead Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/what-if-support-desktop.html",
+      "screenshot": ".stitch/screenshots/what-if-support-desktop.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated; local form text and noncash support choice only, no preview or save action"
+    },
+    {
+      "id": "what-if-support-mobile",
+      "label": "What If? private Mission with optional support selection — Mobile 390x844",
+      "route": "/what-if",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": [
+        "apps/web/src/pages/WhatIfStart.jsx",
+        "apps/web/src/lib/supportNeeds.mjs"
+      ],
+      "requiredBuildVariable": "VITE_IFUND_WHAT_IF_ENABLED=enabled",
+      "interactions": [
+        {
+          "type": "fill",
+          "selector": "#what-if-prompt",
+          "value": "I need help making reliable transportation possible for my family."
+        },
+        {
+          "type": "select",
+          "selector": "#what-if-support",
+          "value": "transport"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "What if?",
+        "Not sure where to begin?"
+      ],
+      "visibleTextPreview": "What If? AI Team Profile IFund Social Forums Events INTERPLANETARY FUND What if? Every dream, challenge, and possibility deserves a place to begin. Tell us what you want to make possible. Your idea, in your own words What kind of help would make it possible? (optional) Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Vehicles, repairs, replacement parts, transit passes, rides Money is only one kind of support. New Missions are private and do not need a fundraising goal. Explore possibilities Save private Mission Not sure where to begin? I need help making reliable transportation possible for my family. I'd like to start a community garden with neighbors. I have an invention idea, but I don't know where to start. My private Missions Use the standard campaign editor instead Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/what-if-support-mobile.html",
+      "screenshot": ".stitch/screenshots/what-if-support-mobile.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated; local form text and noncash support choice only, no preview or save action"
+    },
+    {
       "id": "campaign-creator-desktop",
       "label": "Campaign creator (manual guest render state) — Desktop 1365x900",
       "route": "/create?manual=1",
@@ -109,6 +257,8 @@
         "height": 900
       },
       "source": "apps/web/src/pages/CreateCampaign.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "New Campaign",
@@ -129,7 +279,7 @@
         "Campaign cover image (optional)",
         "Before you publish"
       ],
-      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE New Campaign Help Center New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Hear the question Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other Fundraising goal (USD) Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE New Campaign Help Center New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Ask NEXUS Hear the question Have NEXUS guide me by voice (optional) Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other What kind of support would help you achieve your goal? Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Describe what would help in your own words Fundraising goal (USD) iFund can help find noncash support. Your private Mission can request not sure yet without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. Explore a support-only Mission. Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or create your own original iFund illustration Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
       "panelOpened": "not-requested",
       "html": ".stitch/html/campaign-creator-desktop.html",
       "screenshot": ".stitch/screenshots/campaign-creator-desktop.png",
@@ -147,6 +297,8 @@
         "height": 844
       },
       "source": "apps/web/src/pages/CreateCampaign.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "New Campaign",
@@ -167,7 +319,7 @@
         "Campaign cover image (optional)",
         "Before you publish"
       ],
-      "visibleTextPreview": "New Campaign AI Team Profile IFund Social Forums Events New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Hear the question Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other Fundraising goal (USD) Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "visibleTextPreview": "New Campaign AI Team Profile IFund Social Forums Events New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Ask NEXUS Hear the question Have NEXUS guide me by voice (optional) Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other What kind of support would help you achieve your goal? Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Describe what would help in your own words Fundraising goal (USD) iFund can help find noncash support. Your private Mission can request not sure yet without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. Explore a support-only Mission. Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or create your own original iFund illustration Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
       "panelOpened": "not-requested",
       "html": ".stitch/html/campaign-creator-mobile.html",
       "screenshot": ".stitch/screenshots/campaign-creator-mobile.png",
@@ -175,6 +327,218 @@
       "blockedRequests": 0,
       "blockedRequestSample": [],
       "renderState": "Unauthenticated/public render state only"
+    },
+    {
+      "id": "campaign-voice-artwork-desktop",
+      "label": "Campaign creator voice guide and original artwork choices — Desktop 1365x900",
+      "route": "/create?manual=1",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "source": [
+        "apps/web/src/components/campaigns/CampaignVoiceGuide.jsx",
+        "apps/web/src/components/campaigns/CampaignImageChoices.jsx",
+        "apps/web/src/lib/supportNeeds.mjs"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [
+        {
+          "type": "click",
+          "selector": "[aria-label=\"NEXUS spoken campaign walkthrough\"] summary"
+        },
+        {
+          "type": "click",
+          "selector": "[aria-label=\"Generate optional iFund cover art\"] summary"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "New Campaign",
+        "Your campaign team",
+        "STORY",
+        "POLARIS",
+        "FORGE",
+        "ECHO",
+        "LINK",
+        "DISCOVER",
+        "PULSE",
+        "ORBIT",
+        "NEXUS",
+        "Take your campaign to another fundraising platform",
+        "Open a fundraising destination",
+        "Tell us what matters",
+        "Campaign writing assistant",
+        "Campaign cover image (optional)",
+        "Before you publish"
+      ],
+      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE New Campaign Help Center New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Ask NEXUS Hear the question Have NEXUS guide me by voice (optional) Answer each question aloud. You stay in control; spoken answers only fill draft fields. No microphone is kept constantly active, and voice answers do not authorize publication. Welcome. I am NEXUS, your iFund Chief of Staff. Would you like a quick campaign setup, or to go through each detail together? Quick setup Detailed guidance Answer by voice Hear question Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other What kind of support would help you achieve your goal? Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Describe what would help in your own words Fundraising goal (USD) iFund can help find noncash support. Your private Mission can request not sure yet without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. Explore a support-only Mission. Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or create your own original iFund illustration For your first iFund campaign, try making a distinctive illustration based on your own story. Choose an art style and review the result before attaching it. This is illustrative artwork, not photographic evidence. Illustration style Interstellar Futuristic Cyberpunk Comic illustration Generate illustration Image generation is quota-limited and only works when the verified provider service is available. No images are published automatically. Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/campaign-voice-artwork-desktop.html",
+      "screenshot": ".stitch/screenshots/campaign-voice-artwork-desktop.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated manual entry; optional panels expanded by local clicks, no microphone, generation, upload, or draft save"
+    },
+    {
+      "id": "campaign-voice-artwork-mobile",
+      "label": "Campaign creator voice guide and original artwork choices — Mobile 390x844",
+      "route": "/create?manual=1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": [
+        "apps/web/src/components/campaigns/CampaignVoiceGuide.jsx",
+        "apps/web/src/components/campaigns/CampaignImageChoices.jsx",
+        "apps/web/src/lib/supportNeeds.mjs"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [
+        {
+          "type": "click",
+          "selector": "[aria-label=\"NEXUS spoken campaign walkthrough\"] summary"
+        },
+        {
+          "type": "click",
+          "selector": "[aria-label=\"Generate optional iFund cover art\"] summary"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "New Campaign",
+        "Your campaign team",
+        "STORY",
+        "POLARIS",
+        "FORGE",
+        "ECHO",
+        "LINK",
+        "DISCOVER",
+        "PULSE",
+        "ORBIT",
+        "NEXUS",
+        "Take your campaign to another fundraising platform",
+        "Open a fundraising destination",
+        "Tell us what matters",
+        "Campaign writing assistant",
+        "Campaign cover image (optional)",
+        "Before you publish"
+      ],
+      "visibleTextPreview": "New Campaign AI Team Profile IFund Social Forums Events New Campaign 1 / 3 More agent help (optional) Already fundraising somewhere else? (optional) Tell us what matters A few clues are enough. Everything else is optional. Working campaign title Campaign type (optional) What are we making possible? Talk instead Ask NEXUS Hear the question Have NEXUS guide me by voice (optional) Answer each question aloud. You stay in control; spoken answers only fill draft fields. No microphone is kept constantly active, and voice answers do not authorize publication. Welcome. I am NEXUS, your iFund Chief of Staff. Would you like a quick campaign setup, or to go through each detail together? Quick setup Detailed guidance Answer by voice Hear question Who or what is this for? (optional) What feeling should the story and images convey? (optional) A little more context (optional) Campaign title Category Medical Emergency Education Community Animals Business Creative Memorial Disaster Relief Planet & Environment Other What kind of support would help you achieve your goal? Not sure yet Money, donations or investors Vehicles and transportation Everyday essentials Housing and household needs Health, accessibility and care Emotional support and connections Volunteers and professional help Equipment, tools and materials Education and opportunities Community, animals and environmental needs Something else Describe what would help in your own words Fundraising goal (USD) iFund can help find noncash support. Your private Mission can request not sure yet without a dollar target. Publishing a donation-collecting campaign still needs a positive cash goal. Explore a support-only Mission. Campaign cover image (optional) Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission. Upload your cover Or create your own original iFund illustration For your first iFund campaign, try making a distinctive illustration based on your own story. Choose an art style and review the result before attaching it. This is illustrative artwork, not photographic evidence. Illustration style Interstellar Futuristic Cyberpunk Comic illustration Generate illustration Image generation is quota-limited and only works when the verified provider service is available. No images are published automatically. Or paste an image URL Optional campaign end date Private location note This setup note stays private. Public Atlas placement below is a separate choice. Public Atlas map location (optional) Show my campaign's approximate city or region as a public marker on the Atlas globe. Never use a home address or precise device location. Opted-out campaigns have no coordinates saved or shared. Opting in publishes the label and broad coordinates for active campaigns. Back Continue Save private draft Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/campaign-voice-artwork-mobile.html",
+      "screenshot": ".stitch/screenshots/campaign-voice-artwork-mobile.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated manual entry; optional panels expanded by local clicks, no microphone, generation, upload, or draft save"
+    },
+    {
+      "id": "campaign-launch-eclipse-desktop",
+      "label": "Campaign creator launch review eclipse — Desktop 1365x900",
+      "route": "/create?manual=1",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "source": [
+        "apps/web/src/pages/CreateCampaign.jsx",
+        "apps/web/src/styles-cosmic-refinement.css",
+        "apps/web/public/cosmic-eclipse.svg"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [
+        {
+          "type": "click",
+          "selector": "button:has-text(\"Continue\")",
+          "repeat": 2,
+          "waitFor": ".ifund-eclipse-moment"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "New Campaign",
+        "Your campaign team",
+        "STORY",
+        "POLARIS",
+        "FORGE",
+        "ECHO",
+        "LINK",
+        "DISCOVER",
+        "PULSE",
+        "ORBIT",
+        "NEXUS",
+        "Take your campaign to another fundraising platform",
+        "Open a fundraising destination",
+        "Tell us what matters",
+        "Campaign writing assistant",
+        "Campaign cover image (optional)",
+        "Untitled campaign",
+        "Your campaign title",
+        "Before you publish"
+      ],
+      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE New Campaign Help Center New Campaign 3 / 3 Your defining moment · Review before publishing More agent help (optional) Progress saved in this browser tab. Account saving starts after you add a campaign title. Untitled campaign No optional short description added. Add your campaign story before publishing. No end date set. Private setup details are never published by this review. Preview your campaign layout Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center. Before you publish Add a campaign title. Add your campaign story before publishing. Set a fundraising goal before publishing. Campaign checkout is temporarily unavailable; you can still save and publish. Save draft Publish campaign Back Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/campaign-launch-eclipse-desktop.html",
+      "screenshot": ".stitch/screenshots/campaign-launch-eclipse-desktop.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated manual entry; wizard advanced locally to the review step, no draft saved or campaign published"
+    },
+    {
+      "id": "campaign-launch-eclipse-mobile",
+      "label": "Campaign creator launch review eclipse — Mobile 390x844",
+      "route": "/create?manual=1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "source": [
+        "apps/web/src/pages/CreateCampaign.jsx",
+        "apps/web/src/styles-cosmic-refinement.css",
+        "apps/web/public/cosmic-eclipse.svg"
+      ],
+      "requiredBuildVariable": null,
+      "interactions": [
+        {
+          "type": "click",
+          "selector": "button:has-text(\"Continue\")",
+          "repeat": 2,
+          "waitFor": ".ifund-eclipse-moment"
+        }
+      ],
+      "title": "Interplanetary Fund — What If?",
+      "headings": [
+        "New Campaign",
+        "Your campaign team",
+        "STORY",
+        "POLARIS",
+        "FORGE",
+        "ECHO",
+        "LINK",
+        "DISCOVER",
+        "PULSE",
+        "ORBIT",
+        "NEXUS",
+        "Take your campaign to another fundraising platform",
+        "Open a fundraising destination",
+        "Tell us what matters",
+        "Campaign writing assistant",
+        "Campaign cover image (optional)",
+        "Untitled campaign",
+        "Your campaign title",
+        "Before you publish"
+      ],
+      "visibleTextPreview": "New Campaign AI Team Profile IFund Social Forums Events New Campaign 3 / 3 Your defining moment · Review before publishing More agent help (optional) Progress saved in this browser tab. Account saving starts after you add a campaign title. Untitled campaign No optional short description added. Add your campaign story before publishing. No end date set. Private setup details are never published by this review. Preview your campaign layout Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center. Before you publish Add a campaign title. Add your campaign story before publishing. Set a fundraising goal before publishing. Campaign checkout is temporarily unavailable; you can still save and publish. Save draft Publish campaign Back Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in Ask IFund",
+      "panelOpened": "not-requested",
+      "html": ".stitch/html/campaign-launch-eclipse-mobile.html",
+      "screenshot": ".stitch/screenshots/campaign-launch-eclipse-mobile.png",
+      "consoleErrors": [],
+      "blockedRequests": 0,
+      "blockedRequestSample": [],
+      "renderState": "Unauthenticated manual entry; wizard advanced locally to the review step, no draft saved or campaign published"
     },
     {
       "id": "agent-team-overview-desktop",
@@ -185,6 +549,8 @@
         "height": 900
       },
       "source": "apps/web/src/pages/AgentsTeam.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "Your mission. Your AI Team.",
@@ -210,6 +576,8 @@
         "height": 844
       },
       "source": "apps/web/src/pages/AgentsTeam.jsx",
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "Your mission. Your AI Team.",
@@ -238,6 +606,8 @@
         "apps/web/src/components/agents/GlobalAgentCompanion.jsx",
         "apps/web/src/components/agents/AgentSidePanel.jsx"
       ],
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "Your mission. Your AI Team.",
@@ -246,7 +616,7 @@
         "Campaign writing studio",
         "NEXUS"
       ],
-      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE AI Team Help Center INTERPLANETARY FUND · MISSION CONTROL Your mission. Your AI Team. One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site. Ask Mission Control ↗ Specialist matching included Account-scoped assistance You approve external actions Meet your specialists Choose an agent to ask an advisory question in a side panel while you browse STORY Campaign Writing ↗ POLARIS Strategy ↗ FORGE Growth ↗ ECHO Communications ↗ LINK Managed Connections ↗ PULSE Outreach ↗ ORBIT Finance ↗ NEXUS Chief of Staff ↗ Ask Mission Control One question. The right specialist. Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization. What would you like help with? Who should answer? Automatically choose the right agent STORY — Campaign Writing POLARIS — Strategy FORGE — Growth ECHO — Communications LINK — Managed Connections PULSE — Outreach ORBIT — Finance NEXUS — Chief of Staff Sign in to ask an agent. Direct AI answers are not enabled on this deployment. You can still choose specialist tools below. Ask iFund Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting. View AI membership Manage AI permission Connect your accounts Specialty directory: 2026-11-15-round-1-shared-team-context. Campaign writing studio The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission. Open writing workspace Sign in to use private writing tools. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Ask the selected agent Open full workspace Voice is optional. Check the words before sending. Spoken words do not approve any action.",
+      "visibleTextPreview": "IFund What If? EXPLORE Home Discover Fund Your Mission Fundraising Events Create a campaign Community Social Feed Global Globe Planetary Impact IFund Newscaster Fundraising Guide Help Center YOUR WORKSPACE AI Team Help Center INTERPLANETARY FUND · MISSION CONTROL Your mission. Your AI Team. One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site. Ask Mission Control ↗ Specialist matching included Account-scoped assistance You approve external actions Meet your specialists Choose an agent to ask an advisory question in a side panel while you browse STORY Campaign Writing ↗ POLARIS Strategy ↗ FORGE Growth ↗ ECHO Communications ↗ LINK Managed Connections ↗ PULSE Outreach ↗ ORBIT Finance ↗ NEXUS Chief of Staff ↗ Ask Mission Control One question. The right specialist. Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization. What would you like help with? Who should answer? Automatically choose the right agent STORY — Campaign Writing POLARIS — Strategy FORGE — Growth ECHO — Communications LINK — Managed Connections PULSE — Outreach ORBIT — Finance NEXUS — Chief of Staff Sign in to ask an agent. Direct AI answers are not enabled on this deployment. You can still choose specialist tools below. Ask iFund Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting. View AI membership Manage AI permission Connect your accounts Specialty directory: 2026-11-15-round-1-shared-team-context. Campaign writing studio The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission. Open writing workspace Sign in to use private writing tools. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Hands-free questions Ask the selected agent Open full workspace Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. Spoken words do not approve any action. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.",
       "panelOpened": "visible",
       "html": ".stitch/html/agent-chat-desktop.html",
       "screenshot": ".stitch/screenshots/agent-chat-desktop.png",
@@ -267,6 +637,8 @@
         "apps/web/src/components/agents/GlobalAgentCompanion.jsx",
         "apps/web/src/components/agents/AgentSidePanel.jsx"
       ],
+      "requiredBuildVariable": null,
+      "interactions": [],
       "title": "Interplanetary Fund — What If?",
       "headings": [
         "Your mission. Your AI Team.",
@@ -275,7 +647,7 @@
         "Campaign writing studio",
         "NEXUS"
       ],
-      "visibleTextPreview": "AI Team AI Team Profile IFund Social Forums Events INTERPLANETARY FUND · MISSION CONTROL Your mission. Your AI Team. One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site. Ask Mission Control ↗ Specialist matching included Account-scoped assistance You approve external actions Meet your specialists Choose an agent to ask an advisory question in a side panel while you browse STORY Campaign Writing ↗ POLARIS Strategy ↗ FORGE Growth ↗ ECHO Communications ↗ LINK Managed Connections ↗ PULSE Outreach ↗ ORBIT Finance ↗ NEXUS Chief of Staff ↗ Ask Mission Control One question. The right specialist. Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization. What would you like help with? Who should answer? Automatically choose the right agent STORY — Campaign Writing POLARIS — Strategy FORGE — Growth ECHO — Communications LINK — Managed Connections PULSE — Outreach ORBIT — Finance NEXUS — Chief of Staff Sign in to ask an agent. Direct AI answers are not enabled on this deployment. You can still choose specialist tools below. Ask iFund Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting. View AI membership Manage AI permission Connect your accounts Specialty directory: 2026-11-15-round-1-shared-team-context. Campaign writing studio The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission. Open writing workspace Sign in to use private writing tools. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Ask the selected agent Open full workspace Voice is optional. Check the words before sending. Spoken words do not approve any action.",
+      "visibleTextPreview": "AI Team AI Team Profile IFund Social Forums Events INTERPLANETARY FUND · MISSION CONTROL Your mission. Your AI Team. One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site. Ask Mission Control ↗ Specialist matching included Account-scoped assistance You approve external actions Meet your specialists Choose an agent to ask an advisory question in a side panel while you browse STORY Campaign Writing ↗ POLARIS Strategy ↗ FORGE Growth ↗ ECHO Communications ↗ LINK Managed Connections ↗ PULSE Outreach ↗ ORBIT Finance ↗ NEXUS Chief of Staff ↗ Ask Mission Control One question. The right specialist. Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization. What would you like help with? Who should answer? Automatically choose the right agent STORY — Campaign Writing POLARIS — Strategy FORGE — Growth ECHO — Communications LINK — Managed Connections PULSE — Outreach ORBIT — Finance NEXUS — Chief of Staff Sign in to ask an agent. Direct AI answers are not enabled on this deployment. You can still choose specialist tools below. Ask iFund Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting. View AI membership Manage AI permission Connect your accounts Specialty directory: 2026-11-15-round-1-shared-team-context. Campaign writing studio The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission. Open writing workspace Sign in to use private writing tools. Support Interplanetary Fund Optional support helps maintain the IFund platform. It does not fund the campaign shown on any other page. Support IFund Pay securely with the methods PayPal offers you at checkout. Our Story · About · Contact · Terms · Privacy · Health Privacy · Help & Legal · Get the app © 2026 Interplanetary Fund · All rights reserved · Donations are voluntary and may not reach campaign goals. Log in NEXUS Chief of Staff Keep browsing iFund while this advisory panel stays open. NEXUS ECHO PULSE ORBIT POLARIS FORGE LINK STORY DISCOVER NEXUS can help with chief of staff. Ask a question below. Site help Create a campaign Discover Sign in to ask an agent. Sign in Speak Voice off Hands-free questions Ask the selected agent Open full workspace Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. Spoken words do not approve any action. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.",
       "panelOpened": "visible",
       "html": ".stitch/html/agent-chat-mobile.html",
       "screenshot": ".stitch/screenshots/agent-chat-mobile.png",

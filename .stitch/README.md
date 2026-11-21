@@ -6,7 +6,7 @@ This directory is an **additive, source-only design-reference kit** for Google S
 
 - `DESIGN.md` — Stitch-compatible design system following Google's published DESIGN.md alpha schema. YAML frontmatter is normative; the markdown sections explain intent.
 - `components/sticker-sheet.html` — representative component anatomy with `<!-- COMPONENT: name -->` markers for Stitch external references.
-- `references/` — source-derived specifications for the public homepage, member dashboard, campaign creator, persistent agent chat, and AI Team overview.
+- `references/` — source-derived specifications for the public homepage, member dashboard, secure sign-in voice entry, What If support selection, campaign creator voice/artwork/eclipse states, persistent agent chat, and AI Team overview.
 - `scripts/capture-references.mjs` — reproducible local Strategy A capture script.
 - `html/` and `screenshots/` — computed-style-resolved static HTML and desktop/mobile screenshots generated from a local `apps/web` production build.
 - `capture-manifest.json` — exact routes, viewports, headings, console errors, blocked requests, and render-state caveats for every capture.
@@ -20,17 +20,21 @@ The capture script:
 1. requires `apps/web/dist` from `npm.cmd run build` in `apps/web`;
 2. starts Vite preview on `http://127.0.0.1:4178` only;
 3. aborts all non-GET requests and all non-local HTTP(S) requests;
-4. renders each route at 1365×900 and 390×844;
+4. renders each route at 1365×900 and 390×844, applying only local form clicks/selections for the expanded reference states;
 5. inlines same-origin CSS, images, and fonts as data URIs, removes scripts, and writes static HTML;
 6. takes viewport screenshots and records a manifest.
+
+The reference build sets `VITE_IFUND_WHAT_IF_ENABLED=enabled` so `/what-if` renders. That setting is recorded in the manifest and is **not** an authorization to enable the flag in preview or production. The capture script verifies the route did not redirect and aborts if the local build variables do not match.
 
 To regenerate:
 
 ```powershell
+$env:VITE_IFUND_WHAT_IF_ENABLED = "enabled"
 cd apps/web
 npm.cmd run build
 cd ../..
 node .stitch/scripts/capture-references.mjs
+Remove-Item Env:VITE_IFUND_WHAT_IF_ENABLED
 ```
 
 ## Validation
@@ -41,12 +45,13 @@ Google's official DESIGN.md CLI was run with:
 npx.cmd -p @google/design.md designmd lint --format json .stitch/DESIGN.md
 ```
 
-Result: **0 errors**, 59 warnings, 1 info. The actionable contrast warning was resolved by introducing the `colors.action` CTA token while preserving the shipped `colors.primary` value. Remaining warnings are intentional: grouped light/dark/studio/cosmic/agent palettes are reference libraries rather than component-bound tokens, and the CLI version flags `motion` as ignored by its exporters even though the published specification includes it.
+Result: **0 errors**, 67 warnings, 1 info. The actionable contrast warning was resolved by introducing the `colors.action` CTA token while preserving the shipped `colors.primary` value. Remaining warnings are intentional: grouped light/dark/studio/cosmic/agent palettes (including symmetry and eclipse tokens) are reference libraries rather than component-bound tokens, and the CLI version flags `motion` as ignored by its exporters even though the published specification includes it.
 
 ## Evidence limits
 
 - Captures are **unauthenticated/public render states only**. The dashboard capture is the account-services-unavailable guest shell, not the signed-in workspace. Dashboard, creator, agent chat, and AI Team signed-in anatomy is documented from source but is **NOT TESTED** in a browser.
-- The agent chat capture opens the side panel with a local UI event; no question was sent and no hosted inference was invoked.
+- The agent chat and sign-in voice captures open the side panel with a local UI event; no question was sent, password entered, or hosted inference invoked.
+- The What If capture fills one synthetic prompt and chooses a noncash support option locally; Explore and Save are not clicked. The voice/artwork capture expands disclosures and the launch capture advances the guest wizard locally; no microphone, image generation, upload, draft save, or publication is performed.
 - External providers, Supabase, Cloudflare, PayPal, mail routing, OAuth grants, and staging/production origins were not contacted by the capture.
 - No Stitch project, branch, preview, production deployment, or GitHub action was created or modified.
 - Blocked analytics/remote requests in the manifest are a consequence of the read-only local harness, not a claim about hosted behavior.

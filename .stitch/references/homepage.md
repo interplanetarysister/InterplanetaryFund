@@ -12,7 +12,7 @@ The homepage is a focused invitation: one memorable brand promise, one immediate
 ## Section order and anatomy
 
 1. **Public chrome.** `.ifund-public` on a deep navy field. `QuickActions` sits at the lower left, `MobileBottomNav` uses safe-area bottom padding, and the global account launcher stays available. No `PrelaunchNotice` or agent launcher is rendered here.
-2. **Atmospheric hero field.** A `relative isolate` container with decorative radial blue/teal fields and a masked 72px dot grid, both `aria-hidden` and pointer-transparent. No network hero image is requested.
+2. **Atmospheric hero field.** A `relative isolate` container with decorative radial blue/teal fields and a masked 72px dot grid, both `aria-hidden` and pointer-transparent. The current public surface also layers the local `cosmic-symmetry.svg` geometry and a slow cyan/violet drift; reduced motion freezes it, print removes it, and no network hero image is requested.
 3. **Public header.** `BrandLogo` links home; `Our Story` links to `/our-story`; `Discover` appears from `sm`; the right action is `Dashboard` for a verified non-anonymous member and `Log in` for everyone else.
 4. **Hero.** Centered `max-w-5xl` content: pill eyebrow "Interplanetary Fund", `h1` "What if anything were possible?" with "anything" in brand gradient, a short supporting lede, and `PromptComposer id="home-what-if" variant="hero"`. The composer label is "What would you like to make possible?", the submit label is "Build my campaign", the limit is 1,500 characters, and the note says "Your idea stays private until you choose to publish."
 5. **Secondary actions.** "Start a campaign without a prompt" → `/create?manual=1`, "Explore campaigns" → `/discover`, and "Get the IFund app" → `/download` with an installation helper line.
@@ -22,7 +22,7 @@ The homepage is a focused invitation: one memorable brand promise, one immediate
 
 ## Visual tokens
 
-- Hero field: `#080c18 → #0e1529 → #080c18`; blue `rgba(65,94,210,.20)` and teal `rgba(23,165,176,.11)` radial accents; dot grid lines `rgba(153,190,255,.06)`.
+- Hero field: `#080c18 → #0e1529 → #080c18`; blue `rgba(65,94,210,.20)` and teal `rgba(23,165,176,.11)` radial accents; dot grid lines `rgba(153,190,255,.06)`; symmetry geometry stroke gradient `#28E8FF → #7688FF → #FF69DE → #6EFFBB`, low opacity.
 - Focused content: `max-w-5xl`, centered, `px-5 sm:px-8`, generous top padding, and at least 44px interactive controls.
 - Headline: Fraunces display, 48px mobile / 72px desktop, tight tracking; "anything" uses the cyan/blue/violet brand gradient.
 - Prompt card: `#111a30/95`, 24px radius, low-opacity cyan border, 20px mobile / 28px desktop padding, dark textarea.
@@ -44,7 +44,7 @@ Mobile uses `px-5`, one-column cards, safe-area bottom padding, and the fixed bo
 
 ## Source crosswalk
 
-`Home.jsx` · `OurStory.jsx` (archived long-form page) · `BrandLogo.jsx` · `PromptComposer.jsx` · `MobileBottomNav.jsx` · `QuickActions.jsx` · `GlobalAgentCompanion.jsx` · `LegalFooter.jsx` · `useAuthSession`.
+`Home.jsx` · `OurStory.jsx` (archived long-form page) · `BrandLogo.jsx` · `PromptComposer.jsx` · `MobileBottomNav.jsx` · `QuickActions.jsx` · `GlobalAgentCompanion.jsx` · `LegalFooter.jsx` · `useAuthSession` · `styles-cosmic-refinement.css` · `cosmic-symmetry.svg`.
 
 ## Stitch variation guidance
 

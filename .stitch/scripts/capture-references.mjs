@@ -48,11 +48,70 @@ const targets = [
     renderState: "Unauthenticated; account services unavailable, no private dashboard content rendered",
   },
   {
+    id: "auth-voice",
+    label: "Secure sign-in with NEXUS voice entry (guest render state)",
+    route: "/login?returnTo=%2Fwhat-if",
+    source: [
+      "apps/web/src/pages/AuthPage.jsx",
+      "apps/web/src/components/agents/GlobalAgentCompanion.jsx",
+      "apps/web/src/components/agents/AgentSidePanel.jsx",
+    ],
+    openAgent: true,
+    renderState: "Unauthenticated; secure sign-in form visible with advisory panel opened locally, no password or verification code entered",
+  },
+  {
+    id: "what-if-support",
+    label: "What If? private Mission with optional support selection",
+    route: "/what-if",
+    source: [
+      "apps/web/src/pages/WhatIfStart.jsx",
+      "apps/web/src/lib/supportNeeds.mjs",
+    ],
+    openAgent: false,
+    requiredBuildVariable: "VITE_IFUND_WHAT_IF_ENABLED=enabled",
+    interactions: [
+      { type: "fill", selector: "#what-if-prompt", value: "I need help making reliable transportation possible for my family." },
+      { type: "select", selector: "#what-if-support", value: "transport" },
+    ],
+    renderState: "Unauthenticated; local form text and noncash support choice only, no preview or save action",
+  },
+  {
     id: "campaign-creator",
     label: "Campaign creator (manual guest render state)",
     route: "/create?manual=1",
     source: "apps/web/src/pages/CreateCampaign.jsx",
     openAgent: false,
+  },
+  {
+    id: "campaign-voice-artwork",
+    label: "Campaign creator voice guide and original artwork choices",
+    route: "/create?manual=1",
+    source: [
+      "apps/web/src/components/campaigns/CampaignVoiceGuide.jsx",
+      "apps/web/src/components/campaigns/CampaignImageChoices.jsx",
+      "apps/web/src/lib/supportNeeds.mjs",
+    ],
+    openAgent: false,
+    interactions: [
+      { type: "click", selector: '[aria-label="NEXUS spoken campaign walkthrough"] summary' },
+      { type: "click", selector: '[aria-label="Generate optional iFund cover art"] summary' },
+    ],
+    renderState: "Unauthenticated manual entry; optional panels expanded by local clicks, no microphone, generation, upload, or draft save",
+  },
+  {
+    id: "campaign-launch-eclipse",
+    label: "Campaign creator launch review eclipse",
+    route: "/create?manual=1",
+    source: [
+      "apps/web/src/pages/CreateCampaign.jsx",
+      "apps/web/src/styles-cosmic-refinement.css",
+      "apps/web/public/cosmic-eclipse.svg",
+    ],
+    openAgent: false,
+    interactions: [
+      { type: "click", selector: 'button:has-text("Continue")', repeat: 2, waitFor: ".ifund-eclipse-moment" },
+    ],
+    renderState: "Unauthenticated manual entry; wizard advanced locally to the review step, no draft saved or campaign published",
   },
   {
     id: "agent-team-overview",
@@ -104,6 +163,28 @@ async function findLocalBrowser() {
     if (await exists(candidate)) return candidate;
   }
   return null;
+}
+
+async function applyInteractions(page, interactions = []) {
+  for (const interaction of interactions) {
+    const locator = page.locator(interaction.selector).first();
+    if (interaction.type === "fill") {
+      await locator.fill(interaction.value);
+    } else if (interaction.type === "select") {
+      await locator.selectOption(interaction.value);
+    } else if (interaction.type === "click") {
+      const repeats = Number.isInteger(interaction.repeat) ? interaction.repeat : 1;
+      for (let index = 0; index < repeats; index += 1) {
+        await locator.click();
+        await page.waitForTimeout(200);
+      }
+    } else {
+      throw new Error(`Unsupported capture interaction: ${interaction.type}`);
+    }
+    if (interaction.waitFor) {
+      await page.locator(interaction.waitFor).first().waitFor({ state: "visible", timeout: 10000 });
+    }
+  }
 }
 
 async function waitForPreview(timeoutMs = 30000) {
@@ -209,6 +290,12 @@ async function capture(page, target, viewport, manifest) {
   });
 
   await page.goto(baseUrl + target.route, { waitUntil: "load", timeout: 60000 });
+  const expectedPath = new URL(target.route, baseUrl).pathname;
+  const actualPath = new URL(page.url()).pathname;
+  if (actualPath !== expectedPath) {
+    throw new Error(`${target.id} redirected to ${actualPath}; required ${expectedPath}. Check the local build variables.`);
+  }
+  await applyInteractions(page, target.interactions);
   await page.evaluate(async () => {
     if (document.fonts) await document.fonts.ready;
   });
@@ -242,7 +329,8 @@ async function capture(page, target, viewport, manifest) {
       .querySelectorAll('link[rel="stylesheet"], link[rel="modulepreload"]')
       .forEach((node) => node.remove());
     const style = document.createElement("style");
-    style.textContent = styles.join("\n");
+    // Browser cssText serialization can add trailing spaces that git flags; normalize them.
+    style.textContent = styles.join("\n").replace(/[ \t]+$/gm, "");
     clone.querySelector("head")?.appendChild(style);
     return {
       html: `<!doctype html>\n${clone.outerHTML}`,
@@ -267,6 +355,8 @@ async function capture(page, target, viewport, manifest) {
     route: target.route,
     viewport: { width: viewport.width, height: viewport.height },
     source: target.source,
+    requiredBuildVariable: target.requiredBuildVariable || null,
+    interactions: target.interactions || [],
     title: extracted.title,
     headings: extracted.headings,
     visibleTextPreview: extracted.visibleText,
@@ -302,11 +392,15 @@ async function main() {
     browser: browserLabel,
     generator: ".stitch/scripts/capture-references.mjs",
     strategy: "Google Stitch code-to-design Strategy A (local built app, computed styles resolved)",
+    buildVariables: {
+      VITE_IFUND_WHAT_IF_ENABLED: "enabled (local reference build only; not a release or production setting)",
+    },
     constraints: [
       "Local Vite preview only; no hosted origin was contacted",
       "Read-only: all non-GET requests and all non-local HTTP(S) requests were aborted",
       "No authentication, member-agent action, payment, provider, or Stitch upload was performed",
       "Static HTML has scripts removed and same-origin CSS/images/fonts inlined as data URIs",
+      "Local clicks only expanded optional panels or advanced the guest wizard; no draft or account mutation occurred",
     ],
     captures: [],
   };

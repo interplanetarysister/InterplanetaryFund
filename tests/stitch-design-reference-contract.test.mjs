@@ -33,7 +33,10 @@ function slugify(heading) {
 
 function externalReferences(text) {
   return [...text.matchAll(/@([A-Za-z0-9._/-]+\.[A-Za-z0-9]+)(?:#([^\s`)\]]+))?/g)]
-    .map((match) => ({ target: match[1], fragment: match[2] || null }));
+    .map((match) => ({
+      target: match[1],
+      fragment: match[2] ? match[2].replace(/[.,;:!?]+$/, "") : null,
+    }));
 }
 
 test("DESIGN.md follows the official Stitch section order and token schema", () => {
@@ -93,7 +96,7 @@ test("every Stitch external reference resolves inside .stitch", () => {
     }
   }
 
-  assert.ok(checked >= 20, `expected a complete reference graph, found ${checked} references`);
+  assert.ok(checked >= 32, `expected a complete reference graph, found ${checked} references`);
 });
 
 test("official DESIGN.md lint evidence remains structurally clean", () => {
@@ -103,11 +106,20 @@ test("official DESIGN.md lint evidence remains structurally clean", () => {
   assert.ok(lint.findings.every((finding) => finding.severity !== "error"));
 });
 
-test("capture manifest covers all four requested screens at two viewports", () => {
+test("capture manifest covers the merged reference screens at two viewports", () => {
   assert.ok(existsSync(manifestPath), "missing .stitch/capture-manifest.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-  assert.equal(manifest.captures.length, 10);
+  assert.equal(manifest.captures.length, 18);
   assert.match(manifest.strategy, /Strategy A/);
+  assert.match(
+    manifest.buildVariables?.VITE_IFUND_WHAT_IF_ENABLED || "",
+    /enabled.*local reference build only/i,
+    "what-if capture build variable must be documented as local-only",
+  );
+  assert.ok(
+    manifest.constraints.some((line) => /no draft or account mutation/i.test(line)),
+    "local interaction boundaries must be documented",
+  );
 
   const ids = new Set(manifest.captures.map((capture) => capture.id));
   for (const id of [
@@ -115,8 +127,16 @@ test("capture manifest covers all four requested screens at two viewports", () =
     "homepage-mobile",
     "dashboard-desktop",
     "dashboard-mobile",
+    "auth-voice-desktop",
+    "auth-voice-mobile",
+    "what-if-support-desktop",
+    "what-if-support-mobile",
     "campaign-creator-desktop",
     "campaign-creator-mobile",
+    "campaign-voice-artwork-desktop",
+    "campaign-voice-artwork-mobile",
+    "campaign-launch-eclipse-desktop",
+    "campaign-launch-eclipse-mobile",
     "agent-chat-desktop",
     "agent-chat-mobile",
     "agent-team-overview-desktop",
@@ -135,6 +155,11 @@ test("capture manifest covers all four requested screens at two viewports", () =
       /rel=["']modulepreload["']/i,
       `modulepreload link survived extraction for ${capture.id}`,
     );
+    assert.doesNotMatch(
+      capturedHtml,
+      /[ \t]+$/m,
+      `trailing whitespace survived extraction for ${capture.id}`,
+    );
     assert.ok(existsSync(path.join(repoDir, capture.screenshot)), `missing screenshot for ${capture.id}`);
     assert.ok(
       Number.isInteger(capture.viewport.width) && capture.viewport.width > 0,
@@ -146,6 +171,7 @@ test("capture manifest covers all four requested screens at two viewports", () =
     );
     assert.match(capture.renderState, /Unauthenticated/);
     assert.deepEqual(capture.consoleErrors, [], `console errors captured for ${capture.id}`);
+    assert.ok(Array.isArray(capture.interactions), `missing interaction record for ${capture.id}`);
 
     if (capture.id.startsWith("dashboard-")) {
       assert.match(
@@ -162,8 +188,24 @@ test("capture manifest covers all four requested screens at two viewports", () =
     }
 
     assert.ok(capture.headings.length > 0, `no headings captured for ${capture.id}`);
-    if (capture.id.startsWith("agent-chat-")) {
+    if (capture.id.startsWith("agent-chat-") || capture.id.startsWith("auth-voice-")) {
       assert.equal(capture.panelOpened, "visible", `agent panel not opened for ${capture.id}`);
+    }
+    if (capture.id.startsWith("auth-voice-")) {
+      assert.match(capture.visibleTextPreview, /Use NEXUS voice navigation/);
+      assert.match(capture.visibleTextPreview, /never speak passwords or codes/i);
+    }
+    if (capture.id.startsWith("what-if-support-")) {
+      assert.equal(capture.requiredBuildVariable, "VITE_IFUND_WHAT_IF_ENABLED=enabled");
+      assert.match(capture.visibleTextPreview, /Money is only one kind of support/);
+      assert.match(capture.visibleTextPreview, /Vehicles and transportation/);
+    }
+    if (capture.id.startsWith("campaign-voice-artwork-")) {
+      assert.match(capture.visibleTextPreview, /Have NEXUS guide me by voice \(optional\)/);
+      assert.match(capture.visibleTextPreview, /Or create your own original iFund illustration/);
+    }
+    if (capture.id.startsWith("campaign-launch-eclipse-")) {
+      assert.match(capture.visibleTextPreview, /Your defining moment · Review before publishing/);
     }
   }
 });
@@ -221,4 +263,57 @@ test("design references describe the current merged UI contracts", () => {
     assert.ok(capture(id).headings.includes("New Campaign"), `missing creator heading for ${id}`);
     assert.ok(capture(id).headings.includes("Tell us what matters"), `missing compact prompt for ${id}`);
   }
+
+  const authVoice = readFileSync(path.join(referencesDir, "auth-voice.md"), "utf8");
+  assert.match(authVoice, /never speak passwords or codes/);
+  assert.match(authVoice, /Sign-in-first|member-only commands open secure sign-in/i);
+  const whatIf = readFileSync(path.join(referencesDir, "what-if.md"), "utf8");
+  for (const phrase of [
+    "Not sure yet",
+    "Money is only one kind of support",
+    "An unanswered optional selector is `unspecified`",
+  ]) {
+    assert.ok(whatIf.includes(phrase), `What If reference is stale: ${phrase}`);
+  }
+  assert.match(creator, /Optional NEXUS voice guide/);
+  assert.match(creator, /Step 2 — Launch review eclipse/);
+  assert.match(creator, /AI-generated illustration/);
+  assert.match(design, /cosmic-symmetry\.svg/);
+  assert.match(design, /cosmic-eclipse\.svg/);
+  assert.match(design, /Spoken navigation is advisory and local/);
+  assert.match(design, /Money is one of twelve needs/);
+
+  const stickerSheet = readFileSync(path.join(stitchDir, "components/sticker-sheet.html"), "utf8");
+  for (const marker of [
+    "voice-guide",
+    "support-selector",
+    "artwork-choice",
+    "eclipse-review-panel",
+    "auth-voice-callout",
+  ]) {
+    assert.ok(stickerSheet.includes(`<!-- COMPONENT: ${marker} -->`), `missing sticker component: ${marker}`);
+  }
+
+  const support = readFileSync(path.join(repoDir, "apps/web/src/lib/supportNeeds.mjs"), "utf8");
+  assert.match(support, /id:"unspecified",label:"Not sure yet"/);
+  assert.match(support, /need\.id==="unspecified"\?""/);
+  const voice = readFileSync(path.join(repoDir, "apps/web/src/lib/voiceSiteIntents.mjs"), "utf8");
+  assert.match(voice, /signInRequired:true/);
+  assert.match(voice, /No account action, outside post, or publication has occurred/);
+  const voiceGuide = readFileSync(
+    path.join(repoDir, "apps/web/src/components/campaigns/CampaignVoiceGuide.jsx"),
+    "utf8",
+  );
+  assert.match(voiceGuide, /supportNeed\(supportType\)\.cash===true/);
+  const artwork = readFileSync(
+    path.join(repoDir, "apps/web/src/components/campaigns/CampaignImageChoices.jsx"),
+    "utf8",
+  );
+  assert.match(artwork, /onApply\(url,\{cover_image_is_ai:true\}\)/);
+  const lifecycle = readFileSync(path.join(repoDir, "apps/web/src/lib/campaignLifecycle.js"), "utf8");
+  assert.match(lifecycle, /export function withCoverProvenance/);
+  const publicData = readFileSync(path.join(repoDir, "apps/web/src/api/publicData.js"), "utf8");
+  assert.match(publicData, /cover_image_is_ai: coverIsAI\(row\.cover_image_url/);
+  const detail = readFileSync(path.join(repoDir, "apps/web/src/pages/CampaignDetail.jsx"), "utf8");
+  assert.match(detail, /AI-generated illustration/);
 });

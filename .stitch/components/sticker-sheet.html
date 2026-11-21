@@ -63,6 +63,20 @@
     .bubble { max-width:92%; padding:12px 14px; border-radius:16px; font-size:13px; line-height:1.6; }
     .bubble.user { align-self:flex-end; background:#175d7e; color:#fff; }
     .bubble.answer { align-self:flex-start; background:#26364d; border:1px solid #36495f; }
+    .voice-guide, .artwork-choice { max-width:620px; border:1px solid rgb(34 211 238 / .35); border-radius:12px; padding:14px; background:#fff; }
+    .voice-guide p, .artwork-choice p { margin:8px 0 0; font-size:13px; color:var(--muted); }
+    .voice-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .voice-actions button { min-height:44px; border:1px solid var(--border); background:#f8fafc; color:var(--fg); padding:0 14px; font-size:13px; }
+    .support-selector { display:grid; gap:8px; max-width:620px; }
+    .support-selector select { min-height:48px; border:1px solid var(--border); border-radius:12px; padding:0 12px; background:#fff; color:var(--fg); font:15px Inter, sans-serif; }
+    .support-selector small { color:var(--muted); }
+    .eclipse-review { max-width:720px; margin-top:14px; border-radius:28.8px; padding:32px; overflow:hidden;
+      background:radial-gradient(circle at 50% 18%,#a8f4ff55,transparent 23%),linear-gradient(160deg,#253866,#050a1c); color:#f4f8ff;
+      box-shadow:inset 0 0 0 1px rgb(130 190 240 / .22),0 15px 52px rgb(4 8 26 / .27); }
+    .eclipse-review .caption { color:#d5e9ff; font-size:12px; font-weight:700; text-align:center; text-shadow:0 2px 15px #061128; }
+    .eclipse-review h3 { margin:18px 0 6px; font:700 20px Manrope,sans-serif; }
+    .auth-voice-callout { max-width:420px; border:1px solid rgb(34 211 238 / .25); border-radius:12px; padding:12px; background:rgb(6 182 212 / .10); color:#e2f6ff; }
+    .auth-voice-callout p { margin:0 0 8px; font-size:13px; }
     .status-alert { border:1px solid #fca5a5; background:#fef2f2; color:#991b1b; border-radius:12px; padding:12px 14px; font-size:13px; }
     .nav-link { display:inline-flex; align-items:center; min-height:44px; padding:8px 14px; border-radius:12px;
       background:#111c36; color:#dbeafe; font-weight:650; }
@@ -152,6 +166,47 @@
         <div class="bubble user">How should I structure my campaign story?</div>
         <div class="bubble answer">Advisory answer with consultation trail. No publishing, payment, or external action was performed.</div>
       </div>
+    </section>
+
+    <h2>Optional NEXUS voice guide</h2>
+    <!-- COMPONENT: voice-guide -->
+    <section class="voice-guide" aria-label="NEXUS spoken campaign walkthrough">
+      <strong>Have NEXUS guide me by voice (optional)</strong>
+      <p>Answer each question aloud. Spoken answers only fill draft fields; no microphone is kept constantly active and voice answers do not authorize publication.</p>
+      <p>What funding, supplies, connections, or help would make the biggest difference? You can say skip.</p>
+      <div class="voice-actions"><button type="button">Answer by voice</button><button type="button">Hear question</button><button type="button">Skip</button></div>
+    </section>
+
+    <h2>Optional support selector</h2>
+    <!-- COMPONENT: support-selector -->
+    <label class="support-selector">
+      <span>What kind of help would make it possible? (optional)</span>
+      <select><option>Not sure yet</option><option>Money, donations or investors</option><option>Vehicles and transportation</option></select>
+      <small>Money is one of twelve kinds of support. An unanswered selector is not a cash goal.</small>
+    </label>
+
+    <h2>Original artwork choice</h2>
+    <!-- COMPONENT: artwork-choice -->
+    <section class="artwork-choice" aria-label="Generate optional iFund cover art">
+      <strong>Or create your own original iFund illustration</strong>
+      <p>Choose a style and review the result before attaching it. This is illustrative artwork, not photographic evidence. No images are published automatically.</p>
+      <div class="voice-actions"><button type="button">Generate illustration</button><button type="button">Use this illustration</button><button type="button">Discard</button></div>
+    </section>
+
+    <h2>Launch review eclipse</h2>
+    <!-- COMPONENT: eclipse-review-panel -->
+    <section class="eclipse-review" aria-label="Campaign launch review eclipse">
+      <p class="caption">Your defining moment · Review before publishing</p>
+      <h3>Untitled campaign</h3>
+      <p>Review your own words. Publishing does not require an AI review or a story-length target.</p>
+    </section>
+
+    <h2>Secure sign-in voice entry</h2>
+    <!-- COMPONENT: auth-voice-callout -->
+    <section class="auth-voice-callout">
+      <p>iFund helps people achieve goals using donations, grants, work, donated essentials, equipment, volunteers and trusted connections—not fundraising alone.</p>
+      <button type="button">Use NEXUS voice navigation</button>
+      <p>NEXUS can guide you to the correct screen by voice. Complete email verification and passwords securely on screen; never speak passwords or codes.</p>
     </section>
 
     <h2>Status alert</h2>
