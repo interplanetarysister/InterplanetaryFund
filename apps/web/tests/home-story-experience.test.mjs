@@ -31,7 +31,7 @@ test("campaign prompt starts with prefilled words and optional refinements stay 
   assert.match(creator, /aria-label="Your starting idea"/);
   assert.match(creator, /A little more context \(optional\)/);
   assert.match(creator, /CampaignVoiceInput/);
-  assert.match(creator, /What would success look like\?/);
+  assert.match(creator, /What resources or help would make this possible\?/);
   assert.match(creator, /stepIcons = \[Target, BookOpen, Rocket\]/);
   assert.match(creator, /Already fundraising somewhere else\? \(optional\)/);
   assert.match(creator, /restoreBrowserCampaign\(sessionStorage,ownerId\)/);
