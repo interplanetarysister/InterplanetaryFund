@@ -714,7 +714,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             <div className="text-slate-900 dark:text-white"><CampaignLocationFields form={form} change={change} disabled={disabled}/><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled}/></div>
           </div></details>
           <p className="text-xs text-slate-300">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>
-          <p className="text-xs text-slate-300">{donationsEnabled?"Published campaigns can accept verified PayPal donations.":"Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
+          <p className="text-xs text-slate-300">{donationsEnabled?"Publishing makes this active campaign eligible for verified PayPal donations.":"Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
         </div>}
         {error&&<p role="alert" className="text-sm text-amber-200">{error}</p>}
         {browserSaved&&<p role="status" className="text-xs text-slate-300">Draft saved in this browser tab only. It is not published.</p>}
