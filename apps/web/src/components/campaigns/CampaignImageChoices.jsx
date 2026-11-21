@@ -51,7 +51,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    urlRef.current=url;setFile(candidate);setPreview(url);
    setMessage("Original iFund illustration generated. Review it; it is not a documentary photograph or an uploaded campaign cover.");
   }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Could not generate artwork.");}
-  finally{busy.current=false;if(alive.current&&token===id.current)setStatus("idle");}
+  finally{busy.current=false;if(alive.current)setStatus("idle");}
  }
  async function apply(){
   if(busy.current||disabled||!file)return;
@@ -63,7 +63,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    onApply(url);
    setMessage("Illustration uploaded to your public cover storage and selected in this draft. Save your campaign to retain it.");
   }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Could not upload illustration.");}
-  finally{busy.current=false;if(alive.current&&token===id.current)setStatus("idle");}
+  finally{busy.current=false;if(alive.current)setStatus("idle");}
  }
  return <details className="space-y-3 rounded-xl border border-cyan-400/30 p-4" aria-label="Generate optional iFund cover art">
    <summary className="cursor-pointer font-semibold">Or create your own original iFund illustration</summary>
