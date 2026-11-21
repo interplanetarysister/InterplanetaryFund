@@ -2,13 +2,14 @@
 // policies. Campaign records and public Atlas locations remain authoritative.
 import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
+import { supportNeed } from "../lib/supportNeeds.mjs";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const SETUP_COLUMNS="campaign_id,owner_id,draft_step,end_date,location,location_lat,location_lng,cover_image_is_ai,ai_profile,story_versions,updated_at";
 const text=(value,max)=>typeof value==="string"?value.slice(0,max):"";
 export function campaignSetupPayload(form={},draftStep=0){
   const brief=form.writing_brief||form.ai_profile?.writing_brief||{};
   const profile={tone:text(form.ai_profile?.tone,200),never_change:text(form.ai_profile?.never_change,2000),
-    writing_brief:{wizard_version:2,writingPath:text(brief.writingPath,40),details:text(brief.details,1500),beneficiary:text(brief.beneficiary,100),need:text(brief.need,100)}};
+    writing_brief:{wizard_version:2,writingPath:text(brief.writingPath,40),details:text(brief.details,1500),beneficiary:text(brief.beneficiary,100),need:text(brief.need,100),support_type:supportNeed(brief.support_type).id}};
   if(new TextEncoder().encode(JSON.stringify(profile)).length>7900)throw Error("Your writing preferences are too long. Shorten the instructions before saving.");
   const versions=Array.isArray(form.story_versions)?form.story_versions.filter(v=>typeof v?.text==="string"&&v.text.trim()).slice(-20).map(v=>({text:v.text.slice(0,15000),saved_at:text(v.saved_at,50)})):[];
   while(versions.length&&new TextEncoder().encode(JSON.stringify(versions)).length>180000)versions.shift();
