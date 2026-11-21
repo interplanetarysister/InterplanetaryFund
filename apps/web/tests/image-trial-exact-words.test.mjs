@@ -47,6 +47,15 @@ test("server changes protect 24-hour trial/referral extension and subscription e
  assert.doesNotMatch(status,/ifund_agent_referral_status\(\)/);
  assert.match(status,/from public\.ifund_agent_trial_control c/);
  assert.match(status,/left join public\.ifund_referral_trial_accounts t/);
+ const weekly=read("../../../supabase/migrations/20261121081500_ifund_paid_image_rolling_week_quota.sql");
+ const finalStatusStart=weekly.indexOf("create or replace function public.ifund_ai_image_access_status()");
+ assert.ok(finalStatusStart>=0,"missing final paid image access status RPC");
+ const finalStatus=weekly.slice(finalStatusStart);
+ assert.match(finalStatus,/language plpgsql stable security definer/);
+ assert.doesNotMatch(finalStatus,/ifund_agent_referral_status\(\)/);
+ assert.match(finalStatus,/from public\.ifund_agent_trial_control c/);
+ assert.match(finalStatus,/left join public\.ifund_referral_trial_accounts t/);
+ assert.match(finalStatus,/paid_weekly_remaining/);
  const studio=read("../src/pages/AIImageStudio.jsx");
  assert.doesNotMatch(studio,/Generation is limited to three attempts/);
  assert.match(studio,/shared provider budget/);

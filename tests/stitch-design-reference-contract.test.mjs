@@ -290,6 +290,7 @@ test("design references describe the current merged UI contracts", () => {
   assert.match(creator, /AI-generated illustration/);
   assert.match(creator, /Image words \(optional, exact spelling\)/);
   assert.match(creator, /never machine-corrected/);
+  assert.match(creator, /50-attempt rolling seven-day allowance/);
   assert.match(design, /exact-caption-input/);
   assert.match(design, /never let the image model redraw or "improve" spelling/);
   assert.match(design, /cosmic-symmetry\.svg/);
@@ -326,6 +327,8 @@ test("design references describe the current merged UI contracts", () => {
   );
   assert.match(artwork, /onApply\(url,\{cover_image_is_ai:true\}\)/);
   assert.match(artwork, /overlayExactArtworkCaption\(raw,caption\)/);
+  assert.match(artwork, /50 image-generation or improvement attempts per rolling seven days/);
+  assert.match(stickerSheet, /50 image-generation or improvement attempts per rolling seven days/);
   const exactCaption = readFileSync(
     path.join(repoDir, "apps/web/src/lib/exactArtworkCaption.mjs"),
     "utf8",

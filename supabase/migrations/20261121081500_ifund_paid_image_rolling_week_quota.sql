@@ -85,22 +85,26 @@ grant execute on function public.ifund_ai_image_consume_free_quota()
 comment on function public.ifund_ai_image_consume_free_quota() is
  'Verified paid plan: 50 image attempts rolling 7 days. Enabled signup/referral trial: time-limited without personal attempt cap. Shared platform 50 attempts/UTC day, 10-second pacing; requests charged before inference.';
 
+-- Read-only self-check. It must never call the mutating referral-status RPC:
+-- opening the studio cannot start or extend a trial. Trial activation remains
+-- confined to the quota-consuming RPC below.
 create or replace function public.ifund_ai_image_access_status()
-returns jsonb language plpgsql volatile security definer
+returns jsonb language plpgsql stable security definer
 set search_path to '' set row_security to 'off'
 as $fn$
 declare
  v_owner uuid:=auth.uid();
- v_ref jsonb;
  v_sub jsonb;
  v_is_paid boolean;
  v_paid_used integer:=0;
+ v_control_enabled boolean:=false;
+ v_trial_expires_at timestamptz;
+ v_pending_hours bigint:=0;
 begin
  if v_owner is null
    or not coalesce(public.ifund_member_connection_allowed(),false)
    or not coalesce(public.ifund_current_user_has_current_terms(),false)
  then raise exception 'Verified account required' using errcode='42501'; end if;
- v_ref:=public.ifund_agent_referral_status();
  v_sub:=ifund_story_runtime.subscription();
  v_is_paid:=v_sub->>'status'='active'
    and coalesce((v_sub->>'admin_granted')::boolean,false) is false
@@ -108,13 +112,20 @@ begin
  if v_is_paid then
    select count(*)::integer into v_paid_used
    from ifund_ops.ai_image_paid_attempts
-   where owner_id=v_owner and attempted_at>clock_timestamp()-interval '7 days';
+   where owner_id=v_owner and attempted_at>statement_timestamp()-interval '7 days';
  end if;
+ select c.enabled,t.trial_expires_at,t.pending_hours
+   into v_control_enabled,v_trial_expires_at,v_pending_hours
+ from public.ifund_agent_trial_control c
+ left join public.ifund_referral_trial_accounts t on t.owner_id=v_owner
+ where c.singleton is true;
  return jsonb_build_object(
    'entitled',coalesce((v_sub->>'active')::boolean,false),
-   'trial_enabled',coalesce((v_ref->>'trial_enabled')::boolean,false),
-   'trial_expires_at',v_ref->>'trial_expires_at',
-   'pending_hours',coalesce((v_ref->>'pending_hours')::integer,0),
+   'trial_enabled',coalesce(v_control_enabled,false),
+   'trial_expires_at',case
+     when coalesce(v_control_enabled,false) and v_trial_expires_at>statement_timestamp()
+     then v_trial_expires_at else null end,
+   'pending_hours',coalesce(v_pending_hours,0),
    'tier',v_sub->>'tier',
    'status',v_sub->>'status',
    'paid_weekly_limit',case when v_is_paid then 50 else null end,
@@ -131,4 +142,4 @@ revoke all on function public.ifund_ai_image_access_status()
 grant execute on function public.ifund_ai_image_access_status()
  to authenticated;
 comment on function public.ifund_ai_image_access_status() is
- 'Account-scoped paid image use (50 attempts / rolling 7d) and verified signup/referral trial; global provider capacity not guaranteed.';
+ 'Read-only account-scoped paid image use (50 attempts / rolling 7d) and verified trial status; it neither starts nor extends a trial and does not guarantee global provider capacity.';
