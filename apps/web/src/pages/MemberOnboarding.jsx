@@ -71,6 +71,18 @@ export default function MemberOnboarding() {
       <h1 className="text-3xl font-bold">Set up your fundraising workspace</h1>
       <p className="text-sm text-muted-foreground">Choose what to share, then create a campaign or connect an outside account when you are ready. Nothing is published or connected automatically.</p>
     </header>
+    <section className="rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-5 sm:p-6" aria-label="Meet your helpers and take a quick tour">
+      <h2 className="text-xl font-semibold">Meet your team</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Nine specialist helpers are available for writing, campaign plans, finances, opportunities, growth, connections and communications. NEXUS helps you choose the right one. Advice is yours to review, and no message, post, payment or connection is authorized just by opening a chat.</p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="rounded-xl border border-border bg-card p-3"><strong className="text-sm">NEXUS</strong><p className="text-xs text-muted-foreground">Where do I begin?</p></div>
+        <div className="rounded-xl border border-border bg-card p-3"><strong className="text-sm">STORY</strong><p className="text-xs text-muted-foreground">Help me tell my story.</p></div>
+        <div className="rounded-xl border border-border bg-card p-3"><strong className="text-sm">ORBIT</strong><p className="text-xs text-muted-foreground">Help me understand my funds.</p></div>
+      </div>
+      <p className="mt-3 text-sm">Look for <strong>Log in / Account</strong> and <strong>Ask IFund</strong> floating side by side at the bottom right. Log in / Account is on the homepage too; agent chat appears on other pages. The <strong>+</strong> button at bottom left opens quick actions.</p>
+      <p className="mt-2 text-sm text-muted-foreground">A short guide pops up the first time you visit each main page after onboarding. Select Got it to dismiss that page's tip permanently in this browser.</p>
+      <div className="mt-4 flex flex-wrap gap-3"><Link to="/agents" className={buttonClass}>Meet all agents</Link><Link to="/dashboard" className={buttonClass}>Explore your dashboard</Link></div>
+    </section>
     {phase === "loading" && <p role="status">Loading your private profile…</p>}
     {phase === "error" && <section className="space-y-3 rounded-xl border border-destructive/40 p-5" role="alert">
       <p>{error}</p>
