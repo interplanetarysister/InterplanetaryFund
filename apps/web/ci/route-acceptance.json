@@ -119,9 +119,9 @@
       "role": "admin",
       "component": "AdminConnections",
       "source_status": "source_ready",
-      "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; explicit role-guarded App.jsx route",
-      "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics; no provider grants claimed",
-      "backend_evidence": "/api/oauth/status authenticates member session; admin page additionally gated by verified useAdminAccess/MemberAccess and AdminAccess. No OAuth provider success or secret exposure certified.",
+      "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; apps/web/src/App.jsx",
+      "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics. No provider grants claimed.",
+      "backend_evidence": "apps/web/src/hooks/useAdminAccess.js; apps/web/src/components/auth/AdminAccess.jsx; worker/oauth.js; supabase/migrations/20261103120000_ifund_studio_super_admin.sql gate the status surface. No OAuth provider success or secret exposure certified.",
       "owner": "connections"
     },
     {
@@ -139,9 +139,9 @@
       "role": "super_admin",
       "component": "AdminSponsorInquiries",
       "source_status": "source_ready",
-      "source_evidence": "apps/web/src/pages/AdminSponsorInquiries.jsx; guarded App.jsx route",
-      "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs; live admin E2E pending",
-      "backend_evidence": "Verified super_admin RPC and RLS reviewed per mutation; no partner approval from inquiry",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/AdminSponsorInquiries.jsx; apps/web/src/components/auth/SuperAdminAccess.jsx",
+      "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs asserts super-admin guard and sponsor inquiry source contracts. No live acceptance.",
+      "backend_evidence": "supabase/migrations/20261103120000_ifund_studio_super_admin.sql verifies super-admin claims; supabase/migrations/20261103090000_ifund_studio.sql defines the protected admin surface.",
       "owner": "admin+backend"
     },
     {
@@ -166,7 +166,7 @@
     },
     {
       "route": "/agents",
-      "role": "member",
+      "role": "public",
       "component": "AgentsTeam",
       "source_status": "not_verified",
       "source_evidence": "",
@@ -510,7 +510,7 @@
       "component": "ExternalFundingHub",
       "source_status": "source_ready",
       "source_evidence": "apps/web/src/pages/ExternalFundingHub.jsx; apps/web/src/api/externalFundingHub.js; apps/web/src/lib/externalFundingHub.mjs; apps/web/tests/external-funding-hub.test.mjs",
-      "behavior_evidence": "Local tests verify member guard, canonical external campaign URLs, source attribution, source ledger isolation. No provider/OAuth/real-user acceptance established.",
+      "behavior_evidence": "apps/web/tests/external-funding-hub.test.mjs; apps/web/tests/external-funding-atomic-link.test.mjs; apps/web/tests/fund-your-mission.test.mjs verify member guard, canonical external campaign URLs, source attribution and source ledger isolation. No provider/OAuth/real-user acceptance established.",
       "backend_evidence": "supabase/migrations/20261119223500_ifund_external_fundraising_hub.sql (requires applied RLS and live verification)",
       "owner": "frontend+backend+qa"
     },
@@ -530,7 +530,7 @@
       "component": "FundraisingTips",
       "source_status": "source_ready",
       "source_evidence": "apps/web/src/pages/FundraisingTips.jsx; apps/web/src/App.jsx public /fundraising-tips lazy route; apps/web/src/components/Layout.jsx public navigation; apps/web/tests/fundraising-tips-route.test.mjs (2/2 executed source contracts)",
-      "behavior_evidence": "Cloudflare preview 000bc1e1-34f0-4a5d-9f89-69ae7ff49263 browser-rendered route content and absence of unfinished Live link; successful production deployment 1cdd3f35-ca01-4c1d-9d85-9aee1bf5eb51 (63 root, 888 web tests, Pages Functions compiled); browser-rendered live https://interplanetaryfund.com/fundraising-tips with guide heading and first step",
+      "behavior_evidence": "apps/web/tests/fundraising-tips-route.test.mjs; apps/web/tests/plain-language-copy-batch.test.mjs assert the public route, guide content and no unfinished Live link. Historical Cloudflare preview 000bc1e1-34f0-4a5d-9f89-69ae7ff49263 and production 1cdd3f35-ca01-4c1d-9d85-9aee1bf5eb51 are prior evidence, not this release; re-verify against the current artifact.",
       "backend_evidence": "No backend access; public static guidance route only",
       "owner": "frontend+qa"
     },
@@ -676,7 +676,7 @@
     },
     {
       "route": "/mission",
-      "role": "member",
+      "role": "public",
       "component": "AgentsTeam",
       "source_status": "not_verified",
       "source_evidence": "",
