@@ -7,6 +7,12 @@ export default {async fetch(request,env){
  if(!allowed.test(u.hostname)||u.protocol!=="https:"||
     request.method!=="POST"||request.headers.get("x-ifund-sandbox-internal")!=="1")
     return output({ok:false,error:"Sandbox internal service only"},403);
+ if(u.pathname==="/internal/config"){
+  const id=await secret(env.PAYPAL_CLIENT_ID);
+  if(!id)return output({ok:false,error:"Sandbox client binding unavailable"},503);
+  // A REST client ID is public SDK configuration; its secret never leaves the broker.
+  return output({ok:true,client_id:id});
+ }
  if(u.pathname==="/internal/oauth"){
   const id=await secret(env.PAYPAL_CLIENT_ID),password=await secret(env.PAYPAL_CLIENT_SECRET);
   if(!id||!password)return output({ok:false,error:"Sandbox client binding unavailable"},503);
