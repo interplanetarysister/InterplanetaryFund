@@ -58,6 +58,7 @@ export default function CampaignStrategy() {
       <p className="text-sm text-muted-foreground">
         Owner-scoped campaign readiness and Goal Success Analysis, covering grants, earnings, sponsorships, practical help, and crowdfunding.
         Opportunities are planning avenues until independently verified; these checks do not guarantee donations, funding or publication.
+        No new AI inference, grant submissions or fundraising claims are generated here.
       </p>
     </header>
     <CampaignBudgetPlanner />
