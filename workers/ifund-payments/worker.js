@@ -720,7 +720,7 @@ export default {
     // different PayPal OAuth service binding. Without that binding, fail closed.
     if(path.startsWith("/api/payments/sandbox/")) {
       const route=path.slice("/api/payments/sandbox/".length);
-      if(!["status","diagnostics","orders","capture","webhook"].includes(route))
+      if(!["status","diagnostics","config","orders","capture","webhook"].includes(route))
         return asJson({ok:false,error:"sandbox_route_not_found"},404,cors);
       const preview=/^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/;
       if(url.protocol!=="https:"||!preview.test(url.hostname)||
@@ -728,7 +728,7 @@ export default {
         typeof env.IFUND_SANDBOX_BROKER?.fetch!=="function"||
         !env.PAYPAL_WEBHOOK_ID||!env.SUPABASE_URL)
         return asJson({ok:false,error:"sandbox_checkout_unavailable"},503,cors);
-      if(request.method!==(route==="status"||route==="diagnostics"?"GET":"POST"))
+      if(request.method!==(route==="status"||route==="diagnostics"||route==="config"?"GET":"POST"))
         return asJson({ok:false,error:"method_not_allowed"},405,cors);
       // Preserve the request's preview hostname and Origin so the sandbox
       // handler can enforce same-origin browser POST and bound capture cookies.
