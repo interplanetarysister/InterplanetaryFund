@@ -52,9 +52,11 @@ export default function Home() {
           note="Your idea stays private until you choose to publish."
           onSubmit={begin} className="mt-9 w-full max-w-2xl !rounded-3xl !border-cyan-100/25 !bg-[#111a30]/95 !p-5 sm:!p-7" />
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-sm">
-          <Link to="/create?manual=1" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-cyan-300/40 px-5 font-semibold text-cyan-100 hover:bg-cyan-100/10"><Sparkles className="h-4 w-4" /> Start without a prompt</Link>
+          <Link to="/create?manual=1" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-cyan-300/40 px-5 font-semibold text-cyan-100 hover:bg-cyan-100/10"><Sparkles className="h-4 w-4" /> Start a campaign without a prompt</Link>
           <Link to="/discover" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/20 px-5 font-semibold text-slate-200 hover:bg-white/10"><Compass className="h-4 w-4" /> Explore campaigns</Link>
         </div>
+        <Link to="/download" className="mt-6 inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold text-cyan-200 underline underline-offset-4 hover:text-white">Get the IFund app</Link>
+        <p className="mt-1 text-xs text-slate-400">Install the web app on iPhone, Android, or desktop.</p>
         {!signedIn && <p className="mt-8 text-sm text-slate-300">Already a member? <Link to="/login" className="font-semibold text-cyan-200 underline underline-offset-4">Log in</Link> · <Link to="/register" className="font-semibold text-cyan-200 underline underline-offset-4">Create a free account</Link></p>}
       </main>
     </div>
