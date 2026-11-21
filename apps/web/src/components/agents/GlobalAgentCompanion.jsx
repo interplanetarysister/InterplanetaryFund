@@ -24,7 +24,7 @@ export default function GlobalAgentCompanion({ children }) {
     return () => window.removeEventListener("ifund-open-agent", openAgent);
   }, []);
   useEffect(() => { if (isHome) setActiveAgent(null); }, [isHome]);
-  return <div className="ifund-global-companion-shell">
+  return <div className={"ifund-global-companion-shell"+(pathname==="/dashboard"?" ifund-preserve-earth":"")}>
     <ReferralTrialBootstrap />
     <div className="ifund-global-companion-main">{children}</div>
     <SiteTour />
