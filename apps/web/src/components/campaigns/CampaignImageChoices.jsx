@@ -70,7 +70,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
  }
  return <details className="space-y-3 rounded-xl border border-cyan-400/30 p-4" aria-label="Generate optional iFund cover art">
    <summary className="cursor-pointer font-semibold">Or create your own original iFund illustration</summary>
-   <p className="mt-3 text-sm text-muted-foreground">Make original campaign art. During an activated 24-hour signup or earned referral trial, or with a verified subscription, there is no individual daily image cap; shared provider capacity and fair-use pacing still apply. Always review the illustration before using it.</p>
+   <p className="mt-3 text-sm text-muted-foreground">Make original campaign art. Eligible signup and referral-bonus trials provide time-limited access; paid subscribers have up to 50 image-generation or improvement attempts per rolling seven days. Shared provider capacity and fair-use pacing still apply. Review each illustration before using it.</p>
    <label className="mt-3 block text-sm font-medium">Illustration style
     <select value={style} disabled={disabled||status!=="idle"} onChange={e=>setStyle(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3">
       {STYLES.map(([value,label])=><option key={value} value={value}>{label}</option>)}
