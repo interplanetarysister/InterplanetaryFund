@@ -653,16 +653,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <CampaignVoiceInput value={draftDetails} onChange={value=>changeWritingBrief(setDraftDetails,value)} disabled={disabled}/>
-      <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">A little more context (optional)</summary><div className="mt-4 space-y-4">
       <label className="block font-semibold">Who or what is this for? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={busy}
           onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <label className="block font-semibold">What would success look like? (optional)
+      <label className="block font-semibold">What feeling should the story and images convey? (optional)<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="Let AI choose, hopeful, comforting, bold…" /></label>
+      <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">A little more context (optional)</summary><div className="mt-4 space-y-4">
+      <label className="block font-semibold">What resources or help would make this possible? (optional)
         <input maxLength={100} value={draftNeed} disabled={busy}
           onChange={e => changeWritingBrief(setDraftNeed, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
-      <label className="block font-semibold">What feeling should the story and images convey? (optional)<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="Let AI choose, hopeful, comforting, bold…" /></label>
       <label className="block font-semibold">Essential facts or image details to depict accurately (optional)<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
 
       </div></details>
