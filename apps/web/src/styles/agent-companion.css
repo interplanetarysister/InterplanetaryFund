@@ -82,7 +82,7 @@
 /* Shared two-button rail; keep the member login adjacent to agent chat and
  * outside the QuickActions plus-button lane on every device. */
 .ifund-global-account-launcher {
-  position:fixed; z-index:47; right:162px;
+  position:fixed; z-index:47; right:177px;
   bottom:max(26px,env(safe-area-inset-bottom));
   min-height:48px; display:inline-flex; gap:9px; align-items:center;
   padding:11px 16px; border-radius:999px;
@@ -101,7 +101,7 @@
 @media(max-width:767px) {
   .ifund-global-account-launcher {
     bottom:calc(82px + env(safe-area-inset-bottom));
-    right:142px; min-height:46px; padding:10px 12px;
+    right:151px; min-height:46px; padding:10px 12px;
   }
   .ifund-global-account-launcher.is-home { right:12px; }
   .ifund-tour-card {
