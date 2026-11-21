@@ -18,7 +18,7 @@
   background-position: center,center,right -140px top -110px !important;
   background-repeat: no-repeat !important;
 }
-.ifund-sacred-social::before {
+.ifund-global-companion-shell .ifund-sacred-social::before {
   opacity: .30;
   background:
     radial-gradient(ellipse at 13% 22%,rgb(55 203 230 / .19),transparent 51%),
@@ -43,12 +43,7 @@
   z-index:-1;
   pointer-events:none;
   border-radius:inherit;
-  background:
-    radial-gradient(circle at 50% 23%, #050914 0 60px, transparent 62px),
-    radial-gradient(circle at 50% 23%, transparent 0 59px, #f2f7ff 62px, #98ebfb 67px, #a887e9 79px, rgb(89 171 229 / .20) 110px, transparent 190px),
-    radial-gradient(ellipse at 50% 19%, rgb(27 73 128 / .24), transparent 44%),
-    radial-gradient(ellipse at 12% 90%, rgb(75 29 163 / .20), transparent 55%),
-    linear-gradient(155deg, #060c1e, #0c1730 60%, #120b2c);
+  background:url("/cosmic-eclipse.svg") top center / cover no-repeat, #080d22;
   box-shadow:inset 0 0 0 1px rgb(130 190 240 / .22),0 15px 52px rgb(4 8 26 / .27);
 }
 .ifund-eclipse-moment > header,
@@ -93,10 +88,7 @@
   background-position:center,center,right -180px top -60px !important;
  }
  .ifund-eclipse-moment::before {
-  background:
-   radial-gradient(circle at 50% 16%, #050914 0 43px, transparent 46px),
-   radial-gradient(circle at 50% 16%, transparent 0 44px, #eaf8ff 48px, #9ae9fa 52px, #9488eb 61px, transparent 130px),
-   linear-gradient(155deg,#060c1e,#101b32 58%,#120b2c);
+  background:url("/cosmic-eclipse.svg") center top / cover no-repeat, #080d22;
  }
 }
 @media (prefers-reduced-motion:reduce){
