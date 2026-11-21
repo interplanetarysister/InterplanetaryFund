@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
 import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
+import { overlayExactArtworkCaption, validateArtworkCaption } from "@/lib/exactArtworkCaption.mjs";
 
 const STYLES = [
   ["interstellar", "Interstellar"],
@@ -22,6 +23,8 @@ export default function AIImageStudio() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("interstellar");
+  const [exactCaption,setExactCaption] = useState("");
+  const [access,setAccess] = useState(null);
   const [referenceFile, setReferenceFile] = useState(null);
   const [confirmedRights, setConfirmedRights] = useState(false);
   const [artworkKind, setArtworkKind] = useState("generated");
@@ -34,6 +37,9 @@ export default function AIImageStudio() {
   const [error, setError] = useState("");
   const objectUrl = useRef("");
   const mounted = useRef(true);
+  useEffect(() => {
+    authClient().rpc("ifund_ai_image_access_status").then(({data,error})=>{if(mounted.current&&!error)setAccess(data);}).catch(()=>{});
+  },[]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -57,6 +63,7 @@ export default function AIImageStudio() {
   async function generate(event, improve = false) {
     event?.preventDefault();
     if (operationLock.current || busy) return;
+    try { validateArtworkCaption(exactCaption); } catch (cause) { setError(cause.message); return; }
     if (title.trim().length < 4 || title.trim().length > 150 ||
         description.trim().length < 20 || description.trim().length > 900) {
       setError("Enter a valid campaign title and description before continuing.");
@@ -95,9 +102,10 @@ export default function AIImageStudio() {
       if (improve && result?.improved !== true)
         throw new Error("The image improvement response could not be verified.");
       const bytes = decodeGeneratedArtwork(result);
-      const jpeg = new File([bytes], improve ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg", {
+      const raw = new File([bytes], improve ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg", {
         type: "image/jpeg",
       });
+      const jpeg = await overlayExactArtworkCaption(raw,exactCaption);
       const after = await client.auth.getUser();
       if (after.error || after.data?.user?.id !== before.data.user.id)
         throw new Error("Your account changed before the image could be shown.");
@@ -144,10 +152,9 @@ export default function AIImageStudio() {
       <h1 className="text-3xl font-bold">AI Image Studio</h1>
       <p className="text-sm text-muted-foreground">
         Create original illustrated campaign artwork or improve your own image with Cloudflare Workers AI.
-        Generation is limited to three attempts per eligible account per UTC day
-        and fifty platform-wide daily attempts when the free service is available.
-        This does not automatically publish content or change payments.
+        Eligible verified members can create images during an activated 24-hour signup trial, any earned 24-hour referral extensions, or a verified paid subscription. There is no per-member daily attempt count while eligible; generation is subject to a shared daily provider budget, 10-second request pacing, and service availability. Nothing is charged or published automatically.
       </p>
+      {access&&<p role="status" className="text-sm text-muted-foreground">Membership: {access.entitled?"Eligible":"Not currently eligible"}{access.trial_enabled&&access.trial_expires_at?" · Trial through "+new Date(access.trial_expires_at).toLocaleString():""}{!access.trial_enabled?" · Signup trial not activated on this deployment":""}. Referral hours remain available only when verified and activated.</p>}
     </header>
     <form onSubmit={generate} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
       <h2 className="text-xl font-semibold">Illustrate your cause</h2>
@@ -165,6 +172,17 @@ export default function AIImageStudio() {
           {STYLES.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </label>
+      <section className="space-y-3 rounded-xl border border-border p-4" aria-label="Exact caption text">
+        <h3 className="font-semibold">Words on the illustration (optional)</h3>
+        <p className="text-sm text-muted-foreground">Images are generated without text. iFund adds your exact approved words afterward so the model cannot misspell them. Copy your title exactly, or enter a corrected phrase yourself. Check the final preview before saving.</p>
+        <div className="flex flex-wrap gap-2"><button type="button" className={button} disabled={Boolean(busy)} onClick={()=>{setExactCaption(title.slice(0,100));invalidateArtwork();}}>Use title exactly</button>
+          <button type="button" className={button} disabled={Boolean(busy)} onClick={()=>{setExactCaption("");invalidateArtwork();}}>No words</button></div>
+        <label className="block text-sm font-medium">Exact caption to print
+          <input className={field} maxLength={100} spellCheck={true} value={exactCaption} disabled={Boolean(busy)}
+            onChange={e=>{setExactCaption(e.target.value);invalidateArtwork();}} placeholder="Your wording, spelled exactly as approved" />
+        </label>
+        <p className="text-xs text-muted-foreground">The text is rendered locally using a regular font; spelling is not generated by AI. Any unexpected letters in the background artwork must be reviewed before use.</p>
+      </section>
       <section className="space-y-3 rounded-xl border border-border p-4" aria-label="Optional image improvement">
         <h3 className="font-semibold">Improve an image you already have (optional)</h3>
         <p className="text-xs text-muted-foreground">Choose a JPG, PNG, WebP or AVIF image up to 5 MB. The file is resized locally to a 480-pixel maximum and stripped of image metadata before submission to Cloudflare's image model. Do not submit confidential documents or images without permission.</p>

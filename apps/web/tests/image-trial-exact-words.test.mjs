@@ -1,0 +1,46 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {artworkCaptionLines,validateArtworkCaption,MAX_ART_CAPTION} from "../src/lib/exactArtworkCaption.mjs";
+import {validateImageRequest} from "../../../worker/imageStudio.js";
+const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+test("approved captions render only exact user words, not machine-altered spelling",()=>{
+ assert.equal(MAX_ART_CAPTION,100);
+ assert.deepEqual(artworkCaptionLines("Mikki's lemonade stand"),["Mikki's lemonade stand"]);
+ assert.deepEqual(artworkCaptionLines("Help Our Family", {maxChars:9}),["Help Our","Family"]);
+ assert.deepEqual(artworkCaptionLines(""),[]);
+ assert.throws(()=>validateArtworkCaption("A".repeat(101)),/100/);
+ assert.throws(()=>artworkCaptionLines("supercalifragilistic",{maxChars:10}),/too long/);
+ assert.throws(()=>validateArtworkCaption("line\nbreak"),/printable/);
+ const helper=read("../src/lib/exactArtworkCaption.mjs");
+ assert.match(helper,/ctx\.fillText\(line/);
+ assert.match(helper,/new File\(\[result\]/);
+ assert.doesNotMatch(helper,/spellcheck|autocorrect|generateText|AI\.run/);
+});
+test("model is asked for strictly text-free art, with exact caption rendered locally",()=>{
+ const request=validateImageRequest({title:"HELP OUR NEIGHBORS",description:"We are finding practical ways to help our neighborhood recover.",style:"interstellar"});
+ assert.match(request.prompt,/NO TEXT/);
+ assert.match(request.prompt,/letters, words, writing, signs/);
+ const studio=read("../src/pages/AIImageStudio.jsx");
+ const creator=read("../src/components/campaigns/CampaignImageChoices.jsx");
+ assert.match(studio,/overlayExactArtworkCaption\(raw,exactCaption\)/);
+ assert.match(creator,/overlayExactArtworkCaption\(raw,caption\)/);
+ assert.match(studio,/Use title exactly/);
+ assert.match(creator,/Use campaign title exactly/);
+ assert.match(studio,/ifund_ai_image_access_status/);
+});
+test("server changes protect 24-hour trial/referral extension and subscription entitlements",()=>{
+ const migration=read("../../../supabase/migrations/20261121080000_ifund_image_trial_referral_access.sql");
+ assert.match(migration,/ifund_agent_referral_status\(\)/);
+ assert.match(migration,/ifund_story_runtime\.subscription\(\)/);
+ assert.match(migration,/v_total>=50/);
+ assert.match(migration,/10 seconds/);
+ assert.match(migration,/trial_expires_at/);
+ assert.match(migration,/revoke all on function public\.ifund_ai_image_consume_free_quota/);
+ assert.match(migration,/grant execute on function public\.ifund_ai_image_consume_free_quota/);
+ assert.doesNotMatch(migration,/q\.attempts < 3/);
+ assert.match(migration,/per_user_daily_limit',null/);
+ const studio=read("../src/pages/AIImageStudio.jsx");
+ assert.doesNotMatch(studio,/Generation is limited to three attempts/);
+ assert.match(studio,/shared daily provider budget/);
+});
