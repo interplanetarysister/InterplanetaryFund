@@ -1,11 +1,13 @@
 import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {decodeGeneratedArtwork} from "@/lib/imageArtwork.mjs";
+import {overlayExactArtworkCaption} from "@/lib/exactArtworkCaption.mjs";
 import {uploadCampaignCover} from "@/api/campaignCovers";
 
 const STYLES=[["interstellar","Interstellar"],["futuristic","Futuristic"],["cyberpunk","Cyberpunk"],["comic","Comic illustration"]];
 export default function CampaignImageChoices({title,description,onApply,disabled=false}){
  const [style,setStyle]=useState("interstellar");
+ const [caption,setCaption]=useState("");
  const [status,setStatus]=useState("idle");
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
@@ -43,7 +45,8 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    const result=await response.json().catch(()=>null);
    if(!response.ok)throw Error(result?.error||"The image service is unavailable.");
    const bytes=decodeGeneratedArtwork(result);
-   const candidate=new File([bytes],"ifund-original-illustration.jpg",{type:"image/jpeg"});
+   const raw=new File([bytes],"ifund-original-illustration.jpg",{type:"image/jpeg"});
+   const candidate=await overlayExactArtworkCaption(raw,caption);
    const after=await client.auth.getUser();
    if(after.error||after.data?.user?.id!==owner.id)throw Error("Your account changed. Artwork was not applied.");
    if(!alive.current||token!==id.current)return;
@@ -67,12 +70,17 @@ export default function CampaignImageChoices({title,description,onApply,disabled
  }
  return <details className="space-y-3 rounded-xl border border-cyan-400/30 p-4" aria-label="Generate optional iFund cover art">
    <summary className="cursor-pointer font-semibold">Or create your own original iFund illustration</summary>
-   <p className="mt-3 text-sm text-muted-foreground">For your first iFund campaign, try making a distinctive illustration based on your own story. Choose an art style and review the result before attaching it. This is illustrative artwork, not photographic evidence.</p>
+   <p className="mt-3 text-sm text-muted-foreground">Make original campaign art. During an activated 24-hour signup or earned referral trial, or with a verified subscription, there is no individual daily image cap; shared provider capacity and fair-use pacing still apply. Always review the illustration before using it.</p>
    <label className="mt-3 block text-sm font-medium">Illustration style
     <select value={style} disabled={disabled||status!=="idle"} onChange={e=>setStyle(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3">
       {STYLES.map(([value,label])=><option key={value} value={value}>{label}</option>)}
     </select>
    </label>
+   <label className="mt-3 block text-sm font-medium">Image words (optional, exact spelling)
+     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{setCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
+   </label>
+   <button type="button" disabled={disabled||status!=="idle"} onClick={()=>{setCaption(title.slice(0,100));clear();}} className="mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">Use campaign title exactly</button>
+   <p className="mt-2 text-xs text-muted-foreground">The image model draws without lettering; iFund adds these exact words using a regular font after generation. You can correct the phrase before creating your artwork.</p>
    <button type="button" onClick={generate} disabled={disabled||status!=="idle"} className="mt-3 min-h-11 rounded-xl bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">
      {status==="generating"?"Creating illustration…":"Generate illustration"}
    </button>
@@ -85,6 +93,6 @@ export default function CampaignImageChoices({title,description,onApply,disabled
      </button>
      <button type="button" onClick={clear} disabled={disabled||status!=="idle"} className="ml-2 min-h-11 rounded-xl border border-border px-3">Discard</button>
    </div>}
-   <p className="mt-2 text-xs text-muted-foreground">Image generation is quota-limited and only works when the verified provider service is available. No images are published automatically.</p>
+   <p className="mt-2 text-xs text-muted-foreground">Trial and subscription access are verified by the server. The service may be paused, and the shared daily provider budget can temporarily stop generation. No images are published automatically.</p>
  </details>;
 }
