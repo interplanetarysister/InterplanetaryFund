@@ -23,6 +23,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [handsFree,setHandsFree]=useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState("");
   const [compact, setCompact] = useState(false);
@@ -122,6 +123,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         const combined=[dictationBase.current,final||interim].filter(Boolean).join(" ").slice(0,2000);
         setQuestion(combined);
         if(final)dictationBase.current=combined;
+        if(final && handsFree && availability.enabled){void sendAgentQuestion(combined);}
       },
       onError: message => { if (speechToken.current === token) { setVoiceError(message); setListening(false); } },
       onEnd: () => { if (speechToken.current === token) { speechRef.current = null; setListening(false); } }
@@ -198,9 +200,12 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   }, [user?.id, consentRevision]);
 
   useEffect(() => () => { speechRef.current?.abort(); stopSpeaking(); }, []);
-  async function submit(event) {
-    event.preventDefault();
-    const text = question.trim();
+  async function sendAgentQuestion(raw) {
+    const text = String(raw||"").trim();
+    if(/(?:password|verification code|one.time code|secret code|security code)\s*(?:is|:)?\s*[\w-]+/i.test(text)){
+      setVoiceError("For your security, do not speak passwords or account codes. Use the secure sign-in form.");
+      setQuestion("");return;
+    }
     if (!availability.enabled || busy || text.length < 8 || text.length > 2000 || !user?.id) return;
     stopListening();
     stopAudio();
@@ -224,6 +229,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
     }
   }
 
+  function submit(event){event.preventDefault();void sendAgentQuestion(question);}
   if (!agent) return null;
   return <aside ref={panel} className="ifund-agent-side-panel" aria-label="Agent conversation" aria-live="off"
     role={compact ? "dialog" : undefined} aria-modal={compact ? "true" : undefined} tabIndex={compact ? -1 : undefined}>
@@ -281,6 +287,11 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
           {voiceEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}
           {voiceEnabled ? "Voice on" : "Voice off"}
         </button>
+        <button type="button" aria-label={handsFree?"Disable hands-free voice questions":"Enable hands-free voice questions"} aria-pressed={handsFree}
+          onClick={()=>{setHandsFree(old=>!old);setVoiceEnabled(true);}}
+          className="ifund-agent-panel-tool min-h-11 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white">
+          {handsFree?"Hands-free on":"Hands-free questions"}
+        </button>
         {speaking && <button type="button" onClick={stopAudio} className="ifund-agent-panel-tool min-h-11 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white">Stop audio</button>}
         {listening && <span role="status" className="text-xs text-cyan-300">Listening… you can say “open signup”, “create a campaign”, or “publish my update”.</span>}
       </div>
@@ -293,7 +304,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
           className="ifund-agent-panel-send inline-flex min-h-11 min-w-11 items-center justify-center self-end rounded-xl bg-cyan-600 p-3 text-white disabled:opacity-40"><Send size={18}/></button>
       </form>
       <Link to={"/agents?agent=" + encodeURIComponent(identity)} className="ifund-agent-panel-tool mt-2 inline-flex min-h-11 items-center gap-1 text-sm text-cyan-300">Open full workspace <ExternalLink size={12}/></Link>
-      <p className="mt-1 text-sm text-slate-300">NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.</p>
+      <p className="mt-1 text-sm text-slate-300">Hands-free questions send the completed dictation to the agent when authorized; they do not keep your microphone always on. NEXUS can navigate by voice, including signup, campaign review, and connected-platform review. Agent advice requires an authorized account. Never speak passwords or verification codes. A spoken command cannot authenticate you, approve outside posting, or publish content without an authenticated review.</p>
     </div>
   </aside>;
 }
