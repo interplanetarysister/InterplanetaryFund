@@ -77,7 +77,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
     </select>
    </label>
    <label className="mt-3 block text-sm font-medium">Image words (optional, exact spelling)
-     <input value={caption} maxLength={100} disabled={disabled||status!=="idle"} onChange={e=>{setCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
+     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{setCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
    </label>
    <button type="button" disabled={disabled||status!=="idle"} onClick={()=>{setCaption(title.slice(0,100));clear();}} className="mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">Use campaign title exactly</button>
    <p className="mt-2 text-xs text-muted-foreground">The image model draws without lettering; iFund adds these exact words using a regular font after generation. You can correct the phrase before creating your artwork.</p>
