@@ -24,11 +24,22 @@ export function verifyDocumentIdentity(row,ownerId){
    throw Error("Private document identity or verified receipt mismatch");
  return Object.freeze({key:row.storage_path,etag:row.object_etag,sha256:row.object_sha256,size:row.file_size});
 }
+// Cloudflare R2 exposes SHA-256 as an ArrayBuffer in Workers; some adapters
+// serialize the checksum as 64 hexadecimal characters. Accept only these two
+// unambiguous representations, never a lossy string coercion or base64 guess.
+export function normalizeR2Sha256(value){
+ if(typeof value==="string" && SHA256.test(value))return value.toLowerCase();
+ if(value instanceof ArrayBuffer && value.byteLength===32)
+   return Array.from(new Uint8Array(value),byte=>byte.toString(16).padStart(2,"0")).join("");
+ if(ArrayBuffer.isView(value) && value.byteLength===32)
+   return Array.from(new Uint8Array(value.buffer,value.byteOffset,value.byteLength),byte=>byte.toString(16).padStart(2,"0")).join("");
+ throw Error("R2 SHA-256 receipt is missing or malformed");
+}
 export function verifyR2Head(receipt,head){
  if(!receipt||!head||typeof head!=="object"||
     head.httpEtag!==receipt.etag||head.size!==receipt.size||
-    typeof head.checksums?.sha256!=="string"||
-    head.checksums.sha256.toLowerCase()!==receipt.sha256.toLowerCase())
+    !SHA256.test(receipt.sha256||"")||
+    normalizeR2Sha256(head.checksums?.sha256)!==receipt.sha256.toLowerCase())
    throw Error("R2 object identity cannot be independently confirmed");
  return true;
 }
