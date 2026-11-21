@@ -1,3 +1,5 @@
+import { onRequest as sandboxPagesCheckout } from "../../apps/web/functions/api/paypal/sandbox/[[path]].js";
+
 // iFund Cloudflare payment API — verified PayPal Orders v2; no browser card data.
 // Live activation requires IFUND_PAYMENTS_ENABLED=true after independent checkout
 // and webhook/ledger verification. Existing secrets remain in Cloudflare Secrets Store.
@@ -714,6 +716,36 @@ export default {
       "access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"Content-Type,Authorization"}:{};
     if(request.method==="OPTIONS")return new Response(null,{status:permitted.includes(origin)?204:403,headers:cors});
     const path=url.pathname;
+    // Environment selection is by a dedicated path and verified preview origin,
+    // NEVER by a caller-supplied JSON value or by swapping the live credentials.
+    // The existing sandbox handler uses isolated signed receipts and an entirely
+    // different PayPal OAuth service binding. Without that binding, fail closed.
+    if(path.startsWith("/api/payments/sandbox/")) {
+      const route=path.slice("/api/payments/sandbox/".length);
+      if(!["status","diagnostics","orders","capture","webhook"].includes(route))
+        return asJson({ok:false,error:"sandbox_route_not_found"},404,cors);
+      const preview=/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/;
+      if(url.protocol!=="https:"||!preview.test(url.hostname)||
+        env.IFUND_PAYPAL_SANDBOX_ENABLED!=="enabled"||
+        typeof env.IFUND_SANDBOX_BROKER?.fetch!=="function"||
+        !env.PAYPAL_WEBHOOK_ID||!env.SUPABASE_URL)
+        return asJson({ok:false,error:"sandbox_checkout_unavailable"},503,cors);
+      if(request.method!==(route==="status"||route==="diagnostics"?"GET":"POST"))
+        return asJson({ok:false,error:"method_not_allowed"},405,cors);
+      // Preserve the request's preview hostname and Origin so the sandbox
+      // handler can enforce same-origin browser POST and bound capture cookies.
+      const result=await sandboxPagesCheckout({request,env,params:{path:[route]}});
+      // This alias is served under /api/payments/sandbox, not /api/paypal/sandbox.
+      // Scope the original HttpOnly SameSite checkout cookie to this alias.
+      const cookie=result.headers.get("set-cookie");
+      if(cookie&&route==="orders"){
+        const response=new Response(result.body,result);
+        response.headers.set("set-cookie",cookie.replace(/Path=\\/api\\/paypal\\/sandbox(?=;|$)/i,
+          "Path=/api/payments/sandbox"));
+        return response;
+      }
+      return result;
+    }
     if(path==="/api/payments/health")return asJson({ok:true,service:"ifund-payments",enabled:env.IFUND_PAYMENTS_ENABLED==="true",
       mode:env.IFUND_PAYPAL_MODE||"unset",version:"verified-ledger-v1"},200,cors);
     if(path==="/api/payments/payouts/readiness"&&request.method==="GET"){
