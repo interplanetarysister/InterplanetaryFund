@@ -1,0 +1,112 @@
+/* iFund design system / geometry replacement: balanced, fluorescent, and accessible.
+ * Scoped below the global companion. The dashboard retains its Earth treatment. */
+.ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-shell [data-page-scroll] {
+  background-image:
+    radial-gradient(ellipse 45rem 37rem at 5% 10%, rgb(52 208 231 / .10), transparent 72%),
+    radial-gradient(ellipse 44rem 36rem at 95% 88%, rgb(144 85 238 / .10), transparent 74%),
+    url("/cosmic-symmetry.svg") !important;
+  background-size: auto, auto, clamp(350px,54vw,640px) clamp(350px,54vw,640px) !important;
+  background-position: center, center, right -160px top -120px !important;
+  background-repeat: no-repeat !important;
+}
+.ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-public:not(.ifund-auth) {
+  background-image:
+    radial-gradient(ellipse 40rem 35rem at 5% 12%, rgb(63 205 230 / .09), transparent 74%),
+    radial-gradient(ellipse 40rem 35rem at 95% 89%, rgb(124 84 226 / .10), transparent 74%),
+    url("/cosmic-symmetry.svg") !important;
+  background-size: auto,auto, min(72vw,700px) min(72vw,700px) !important;
+  background-position: center,center,right -140px top -110px !important;
+  background-repeat: no-repeat !important;
+}
+.ifund-sacred-social::before {
+  opacity: .30;
+  background:
+    radial-gradient(ellipse at 13% 22%,rgb(55 203 230 / .19),transparent 51%),
+    url("/cosmic-symmetry.svg") center top / min(70vw,660px) no-repeat !important;
+  animation: ifund-lines-glimmer 17s ease-in-out infinite alternate;
+}
+@keyframes ifund-lines-glimmer {
+  from { opacity:.16; filter:saturate(.85) brightness(.9); }
+  to { opacity:.36; filter:saturate(1.18) brightness(1.22); }
+}
+.ifund-eclipse-moment {
+  position:relative;
+  isolation:isolate;
+  border-radius:1.8rem;
+  padding-top:clamp(2rem,6vw,4.5rem);
+  padding-bottom:clamp(2rem,6vw,4.5rem);
+}
+.ifund-eclipse-moment::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    radial-gradient(circle at 50% 23%, #050914 0 60px, transparent 62px),
+    radial-gradient(circle at 50% 23%, transparent 0 59px, #f2f7ff 62px, #98ebfb 67px, #a887e9 79px, rgb(89 171 229 / .20) 110px, transparent 190px),
+    radial-gradient(ellipse at 50% 19%, rgb(27 73 128 / .24), transparent 44%),
+    radial-gradient(ellipse at 12% 90%, rgb(75 29 163 / .20), transparent 55%),
+    linear-gradient(155deg, #060c1e, #0c1730 60%, #120b2c);
+  box-shadow:inset 0 0 0 1px rgb(130 190 240 / .22),0 15px 52px rgb(4 8 26 / .27);
+}
+.ifund-eclipse-moment > header,
+.ifund-eclipse-moment > nav,
+.ifund-eclipse-moment > section,
+.ifund-eclipse-moment > form,
+.ifund-eclipse-moment > div:not([hidden]),
+.ifund-eclipse-moment > p {
+  position:relative;
+}
+.ifund-eclipse-moment > header { color:#f4f8ff; }
+.ifund-eclipse-moment .ifund-eclipse-caption {
+  color:#d5e9ff;
+  text-shadow:0 2px 15px #061128;
+}
+.ifund-global-companion-shell button:not(:disabled),
+.ifund-global-companion-shell [role="button"],
+.ifund-global-companion-shell a[class*="rounded"] {
+  transition-property: transform,box-shadow,background-color,border-color,filter;
+  transition-duration:170ms;
+  transition-timing-function:cubic-bezier(.2,.75,.3,1);
+}
+@media (hover:hover) and (pointer:fine) {
+ .ifund-global-companion-shell button:not(:disabled):hover,
+ .ifund-global-companion-shell [role="button"]:hover {
+   transform:translateY(-1.5px);
+   box-shadow:0 6px 20px rgb(26 113 185 / .16);
+ }
+}
+.ifund-global-companion-shell button:not(:disabled):active,
+.ifund-global-companion-shell [role="button"]:active {
+  transform:scale(.97);
+  filter:brightness(1.12);
+}
+.ifund-global-companion-shell :is(button,a,[role="button"]):focus-visible {
+ outline:2px solid #67e8f9;
+ outline-offset:3px;
+}
+@media (max-width:767px){
+ .ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-shell [data-page-scroll] {
+  background-size:auto,auto,410px 410px !important;
+  background-position:center,center,right -180px top -60px !important;
+ }
+ .ifund-eclipse-moment::before {
+  background:
+   radial-gradient(circle at 50% 16%, #050914 0 43px, transparent 46px),
+   radial-gradient(circle at 50% 16%, transparent 0 44px, #eaf8ff 48px, #9ae9fa 52px, #9488eb 61px, transparent 130px),
+   linear-gradient(155deg,#060c1e,#101b32 58%,#120b2c);
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ .ifund-sacred-social::before { animation:none !important; }
+ .ifund-global-companion-shell button,
+ .ifund-global-companion-shell [role="button"],
+ .ifund-global-companion-shell a { transition:none !important; }
+}
+@media print {
+ .ifund-global-companion-shell .ifund-shell [data-page-scroll],
+ .ifund-global-companion-shell .ifund-public:not(.ifund-auth) {background-image:none !important;}
+ .ifund-eclipse-moment::before,.ifund-sacred-social::before {display:none;}
+}
