@@ -58,8 +58,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [params] = useSearchParams();
   const draftId = params.get("draft");
   const location = useLocation();
-  const [params] = useSearchParams();
-  const draftId = params.get("draft");
+
   // A homepage prompt is transient input for this exact editor, never a
   // separate Mission, payment authorization or permission to publish.
   const transferredPrompt = !draftId && location.state?.source === "home-what-if" &&
