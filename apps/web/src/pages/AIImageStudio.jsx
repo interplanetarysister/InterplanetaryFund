@@ -152,9 +152,9 @@ export default function AIImageStudio() {
       <h1 className="text-3xl font-bold">AI Image Studio</h1>
       <p className="text-sm text-muted-foreground">
         Create original illustrated campaign artwork or improve your own image with Cloudflare Workers AI.
-        Eligible verified members can create images during an activated 24-hour signup trial, any earned 24-hour referral extensions, or a verified paid subscription. There is no per-member daily attempt count while eligible; generation is subject to a shared daily provider budget, 10-second request pacing, and service availability. Nothing is charged or published automatically.
+        Eligible verified members can generate artwork during a 24-hour signup trial and earned 24-hour referral extensions. Paid subscribers get up to 50 image-generation or improvement attempts per rolling seven days. All requests remain subject to the shared provider budget, 10-second pacing, and service availability. Nothing is purchased or published automatically.
       </p>
-      {access&&<p role="status" className="text-sm text-muted-foreground">Membership: {access.entitled?"Eligible":"Not currently eligible"}{access.trial_enabled&&access.trial_expires_at?" · Trial through "+new Date(access.trial_expires_at).toLocaleString():""}{!access.trial_enabled?" · Signup trial not activated on this deployment":""}. Referral hours remain available only when verified and activated.</p>}
+      {access&&<p role="status" className="text-sm text-muted-foreground">Membership: {access.entitled?"Eligible":"Not currently eligible"}{access.trial_enabled&&access.trial_expires_at?" · Trial through "+new Date(access.trial_expires_at).toLocaleString():""}{access.paid_weekly_limit===50?" · Paid artwork: "+access.paid_weekly_remaining+" of 50 attempts available this rolling week":""}{!access.trial_enabled?" · Signup trial not activated on this deployment":""}. Referral hours remain available only when verified and activated.</p>}
     </header>
     <form onSubmit={generate} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
       <h2 className="text-xl font-semibold">Illustrate your cause</h2>
