@@ -34,7 +34,7 @@ export async function consumeImageQuota(env, account, fetcher = fetch) {
   if (!quota.ok) return { status: 503, error: 'The verified artwork quota could not be checked.' };
   const allowed = await quota.json();
   if (allowed !== true)
-    return { status: 429, error: 'The free image limit is reached. Try again after the UTC daily reset.' };
+    return { status: 429, error: 'Image access requires an active verified trial or subscription, and shared provider capacity may be temporarily exhausted. Try again later or check your membership.' };
   return null;
 }
 
@@ -51,7 +51,7 @@ export function validateImageRequest(input) {
     throw new BodyError(422, 'Provide a valid campaign title, description and illustration style.');
   const prompt = [
     'Original non-photorealistic editorial artwork for a personal fundraiser.',
-    'Illustration only. Do not invent names, portraits of real people, donation amounts, logos, watermarks, or printed text.',
+    'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. Avoid invented names, real-person portraits or claimed donations. The application applies optional user-approved wording separately after generation.',
     'Visual style: ' + IMAGE_STYLES[input.style] + '.',
     'Campaign title for visual context: ' + title + '.',
     'What the fundraiser is about: ' + description + '.',
@@ -85,8 +85,9 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
     if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
 
-    // This is an atomic, database-verified membership and free-tier attempt
-    // limit. The browser cannot bypass it using a forged owner ID or JWT role.
+    // Atomic database check verifies the active 24-hour/referral trial or a real paid entitlement,
+    // and enforces fair-use pacing plus the shared Workers AI hard budget.
+    // No browser role, referral credit or trial expiry is trusted.
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
