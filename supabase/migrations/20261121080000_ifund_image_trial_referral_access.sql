@@ -66,27 +66,36 @@ comment on function public.ifund_ai_image_consume_free_quota() is
  'Owner-verified AI image request; active provider-backed plan or enabled 24h signup/referral trial; no per-owner daily cap, global 50/day and 10-second pacing to protect free infrastructure.';
 
 -- Explicit read-only self-check for truthful frontend access notices, with
--- neither image-provider billing state nor referral ownership leaked.
+-- neither image-provider billing state nor referral ownership leaked. It must
+-- not activate or extend a trial; only the quota-consuming RPC does that.
 create or replace function public.ifund_ai_image_access_status()
-returns jsonb language plpgsql volatile security definer
+returns jsonb language plpgsql stable security definer
 set search_path to '' set row_security to 'off'
 as $fn$
 declare
  v_owner uuid:=auth.uid();
- v_ref jsonb;
  v_sub jsonb;
+ v_control_enabled boolean:=false;
+ v_trial_expires_at timestamptz;
+ v_pending_hours bigint:=0;
 begin
  if v_owner is null
    or not coalesce(public.ifund_member_connection_allowed(),false)
    or not coalesce(public.ifund_current_user_has_current_terms(),false)
  then raise exception 'Verified account required' using errcode='42501'; end if;
- v_ref:=public.ifund_agent_referral_status();
  v_sub:=ifund_story_runtime.subscription();
+ select c.enabled,t.trial_expires_at,t.pending_hours
+   into v_control_enabled,v_trial_expires_at,v_pending_hours
+ from public.ifund_agent_trial_control c
+ left join public.ifund_referral_trial_accounts t on t.owner_id=v_owner
+ where c.singleton is true;
  return jsonb_build_object(
    'entitled',coalesce((v_sub->>'active')::boolean,false),
-   'trial_enabled',coalesce((v_ref->>'trial_enabled')::boolean,false),
-   'trial_expires_at',v_ref->>'trial_expires_at',
-   'pending_hours',coalesce((v_ref->>'pending_hours')::integer,0),
+   'trial_enabled',coalesce(v_control_enabled,false),
+   'trial_expires_at',case
+     when coalesce(v_control_enabled,false) and v_trial_expires_at>statement_timestamp()
+     then v_trial_expires_at else null end,
+   'pending_hours',coalesce(v_pending_hours,0),
    'tier',v_sub->>'tier',
    'status',v_sub->>'status',
    'shared_daily_capacity',50,
@@ -99,4 +108,4 @@ revoke all on function public.ifund_ai_image_access_status()
 grant execute on function public.ifund_ai_image_access_status()
  to authenticated;
 comment on function public.ifund_ai_image_access_status() is
- 'Authenticated image entitlement and 24h signup / qualified-referral expiry, not a promise of available provider inference.';
+ 'Read-only authenticated image entitlement and 24h signup / qualified-referral expiry; it neither activates a trial nor promises available provider inference.';

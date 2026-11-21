@@ -70,6 +70,10 @@
     .support-selector { display:grid; gap:8px; max-width:620px; }
     .support-selector select { min-height:48px; border:1px solid var(--border); border-radius:12px; padding:0 12px; background:#fff; color:var(--fg); font:15px Inter, sans-serif; }
     .support-selector small { color:var(--muted); }
+    .exact-caption { display:grid; gap:8px; max-width:620px; }
+    .exact-caption input { min-height:44px; border:1px solid var(--border); border-radius:12px; padding:0 12px; background:#fff; color:var(--fg); font:15px Inter, sans-serif; }
+    .exact-caption button { min-height:44px; border:1px solid var(--border); background:#f8fafc; color:var(--fg); padding:0 14px; font-size:13px; }
+    .exact-caption small { color:var(--muted); }
     .eclipse-review { max-width:720px; margin-top:14px; border-radius:28.8px; padding:32px; overflow:hidden;
       background:radial-gradient(circle at 50% 18%,#a8f4ff55,transparent 23%),linear-gradient(160deg,#253866,#050a1c); color:#f4f8ff;
       box-shadow:inset 0 0 0 1px rgb(130 190 240 / .22),0 15px 52px rgb(4 8 26 / .27); }
@@ -189,9 +193,18 @@
     <!-- COMPONENT: artwork-choice -->
     <section class="artwork-choice" aria-label="Generate optional iFund cover art">
       <strong>Or create your own original iFund illustration</strong>
-      <p>Choose a style and review the result before attaching it. This is illustrative artwork, not photographic evidence. No images are published automatically.</p>
+      <p>Choose a style and review the result before attaching it. Trial or subscription access and shared provider pacing are verified by the server. This is illustrative artwork, not documentary evidence. No images are published automatically.</p>
       <div class="voice-actions"><button type="button">Generate illustration</button><button type="button">Use this illustration</button><button type="button">Discard</button></div>
     </section>
+
+    <h2>Exact artwork words</h2>
+    <!-- COMPONENT: exact-caption-input -->
+    <label class="exact-caption">
+      <span>Image words (optional, exact spelling)</span>
+      <input type="text" maxlength="100" placeholder="Approved words only; no AI lettering" />
+      <button type="button">Use campaign title exactly</button>
+      <small>The image model draws without lettering; iFund adds these exact words using a regular font after generation. Spelling is never machine-corrected.</small>
+    </label>
 
     <h2>Launch review eclipse</h2>
     <!-- COMPONENT: eclipse-review-panel -->

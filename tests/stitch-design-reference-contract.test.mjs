@@ -203,6 +203,16 @@ test("capture manifest covers the merged reference screens at two viewports", ()
     if (capture.id.startsWith("campaign-voice-artwork-")) {
       assert.match(capture.visibleTextPreview, /Have NEXUS guide me by voice \(optional\)/);
       assert.match(capture.visibleTextPreview, /Or create your own original iFund illustration/);
+      assert.match(capture.visibleTextPreview, /Image words \(optional, exact spelling\)/);
+      assert.match(capture.visibleTextPreview, /Use campaign title exactly/);
+      assert.match(capture.visibleTextPreview, /iFund adds these exact words using a regular font/);
+      assert.ok(
+        capture.interactions.some(
+          (interaction) =>
+            interaction.type === "fill" && interaction.value === "Mikki's lemonade stand",
+        ),
+        `exact caption interaction missing for ${capture.id}`,
+      );
     }
     if (capture.id.startsWith("campaign-launch-eclipse-")) {
       assert.match(capture.visibleTextPreview, /Your defining moment · Review before publishing/);
@@ -278,6 +288,10 @@ test("design references describe the current merged UI contracts", () => {
   assert.match(creator, /Optional NEXUS voice guide/);
   assert.match(creator, /Step 2 — Launch review eclipse/);
   assert.match(creator, /AI-generated illustration/);
+  assert.match(creator, /Image words \(optional, exact spelling\)/);
+  assert.match(creator, /never machine-corrected/);
+  assert.match(design, /exact-caption-input/);
+  assert.match(design, /never let the image model redraw or "improve" spelling/);
   assert.match(design, /cosmic-symmetry\.svg/);
   assert.match(design, /cosmic-eclipse\.svg/);
   assert.match(design, /Spoken navigation is advisory and local/);
@@ -288,6 +302,7 @@ test("design references describe the current merged UI contracts", () => {
     "voice-guide",
     "support-selector",
     "artwork-choice",
+    "exact-caption-input",
     "eclipse-review-panel",
     "auth-voice-callout",
   ]) {
@@ -310,6 +325,13 @@ test("design references describe the current merged UI contracts", () => {
     "utf8",
   );
   assert.match(artwork, /onApply\(url,\{cover_image_is_ai:true\}\)/);
+  assert.match(artwork, /overlayExactArtworkCaption\(raw,caption\)/);
+  const exactCaption = readFileSync(
+    path.join(repoDir, "apps/web/src/lib/exactArtworkCaption.mjs"),
+    "utf8",
+  );
+  assert.match(exactCaption, /ctx\.fillText\(line/);
+  assert.doesNotMatch(exactCaption, /spellcheck|autocorrect|generateText|AI\.run/);
   const lifecycle = readFileSync(path.join(repoDir, "apps/web/src/lib/campaignLifecycle.js"), "utf8");
   assert.match(lifecycle, /export function withCoverProvenance/);
   const publicData = readFileSync(path.join(repoDir, "apps/web/src/api/publicData.js"), "utf8");

@@ -40,6 +40,13 @@ test("server changes protect 24-hour trial/referral extension and subscription e
  assert.match(migration,/grant execute on function public\.ifund_ai_image_consume_free_quota/);
  assert.doesNotMatch(migration,/q\.attempts < 3/);
  assert.match(migration,/per_user_daily_limit',null/);
+ const statusStart=migration.indexOf("create or replace function public.ifund_ai_image_access_status()");
+ assert.ok(statusStart>=0,"missing read-only image access status RPC");
+ const status=migration.slice(statusStart);
+ assert.match(status,/language plpgsql stable security definer/);
+ assert.doesNotMatch(status,/ifund_agent_referral_status\(\)/);
+ assert.match(status,/from public\.ifund_agent_trial_control c/);
+ assert.match(status,/left join public\.ifund_referral_trial_accounts t/);
  const studio=read("../src/pages/AIImageStudio.jsx");
  assert.doesNotMatch(studio,/Generation is limited to three attempts/);
  assert.match(studio,/shared daily provider budget/);

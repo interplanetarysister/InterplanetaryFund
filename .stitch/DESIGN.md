@@ -248,6 +248,13 @@ components:
     rounded: "{rounded.md}"
     padding: 16px
     borderColor: "rgb(34 211 238 / .30)"
+  exact-caption-input:
+    backgroundColor: "{colors.light.card}"
+    textColor: "{colors.light.foreground}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.md}"
+    padding: 12px
+    height: 44px
   eclipse-review-panel:
     backgroundColor: "{colors.cosmic.deepInk}"
     textColor: "#F4F8FF"
@@ -358,7 +365,7 @@ Write as a capable mission partner, not a hype machine. The voice is warm, plain
 - AI copy must never claim it posted, paid, published, emailed, transferred money, or secured an external provider grant. Those actions require separate authorization and verified receipts.
 - Spoken navigation is advisory and local: member-only commands open secure sign-in first, and the assistant says plainly that no account action or outside post occurred. Never ask for a password or verification code in chat or voice.
 - Support type is optional and defaults to "Not sure yet". Money is one of twelve needs; never infer a cash goal, dollar amount, or fabricated support summary from an unanswered selector.
-- Generated campaign artwork is illustrative, not documentary evidence. Preserve its provenance on the public cover and label it "AI-generated illustration" where shown.
+- Generated campaign artwork is illustrative, not documentary evidence. Preserve its provenance on the public cover and label it "AI-generated illustration" where shown. Optional words on the image must be the owner's exact text rendered locally after generation; never let the image model redraw or "improve" spelling.
 - form labels should name the field directly; helper text explains consequence, not urgency. Error messages identify what happened and the safe recovery step.
 - Financial, legal, permission, and cancellation language stays literal. Do not soften a failed closed state into a success.
 
@@ -384,7 +391,7 @@ Reusable anatomy is documented in the component sticker sheet @components/sticke
 
 **Voice guide and support selector.** The optional NEXUS walkthrough uses a cyan-bordered disclosure, a visible current question, Quick setup / Detailed guidance choices, and text-labeled Answer by voice / Hear question / Skip controls. spoken answers populate editable draft fields only. The support selector begins at "Not sure yet", lists twelve plain-language needs, and shows the chosen option's examples without assigning a value or cash goal. See @references/campaign-creator.md#campaign-creator and @references/what-if.md#what-if-private-mission-entry.
 
-**Original artwork and eclipse review.** Artwork choices are a collapsed disclosure with four styles, prerequisite copy, a reviewable preview, and a provenance notice; never make a generated illustration look like a verified photograph. Step three places the factual review above the local eclipse artwork, with the caption "Your defining moment · Review before publishing" and no invented progress or receipts. See @components/sticker-sheet.html#voice-guide and @components/sticker-sheet.html#eclipse-review-panel.
+**Original artwork and eclipse review.** Artwork choices are a collapsed disclosure with four styles, an optional exact-words field with a "Use campaign title exactly" action, prerequisite copy, a reviewable preview, and a provenance notice. The image model draws without lettering; iFund overlays the owner's text in a regular font and never machine-corrects its spelling. Never make a generated illustration look like a verified photograph. Step three places the factual review above the local eclipse artwork, with the caption "Your defining moment · Review before publishing" and no invented progress or receipts. See @components/sticker-sheet.html#voice-guide, @components/sticker-sheet.html#exact-caption-input, and @components/sticker-sheet.html#eclipse-review-panel.
 
 **Sign-in voice entry.** The secure auth card may offer "Use NEXUS voice navigation" in a cyan callout, followed by explicit "never speak passwords or codes" guidance. It opens the same advisory panel; it does not replace the credential form. See @references/auth-voice.md#secure-sign-in-and-nexus-voice-entry.
 

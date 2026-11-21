@@ -89,14 +89,16 @@ const targets = [
     source: [
       "apps/web/src/components/campaigns/CampaignVoiceGuide.jsx",
       "apps/web/src/components/campaigns/CampaignImageChoices.jsx",
+      "apps/web/src/lib/exactArtworkCaption.mjs",
       "apps/web/src/lib/supportNeeds.mjs",
     ],
     openAgent: false,
     interactions: [
       { type: "click", selector: '[aria-label="NEXUS spoken campaign walkthrough"] summary' },
       { type: "click", selector: '[aria-label="Generate optional iFund cover art"] summary' },
+      { type: "fill", selector: 'input[placeholder="Approved words only; no AI lettering"]', value: "Mikki's lemonade stand" },
     ],
-    renderState: "Unauthenticated manual entry; optional panels expanded by local clicks, no microphone, generation, upload, or draft save",
+    renderState: "Unauthenticated manual entry; optional panels expanded and exact caption text entered locally, no microphone, generation, upload, or draft save",
   },
   {
     id: "campaign-launch-eclipse",
@@ -346,7 +348,10 @@ async function capture(page, target, viewport, manifest) {
   const id = `${target.id}-${viewport.id}`;
   const htmlPath = path.join(htmlDir, `${id}.html`);
   const shotPath = path.join(shotDir, `${id}.png`);
-  await writeFile(htmlPath, await inlineAssets(extracted.html), "utf8");
+  // Source markup also contains indentation-only lines that git flags; normalize the
+  // complete static document, not only the injected computed-style block.
+  const staticHtml = (await inlineAssets(extracted.html)).replace(/[ \t]+$/gm, "");
+  await writeFile(htmlPath, staticHtml, "utf8");
   await page.screenshot({ path: shotPath, fullPage: false, animations: "disabled" });
 
   manifest.captures.push({
