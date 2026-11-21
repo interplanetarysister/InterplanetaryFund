@@ -18,8 +18,10 @@ test("campaign category cards use the shared cosmic surface and touch target", (
 test("private Mission and campaign editor surfaces use the shared cosmic panel", () => {
   assert.match(missions, /ifund-cosmic-panel space-y-4 rounded-2xl/);
   assert.match(missions, /ifund-cosmic-panel group flex min-h-48/);
-  assert.equal((editor.match(/ifund-cosmic-panel space-y-\d rounded-2xl border border-border bg-card p-5 sm:p-8/g) || []).length, 2);
-  assert.match(editor,/ifund-cosmic-panel mx-auto max-w-2xl space-y-4 rounded-3xl border border-cyan-400\/20 bg-card p-5 shadow-xl sm:p-8/);
+  assert.match(editor,/stepNames=\["Your idea","Your story","Ready to share"\]/);
+  assert.match(editor,/border border-cyan-300\/25 bg-slate-950 text-white shadow-2xl/);
+  assert.equal((editor.match(/<section className=\{/g)||[]).length,1);
+  assert.doesNotMatch(editor,/ifund-cosmic-panel space-y-5 rounded-2xl border border-border bg-card/);
   assert.match(templates, /details className="ifund-cosmic-panel rounded-2xl border/);
 });
 
