@@ -10,13 +10,15 @@ import { isNativeBundle } from "@/lib/nativeApi";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
-function loadPayPal(clientId) {
-  if (sdkPromise) return sdkClient === clientId ? sdkPromise : Promise.reject(new Error("Reload checkout: account changed"));
-  sdkClient = clientId;
+function loadPayPal(clientId, sandbox=false) {
+  const sdkKey=(sandbox?"sandbox:":"live:")+clientId;
+  if (sdkPromise) return sdkClient === sdkKey ? sdkPromise : Promise.reject(new Error("Reload checkout: account changed"));
+  sdkClient = sdkKey;
   sdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId)
-      + "&components=buttons,card-fields,googlepay&currency=USD&intent=capture";
+      + (sandbox?"&components=buttons":"&components=buttons,card-fields,googlepay")
+      + "&currency=USD&intent=capture";
     script.async = true;
     script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("PayPal SDK unavailable"));
     script.onerror = () => reject(new Error("PayPal SDK unavailable"));
@@ -130,7 +132,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         if(cancelled)return;
         if(config.environment!==mode||!config.client_id)
           throw new Error((sandboxMode?"Sandbox test":"Live")+" checkout is unavailable. No payment was started.");
-        const paypal=await loadPayPal(config.client_id);
+        const paypal=await loadPayPal(config.client_id,sandboxMode);
         if(cancelled)return;
         const onApprove=async data=>{
           try{await capture(data);}catch(e){if(!cancelled){setError(e.message);setStatus("error");}}
@@ -248,6 +250,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
         </section>}
         {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
+          sandboxMode&&gift>10000?<p role="alert" className="text-xs text-amber-700">Sandbox test payments are limited to $100. Choose a smaller amount.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
