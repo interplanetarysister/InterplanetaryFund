@@ -25,7 +25,10 @@ export function createAuthenticatedDocumentReceiptResolver({rpc}) {
        !/^[a-f0-9]{64}$/i.test(row.object_sha256||'')||
        !Number.isSafeInteger(row.file_size)||row.file_size<0||
        typeof row.object_verified_at!=='string'||
-       !Number.isFinite(Date.parse(row.object_verified_at)))
+       !Number.isFinite(Date.parse(row.object_verified_at))||
+       typeof row.deletion_requested_at!=='string'||
+       !Number.isFinite(Date.parse(row.deletion_requested_at))||
+       row.allow_agent_use!==false)
       throw Error('Immutable receipt is invalid');
     return Object.freeze({...row, document_id: row.id});
   };
