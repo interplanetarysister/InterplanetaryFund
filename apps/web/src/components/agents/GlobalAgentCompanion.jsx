@@ -19,7 +19,7 @@ export default function GlobalAgentCompanion({ children }) {
   const isHome = pathname === "/";
   const signedIn = Boolean(user?.id && !user.is_anonymous);
   useEffect(() => {
-    const openAgent = event => setActiveAgent(event.detail?.agent || "nexus");
+    const openAgent = event => { if (window.location.pathname !== "/") setActiveAgent(event.detail?.agent || "nexus"); };
     window.addEventListener("ifund-open-agent", openAgent);
     return () => window.removeEventListener("ifund-open-agent", openAgent);
   }, []);
