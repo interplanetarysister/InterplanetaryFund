@@ -4,6 +4,7 @@ import { ArrowRight, Compass, LockKeyhole, Orbit, Sparkles, HeartHandshake } fro
 import { authClient } from "@/api/auth";
 import { createMission, exploreMission } from "@/api/missions";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { SUPPORT_NEEDS, missionGoalTypeForSupport, supportNeed } from "@/lib/supportNeeds.mjs";
 
 const PENDING_KEY="ifund-what-if-guest-explicit-handoff-v1";
 const EXAMPLES=[
@@ -25,6 +26,7 @@ export default function WhatIfStart(){
  const navigate=useNavigate();
  const location=useLocation();
  const session=useAuthSession();
+ const [supportType,setSupportType]=useState("other");
  const [prompt,setPrompt]=useState(()=>{
    const transferred=location.state?.prompt;
    return typeof transferred==="string"&&transferred.length<=12000&&transferred.trim()
@@ -66,7 +68,7 @@ export default function WhatIfStart(){
   try{
     const client=authClient();
     const title=prompt.trim().split(/[.!?\n]/u)[0].trim().slice(0,100);
-    const mission=await createMission(client,{prompt,title:title||"My Mission",summary:""});
+    const mission=await createMission(client,{prompt,title:title||"My Mission",goalType:missionGoalTypeForSupport(supportType),summary:"Support wanted: "+supportNeed(supportType).label});
     try{
       const raw=sessionStorage.getItem(PENDING_KEY);
       if(raw&&JSON.parse(raw)?.prompt===prompt)sessionStorage.removeItem(PENDING_KEY);
@@ -85,7 +87,13 @@ export default function WhatIfStart(){
          <label htmlFor="what-if-prompt" className="block text-sm font-medium text-white">Your idea, in your own words</label>
          <textarea id="what-if-prompt" autoFocus value={prompt} onChange={e=>update(e.target.value)} maxLength={12000} rows={5}
            className="w-full resize-y rounded-2xl border border-white/20 bg-slate-950/60 p-4 text-base leading-relaxed text-white placeholder-slate-400 outline-offset-4 focus-visible:ring-2 focus-visible:ring-cyan-400" placeholder="I want to… I need help with… What if we could…" />
-         <p className="text-xs text-slate-300">You don't need a fundraising goal or a perfect story. New Missions are private by default.</p>
+         <label htmlFor="what-if-support" className="block text-sm font-medium text-white">What kind of help would make it possible? (optional)
+           <select id="what-if-support" value={supportType} onChange={e=>setSupportType(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-white/20 bg-slate-900 px-4 text-white">
+             {SUPPORT_NEEDS.map(option=><option value={option.id} key={option.id}>{option.label}</option>)}
+           </select>
+           <span className="mt-1 block text-xs font-normal text-slate-300">{supportNeed(supportType).examples}</span>
+         </label>
+         <p className="text-xs text-slate-300">Money is only one kind of support. New Missions are private and do not need a fundraising goal.</p>
          <div className="flex flex-wrap items-center gap-3">
            <button type="submit" disabled={!prompt.trim()||!!busy} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
              <Compass size={19} aria-hidden="true"/> {busy==="explore"?"Exploring…":"Explore possibilities"}
