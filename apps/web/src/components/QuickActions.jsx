@@ -7,7 +7,7 @@ export default function QuickActions({user}) {
   const loggedIn=!!user?.id;
   const gate=path=>path === "/dashboard" ? path : loggedIn ? path : `/register?returnTo=${encodeURIComponent(path)}`;
   const actions=[
-    {to:gate("/create"),label:"Create a campaign",icon:Megaphone},
+    {to:"/create?manual=1",label:"Create a campaign",icon:Megaphone},
     {to:gate("/following"),label:"Saved / followed campaigns",icon:Heart},
     {to:gate("/dashboard"),label:"My campaigns and drafts",icon:LayoutDashboard},
     {to:gate("/mission"),label:"Campaign command center",icon:Sparkles},
