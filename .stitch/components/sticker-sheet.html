@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iFund — Stitch component sticker sheet</title>
+  <style>
+    :root {
+      --aurora:#47e0ee; --orbit:#a88fff; --ink:#071123; --primary:#2474f5;
+      --surface:#f8fafc; --card:#fff; --fg:#1f2937; --muted:#65738b; --border:#e1e7ef;
+      --mint:#6ef1e7; --radius:14px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:32px; background:var(--surface); color:var(--fg);
+      font:15px/1.6 Inter, ui-sans-serif, system-ui, sans-serif; }
+    h1 { font:800 32px/1.2 Manrope, sans-serif; letter-spacing:-.03em; }
+    h2 { font:700 18px/1.3 Manrope, sans-serif; margin:32px 0 12px; }
+    .sheet { max-width:1080px; margin:auto; }
+    .row { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; }
+    .label { font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+    button, .button { min-height:48px; border:0; border-radius:12px; padding:0 20px;
+      font:700 14px Inter, sans-serif; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .button-primary { background:linear-gradient(110deg,#2474f5,#38bdf8); color:#fff; box-shadow:0 8px 22px #2563eb33; }
+    .button-secondary { background:#fff; color:var(--fg); border:1px solid var(--border); }
+    .button-ghost { background:#ffffff12; color:#eafaff; border:1px solid #94a6c1; }
+    .button:focus-visible, button:focus-visible { outline:3px solid var(--aurora); outline-offset:3px; }
+    .cosmic-panel { border:1px solid var(--border); border-radius:24px; padding:28px;
+      background:radial-gradient(40rem 18rem at 90% -10%,#a88fff22,transparent 65%),
+                 radial-gradient(30rem 16rem at 0% 100%,#47e0ee22,transparent 70%), #fff;
+      box-shadow:0 12px 34px #0b173322; }
+    .prompt-composer { max-width:620px; border:1px solid #7dd3fc44; border-radius:24px;
+      background:#0f172a; color:#fff; padding:18px; box-shadow:0 18px 44px #02061755; }
+    .prompt-composer textarea { width:100%; min-height:104px; border:1px solid #334155; border-radius:16px;
+      background:#020617aa; color:#fff; padding:14px; font:15px/1.6 Inter, sans-serif; resize:vertical; }
+    .prompt-composer .meta { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
+    .prompt-composer .meta small { color:#bae6fd; }
+    .campaign-card { width:280px; border:1px solid var(--border); border-radius:20px; overflow:hidden; background:#fff;
+      box-shadow:0 10px 28px #0b17331a; }
+    .campaign-card .cover { height:120px; background:radial-gradient(circle at 70% 30%,#67e8f9,#4338ca 65%,#0f172a); }
+    .campaign-card .body { padding:16px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 10px;
+      background:#e0f2fe; color:#075985; font-size:11px; font-weight:700; }
+    .stat-tile { min-width:150px; border:1px solid #b1e4ff44; border-radius:18px; padding:18px;
+      background:linear-gradient(128deg,#ffffffdd,#82a8ff22); }
+    .stat-tile strong { display:block; font:800 28px Manrope,sans-serif; }
+    .stepper { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; max-width:720px; }
+    .step { min-height:48px; border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+      background:#fff; font-size:13px; font-weight:700; }
+    .step[aria-current="step"] { border-color:var(--primary); background:#2474f51a; color:#1d4ed8; }
+    .agent-card { position:relative; width:230px; min-height:168px; padding:18px; border-radius:21px;
+      border:1px solid #9dbbe333; background:linear-gradient(145deg,#0b1424,#111b30 80%,#131b31); color:#eff6ff;
+      --accent:#8de5e5; overflow:hidden; }
+    .agent-card::before { content:""; position:absolute; inset:0 0 auto; height:2px;
+      background:linear-gradient(90deg,var(--accent),transparent 80%); }
+    .agent-card::after { content:""; position:absolute; width:125px; height:125px; right:-65px; top:-70px;
+      border:1px solid var(--accent); border-radius:50%; opacity:.2; }
+    .agent-card .glyph { width:70px; height:70px; border-radius:50%; display:grid; place-items:center;
+      border:1px solid var(--accent); color:var(--accent); font:800 20px Manrope,sans-serif; }
+    .agent-card .name { margin-top:14px; font:800 14px Inter,sans-serif; letter-spacing:.17em; }
+    .agent-panel { max-width:520px; border-radius:18px; overflow:hidden; background:#090f1e; color:#eff6ff; }
+    .agent-panel header { padding:16px; border-bottom:1px solid #35435b; font-weight:750; }
+    .messages { padding:14px; background:#151f30; display:flex; flex-direction:column; gap:12px; }
+    .bubble { max-width:92%; padding:12px 14px; border-radius:16px; font-size:13px; line-height:1.6; }
+    .bubble.user { align-self:flex-end; background:#175d7e; color:#fff; }
+    .bubble.answer { align-self:flex-start; background:#26364d; border:1px solid #36495f; }
+    .status-alert { border:1px solid #fca5a5; background:#fef2f2; color:#991b1b; border-radius:12px; padding:12px 14px; font-size:13px; }
+    .nav-link { display:inline-flex; align-items:center; min-height:44px; padding:8px 14px; border-radius:12px;
+      background:#111c36; color:#dbeafe; font-weight:650; }
+    .nav-link[aria-current="page"] { background:linear-gradient(100deg,#29b7ec2b,#756afa1a); color:#a5f3fc;
+      box-shadow:inset 3px 0 #45d3e8; }
+    .dark-sample { background:#07111f; border-radius:24px; padding:20px; }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <h1>Interplanetary Fund — component sticker sheet</h1>
+    <p>Representative source-derived anatomy for Stitch reference only. Tokens are normative in <code>DESIGN.md</code>; do not treat these snippets as runtime components.</p>
+
+    <h2>Actions</h2>
+    <div class="row">
+      <div>
+        <div class="label">button-primary</div>
+        <!-- COMPONENT: button-primary -->
+        <button class="button button-primary">Start a Mission →</button>
+      </div>
+      <div>
+        <div class="label">button-secondary</div>
+        <!-- COMPONENT: button-secondary -->
+        <button class="button button-secondary">See plans</button>
+      </div>
+      <div class="dark-sample">
+        <div class="label">button-ghost</div>
+        <!-- COMPONENT: button-ghost -->
+        <button class="button button-ghost">Ask your AI Team</button>
+      </div>
+    </div>
+
+    <h2>Surfaces</h2>
+    <!-- COMPONENT: cosmic-panel -->
+    <section class="cosmic-panel">
+      <span class="chip">How it works</span>
+      <h3>From what if to what's next.</h3>
+      <p>A soft radial panel with a 24px radius, 1px border, and ambient aurora tint.</p>
+    </section>
+
+    <h2>Prompt composer</h2>
+    <!-- COMPONENT: prompt-composer -->
+    <section class="prompt-composer">
+      <textarea placeholder="What if every neighbor could see the change they make possible?"></textarea>
+      <div class="meta">
+        <small>Private by default · 1,500 characters</small>
+        <button class="button button-primary">Explore</button>
+      </div>
+    </section>
+
+    <h2>Campaign card</h2>
+    <!-- COMPONENT: campaign-card -->
+    <article class="campaign-card">
+      <div class="cover" aria-hidden="true"></div>
+      <div class="body">
+        <span class="chip">Community</span>
+        <h3>A library for every child</h3>
+        <p>Source-labeled campaign summary with verified progress only.</p>
+      </div>
+    </article>
+
+    <h2>Dashboard stat tile</h2>
+    <!-- COMPONENT: stat-tile -->
+    <div class="stat-tile"><span class="label">Active campaigns</span><strong>3</strong><span>owner-scoped count</span></div>
+
+    <h2>Wizard stepper</h2>
+    <!-- COMPONENT: wizard-stepper -->
+    <ol class="stepper">
+      <li class="step" aria-current="step">1 · Campaign basics</li>
+      <li class="step">2 · Your story</li>
+      <li class="step">3 · Review and publish</li>
+    </ol>
+
+    <h2>Agent team card</h2>
+    <!-- COMPONENT: agent-card -->
+    <button class="agent-card" style="--accent:#a98bff">
+      <span class="glyph" aria-hidden="true">P</span>
+      <span class="name">POLARIS</span>
+      <span>Research and strategy specialist</span>
+    </button>
+
+    <h2>Agent panel messages</h2>
+    <!-- COMPONENT: agent-panel-bubble -->
+    <section class="agent-panel">
+      <header>NEXUS · Mission Control</header>
+      <div class="messages">
+        <div class="bubble user">How should I structure my campaign story?</div>
+        <div class="bubble answer">Advisory answer with consultation trail. No publishing, payment, or external action was performed.</div>
+      </div>
+    </section>
+
+    <h2>Status alert</h2>
+    <!-- COMPONENT: status-alert -->
+    <div class="status-alert" role="alert">Account services are unavailable. Sign in to continue.</div>
+
+    <h2>Navigation link</h2>
+    <!-- COMPONENT: nav-link -->
+    <a class="nav-link" href="#" aria-current="page">AI Team</a>
+  </main>
+</body>
+</html>
