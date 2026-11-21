@@ -13,6 +13,7 @@ import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
+const OurStory = lazy(() => import("./pages/OurStory"));
 const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
