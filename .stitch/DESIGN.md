@@ -252,7 +252,7 @@ Use `colors.agent.*` only for the nine agent identity glyphs and per-card accent
 
 Fonts are locally bundled in `apps/web/public/fonts/` with provenance in `asset-sources.json`; no remote font request is required.
 
-- **Display:** Fraunces for the homepage "What if?" headline and other rare editorial brand moments. Keep the display face out of dense forms.
+- **Display:** Fraunces for the homepage "What if anything were possible?" headline and other rare editorial brand moments. Keep the display face out of dense forms.
 - **Headings:** Manrope for navigation, dashboard, cards, and section headings. Tight tracking creates a composed, modern tone.
 - **Body and labels:** Inter for paragraphs, helper text, buttons, inputs, and metadata.
 - **Mono:** system monospace only for technical identifiers or receipts, never for primary copy.
@@ -325,13 +325,13 @@ Reusable anatomy is documented in the component sticker sheet @components/sticke
 
 **Cards and panels.** `.ifund-cosmic-panel` is the shared card surface for creator sections, how-it-works steps, and readiness lists. Campaign cards use image, category chip, title, succinct description, and verified/progress metadata only. Dashboard stat tiles use a 2–3 column grid and never imply a financial total unless the value is provider-verified.
 
-**Navigation.** Desktop sidebar active state uses cyan text and an inset cyan bar. Mobile bottom tabs use a top gradient indicator. The global "Ask IFund" launcher is fixed bottom-right, 48px tall, dark navy with cyan border, and moves above the bottom nav on phones.
+**Navigation.** Desktop sidebar active state uses cyan text and an inset cyan bar. Mobile bottom tabs use a top gradient indicator. A persistent Log in / Account launcher sits near the bottom-right on every route. The "Ask IFund" launcher is adjacent to it on every route except the exact homepage, where agent chrome is deliberately hidden; on phones both controls move above the bottom nav while `QuickActions` remains bottom-left.
 
 **Inputs and forms.** 16px minimum font on mobile to avoid iOS zoom, 48px minimum height, 12px radius, cyan focus ring, and labels adjacent to fields. Validation and readiness lists sit beside the action they gate rather than in a detached toast.
 
 **Agent panel.** Header with identity/close, horizontally scrollable switcher, message log with `role="log"` and `aria-live="polite"`, availability status, voice controls, textarea, and "Open full workspace." User bubbles are cyan/blue; answers are dark slate. Direct answers are advisory and gated by deployment, membership, saved permission, and verified session state.
 
-**Wizard stepper.** Three steps — Campaign basics, Your story, Review and publish — as an ordered list with `aria-current="step"`. Panels are toggled with `hidden` rather than unmounted, so preserve field values and focus context in any redesign.
+**Wizard stepper.** Three compact steps — Campaign basics, Your story, Review and publish — as an ordered list of 56px icon buttons (`Target`, `BookOpen`, `Rocket`) with `aria-current="step"`, visible `title`, and accessible labels. Panels are toggled with `hidden` rather than unmounted, so preserve field values and focus context in any redesign.
 
 ### Design System Notes for Stitch Generation
 

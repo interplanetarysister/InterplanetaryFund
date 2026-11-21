@@ -2,8 +2,8 @@
 
 **Surfaces:** persistent `AgentSidePanel` and in-page AgentsTeam console.  
 **Owners:** `apps/web/src/components/agents/GlobalAgentCompanion.jsx`, `AgentSidePanel.jsx`, `apps/web/src/pages/AgentsTeam.jsx`  
-**Shell:** `GlobalAgentCompanion` wraps the whole router; the launcher is visible on public and private routes.  
-**Capture:** @html/agent-chat-desktop.html, @html/agent-chat-mobile.html, @screenshots/agent-chat-desktop.png, @screenshots/agent-chat-mobile.png. Opened locally by dispatching `ifund-open-agent` for NEXUS. No question was typed or sent.
+**Shell:** `GlobalAgentCompanion` wraps the whole router. A persistent Log in / Account launcher is visible everywhere; the Ask IFund launcher, side panel, and `ifund-open-agent` handler are active on every route except the exact homepage. `SiteTour` is also mounted here for eligible signed-in members.
+**Capture:** @html/agent-chat-desktop.html, @html/agent-chat-mobile.html, @screenshots/agent-chat-desktop.png, @screenshots/agent-chat-mobile.png. Opened locally on `/agents` by dispatching `ifund-open-agent` for NEXUS. No question was typed or sent.
 
 ## Purpose
 
@@ -11,7 +11,7 @@ The chat is an advisory companion, not an autonomous operator. It stays availabl
 
 ## Two consoles, one identity system
 
-- **Persistent side panel:** "Ask IFund" launcher → `GlobalAgentCompanion` event listener → `AgentSidePanel`. This is the docked/modal chat captured here.
+- **Persistent side panel:** On non-home routes, the "Ask IFund" launcher → `GlobalAgentCompanion` event listener → `AgentSidePanel`. This is the docked/modal chat captured here; on `/` both the launcher and panel are suppressed and external open events are ignored.
 - **In-page console:** `AgentsTeam.jsx` owns `#ask-mission-control` with its own textarea, specialist select, recommendation panel, and reply article. It is documented in @references/agent-team-overview.md#ai-team-overview.
 - Both use `AGENT_IDENTITIES`, `AgentIdentityIcon`, consultation trails, advisory disclaimers, and the same fail-closed language.
 
@@ -26,7 +26,7 @@ The chat is an advisory companion, not an autonomous operator. It stays availabl
 ## Visual tokens
 
 - Panel: `#090F1E` background, `#EFF6FF` text, `#35435B` left border, `-10px 0 35px #0002` shadow.
-- Launcher: fixed bottom-right, 48px, `#101B37`, `#6CE1F1` border, cyan focus outline; above bottom nav on phones.
+- Floating controls: fixed bottom-right; the adjacent Log in / Account and Ask IFund launchers use `#101B37`, cyan borders, and cyan focus outlines and sit above the bottom nav on phones. `QuickActions` occupies the opposite bottom-left corner.
 - Switcher: selected `#0C293D` with `#5FE6ED` border; 9px uppercase labels with `overflow-wrap:anywhere`.
 - Focus: 2px `#70E3EF` in the panel; 3px high-contrast focus for close/tool/send controls.
 - Motion: message scroll behavior becomes auto under reduced motion.

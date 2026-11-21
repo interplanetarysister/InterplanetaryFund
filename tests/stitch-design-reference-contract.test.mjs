@@ -167,3 +167,58 @@ test("capture manifest covers all four requested screens at two viewports", () =
     }
   }
 });
+
+test("design references describe the current merged UI contracts", () => {
+  const homepage = readFileSync(path.join(referencesDir, "homepage.md"), "utf8");
+  assert.match(homepage, /What if anything were possible\?/);
+  assert.match(homepage, /\/our-story/);
+  assert.match(homepage, /agent launcher and side panel are hidden on the exact homepage path/);
+  assert.doesNotMatch(homepage, /Be here from the beginning/);
+  assert.doesNotMatch(homepage, /CampaignCategoryGrid/);
+
+  const creator = readFileSync(path.join(referencesDir, "campaign-creator.md"), "utf8");
+  for (const phrase of [
+    "Three-icon stepper",
+    "CampaignVoiceInput",
+    "More agent help (optional)",
+    "Tell us what matters",
+    "publishing requires neither AI review nor a story-length target",
+  ]) {
+    assert.ok(creator.includes(phrase), `campaign creator reference is stale: ${phrase}`);
+  }
+
+  const agentChat = readFileSync(path.join(referencesDir, "agent-chat.md"), "utf8");
+  assert.match(agentChat, /except the exact homepage/);
+  const agentTeam = readFileSync(path.join(referencesDir, "agent-team-overview.md"), "utf8");
+  assert.match(agentTeam, /cannot move money or initiate withdrawals/);
+  const design = readFileSync(designPath, "utf8");
+  assert.match(design, /except the exact homepage/);
+  assert.match(design, /56px icon buttons/);
+
+  const workspaces = readFileSync(
+    path.join(repoDir, "apps/web/src/lib/agentWorkspaces.mjs"),
+    "utf8",
+  );
+  assert.match(workspaces, /Your fundraising finances and verified donations/);
+  assert.match(workspaces, /ORBIT cannot move money or initiate withdrawals/);
+
+  const goalAnalysis = readFileSync(
+    path.join(repoDir, "apps/web/src/components/agents/GoalSuccessAnalysis.jsx"),
+    "utf8",
+  );
+  assert.match(goalAnalysis, /Goal Success Analysis/);
+  assert.match(goalAnalysis, /No funds or supplies confirmed/);
+
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const capture = (id) => manifest.captures.find((item) => item.id === id);
+  assert.deepEqual(capture("homepage-desktop").headings, [
+    "What if anything were possible?",
+    "Start with an idea",
+    "Make it your own",
+    "Grow with support",
+  ]);
+  for (const id of ["campaign-creator-desktop", "campaign-creator-mobile"]) {
+    assert.ok(capture(id).headings.includes("New Campaign"), `missing creator heading for ${id}`);
+    assert.ok(capture(id).headings.includes("Tell us what matters"), `missing compact prompt for ${id}`);
+  }
+});
