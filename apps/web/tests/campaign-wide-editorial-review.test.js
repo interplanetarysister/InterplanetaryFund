@@ -14,8 +14,9 @@ const base={
  category:"community",goal_amount:"1000",cover_image_url:"https://example.org/cover.jpg",
 };
 
-test("minimum 3,500 full-story characters block new publishing without blocking drafts",()=>{
+test("short stories are publishable; editorial length and repetition are advisory",()=>{
  const short={...base,story:"Useful details.".repeat(200)};
+ assert.equal(publishReadiness({...base,story:"A short, factual campaign story."}).ready,true, "No minimum story length");
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
  assert.equal(publishReadiness(short).ready,true);
  const long={...short,story:"Useful details.".repeat(250)};
