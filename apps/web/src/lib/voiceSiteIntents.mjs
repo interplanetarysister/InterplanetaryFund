@@ -44,3 +44,13 @@ export function voiceSiteGuidance(action) {
   if(action.requiresReview) return "I can open the review page. Review the final content and confirm publication in your authenticated account; nothing has been posted.";
   return "Opening "+action.label.toLowerCase()+".";
 }
+
+// A user-triggered, local mic utterance can open a PRIVATE, unsaved Mission.
+// No account is created, and no fundraisers or provider actions are started.
+export function goalPromptFromVoice(transcript){
+ const raw=typeof transcript==="string"?transcript.trim().replace(/^(?:hey |okay |ok )?(?:alexa|nexus|ifund)[,;.! ]+/i,""):"";
+ if(raw.length<18||raw.length>1500)return null;
+ if(!/^(?:i|we|my family|our family) (?:want|need|wish|hope|would like|could use)\b/i.test(raw)&&
+    !/^help me (?:with|to|achieve|start|build|find)\b/i.test(raw))return null;
+ return raw;
+}
