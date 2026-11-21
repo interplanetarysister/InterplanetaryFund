@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogIn, UserRound, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 const HELP = Object.freeze({
@@ -28,7 +28,8 @@ export default function SiteTour() {
   const [visible, setVisible] = useState(false);
   const [route, setRoute] = useState("");
   const id = user?.id && !user.is_anonymous && user.email_confirmed_at ? user.id : null;
-  const page = Object.keys(HELP).find(key => pathname === key || (key === "/campaigns" && pathname.startsWith("/campaigns/")));
+  const excluded = pathname === "/" || /^\/(login|register|forgot-password|reset-password|auth\/|oauth\/)/.test(pathname);
+  const page = excluded ? null : Object.keys(HELP).find(key => pathname === key || (key === "/campaigns" && pathname.startsWith("/campaigns/"))) || pathname;
   useEffect(() => {
     setVisible(false);
     if (!id || !page) return;
@@ -45,8 +46,8 @@ export default function SiteTour() {
     try { if (id && route) localStorage.setItem(pageKey(id,route),"seen"); } catch {}
     setVisible(false);
   }
-  if (!visible || !HELP[route]) return null;
-  const [title, explanation] = HELP[route];
+  if (!visible || !route) return null;
+  const [title, explanation] = HELP[route] || ["Explore this page", "This page has its own tools and choices. Use the site menu to navigate, the floating account button to reach your profile, and Ask IFund if you need guidance. You stay in control of what is saved or shared."];
   return <aside aria-label="Your one-time site guide" role="dialog" aria-modal="false" className="ifund-tour-card">
     <button type="button" aria-label="Dismiss this page tour" onClick={acknowledge} className="absolute right-3 top-3 rounded-lg p-2 hover:bg-white/10"><X size={18}/></button>
     <p className="mb-2 text-[11px] font-bold uppercase tracking-[.15em] text-cyan-300">Getting started · One-time tip</p>
