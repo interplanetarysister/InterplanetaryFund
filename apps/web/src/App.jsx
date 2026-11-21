@@ -111,6 +111,7 @@ function AppRoutes() {
   if (legacy) return <Navigate to={legacy} replace />;
   return <Suspense fallback={<Loading />}><Routes>
     <Route path="/" element={<Home />} />
+    <Route path="/our-story" element={<OurStory />} />
     <Route path="/hackathon" element={<HackathonDemo />} />
     <Route path="/hackathon/tracker" element={<MemberAccess><SuperAdminAccess><HackathonTracker /></SuperAdminAccess></MemberAccess>} />
     <Route path="/about" element={<About />} />
