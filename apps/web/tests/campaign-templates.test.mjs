@@ -100,9 +100,11 @@ test("the homepage and dashboard use the shared prompt and real campaign data", 
     assert.match(page, /PromptComposer/);
     assert.match(page, /min-h-12|ifund-tap|min-h-\[44px\]/);
   }
-  assert.match(home, /listActiveCampaigns/);
-  assert.match(home, /CampaignCategoryGrid/);
-  assert.match(home, /CampaignCard/);
+  const story = source("../src/pages/OurStory.jsx");
+  assert.match(story, /listActiveCampaigns/);
+  assert.match(story, /CampaignCategoryGrid/);
+  assert.match(story, /CampaignCard/);
+  assert.match(home, /to="\/our-story"/);
   assert.match(dashboard, /AGENT_WORKSPACES\.map/);
   assert.match(dashboard, /AgentIdentityIcon/);
   assert.match(dashboard, /agentToolHref\(role\.identity\)/);
