@@ -6,7 +6,8 @@
     radial-gradient(ellipse 44rem 36rem at 95% 88%, rgb(144 85 238 / .10), transparent 74%),
     url("/cosmic-symmetry.svg") !important;
   background-size: auto, auto, clamp(350px,54vw,640px) clamp(350px,54vw,640px) !important;
-  background-position: center, center, right -160px top -120px !important;
+  background-position: center, center, right -160px top -120px;
+  animation: ifund-symmetric-drift 22s ease-in-out infinite alternate;
   background-repeat: no-repeat !important;
 }
 .ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-public:not(.ifund-auth) {
@@ -15,7 +16,8 @@
     radial-gradient(ellipse 40rem 35rem at 95% 89%, rgb(124 84 226 / .10), transparent 74%),
     url("/cosmic-symmetry.svg") !important;
   background-size: auto,auto, min(72vw,700px) min(72vw,700px) !important;
-  background-position: center,center,right -140px top -110px !important;
+  background-position: center,center,right -140px top -110px;
+  animation: ifund-symmetric-drift 22s ease-in-out infinite alternate;
   background-repeat: no-repeat !important;
 }
 .ifund-global-companion-shell .ifund-sacred-social::before {
@@ -24,6 +26,10 @@
     radial-gradient(ellipse at 13% 22%,rgb(55 203 230 / .19),transparent 51%),
     url("/cosmic-symmetry.svg") center top / min(70vw,660px) no-repeat !important;
   animation: ifund-lines-glimmer 17s ease-in-out infinite alternate;
+}
+@keyframes ifund-symmetric-drift {
+  0% {background-position:center,center,right -160px top -120px;}
+  100% {background-position:center,center,right -145px top -107px;}
 }
 @keyframes ifund-lines-glimmer {
   from { opacity:.16; filter:saturate(.85) brightness(.9); }
@@ -93,6 +99,7 @@
 }
 @media (prefers-reduced-motion:reduce){
  .ifund-sacred-social::before { animation:none !important; }
+ .ifund-global-companion-shell .ifund-shell [data-page-scroll],.ifund-global-companion-shell .ifund-public {animation:none !important;}
  .ifund-global-companion-shell button,
  .ifund-global-companion-shell [role="button"],
  .ifund-global-companion-shell a { transition:none !important; }
