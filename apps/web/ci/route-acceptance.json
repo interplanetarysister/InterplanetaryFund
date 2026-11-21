@@ -25,6 +25,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/our-story",
+      "role": "public",
+      "component": "OurStory",
+      "source_status": "not_verified",
+      "source_evidence": "apps/web/src/pages/OurStory.jsx; apps/web/src/App.jsx; apps/web/src/components/LegalFooter.jsx",
+      "behavior_evidence": "apps/web/tests/home-story-experience.test.mjs checks story preservation, guest route and homepage entry; deployed browser acceptance pending",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/about",
       "role": "public",
       "component": "About",
