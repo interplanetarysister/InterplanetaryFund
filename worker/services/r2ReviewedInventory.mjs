@@ -42,6 +42,7 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
         receipt.object_etag !== row.object_etag ||
         receipt.object_sha256 !== row.object_sha256 ||
         receipt.file_size !== row.file_size ||
+        receipt.media_type !== row.media_type ||
         receipt.campaign_id !== row.campaign_id ||
         receipt.deletion_requested_at !== row.deletion_requested_at ||
         receipt.allow_agent_use !== false)
