@@ -13,7 +13,7 @@ const actual=[...app.matchAll(/<Route\s+path="([^"]+)"\s+element=\{([^\n]+?)(?=\
 test("Stitch tour shows exactly the existing source routes, not invented pages",()=>{
  assert.deepEqual([...new Set(listed.map(x=>x.path))].sort(),actual.sort());
  assert.ok(listed.length>=95);
- assert.equal(listed.filter(x=>x.access==="Super-admin").length>0,true);
+ assert.ok(listed.some(x=>x.access==="Super-admin"));
  assert.ok(listed.every(x=>x.label&&x.group));
 });
 
