@@ -27,6 +27,6 @@ export function createAuthenticatedDocumentReceiptResolver({rpc}) {
        typeof row.object_verified_at!=='string'||
        !Number.isFinite(Date.parse(row.object_verified_at)))
       throw Error('Immutable receipt is invalid');
-    return Object.freeze({...row});
+    return Object.freeze({...row, document_id: row.id});
   };
 }
