@@ -1,0 +1,33 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+test("paid image allowance is a server-enforced rolling seven-day window, not a browser counter",()=>{
+ const sql=read("../../../supabase/migrations/20261121081500_ifund_paid_image_rolling_week_quota.sql");
+ assert.match(sql,/ifund_ops\.ai_image_paid_attempts/);
+ assert.match(sql,/pg_catalog\.pg_advisory_xact_lock\(20261113,50\)/);
+ assert.match(sql,/v_paid_used>=50/);
+ assert.match(sql,/attempted_at>v_now-interval '7 days'/);
+ assert.match(sql,/v_sub->>'status'='active'/);
+ assert.match(sql,/v_sub->>'admin_granted'/);
+ assert.match(sql,/ifund_agent_referral_status\(\)/);
+ assert.match(sql,/ifund_story_runtime\.subscription\(\)/);
+ assert.match(sql,/v_total>=50/);
+ assert.match(sql,/interval '10 seconds'/);
+ assert.match(sql,/insert into ifund_ops\.ai_image_paid_attempts/);
+ assert.match(sql,/revoke all on table ifund_ops\.ai_image_paid_attempts from public,anon,authenticated/);
+ assert.match(sql,/where owner_id=v_owner/);
+});
+test("status reports owner-specific remaining paid requests with no false guarantee of capacity",()=>{
+ const sql=read("../../../supabase/migrations/20261121081500_ifund_paid_image_rolling_week_quota.sql");
+ const studio=read("../src/pages/AIImageStudio.jsx");
+ const creator=read("../src/components/campaigns/CampaignImageChoices.jsx");
+ assert.match(sql,/paid_weekly_remaining/);
+ assert.match(sql,/paid_weekly_window','rolling_7_days'/);
+ assert.match(sql,/paid_weekly_used/);
+ assert.match(sql,/shared_daily_capacity',50/);
+ assert.match(studio,/paid_weekly_remaining/);
+ assert.match(studio,/50 image-generation or improvement attempts per rolling seven days/);
+ assert.match(creator,/50 image-generation or improvement attempts per rolling seven days/);
+ assert.match(studio,/shared provider budget/);
+});
