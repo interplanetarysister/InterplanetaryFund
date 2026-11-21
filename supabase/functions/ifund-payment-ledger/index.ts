@@ -218,8 +218,9 @@ Deno.serve(async req=>{
       const p=body.data||{};
       const memberId=await resolveVerifiedDonor(p.member_access_token);
       if(!memberId)return fail("Verified member session required",401);
-      if(!["basic","outreach","professional","enterprise","nonprofit"].includes(p.tier)
-        ||!["monthly","annual"].includes(p.interval))return fail("Invalid subscription selection");
+      // Only the independently price-checked Basic monthly contract is supported here.
+      // Other tiers must remain unavailable until their own provider-backed pricing and webhook acceptance exist.
+      if(p.tier!=="basic"||p.interval!=="monthly")return fail("Subscription tier is not provider-verified",409);
       const plan=await findOne("ifund_subscription_plans?select=*&tier=eq."+encodeURIComponent(p.tier)
         +"&interval=eq."+encodeURIComponent(p.interval));
       if(!plan||plan.active!==true||plan.currency!=="USD"||plan.amount_cents!==499||
