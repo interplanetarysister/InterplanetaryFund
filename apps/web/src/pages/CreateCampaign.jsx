@@ -647,7 +647,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {!storageReadable&&<div role="alert" className="space-y-2 text-sm"><p>Browser storage is unavailable. Saving is paused to protect your work.</p><button type="button" className={btn} onClick={retryStorageRead}>Retry storage</button></div>}
         {guestDecisionPending&&<div role="region" aria-label="Guest draft transfer" className="space-y-2 text-sm"><p>A guest draft was found on this device. Import only your own work; existing account drafts will not be overwritten.</p><div className="flex gap-2"><button type="button" className={btn} onClick={()=>decideGuestDraft(true)}>Import</button><button type="button" className={btn} onClick={()=>decideGuestDraft(false)}>Keep separate</button></div></div>}
         {guestImportMessage&&<div aria-live="polite" className="text-sm"><p>{guestImportMessage}</p>{guestCopyRetained && <button type="button" disabled={disabled||!ownerId} className={btn} onClick={retryGuestCopyCleanup}>Retry cleanup</button>}</div>}
-        {loadingDraft && <p role="status" className="text-sm">Loading draft…</p>}
+        {loadingDraft && <p role="status">Loading draft…</p>}
         {draftLoadError&&<p role="alert" className="text-sm text-amber-200">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
         <form id="campaign-editor" hidden={step===2} onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5">
           <fieldset disabled={disabled} className="space-y-5">
@@ -714,17 +714,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             <div className="text-slate-900 dark:text-white"><CampaignLocationFields form={form} change={change} disabled={disabled}/><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled}/></div>
           </div></details>
           <p className="text-xs text-slate-300">Publishing does not require an AI review or a story-length target. You may improve your campaign afterward in Command Center.</p>
-          <p className="text-xs text-slate-300">{donationsEnabled?"Published campaigns can accept verified PayPal donations.":"Payment checkout is unavailable; you can still publish."}</p>
+          <p className="text-xs text-slate-300">{donationsEnabled?"Published campaigns can accept verified PayPal donations.":"Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
         </div>}
         {error&&<p role="alert" className="text-sm text-amber-200">{error}</p>}
         {browserSaved&&<p role="status" className="text-xs text-slate-300">Draft saved in this browser tab only. It is not published.</p>}
         {saved&&!loadingDraft&&!draftLoadError&&<p role="status" className="text-xs text-cyan-200">{savedStatus==="active"?"Campaign published.":"Private draft saved."} <Link className="underline" to={savedStatus==="active"?"/campaign/"+encodeURIComponent(saved):"/create?draft="+encodeURIComponent(saved)}>View saved campaign</Link></p>}
-        {autosaveError&&<p role="alert" className="text-xs text-amber-200">{autosaveError}</p>}
+        {autosaveError && <p role="alert" className="text-xs text-amber-200">{autosaveError}</p>}
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-4">
           <button type="button" className={btn} disabled={disabled||step===0} onClick={()=>next(step-1)}>Back</button>
           {step<2&&<button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>}
           {step<2&&<button type="button" className={primary} disabled={disabled} onClick={()=>next(step+1)}>Continue</button>}
-          {step===2&&<button type="button" className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness" onClick={() => save("active")}>{busy==="active"?"Publishing…":"Publish campaign"}</button>}
+          {step===2&&<button type="button" onClick={() => save("active")} className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness">{busy==="active"?"Publishing…":"Publish campaign"}</button>}
         </footer>
       </div>
     </section>
