@@ -51,7 +51,7 @@ export function validateImageRequest(input) {
     throw new BodyError(422, 'Provide a valid campaign title, description and illustration style.');
   const prompt = [
     'Original non-photorealistic editorial artwork for a personal fundraiser.',
-    'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. Avoid invented names, real-person portraits or claimed donations. The application applies optional user-approved wording separately after generation.',
+    'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. No invented names, no portraits of real people, no claimed donations. The application applies optional user-approved wording separately after generation.',
     'Visual style: ' + IMAGE_STYLES[input.style] + '.',
     'Campaign title for visual context: ' + title + '.',
     'What the fundraiser is about: ' + description + '.',
