@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {provePrivateR2Object,provePrivateR2Absence} from './r2DeletionProof.mjs';
+const owner='11111111-1111-4111-8111-111111111111',campaign='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333';
+const row={document_id:id,campaign_id:campaign,storage_path:`private/campaign-documents/${owner}/${campaign}/${id}.pdf`,object_etag:'"abc"',object_sha256:'a'.repeat(64),object_verified_at:'2026-11-20T00:00:00Z',file_size:12};
+const head={httpEtag:'"abc"',size:12,checksums:{sha256:'a'.repeat(64)}};
+test('valid owner and exact receipt',async()=>assert.equal((await provePrivateR2Object({bucket:{head:async()=>head},row,ownerId:owner})).key,row.storage_path));
+test('cross-owner rejected before HEAD',async()=>{let called=false;await assert.rejects(provePrivateR2Object({bucket:{head:async()=>{called=true;return head}},row,ownerId:campaign}));assert.equal(called,false)});
+test('modified etag rejected',async()=>assert.rejects(provePrivateR2Object({bucket:{head:async()=>({...head,httpEtag:'wrong'})},row,ownerId:owner})));
+test('missing predelete object rejected',async()=>assert.rejects(provePrivateR2Object({bucket:{head:async()=>null},row,ownerId:owner})));
+test('absence only on null HEAD',async()=>{assert.equal((await provePrivateR2Absence({bucket:{head:async()=>null},row,ownerId:owner})).absent,true);await assert.rejects(provePrivateR2Absence({bucket:{head:async()=>head},row,ownerId:owner}));await assert.rejects(provePrivateR2Absence({bucket:{head:async()=>{throw Error('network')}},row,ownerId:owner}))});
