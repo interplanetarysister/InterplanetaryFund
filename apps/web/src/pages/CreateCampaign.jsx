@@ -21,6 +21,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import CampaignVoiceInput from "@/components/campaigns/CampaignVoiceInput";
+import CampaignImageChoices from "@/components/campaigns/CampaignImageChoices";
 import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
 
@@ -751,6 +752,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             className="mt-2 block w-full rounded-xl border border-input bg-background p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" />
         </label>
         {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
+        <CampaignImageChoices
+          title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)}
+          onApply={url=>{change("cover_image_url",url);setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}}
+          disabled={disabled}
+        />
         {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
         <label className="block text-sm font-semibold">Or paste an image URL
           <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
