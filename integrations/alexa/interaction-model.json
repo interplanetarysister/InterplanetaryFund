@@ -1,0 +1,68 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "interplanetary fund",
+      "intents": [
+        {
+          "name": "GoalSupportIntent",
+          "slots": [
+            {
+              "name": "goal",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "I need support with {goal}",
+            "I need help with {goal}",
+            "help me achieve {goal}",
+            "find ways to accomplish {goal}",
+            "I want to work toward {goal}"
+          ]
+        },
+        {
+          "name": "SupportOptionsIntent",
+          "samples": [
+            "what kind of support can I get",
+            "can you help with more than donations",
+            "find supplies and volunteers",
+            "help me find resources",
+            "explain all support options"
+          ]
+        },
+        {
+          "name": "CampaignStartIntent",
+          "samples": [
+            "help me create a campaign",
+            "start a campaign",
+            "build a fundraiser",
+            "prepare a crowdfunding campaign"
+          ]
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        }
+      ]
+    }
+  }
+}
