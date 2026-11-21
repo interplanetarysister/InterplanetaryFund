@@ -7,6 +7,8 @@ export default function CampaignVoiceInput({ value, onChange, disabled = false }
   const [listening, setListening] = useState(false);
   const [message, setMessage] = useState("");
   const recognition = useRef(null);
+  const latestValue = useRef(value);
+  latestValue.current = value;
   useEffect(() => () => { try { recognition.current?.abort(); } catch {} }, []);
   function start() {
     if (listening) { recognition.current?.stop(); return; }
@@ -19,7 +21,7 @@ export default function CampaignVoiceInput({ value, onChange, disabled = false }
       item.interimResults = false; item.continuous = false;
       item.onresult = event => {
         const spoken = Array.from(event.results).map(result => result[0]?.transcript || "").join(" ").trim();
-        if (spoken) onChange([value.trim(),spoken].filter(Boolean).join(" ").slice(0,1500));
+        if (spoken) onChange([latestValue.current.trim(),spoken].filter(Boolean).join(" ").slice(0,1500));
       };
       item.onerror = () => setMessage("Voice input stopped. You can continue typing.");
       item.onend = () => { setListening(false); recognition.current = null; };
