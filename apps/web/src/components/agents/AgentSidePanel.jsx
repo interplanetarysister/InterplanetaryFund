@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { interpretVoiceSiteCommand, voiceSiteGuidance } from "@/lib/voiceSiteIntents.mjs";
+import { interpretVoiceSiteCommand, voiceSiteGuidance, goalPromptFromVoice } from "@/lib/voiceSiteIntents.mjs";
 import { X, Send, ExternalLink, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
@@ -119,6 +119,16 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
             stopListening();
             if(canSpeak())speakAgent(feedback,"nexus");
             navigate(action.route);
+            return;
+          }
+        }
+        if(final && !availability.enabled){
+          const goal=goalPromptFromVoice(final);
+          if(goal){
+            const narration="Let's explore possible funding, supplies, skills, and other support for your goal. Nothing is being published.";
+            if(canSpeak())speakAgent(narration,"nexus");
+            stopListening();
+            navigate("/what-if",{state:{prompt:goal,source:"nexus-voice"}});
             return;
           }
         }
