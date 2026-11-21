@@ -22,11 +22,14 @@ function restore(){
   return data.prompt;
  }catch{return "";}
 }
+function restoreSupport(){
+ try{const data=JSON.parse(sessionStorage.getItem(PENDING_KEY)||"null");return data?.version===1&&data?.support_type?supportNeed(data.support_type).id:"other";}catch{return "other";}
+}
 export default function WhatIfStart(){
  const navigate=useNavigate();
  const location=useLocation();
  const session=useAuthSession();
- const [supportType,setSupportType]=useState("other");
+ const [supportType,setSupportType]=useState(restoreSupport);
  const [prompt,setPrompt]=useState(()=>{
    const transferred=location.state?.prompt;
    return typeof transferred==="string"&&transferred.length<=12000&&transferred.trim()
@@ -42,7 +45,7 @@ export default function WhatIfStart(){
  function update(value){setPrompt(value);setPreview(null);setError("");setAccountNeeded(false);}
  function retainExplicitly(){
   try{
-   sessionStorage.setItem(PENDING_KEY,JSON.stringify({version:1,at:Date.now(),prompt}));
+   sessionStorage.setItem(PENDING_KEY,JSON.stringify({version:1,at:Date.now(),prompt,support_type:supportType}));
    setHandoffWarning("Idea kept temporarily in this browser tab for sign-in. It is not saved to an iFund account yet.");
   }catch{
    setHandoffWarning("Browser storage was unavailable. Copy your idea before signing in; it has not been saved.");
@@ -52,7 +55,7 @@ export default function WhatIfStart(){
   if(!prompt.trim()||busy)return;
   setBusy("explore");setError("");setPreview(null);
   try{
-    const p=await exploreMission(prompt);
+    const p=await exploreMission(prompt+"\nType of support to investigate: "+supportNeed(supportType).label);
     setPreview(p);
   }catch(cause){setError(cause.message||"The preview is unavailable. You can still save a private Mission.");}
   finally{setBusy("");}
@@ -88,7 +91,7 @@ export default function WhatIfStart(){
          <textarea id="what-if-prompt" autoFocus value={prompt} onChange={e=>update(e.target.value)} maxLength={12000} rows={5}
            className="w-full resize-y rounded-2xl border border-white/20 bg-slate-950/60 p-4 text-base leading-relaxed text-white placeholder-slate-400 outline-offset-4 focus-visible:ring-2 focus-visible:ring-cyan-400" placeholder="I want to… I need help with… What if we could…" />
          <label htmlFor="what-if-support" className="block text-sm font-medium text-white">What kind of help would make it possible? (optional)
-           <select id="what-if-support" value={supportType} onChange={e=>setSupportType(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-white/20 bg-slate-900 px-4 text-white">
+           <select id="what-if-support" value={supportType} onChange={e=>{setSupportType(e.target.value);setPreview(null);}} className="mt-2 min-h-12 w-full rounded-xl border border-white/20 bg-slate-900 px-4 text-white">
              {SUPPORT_NEEDS.map(option=><option value={option.id} key={option.id}>{option.label}</option>)}
            </select>
            <span className="mt-1 block text-xs font-normal text-slate-300">{supportNeed(supportType).examples}</span>
