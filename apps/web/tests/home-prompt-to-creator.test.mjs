@@ -9,7 +9,9 @@ test("landing prompt opens the existing three-step campaign creator", () => {
  const wizard = read("../src/lib/campaignWizard.js");
  assert.match(home, /navigate\("\/create\?manual=1", \{ state: \{ prompt, source: "home-what-if" \} \}\)/);
  assert.match(home, /maxLength=\{1500\}/);
- assert.match(home, /submitLabel="Continue"/);
+ assert.match(home, /submitLabel="Build my campaign"/);
+ assert.match(home, /to=\{signedIn \? "\/dashboard" : "\/login"\}/);
+ assert.match(home, /to="\/our-story"/);
  assert.match(creator, /location\.state\?\.source === "home-what-if"/);
  assert.match(creator, /details:landingPrompt/);
  assert.match(creator, /summary:landingPrompt\.slice\(0, SUMMARY_MAX\)/);
