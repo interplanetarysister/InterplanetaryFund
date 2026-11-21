@@ -1,5 +1,3 @@
-import { onRequest as sandboxPagesCheckout } from "../../apps/web/functions/api/paypal/sandbox/[[path]].js";
-
 // iFund Cloudflare payment API — verified PayPal Orders v2; no browser card data.
 // Live activation requires IFUND_PAYMENTS_ENABLED=true after independent checkout
 // and webhook/ledger verification. Existing secrets remain in Cloudflare Secrets Store.
@@ -734,6 +732,7 @@ export default {
         return asJson({ok:false,error:"method_not_allowed"},405,cors);
       // Preserve the request's preview hostname and Origin so the sandbox
       // handler can enforce same-origin browser POST and bound capture cookies.
+      const {onRequest:sandboxPagesCheckout}=await import("../../apps/web/functions/api/paypal/sandbox/[[path]].js");
       const result=await sandboxPagesCheckout({request,env,params:{path:[route]}});
       // This alias is served under /api/payments/sandbox, not /api/paypal/sandbox.
       // Scope the original HttpOnly SameSite checkout cookie to this alias.
