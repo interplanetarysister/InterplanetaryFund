@@ -30,6 +30,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   const speechRef = useRef(null);
   const dictationBase = useRef("");
   const speechToken = useRef(0);
+  const consumedSuggestion=useRef(null);
   const active = useRef(null);
   const scroll = useRef(null);
   const panel = useRef(null);
@@ -38,7 +39,8 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   closeRef.current = onClose;
   const identity = choices.includes(agent) ? agent : "nexus";
   useEffect(() => {
-    if(!voiceSuggestion?.text || !agent)return;
+    if(!voiceSuggestion?.text || !agent || consumedSuggestion.current===voiceSuggestion.id)return;
+    consumedSuggestion.current=voiceSuggestion.id;
     setQuestion(value=>[value,voiceSuggestion.text].filter(Boolean).join(" ").slice(0,2000));
     if(canSpeak())setVoiceEnabled(true);
   },[voiceSuggestion,agent]);
