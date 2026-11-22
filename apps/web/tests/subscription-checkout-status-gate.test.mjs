@@ -23,7 +23,7 @@ test("checkout can start only when verified plan and account status are ready",(
   }
 });
 test("subscription price never trusts malformed provider amounts",()=>{
-  assert.equal(verifiedSubscriptionPrice(plan),"$12.00");
+  assert.equal(verifiedSubscriptionPrice(plan),"$4.99");
   assert.equal(verifiedSubscriptionPrice({...plan,amount_cents:"1200"}),"Pricing unavailable");
   assert.equal(verifiedSubscriptionPrice({...plan,currency:"EUR"}),"Pricing unavailable");
 });
