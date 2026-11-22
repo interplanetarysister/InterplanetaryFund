@@ -16,7 +16,7 @@ Scope excludes Base44, the judge sandbox ledger, DNS changes, and live payouts.
   deployment `dbbe216f-c357-4403-8453-49f0c0009862` with the original bindings inherited strictly.
 - Added separately attested provider-cleared capture table, immutable verified-capture check,
   owner-only balance RPC, atomic MFA-gated reservation requests, idempotency keys,
-  the existing single 7% withdrawal fee rule and cancellation while under review.
+  the existing single 3% withdrawal fee rule and cancellation while under review.
 - Home screen platform-support dialog has a more legible PayPal-forward checkout review. The
   hosted link remains *platform support*, not a campaign payment or an IFund campaign receipt.
 
@@ -34,7 +34,7 @@ Scope excludes Base44, the judge sandbox ledger, DNS changes, and live payouts.
   Provider-cleared funds require independently verified PayPal settlement/reporting evidence.
   Payment service Payouts approval, eligibility, owner payout-destination validation,
   finalized paid-withdrawal accounting, and real provider settlement are still blockers.
-- Never mark `paid` from an MFA result or a synthetic fixture. Recognition of the 7% fee is
+- Never mark `paid` from an MFA result or a synthetic fixture. Recognition of the 3% fee is
   deferred until a legitimately verified payout, and no fee is posted on reservation.
 
 ## Next safe work
@@ -45,5 +45,5 @@ Scope excludes Base44, the judge sandbox ledger, DNS changes, and live payouts.
    account-level fee allocation, then verify refunds/reservations under concurrency.
 3. Implement gated PayPal Payouts execution only when merchant access/eligibility and
    beneficiary verification are confirmed; record provider payout IDs idempotently and post
-   net withdrawal plus the single 7% fee only after provider-confirmed payment.
+   net withdrawal plus the single 3% fee only after provider-confirmed payment.
 4. Verify role-scoped receipt screens and production deployment before marking #203 complete.

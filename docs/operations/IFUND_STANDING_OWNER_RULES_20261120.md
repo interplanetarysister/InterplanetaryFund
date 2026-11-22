@@ -35,7 +35,7 @@
 29. **Keep user and provider consent explicit.** Recheck consent scope, current authorization, revocation and provider permissions for consequential external actions.
 30. **Internal AI permission is not external approval.** Agent training, account signup and shared context never authorize cross-site posting, payment, account creation or private-data disclosure.
 31. **Protect payment integrity.** Require signed provider events, durable idempotent ledger entries, refunds/reversals and reconciled balances; never invent gifts.
-32. **Apply the first-party withdrawal fee correctly.** Deduct the platform's 7% fee only once at withdrawal, using provider-cleared funds and verified owner-only withdrawal controls.
+32. **Apply the first-party withdrawal fee correctly.** Deduct the platform's 3% fee only once at withdrawal, using provider-cleared funds and verified owner-only withdrawal controls.
 33. **Keep outside hosts as direct checkouts.** External fundraisers collect donations through their own providers; iFund does not reroute those funds or apply first-party withdrawal fees.
 34. **Separate verified and reported metrics.** Clearly label user-reported, scraped/public, tentative, sandbox and provider-verified campaign totals and opportunities.
 35. **Use authorized OAuth connection flows.** Ask users to connect an external site through the supported provider consent window and store token access in protected backend systems.

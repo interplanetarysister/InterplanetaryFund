@@ -10,7 +10,7 @@ Interplanetary Fund is **one cohesive product**, not multiple disconnected campa
 
 - Use stable canonical owner identities and campaign IDs; never equate the two or infer an account owner from an email string.
 - Supabase owns business records and provider-verified payment ledger. R2 owns document/media object bytes; no parallel durable D1/KV database or Supabase Storage media copies.
-- First-party PayPal deposits require signed, idempotent provider evidence; the 7% platform fee applies **once at withdrawal**. Owner-only withdrawal requires cleared balance, verification and durable reservation. External provider fundraising pays that provider directly; outside amounts are source-labeled and never counted as verified IFund donations.
+- First-party PayPal deposits require signed, idempotent provider evidence; the 3% platform fee applies **once at withdrawal**. Owner-only withdrawal requires cleared balance, verification and durable reservation. External provider fundraising pays that provider directly; outside amounts are source-labeled and never counted as verified IFund donations.
 - User-facing agents operate within verified owner consent and tool scopes. Internal collaboration does not authorize external publishing, account creation, donation claims, or money movement. No model can grant itself permissions via a skill or a prompt.
 - A successful source build or nonauthenticated UI view is not end-to-end acceptance. Verify identities, network/runtime wiring, database ownership/RLS, provider receipts, mobile usability and rollback before claiming a live capability.
 
