@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { getCampaignDetail, listRelatedCampaigns } from "@/api/publicData";
+import { getCampaignDetail, listRelatedCampaigns, listRecentCampaignDonations } from "@/api/publicData";
 import { Image } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import CampaignFundingCard from "@/components/campaigns/CampaignFundingCard";
@@ -32,6 +32,8 @@ export default function CampaignDetail() {
   const [donationOpen, setDonationOpen] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
+  const [recentDonations, setRecentDonations] = useState([]);
+  const [recentDonationsUnavailable, setRecentDonationsUnavailable] = useState(false);
   const [blogAuthor, setBlogAuthor] = useState(null);
   const [error, setError] = useState("");
   const requestVersion = React.useRef(0);
@@ -42,6 +44,8 @@ export default function CampaignDetail() {
     setNotFound(false);
     setCampaign(null);
     setRelated([]);
+    setRecentDonations([]);
+    setRecentDonationsUnavailable(false);
     setBlogAuthor(null);
     try {
       const c = await getCampaignDetail(id);
@@ -53,8 +57,15 @@ export default function CampaignDetail() {
       authClient().rpc("ifund_public_campaign_blog_author", { p_campaign: c.id })
         .then(({ data, error }) => { if (version === requestVersion.current && !error) setBlogAuthor(data || null); })
         .catch(() => {});
-      const rel = await listRelatedCampaigns(c.category, c.id).catch(() => []);
-      if (version === requestVersion.current) setRelated(rel || []);
+      const [rel, donations] = await Promise.all([
+        listRelatedCampaigns(c.category, c.id).catch(() => []),
+        listRecentCampaignDonations(c.id).then(data=>({data,unavailable:false})).catch(()=>({data:[],unavailable:true})),
+      ]);
+      if (version === requestVersion.current) {
+        setRelated(rel || []);
+        setRecentDonations(donations.data || []);
+        setRecentDonationsUnavailable(donations.unavailable);
+      }
     } catch {
       if (version === requestVersion.current) setError("We couldn't load this campaign. Please try again.");
     }
@@ -152,6 +163,21 @@ export default function CampaignDetail() {
           </div>
         </section>
       )}
+
+      <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="recent-campaign-donations">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div><h2 id="recent-campaign-donations" className="font-display text-xl font-bold text-slate-900">Recent donations</h2>
+            <p className="mt-1 text-sm text-slate-600">The five most recent verified gifts to this campaign</p></div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{recentDonationsUnavailable?"—":`${recentDonations.length} of 5`}</span>
+        </div>
+        {recentDonationsUnavailable ? <p role="status" className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-600">Recent donations are temporarily unavailable.</p> : recentDonations.length ? <ol className="divide-y divide-slate-100">
+          {recentDonations.map(donation => <li key={donation.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{donation.donor_display_name || "Anonymous"}</p>
+              <p className="text-xs text-slate-500">{donation.captured_at ? new Date(donation.captured_at).toLocaleDateString() : "Verified donation"}</p></div>
+            <p className="shrink-0 text-sm font-bold tabular-nums text-slate-900">{new Intl.NumberFormat("en-US", { style: "currency", currency: donation.currency || "USD" }).format(donation.gift_cents / 100)}</p>
+          </li>)}
+        </ol> : <p className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-600">Be the first to support this campaign.</p>}
+      </section>
 
       <CampaignDonationDialog campaign={campaign} open={donationOpen} onOpenChange={setDonationOpen}
         onPaid={async () => { try { const fresh = await getCampaignDetail(id); if (fresh) setCampaign(fresh); } catch (_) {} }} />

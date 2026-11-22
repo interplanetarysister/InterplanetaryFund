@@ -639,6 +639,9 @@ async function createOrder(req,env) {
   const gift=input.gift_cents,tip=input.optional_support_cents||0,channel=input.payment_channel||"paypal";
   if(!UUID.test(input.campaign_id||"")||!INTENT.test(input.request_key||"")
    ||!["paypal","card","googlepay","applepay","venmo"].includes(channel)
+   ||(input.display_name_public!==undefined&&typeof input.display_name_public!=="boolean")
+   ||((input.display_name_public===true)&&(typeof input.public_display_name!=="string"||!input.public_display_name.trim()||input.public_display_name.trim().length>60))
+   ||((input.display_name_public!==true)&&input.public_display_name!==null&&input.public_display_name!==undefined)
    ||!Number.isSafeInteger(gift)||gift<100||gift>100000000
    ||!Number.isSafeInteger(tip)||tip<0||tip>Math.round(gift*0.1))return asError("invalid_donation_request");
   const total=quote(gift,tip,channel);
@@ -660,6 +663,8 @@ async function createOrder(req,env) {
   const claim=await signLedger(env,"begin",{campaign_id:input.campaign_id,request_key:input.request_key,
     gift_cents:gift,optional_support_cents:tip,total_cents:total,
     payment_channel:channel,environment:"live",checkout_token_hash:tokenHash,
+    display_name_public:input.display_name_public===true,
+    public_display_name:input.display_name_public===true?input.public_display_name.trim():null,
     donor_access_token:donorToken});
   // A completed bind is authoritative. Never create another PayPal order
   // after an HTTP timeout or retry with the same request key.

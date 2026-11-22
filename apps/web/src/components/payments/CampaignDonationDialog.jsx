@@ -4,6 +4,7 @@ import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart }
 import { paymentQuoteCents } from "@/lib/paymentQuote";
 import { parseDonationCents } from "@/lib/donationAmount.mjs";
 import GooglePayDonationButton from "./GooglePayDonationButton";
+import CashAppDonateButton from "./CashAppDonateButton";
 import { authClient } from "@/api/auth";
 import { Link } from "react-router-dom";
 import { isNativeBundle } from "@/lib/nativeApi";
@@ -38,6 +39,9 @@ async function api(path, options={}) {
 export default function CampaignDonationDialog({ campaign, open, onOpenChange, onPaid }) {
   const [amount,setAmount]=useState("25");
   const [support,setSupport]=useState(false);
+  const [displayNamePublic,setDisplayNamePublic]=useState(false);
+  const [publicDisplayName,setPublicDisplayName]=useState("");
+  const visibilityRef=useRef({displayNamePublic:false,publicDisplayName:""});
   const [status,setStatus]=useState("idle");
   const [error,setError]=useState("");
   const [eligible,setEligible]=useState(null);
@@ -45,6 +49,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
+  useEffect(()=>{visibilityRef.current={displayNamePublic,publicDisplayName};},[displayNamePublic,publicDisplayName]);
   const nativeCheckoutUnavailable = isNativeBundle();
   const checkoutLocked=status==="capturing"||complete;
   const parsedGift=parseDonationCents(amount);
@@ -53,12 +58,16 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const tip=valid&&support?Math.round(gift*.10):0;
   const quote = valid ? paymentQuoteCents(gift, tip) : null;
   const requestKey=channel=>{
-    const key=[campaign?.id,gift,tip,channel].join("|");
+    const visibility=visibilityRef.current;
+    const key=[campaign?.id,gift,tip,channel,visibility.displayNamePublic?"public":"anonymous",visibility.displayNamePublic?visibility.publicDisplayName.trim():""].join("|");
     if(!keys.current.has(key))keys.current.set(key,crypto.randomUUID().replace(/-/g,""));
     return keys.current.get(key);
   };
   const begin=async channel=>{
     if(!valid||!campaign?.id)throw new Error("Enter a donation of at least $1");
+    const visibility=visibilityRef.current;
+    if(visibility.displayNamePublic&&(!visibility.publicDisplayName.trim()||visibility.publicDisplayName.trim().length>60))
+      throw new Error("Enter a public display name between 1 and 60 characters, or choose anonymous.");
     if(campaign.status!=="active"||campaign.preview_only)throw new Error("This campaign is not accepting donations.");
     const key=requestKey(channel);
     let checkoutToken=checkoutTokens.current.get(key);
@@ -77,6 +86,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       body:JSON.stringify({
       campaign_id:campaign.id,gift_cents:gift,optional_support_cents:tip,
       payment_channel:channel,request_key:key,checkout_token:checkoutToken,
+      display_name_public:visibility.displayNamePublic,
+      public_display_name:visibility.displayNamePublic?visibility.publicDisplayName.trim():null,
     })});
     if(!data.id||data.checkout_token!==checkoutToken||data.environment!=="live")
       throw new Error("This payment needs review. No payment was started or recorded.");
@@ -189,7 +200,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       </DialogHeader>
       {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
         <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />Donation verified with PayPal and recorded. Thank you!</p>
-        <p className="text-sm">If you were signed in, you can find your verified receipt in My Giving. Guest donations are private and are not automatically added to an iFund giving history.</p>
+        <p className="text-sm">If you were signed in, you can find your verified receipt in My Giving. Your campaign-page display choice is saved with this donation.</p>
         <Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>
       </div>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
@@ -206,10 +217,24 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <label className="block text-sm font-semibold text-slate-900">Other amount (USD)
           <input type="text" inputMode="decimal" autoComplete="off" className={field} disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
+        <section className="space-y-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4">
+          <label className="flex items-start gap-3 text-sm text-[#173764]">
+            <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={displayNamePublic} onChange={e=>setDisplayNamePublic(e.target.checked)}/>
+            <span className="font-semibold">Show my donation publicly <span className="mt-1 block text-xs font-normal text-slate-600">Leave unchecked to donate anonymously. Your account and payment details are never shown.</span></span>
+          </label>
+          {displayNamePublic&&<label className="block text-sm font-semibold text-slate-900">Public display name
+            <input type="text" autoComplete="off" maxLength={60} className={field} disabled={checkoutLocked} value={publicDisplayName} onChange={e=>setPublicDisplayName(e.target.value)} placeholder="Name shown on this campaign"/>
+          </label>}
+        </section>
         <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
           <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
           <span className="font-semibold">Add 10% optional support for Interplanetary Fund <span className="mt-1 block text-xs font-normal text-slate-600">Entirely optional, separate from the campaign donation; unchecked by default.</span></span>
         </label>
+        {valid&&campaign?.cashapp_tag&&<section aria-label="Cash App direct payment" className="space-y-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <h3 className="text-sm font-bold text-emerald-950">Or give directly with Cash App</h3>
+          <p className="text-xs leading-relaxed text-emerald-900">Cash App sends this gift directly to the campaign owner. IFund cannot verify this external transfer, so it will not update verified campaign totals or the recent-donations list. The optional IFund support amount does not apply.</p>
+          <CashAppDonateButton cashtag={campaign.cashapp_tag} amount={(gift/100).toFixed(2)}/>
+        </section>}
         {valid&&<section aria-label="Your PayPal payment summary" aria-live="polite" className="overflow-hidden rounded-2xl border border-[#c9d9f1] bg-[#f6f9ff] text-sm text-[#183153] shadow-sm">
           <div className="flex items-center justify-between border-b border-[#dce6f5] bg-white px-4 py-3">
             <h3 className="font-bold text-[#003087]">Your payment summary</h3>

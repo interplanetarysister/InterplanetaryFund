@@ -97,6 +97,9 @@ Deno.serve(async req=>{
       const p=body.data||{};
       if(!patternId.test(p.campaign_id||"")||!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")
         || !["paypal","card","googlepay","applepay","venmo"].includes(p.payment_channel)
+        || typeof p.display_name_public!=="boolean"
+        || (p.display_name_public && (typeof p.public_display_name!=="string" || !p.public_display_name.trim() || p.public_display_name.trim().length>60))
+        || (!p.display_name_public && p.public_display_name!==null)
         || !["live","sandbox"].includes(p.environment)
         || !Number.isSafeInteger(p.gift_cents)||p.gift_cents<100||p.gift_cents>100000000
         || !Number.isSafeInteger(p.optional_support_cents)||p.optional_support_cents<0
@@ -111,7 +114,9 @@ Deno.serve(async req=>{
         try{
           const created=await db("ifund_payment_intents","POST",{request_key:p.request_key,campaign_id:p.campaign_id,
              gift_cents:p.gift_cents,optional_support_cents:p.optional_support_cents,total_cents:p.total_cents,
-             environment:p.environment,payment_channel:p.payment_channel,currency:"USD",checkout_token_hash:p.checkout_token_hash,donor_id:donorId,status:"creating"});
+             environment:p.environment,payment_channel:p.payment_channel,currency:"USD",checkout_token_hash:p.checkout_token_hash,
+             display_name_public:p.display_name_public,public_display_name:p.public_display_name,
+             donor_id:donorId,status:"creating"});
           existing=created[0];
         }catch(error){
           if(error.status===409) existing=await findOne("ifund_payment_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));
@@ -121,6 +126,7 @@ Deno.serve(async req=>{
       if(!existing|| existing.campaign_id!==p.campaign_id||existing.environment!==p.environment
          ||existing.gift_cents!==p.gift_cents||existing.optional_support_cents!==p.optional_support_cents
          ||existing.total_cents!==p.total_cents||existing.payment_channel!==p.payment_channel
+         ||existing.display_name_public!==p.display_name_public||existing.public_display_name!==p.public_display_name
          ||existing.checkout_token_hash!==p.checkout_token_hash || existing.donor_id!==donorId) return fail("Checkout request conflicts with existing intent",409);
       return Response.json({ok:true,status:existing.status,order_id:existing.paypal_order_id||null});
     }

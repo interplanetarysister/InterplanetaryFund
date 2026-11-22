@@ -55,6 +55,7 @@ export default function EditCampaign() {
         category: campaign.category || "community",
         goal_amount: Number(campaign.goal_amount) > 0 ? String(campaign.goal_amount) : "",
         cover_image_url: campaign.cover_image_url || "",
+        cashapp_tag: campaign.cashapp_tag || "",
         map_opt_in: campaign.map_opt_in === true,
         public_location_label: campaign.public_location_label || "",
         map_latitude: campaign.map_latitude === null ? "" : String(campaign.map_latitude),
@@ -192,6 +193,14 @@ export default function EditCampaign() {
         <input id="campaign-cover" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} disabled={disabled}
           onChange={(e) => change("cover_image_url", e.target.value)} className={fieldClass} />
       </label>
+      <section className="space-y-2 rounded-xl border border-border bg-muted/30 p-4">
+        <h2 className="font-semibold">Cash App giving (optional)</h2>
+        <p className="text-sm text-muted-foreground">Add your campaign Cash App $Cashtag so supporters can pay you directly. These external transfers are not verified or added to IFund totals automatically.</p>
+        <label className="block text-sm font-semibold">Your Cash App $Cashtag
+          <input id="campaign-cashapp-tag" type="text" autoComplete="off" maxLength={21} value={form.cashapp_tag || ""} disabled={disabled}
+            onChange={e=>change("cashapp_tag",e.target.value.replace(/^\$/,""))} placeholder="$yourtag" className={fieldClass}/>
+        </label>
+      </section>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
 
       <CampaignReadinessScore form={form} />

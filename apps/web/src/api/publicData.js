@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 const PROJECT_REF = "ssibsfmtodgximseeqsv";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
+const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude,cashapp_tag";
 
 let client = null;
 export function isPublicDataConfigured() {
@@ -45,6 +45,7 @@ export function mapCampaign(row = {}) {
     category: row.category || "other",
     cover_image_url: row.cover_image_url || "",
     cover_image_is_ai: false,
+    cashapp_tag: row.cashapp_tag || "",
     location: row.map_opt_in === true && row.public_location_label ? row.public_location_label : "",
     map_opt_in: row.map_opt_in === true,
     latitude: row.map_opt_in === true && row.map_latitude !== null ? numOrNull(row.map_latitude) : null,
@@ -113,6 +114,21 @@ export async function getCampaignDetail(id) {
   if (!data) return null;
   const funding = await attachVerifiedFunding([data]);
   return funding[0];
+}
+
+export async function listRecentCampaignDonations(campaignId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(campaignId || ""))) return [];
+  const { data, error } = await supabase()
+    .from("ifund_campaign_recent_donations")
+    .select("id,campaign_id,donor_display_name,gift_cents,currency,captured_at")
+    .eq("campaign_id", campaignId)
+    .order("captured_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(5);
+  if (error || !Array.isArray(data)) throw new Error("Recent campaign donations are unavailable.");
+  return data.map(row => ({ id: row.id, donor_display_name: row.donor_display_name || "Anonymous",
+    gift_cents: Number(row.gift_cents), currency: row.currency || "USD", captured_at: row.captured_at
+  })).filter(row => Number.isSafeInteger(row.gift_cents) && row.gift_cents > 0);
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {

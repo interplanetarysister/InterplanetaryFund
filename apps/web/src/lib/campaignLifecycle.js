@@ -43,7 +43,7 @@ export function emptyCampaignForm() {
   return {
     title: "", summary: "", story: "",
     category: "community", goal_amount: "", cover_image_url: "",
-    map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "",
+    map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "", cashapp_tag: "",
   };
 }
 
@@ -81,6 +81,8 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   const story = text(value.story);
   const goal = text(value.goal_amount);
   const cover = text(value.cover_image_url);
+  const cashapp = text(value.cashapp_tag).replace(/^\$/, "");
+  if (cashapp && !/^[A-Za-z0-9_]{1,20}$/.test(cashapp)) errors.push("Enter a valid Cash App $Cashtag (1–20 letters, numbers or underscores).");
 
   if (!title) errors.push("Add a campaign title.");
   else if (title.length > TITLE_MAX) errors.push(`Keep the title to ${TITLE_MAX} characters or fewer.`);
@@ -134,6 +136,7 @@ export function buildCampaignPayload(form, status) {
     category: value.category,
     goal_amount: goal ? Number(goal) : 0,
     cover_image_url: text(value.cover_image_url),
+    cashapp_tag: text(value.cashapp_tag).replace(/^\$/, "") || null,
     map_opt_in: value.map_opt_in === true,
     public_location_label: value.map_opt_in === true ? text(value.public_location_label) : null,
     map_latitude: value.map_opt_in === true ? Number(value.map_latitude) : null,
