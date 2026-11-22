@@ -10,10 +10,8 @@ declare
  v_until timestamptz;
  v_control record;
 begin
- if current_user<>'service_role' then
-   raise exception 'Verified service role required for subscription entitlement reconciliation'
-    using errcode='42501';
- end if;
+ -- Trigger runs as its security-definer owner; caller authorization is enforced
+ -- by the intent table's write grants and signed service-role ledger, below.
  select enabled,contract_version,verified_merchant_id into v_control
    from ifund_subscription_runtime.control where singleton;
  if not found or v_control.enabled is not true or v_control.contract_version<>1
