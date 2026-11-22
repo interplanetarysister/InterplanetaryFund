@@ -45,7 +45,20 @@ function binding({
   const calls = [];
   return {
     calls,
+    fetcher: async (url, init) => {
+      const endpoint=String(url);
+      assert.equal(init?.headers?.Authorization,"Bearer own.test.jwt");
+      if(endpoint.endsWith("/ifund_trial_ai_generation_reserve"))
+        return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
+      if(endpoint.endsWith("/ifund_trial_ai_generation_complete"))
+        return Response.json(true);
+      if(endpoint.endsWith("/ifund_trial_ai_generation_release"))
+        return Response.json(true);
+      throw new Error("Unexpected trial quota RPC: "+endpoint);
+    },
     env: {
+      SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
       IFUND_STORY_AGENT: {
         fetch: async (forwarded) => {
           const path = new URL(forwarded.url).pathname;
@@ -121,7 +134,7 @@ test("unverified access never becomes a free-outline success or an inference att
     { throws: true },
   ]) {
     const f = binding(options);
-    const result = await campaignPreview(request(), f.env);
+    const result = await campaignPreview(request(), f.env, f.fetcher);
     assert.ok([401, 403, 503].includes(result.status));
     assert.equal(f.calls.length, 1);
     assert.doesNotMatch(await result.text(), /private-provider-credential/);
@@ -129,7 +142,7 @@ test("unverified access never becomes a free-outline success or an inference att
 });
 test("the preserved free outline uses only supplied facts and never calls the model", async () => {
   const f = binding({ access: { active: false, level: 0 } });
-  const response = await serviceGateway(request(), f.env);
+  const response = await serviceGateway(request(), f.env, f.fetcher);
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.assistance, "outline");
@@ -179,7 +192,7 @@ test("outlines fit campaign bounds for every existing category without inventing
 });
 test("eligible requests use the existing guarded Story execution with the same request reference", async () => {
   const f = binding();
-  const response = await serviceGateway(request(), f.env);
+  const response = await serviceGateway(request(), f.env, f.fetcher);
   assert.equal(response.status, 200);
   const result = await response.json();
   assert.equal(result.assistance, "assisted");
@@ -212,7 +225,7 @@ test("quota and provider failures do not silently replace the requested service 
         code: "new_request_required",
       },
     });
-    const result = await campaignPreview(request(), f.env);
+    const result = await campaignPreview(request(), f.env, f.fetcher);
     assert.equal(result.status, status);
     assert.equal(f.calls.length, 2);
     const body = await result.json();
@@ -226,7 +239,7 @@ test("queued requests preserve the caller reference and never report generated c
     nativeStatus: 202,
     native: { state: "queued", request_id: ID },
   });
-  const response = await campaignPreview(request(), f.env);
+  const response = await campaignPreview(request(), f.env, f.fetcher);
   assert.equal(response.status, 202);
   const body = await response.json();
   assert.equal(body.state, "queued");
@@ -236,7 +249,7 @@ test("queued requests preserve the caller reference and never report generated c
     nativeStatus: 202,
     native: { state: "queued", request_id: RECEIPT },
   });
-  assert.equal((await campaignPreview(request(), wrong.env)).status, 502);
+  assert.equal((await campaignPreview(request(), wrong.env, wrong.fetcher)).status, 502);
 });
 test("rewrites retain the whole native section, while free outlines are never called rewrites", async () => {
   const section =
@@ -247,6 +260,7 @@ test("rewrites retain the whole native section, while free outlines are never ca
   const result = await campaignPreview(
     request({ ...input, section: "Original section" }),
     f.env,
+    f.fetcher,
   );
   assert.equal((await result.json()).section, section);
   assert.equal(f.calls[1].body.section, "Original section");
@@ -254,6 +268,7 @@ test("rewrites retain the whole native section, while free outlines are never ca
   const unavailable = await campaignPreview(
     request({ ...input, section: "Original section" }),
     basic.env,
+    basic.fetcher,
   );
   assert.equal(unavailable.status, 409);
   assert.equal((await unavailable.json()).code, "section_unavailable");
@@ -265,7 +280,7 @@ test("a confirmed stored receipt and complete output are required before success
     { draft: { id: RECEIPT, payload: { ...copy, titles: ["Only one"] } } },
   ]) {
     const f = binding({ native });
-    assert.equal((await campaignPreview(request(), f.env)).status, 502);
+    assert.equal((await campaignPreview(request(), f.env, f.fetcher)).status, 502);
   }
 });
 test("malformed inputs and non-JSON service replies fail closed", async () => {
@@ -293,10 +308,10 @@ test("malformed inputs and non-JSON service replies fail closed", async () => {
 
 test("saved campaign reference is forwarded to owner-verified Story and invalid IDs are rejected",async()=>{
  const f=binding();
- const response=await campaignPreview(request({...input,campaign_id:RECEIPT}),f.env);
+ const response=await campaignPreview(request({...input,campaign_id:RECEIPT}),f.env,f.fetcher);
  assert.equal(response.status,200);
  const routed=f.calls.find(call=>call.path==="/api/agents/story/drafts");
  assert.equal(routed.body.campaign_id,RECEIPT);
- const invalid=await campaignPreview(request({...input,campaign_id:"another-user"}),f.env);
+ const invalid=await campaignPreview(request({...input,campaign_id:"another-user"}),f.env,f.fetcher);
  assert.equal(invalid.status,400);
 });

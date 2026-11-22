@@ -14,12 +14,12 @@ const json = (status, data) =>
   Response.json(data, { status, headers: { "cache-control": "no-store" } });
 
 /** Permanent service addresses are independent of the worker/model that performs the service. */
-export async function serviceGateway(request, env) {
+export async function serviceGateway(request, env, fetcher = fetch) {
   const path = new URL(request.url).pathname;
   if (path === "/api/services/admin/private-document-erasure")
     return handlePrivateDocumentErasure(request, env);
   if (path === "/api/services/story_agent/campaign-preview")
-    return campaignPreview(request, env);
+    return campaignPreview(request, env, fetcher);
   if (path === "/api/services/status") {
     if (request.method !== "GET")
       return json(405, { error: "Method not allowed." });

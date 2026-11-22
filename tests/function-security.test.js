@@ -149,6 +149,11 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   // unblocking remains available without an active membership requirement.
   // Owner-only verified signup trial/code issuance, one-time referral claim,
   // and trigger-only published-campaign qualification. No paid-plan grant.
+  // Fifteen-item trial AI content counter is owner scoped; manual tools are not charged.
+  "public.ifund_trial_ai_generation_reserve",
+  "public.ifund_trial_ai_generation_complete",
+  "public.ifund_trial_ai_generation_release",
+  "public.ifund_trial_ai_generation_status",
   "public.ifund_agent_referral_status",
   "public.ifund_claim_campaign_referral",
   "public.ifund_credit_published_referral",
