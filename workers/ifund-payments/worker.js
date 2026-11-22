@@ -399,8 +399,8 @@ async function subscriptionPlans(env) {
   const catalog=await signLedger(env,"subscription_plans",{});
   return {ok:true,readiness,plans:(catalog.plans||[]).map(row=>({
     tier:row.tier,interval:row.interval,amount_cents:row.amount_cents,currency:row.currency,
-    available:Boolean(readiness.ready&&row.active&&row.verified_at&&row.tier===BASIC_MONTHLY_PLAN.tier&&row.interval===BASIC_MONTHLY_PLAN.interval&&row.paypal_plan_id===planId&&PAYPAL_PLAN_ID.test(planId||"")&&Number(row.amount_cents)===BASIC_MONTHLY_PLAN.amount_cents&&row.currency==="USD"),
-    verified:Boolean(row.active&&row.verified_at)
+    available:Boolean(readiness.ready&&row.active&&row.verified_at&&row.webhook_verified_at&&row.tier===BASIC_MONTHLY_PLAN.tier&&row.interval===BASIC_MONTHLY_PLAN.interval&&row.paypal_plan_id===planId&&PAYPAL_PLAN_ID.test(planId||"")&&Number(row.amount_cents)===BASIC_MONTHLY_PLAN.amount_cents&&row.currency==="USD"),
+    verified:Boolean(row.active&&row.verified_at&&row.webhook_verified_at)
   }))};
 }
 async function startSubscription(req,env,origin) {
