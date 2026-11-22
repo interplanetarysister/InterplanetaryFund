@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 test("public campaign donations are capped at five verified unreversed gifts",()=>{
- const sql=read("../../supabase/migrations/20261121_ifund_public_donation_visibility.sql");
+ const sql=read("../../supabase/migrations/20261121190000_ifund_public_donation_visibility.sql");
  assert.match(sql,/row_number\(\) over \(partition by d\.campaign_id order by d\.captured_at desc,d\.id desc\)/);
  assert.match(sql,/where recent_rank<=5/);assert.match(sql,/d\.paypal_capture_verified_at is not null/);
  assert.match(sql,/d\.status='captured'/);assert.match(sql,/coalesce\(d\.refunded_cents,0\)=0/);
 });
 test("public donation projection excludes private identity and provider metadata",()=>{
- const sql=read("../../supabase/migrations/20261121_ifund_public_donation_visibility.sql");
+ const sql=read("../../supabase/migrations/20261121190000_ifund_public_donation_visibility.sql");
  const view=sql.slice(sql.indexOf("create or replace view"),sql.indexOf("revoke all on public.ifund_campaign_recent_donations"));
  for(const key of ["donor_id","paypal_order_id","paypal_capture_id","payer_email","public_message"])assert.doesNotMatch(view,new RegExp(key));
  assert.match(view,/else 'Anonymous'/);
