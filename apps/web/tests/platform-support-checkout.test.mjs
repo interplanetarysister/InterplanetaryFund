@@ -17,7 +17,7 @@ test("platform support is accounted separately from campaign donations",()=>{
 });
 test("platform messages are admin-only and created after verified capture",()=>{
  assert.match(sql,/p_capture_status is distinct from 'COMPLETED'/);
- assert.match(sql,/ifund_platform_support_messages/);assert.match(sql,/app_metadata/);
+ assert.match(sql,/ifund_platform_support_messages/);assert.match(sql,/app_metadata/);assert.match(sql,/security invoker/);assert.match(sql,/private\.ifund_notify_platform_support_admins/);
  assert.match(inbox,/ifund_platform_support_messages/);
 });
 test("platform UI does not require donor or cardholder name and does not fake unavailable rails",()=>{

@@ -71,19 +71,35 @@ grant select,insert,update on public.ifund_platform_support_intents to service_r
 grant select,insert on public.ifund_platform_support_donations,public.ifund_platform_support_ledger_entries,
   public.ifund_platform_support_events,public.ifund_platform_support_messages to service_role;
 grant select on public.ifund_platform_support_messages to authenticated;
+drop policy if exists ifund_platform_support_messages_admin_read on public.ifund_platform_support_messages;
 create policy ifund_platform_support_messages_admin_read on public.ifund_platform_support_messages
   for select to authenticated using ((auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'));
 
+create schema if not exists private;
+revoke all on schema private from public,anon,authenticated;
+grant usage on schema private to service_role;
+create or replace function private.ifund_notify_platform_support_admins(p_title text,p_body text)
+returns void language plpgsql security definer set search_path to '' as $
+declare v_admin record;
+begin
+  for v_admin in select id from auth.users where raw_app_meta_data->>'role' in ('admin','super_admin') loop
+    insert into public.ifund_notifications(owner_id,title,body,type,link,read)
+    values(v_admin.id,left(p_title,160),left(p_body,500),'platform_support_message','/inbox',false);
+  end loop;
+end;
+$;
+revoke all on function private.ifund_notify_platform_support_admins(text,text) from public,anon,authenticated;
+grant execute on function private.ifund_notify_platform_support_admins(text,text) to service_role;
+
 create or replace function public.ifund_finalize_verified_platform_support_capture(
   p_order_id text,p_capture_id text,p_captured_cents bigint,p_capture_status text,p_currency text
-) returns uuid language plpgsql security definer set search_path to ''
-as $$
+) returns uuid language plpgsql security invoker set search_path to ''
+as $
 declare
   v_intent public.ifund_platform_support_intents%rowtype;
   v_donation public.ifund_platform_support_donations%rowtype;
   v_ledger public.ifund_platform_support_ledger_entries%rowtype;
   v_message_id uuid;
-  v_admin record;
 begin
   if p_capture_status is distinct from 'COMPLETED' or p_currency is distinct from 'USD'
     or p_order_id is null or length(p_order_id)<8 or p_capture_id is null or length(p_capture_id)<8 then
@@ -121,13 +137,11 @@ begin
     insert into public.ifund_platform_support_messages(donation_id,amount_cents,currency,message)
     values(v_donation.id,v_intent.gift_cents,'USD',left(btrim(v_intent.support_message),500))
     on conflict(donation_id) do nothing returning id into v_message_id;
-    if v_message_id is not null and to_regclass('public.ifund_notifications') is not null then
-      for v_admin in select id from auth.users where raw_app_meta_data->>'role' in ('admin','super_admin') loop
-        execute 'insert into public.ifund_notifications(owner_id,title,body,type,link,read) values ($1,$2,$3,$4,$5,false)'
-          using v_admin.id,'New verified IFund platform donation',
-            'A supporter left a private message with a verified platform donation.',
-            'platform_support_message','/inbox';
-      end loop;
+    if v_message_id is not null then
+      perform private.ifund_notify_platform_support_admins(
+        'New verified IFund platform donation',
+        'A supporter left a private message with a verified platform donation.'
+      );
     end if;
   end if;
   return v_donation.id;

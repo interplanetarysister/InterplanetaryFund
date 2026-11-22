@@ -33,7 +33,7 @@ create policy ifund_campaign_donation_messages_owner_read
 create or replace function public.ifund_deliver_verified_campaign_donation_message()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path to ''
 as $$
 declare
@@ -90,6 +90,7 @@ revoke all on function public.ifund_deliver_verified_campaign_donation_message()
   from public, anon, authenticated;
 grant execute on function public.ifund_deliver_verified_campaign_donation_message()
   to service_role;
+grant insert on public.ifund_notifications to service_role;
 
 drop trigger if exists ifund_deliver_verified_campaign_donation_message
   on public.ifund_donations;
