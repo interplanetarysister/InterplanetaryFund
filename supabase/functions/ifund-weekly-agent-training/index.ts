@@ -67,6 +67,11 @@ async function collectedCloudflareResults(){
    try{resp=await fetch(externalResearchUrl+"?week_key="+weekKey+"&agent_id="+agentId,{signal:controller.signal})}finally{clearTimeout(timer)}
    if(!resp.ok || resp.status!==200)return null;
    const data=await resp.json();
+   if(data?.week_key===weekKey && data?.agent_id===agentId &&
+      data?.provider==="cloudflare_workers_ai" && data?.status==="failed" &&
+      Number.isInteger(data.attempts) && data.attempts>=2)
+      return {agentId,weekKey,failed:true,candidates:[],error:"Source research exhausted two permitted attempts",
+         research:{source:"cloudflare_workers_ai",status:"failed",attempts:data.attempts}};
    if(data.week_key!==weekKey || data.agent_id!==agentId || data.provider!=="cloudflare_workers_ai" || 
       typeof data.summary!=="string" || !Array.isArray(data.sources) || data.sources.length<2 ||
       !Array.isArray(data.candidates) || data.evaluated!==false || data.approved!==false)return null;
@@ -103,9 +108,11 @@ Deno.serve(async(req)=>{
    const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId,p_week_key:ready.weekKey});
    if(!claimed?.job_id)continue;
    const done=await rpc("ifund_training_finish",{p_job_id:claimed.job_id,
-     p_state:"completed",p_research:ready.research,p_error:null,p_candidates:ready.candidates});
+     p_state:ready.failed?"failed":"completed",p_research:ready.research,
+     p_error:ready.failed?ready.error:null,p_candidates:ready.candidates});
    return response({ok:true,provider:"cloudflare_workers_ai",job_id:claimed.job_id,
-     agent_id:ready.agentId,state:"completed",run_id:done.run_id});
+     agent_id:ready.agentId,state:ready.failed?"failed":"completed",
+     retry_scheduled:done.retry_scheduled===true,run_id:done.run_id??claimed.run_id});
   }
   if (!Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"awaiting_public_source_research",job_claimed:false});
   const job=await rpc("ifund_training_claim",{});
