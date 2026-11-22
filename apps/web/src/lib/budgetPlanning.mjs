@@ -1,7 +1,7 @@
 // POLARIS: local budget math in integer cents; no payment or payout operations.
-// The platform currently assesses a 7% fee at withdrawal; the provider's
-// processing fees and available cleared balance are not inferred here.
-export const PLATFORM_WITHDRAWAL_FEE_RATE=0.07;
+// The current campaign-owner fee is 3% at withdrawal; optional supporter
+// contributions and provider processing fees remain separate.
+export const PLATFORM_WITHDRAWAL_FEE_RATE=0.03;
 export function moneyToCents(value) {
   if(typeof value!=="string"&&typeof value!=="number")return null;
   const t=String(value).trim();
@@ -23,8 +23,8 @@ export function planCampaignBudget(items) {
     target+=cents;
   }
   if(target===0)return {ready:false,error:"Add at least one positive cost.",items:normalized};
-  // 93% of gross is available after the 7% platform fee, before other fees.
-  const suggestedGrossCents=Math.ceil(target/0.93);
+  // 97% of gross is available after the 3% platform fee, before other fees.
+  const suggestedGrossCents=Math.ceil(target/0.97);
   const platformFeeEstimateCents=Math.round(suggestedGrossCents*PLATFORM_WITHDRAWAL_FEE_RATE);
   return {ready:true,items:normalized,targetCents:target,suggestedGrossCents,platformFeeEstimateCents,
     disclaimer:"Planning estimate only; processor fees, refunds, withheld funds and payout eligibility can change the actual available amount."};

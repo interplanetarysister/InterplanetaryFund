@@ -9,7 +9,7 @@ export default function CampaignBudgetPlanner() {
   function change(id,key,value){setItems(list=>list.map(row=>row.id===id?{...row,[key]:value}:row))}
   return <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="POLARIS campaign budget planner">
     <h2 className="text-lg font-semibold">POLARIS · Campaign budget planner</h2>
-    <p className="text-sm text-muted-foreground">Estimate expenses and a target that accounts for iFund's 7% fee at owner withdrawal. No payment is made, and this does not verify donor or processor fees.</p>
+    <p className="text-sm text-muted-foreground">Estimate expenses and a target that accounts for IFund's current 3% fee at owner withdrawal. No payment is made, and this does not verify donor or processor fees.</p>
     {items.map((row,index)=><div key={row.id} className="grid gap-2 sm:grid-cols-[1fr_9rem_auto]">
       <label className="text-sm">Expense {index+1}
         <input value={row.label} maxLength={100} onChange={e=>change(row.id,"label",e.target.value)}

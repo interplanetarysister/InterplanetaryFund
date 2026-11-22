@@ -42,6 +42,12 @@ function useWithdrawalSession(authUser, onInvalidate) {
 // The only user action here is an atomic, owner-only hold for payout REVIEW.
 // No money is disbursed by this UI; an independently verified provider clearing
 // record and a separate approved payout processor are still required.
+function withdrawalFeeLabel(row) {
+  const gross=Number(row?.gross_cents),fee=Number(row?.fee_cents);
+  if(!Number.isSafeInteger(gross)||gross<=0||!Number.isSafeInteger(fee)||fee<0)return "Recorded fee";
+  return (Math.round(fee*10000/gross)/100)+"% fee";
+}
+
 function WithdrawalBalancePanel({ authUser }) {
   const [state,setState]=useState({phase:"loading",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:""});
   const [busy,setBusy]=useState(false);
@@ -128,7 +134,7 @@ function WithdrawalBalancePanel({ authUser }) {
       await refresh();
       assertOwnerCurrent();
       pendingRequestKeys.current.delete(requestIdentity);
-      setNotice("Withdrawal reserved for review. The 7% platform fee is calculated server-side; no payout has been sent yet.");
+      setNotice("Withdrawal reserved for review. The current 3% platform fee is calculated server-side; no payout has been sent yet.");
     }catch(cause){if(ownerIsCurrent())setError(cause.message||"Unable to reserve the withdrawal.");}
     finally{if(ownerIsCurrent())setBusy(false);}
   }
@@ -209,7 +215,7 @@ function WithdrawalBalancePanel({ authUser }) {
         <h3 className="text-lg font-bold">Your withdrawal requests</h3>
         {state.requests.map(row=><div key={row.withdrawal_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm">
           <div><strong className="tabular-nums">{usd(row.gross_cents)}</strong>
-            <p className="text-muted-foreground">7% fee {usd(row.fee_cents)} · estimated net {usd(row.net_cents)}</p>
+            <p className="text-muted-foreground">{withdrawalFeeLabel(row)} {usd(row.fee_cents)} · estimated net {usd(row.net_cents)}</p>
             <p className="text-muted-foreground">Status: {row.request_status.replace(/_/g," ")}</p></div>
           {row.request_status==="under_review"&&<button type="button" disabled={busy}
             onClick={()=>cancel(row.withdrawal_id)} className="min-h-11 rounded-lg border border-border px-4 font-semibold disabled:opacity-40">
@@ -354,6 +360,6 @@ export default function WithdrawalVerification() {
       <Link className="ml-4 underline" to="/login?returnTo=%2Fwithdrawals">Sign in</Link>
     </section>}
     {state.phase === "ready" && payoutIdentity(state.user) && <WithdrawalMfaGate key={state.user.id} authUser={state.user}/>}
-    <p className="text-sm text-muted-foreground">The 7% platform fee is deducted at withdrawal. No payout succeeds without verified funds, account ownership, approved payout details, and the required checks.</p>
+    <p className="text-sm text-muted-foreground">The current 3% IFund fee is deducted from campaign gifts at withdrawal. Optional supporter contributions remain separate and are not deducted from the campaign gift. No payout succeeds without verified funds, account ownership, approved payout details, and the required checks.</p>
   </main>;
 }

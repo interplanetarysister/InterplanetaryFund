@@ -5,7 +5,7 @@ export default function WithdrawalFeeEstimator(){
   const [amount,setAmount]=useState("");
   const quote=quoteWithdrawalFee(amount);
   return <section className="rounded-2xl border border-border bg-card p-5" aria-label="ORBIT estimated withdrawal fee">
-    <h2 className="text-xl font-semibold">ORBIT · 7% withdrawal fee estimator</h2>
+    <h2 className="text-xl font-semibold">ORBIT · 3% withdrawal fee estimator</h2>
     <p className="mt-2 text-sm text-muted-foreground">
       Free, informational estimate of iFund's platform fee applied at withdrawal.
       This does not verify cleared balance, owner identity, MFA, provider availability, or additional PayPal transfer fees.
@@ -21,7 +21,7 @@ export default function WithdrawalFeeEstimator(){
     {quote && <dl className="mt-4 grid gap-3 sm:grid-cols-3">
       {[
         ["Illustrative gross",quote.gross_cents],
-        ["iFund 7% platform fee",quote.platform_fee_cents],
+        ["iFund 3% platform fee",quote.platform_fee_cents],
         ["Estimated owner amount, before any additional provider charges",quote.estimated_owner_cents],
       ].map(([label,cents])=><div key={label} className="rounded-lg border border-border p-3">
         <dt className="text-xs text-muted-foreground">{label}</dt>
