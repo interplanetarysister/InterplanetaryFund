@@ -30,7 +30,8 @@ test("generated stories and images share single trial content allowance",()=>{
  }
  assert.match(helper,/ifund_trial_ai_generation_reserve/);
  assert.match(helper,/ifund_trial_ai_generation_complete/);
- assert.match(helper,/ifund_trial_ai_generation_release/);
+ assert.match(helper,/cannot delete active reservations/);
+ assert.match(sql,/revoke all on function public.ifund_trial_ai_generation_release\\(uuid,text\\) from public,anon,authenticated/);
 });
 test("premium offers appear in context without blocking campaign editing",()=>{
  const c=read("../src/components/subscriptions/PremiumOpportunity.jsx");
