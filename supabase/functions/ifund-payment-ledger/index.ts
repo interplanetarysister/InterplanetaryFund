@@ -88,8 +88,11 @@ Deno.serve(async req=>{
   if(req.method!=="POST") return fail("Method not allowed",405);
   let body;try{body=await verifiedBody(req)}catch(_){return fail("Unauthorized payment service request",401)}
   try{
+    // Provider reconciliation is signed and DB-gated; an explicitly false
+    // Edge environment flag remains an emergency shutdown, while a missing
+    // optional flag never overrides the verified merchant database control.
     if(["subscription_begin","subscription_bind","subscription_plan_readiness"].includes(body.op)){
-      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")!=="true")return fail("Atomic subscription accounting is disabled",503);
+      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")==="false")return fail("Atomic subscription accounting is disabled",503);
       const ready=await db("rpc/ifund_subscription_atomic_readiness","POST",{});
       if(ready?.enabled!==true||ready?.version!==1)return fail("Atomic subscription accounting is not ready",503);
     }
@@ -179,6 +182,22 @@ Deno.serve(async req=>{
       const r=await db("rpc/ifund_reverse_verified_live_paypal_capture","POST",{
         p_capture_id:p.paypal_capture_id,p_paypal_event_id:p.paypal_event_id,p_event_type:p.event_type,p_refunded_cents:p.refunded_cents});
       return Response.json({ok:true,donation_id:r});
+    }
+
+    if(body.op==="financial_review_intake"){
+      const x=body.data||{};
+      if(typeof x.event_id!=="string" || !/^[A-Za-z0-9_-]{8,128}$/.test(x.event_id)
+        || typeof x.event_type!=="string"
+        || (x.provider_reference!==null && x.provider_reference!==undefined &&
+            (typeof x.provider_reference!=="string" || x.provider_reference.length>128))
+        || (x.amount_cents!==null && x.amount_cents!==undefined &&
+            (!Number.isSafeInteger(x.amount_cents) || x.amount_cents<1 || x.amount_cents>100000000000)))
+        return fail("Invalid signed financial incident",400);
+      const id=await db("rpc/ifund_intake_signed_financial_incident","POST",{
+        p_event_id:x.event_id,p_event_type:x.event_type,
+        p_reference:x.provider_reference||null,p_amount_cents:x.amount_cents??null
+      });
+      return Response.json({ok:true,case_id:id,manual_review_required:true});
     }
 
     if(body.op==="subscription_plan_readiness"){
@@ -275,14 +294,14 @@ Deno.serve(async req=>{
       return Response.json({ok:true,subscription:rows[0]||null});
     }
     if(body.op==="subscription_atomic_readiness"){
-      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")!=="true")
+      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")==="false")
         return Response.json({ok:true,enabled:false,version:1});
       const ready=await db("rpc/ifund_subscription_atomic_readiness","POST",{});
       return Response.json({ok:true,enabled:ready?.enabled===true&&ready?.version===1,
         version:ready?.version,merchant_id:ready?.merchant_id||null});
     }
     if(body.op==="subscription_atomic_event"){
-      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")!=="true")
+      if(Deno.env.get("IFUND_SUBSCRIPTION_ATOMIC_ENABLED")==="false")
         return fail("Atomic subscription accounting is disabled",503);
       const event=body.data?.event;
       if(!event||typeof event!=="object"||Array.isArray(event))return fail("Invalid subscription event");
