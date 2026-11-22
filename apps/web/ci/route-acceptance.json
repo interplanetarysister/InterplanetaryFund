@@ -1016,12 +1016,12 @@
     },
     {
       "route": "/withdrawals",
-      "role": "public",
+      "role": "member",
       "component": "WithdrawalVerification",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx wraps /withdrawals in MemberAccess; apps/web/src/pages/WithdrawalVerification.jsx uses an owner-bound session guard around every balance, payout-readiness, destination and withdrawal mutation RPC.",
+      "behavior_evidence": "apps/web/tests/withdrawal-owner-session.test.js covers stale owner responses, identity changes, unmount invalidation and current-owner checks; apps/web/tests/withdrawal-mfa.test.js covers confirmed email, TOTP and AAL2; apps/web/tests/withdrawal-readiness-accounting.test.js covers fail-closed balances, refund-adjusted availability and reserve/release accounting.",
+      "backend_evidence": "Live public.ifund_owner_withdrawal_balances, public.ifund_owner_payout_readiness, public.ifund_owner_payout_destination and public.ifund_my_withdrawal_requests require an active auth.uid and scope records to auth.uid; public.ifund_request_withdrawal requires withdrawal_mfa_ready(), a verified PayPal payout destination and c.owner_id=auth.uid. Payout execution is separately super-admin gated.",
       "owner": "frontend"
     }
   ]

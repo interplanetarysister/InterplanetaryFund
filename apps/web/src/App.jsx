@@ -159,7 +159,7 @@ function AppRoutes() {
       <Route path="/finances" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
       <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
       <Route path="/giving" element={<Navigate to="/finances#giving-receipts" replace />} />
-      <Route path="/withdrawals" element={<WithdrawalVerification />} />
+      <Route path="/withdrawals" element={<MemberAccess><WithdrawalVerification /></MemberAccess>} />
       <Route path="/plans" element={<PublicSubscriptionPlans />} />
       <Route path="/subscriptions" element={<MemberAccess><Subscriptions /></MemberAccess>} />
       <Route path="/support" element={<MemberAccess><SupportTickets /></MemberAccess>} />

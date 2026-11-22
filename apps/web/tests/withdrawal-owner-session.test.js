@@ -99,6 +99,8 @@ test("withdrawal page remounts the MFA subtree per owner and guards each sensiti
   assert.match(source, /observeWithdrawalIdentity\(authClient\(\)\.auth, setState\)/);
   for (const rpc of ["ifund_connect_paypal_payout_to_verified_email", "ifund_disconnect_paypal_payout_destination", "ifund_request_withdrawal", "ifund_cancel_withdrawal_request"])
     assert.ok(source.includes('runForOwner(()=>authClient().rpc("' + rpc + '"'), rpc);
+  const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /path="\\/withdrawals" element=\\{<MemberAccess><WithdrawalVerification \\/><\\/MemberAccess>\\}/);
   const hook = readFileSync(new URL("../src/hooks/useAdminAccess.js", import.meta.url), "utf8");
   assert.match(hook, /verification\.ownerId === ownerId \? verification\.status/);
   assert.match(hook, /after\.data\?\.user\?\.id !== ownerId/);
