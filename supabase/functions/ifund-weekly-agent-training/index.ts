@@ -99,7 +99,7 @@ Deno.serve(async(req)=>{
   }
   const externallyResearched=await collectedCloudflareResults();
   for(const ready of externallyResearched){
-   const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId});
+   const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId,p_week_key:ready.weekKey});
    if(!claimed?.job_id)continue;
    const done=await rpc("ifund_training_finish",{p_job_id:claimed.job_id,
      p_state:"completed",p_research:ready.research,p_error:null,p_candidates:ready.candidates});
