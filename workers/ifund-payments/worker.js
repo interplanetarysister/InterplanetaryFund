@@ -682,7 +682,7 @@ async function verifyPlatformSupportCapture(env,orderId,intent) {
   const expected=["ifund","platform-support",intent.gift_cents,intent.payment_channel].join("|"),amount=receipt?.capture?.amount;
   if(order.status!=="COMPLETED"||!receipt||receipt.capture.status!=="COMPLETED"
     ||receipt.unit.custom_id!==expected||receipt.unit.reference_id!=="IFUND-PLATFORM"
-    ||amount?.currency_code!=="USD"||!/^[0-9]+(?:\\.[0-9]{1,2})?$/.test(String(amount.value||""))
+    ||amount?.currency_code!=="USD"||!/^[0-9]+(?:\.[0-9]{1,2})?$/.test(String(amount.value||""))
     ||cents(amount.value)!==Number(intent.total_cents)||!ORDER_ID.test(receipt.capture.id||""))
     throw new Error("paypal_platform_support_receipt_mismatch");
   return {order_id:orderId,capture_id:receipt.capture.id,cents:intent.total_cents};
