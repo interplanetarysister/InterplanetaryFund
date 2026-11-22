@@ -78,7 +78,8 @@ async function collectedCloudflareResults(){
       sources:[...new Set(c.sources.filter(s=>safeSources.has(s)))]}));
    return {agentId,weekKey,candidates,research:{summary:data.summary.slice(0,5000),
       source:"cloudflare_workers_ai",model:data.model||null,
-      sources:[...safeSources],researched_at:data.researched_at||null,agent_id:agentId}};
+      sources:[...safeSources],researched_at:data.researched_at||null,agent_id:agentId,
+      evidence_reviews:Array.isArray(data.evidence_reviews)?data.evidence_reviews.slice(0,3).map(e=>({title:typeof e.title==="string"?e.title.slice(0,200):"",supported:e.supported===true,safe:e.safe===true,relevant:e.relevant===true,reason:typeof e.reason==="string"?e.reason.slice(0,600):"",evaluator:typeof e.evaluator==="string"?e.evaluator:"unknown",independent_evaluator_verified:false})):[]}};
   }catch{return null}
  }))).filter(Boolean);
 }
