@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "../src/lib/subscriptionEnrollment.mjs";
 
-const plan={tier:"basic",interval:"monthly",amount_cents:1200,currency:"USD",verified:true,available:true};
+const plan={tier:"basic",interval:"monthly",amount_cents:499,currency:"USD",verified:true,available:true};
 const options={plan,status:null,statusLoad:"ready",busy:"",native:false};
 test("checkout can start only when verified plan and account status are ready",()=>{
   assert.equal(canStartVerifiedSubscription(options),true);
@@ -23,7 +23,7 @@ test("checkout can start only when verified plan and account status are ready",(
   }
 });
 test("subscription price never trusts malformed provider amounts",()=>{
-  assert.equal(verifiedSubscriptionPrice(plan),"$12.00");
+  assert.equal(verifiedSubscriptionPrice(plan),"$4.99");
   assert.equal(verifiedSubscriptionPrice({...plan,amount_cents:"1200"}),"Pricing unavailable");
   assert.equal(verifiedSubscriptionPrice({...plan,currency:"EUR"}),"Pricing unavailable");
 });

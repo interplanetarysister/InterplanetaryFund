@@ -6,7 +6,7 @@ import { Check, Loader2, ShieldCheck } from "lucide-react";
 import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
 
 const PLAN_NAMES={
-  basic:"Basic AI Assistant",outreach:"AI Outreach Agent",professional:"Professional Outreach",
+  basic:"Interplanetary Fund Premium",outreach:"AI Outreach Agent",professional:"Professional Outreach",
   enterprise:"Enterprise",nonprofit:"Nonprofit"
 };
 

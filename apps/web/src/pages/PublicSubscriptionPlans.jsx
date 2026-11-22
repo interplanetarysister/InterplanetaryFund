@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { isNativeBundle } from "@/lib/nativeApi";
 
 const PLAN_NAMES = {
-  basic: "Basic AI Assistant",
+  basic: "Interplanetary Fund Premium",
   outreach: "AI Outreach Agent",
   professional: "Professional Outreach",
   enterprise: "Enterprise",
