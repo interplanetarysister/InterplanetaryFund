@@ -147,7 +147,7 @@ function nativeDetails(input) {
     .join("\n");
 }
 
-export async function campaignPreview(request, env) {
+export async function campaignPreview(request, env, fetcher = fetch) {
   if (request.method !== "POST")
     return json(405, { error: "Method not allowed." });
   const bearer = request.headers.get("authorization") || "";
@@ -202,7 +202,7 @@ export async function campaignPreview(request, env) {
       return json(200, basicCampaignOutline(input));
     }
     trialJwt=bearer.slice(7);
-    trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id);
+    trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id,fetcher);
     if(!trialReceipt.allowed) return json(
       trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
       {code:trialReceipt.code,error:trialReceipt.code==="trial_limit"
@@ -231,7 +231,7 @@ export async function campaignPreview(request, env) {
         );
       // A confirmed queue entry reserves one trial creation; otherwise queued
       // AI work could bypass the shared total. No automatic payments follow.
-      if(!(await completeTrialContent(env,trialJwt,trialReceipt))) fail(503,
+      if(!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher))) fail(503,
         "The AI allowance could not be finalized. Your draft remains unchanged.");
       trialReceipt=null;
       return json(202, {
@@ -270,7 +270,7 @@ export async function campaignPreview(request, env) {
       { response: result.draft.payload },
       Boolean(input.section),
     );
-    if(!(await completeTrialContent(env,trialJwt,trialReceipt))) fail(503,
+    if(!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher))) fail(503,
       "The AI allowance could not be finalized. Your draft remains unchanged.");
     trialReceipt=null;
     return json(200, {
@@ -290,6 +290,6 @@ export async function campaignPreview(request, env) {
           : "Writing suggestions are temporarily unavailable. Your text is safe.",
     });
   } finally {
-    if(trialReceipt) await releaseTrialContent(env,trialJwt,trialReceipt);
+    if(trialReceipt) await releaseTrialContent(env,trialJwt,trialReceipt,fetcher);
   }
 }
