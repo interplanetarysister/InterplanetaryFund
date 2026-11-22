@@ -20,18 +20,19 @@ async function invoke(env, jwt, name, payload, fetcher = fetch) {
  * a validated generated item, and released on provider failures. Paid members
  * preserve their separately verified per-feature limits. */
 export async function reserveTrialContent(env,jwt,kind,requestId,fetcher=fetch) {
-  const data=await invoke(env,jwt,"ifund_trial_ai_generation_reserve",
+  const data=await invoke(env,jwt,"ifund_ai_content_reserve",
     {p_request_id:requestId,p_kind:kind},fetcher);
   if (data?.state==="trial_limit") return {allowed:false,code:"trial_limit",remaining:0};
+  if (data?.state==="monthly_limit") return {allowed:false,code:"monthly_limit",remaining:0};
   if (data?.state==="membership_required") return {allowed:false,code:"membership_required"};
   if (data?.allowed!==true ||
-      !["reserved","paid_or_admin_exempt"].includes(data.state))
+      !["reserved","admin_exempt"].includes(data.state))
     return {allowed:false,code:"unavailable"};
   return {allowed:true,tracked:data.state==="reserved",kind,requestId,remaining:data.remaining??null};
 }
 export async function completeTrialContent(env,jwt,receipt,fetcher=fetch) {
   if(!receipt?.tracked)return true;
-  return invoke(env,jwt,"ifund_trial_ai_generation_complete",
+  return invoke(env,jwt,"ifund_ai_content_complete",
     {p_request_id:receipt.requestId,p_kind:receipt.kind},fetcher);
 }
 export async function releaseTrialContent(_env,_jwt,_receipt,_fetcher=fetch) {
