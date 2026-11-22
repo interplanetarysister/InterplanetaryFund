@@ -738,6 +738,27 @@ export default {
       // authenticated reconciliation-only contract before enabling this route.
       return asJson({ok:false,error:"payout_reconcile_only_contract_unavailable"},503,cors);
     }
+    // Non-mutating provider readiness check. It never grants entitlement or
+    // attempts payment; expose booleans only, never merchant/secret identifiers.
+    if(path==="/api/payments/subscriptions/provider-readiness"&&request.method==="GET"){
+      if(env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:true,live:false,plan_ready:false,webhook_ready:false,atomic_ready:false},200,cors);
+      try{
+        const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
+        const [plan,hook,atomic]=await Promise.all([
+          paypal(env,"/v1/billing/plans/"+encodeURIComponent(BASIC_MONTHLY_PLAN.plan_id)).catch(()=>null),
+          webhookId?paypal(env,"/v1/notifications/webhooks/"+encodeURIComponent(webhookId)).catch(()=>null):null,
+          subscriptionAtomicReadiness(env)
+        ]);
+        const names=new Set(Array.isArray(hook?.event_types)?hook.event_types.map(x=>x?.name):[]);
+        const webhookReady=Boolean(webhookId&&hook?.id===webhookId&&
+          typeof hook?.url==="string"&&
+          [...SUBSCRIPTION_EVENTS].every(name=>names.has(name)||names.has("*")));
+        return asJson({ok:true,live:true,plan_ready:exactBasicPlan(plan),
+          webhook_ready:webhookReady,atomic_ready:atomic.ready===true,
+          purchase_ready:exactBasicPlan(plan)&&webhookReady&&atomic.ready===true},200,cors);
+      }catch(_){return asJson({ok:false,error:"subscription_provider_readiness_unavailable"},503,cors)}
+    }
     if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
       try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
       catch(_){return asJson({ok:false,error:"subscription_status_unavailable"},503,cors)}
