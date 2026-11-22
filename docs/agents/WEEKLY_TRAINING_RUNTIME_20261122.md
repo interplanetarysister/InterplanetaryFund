@@ -16,7 +16,7 @@ Supabase migrations applied: `ifund_weekly_agent_training_control_plane`, `ifund
 
 ## Not yet accepted as operational
 
-The Edge Function's optional research implementation requires an approved `OPENAI_API_KEY` and `IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH=true` in the secure Edge Function runtime. Neither was established during this audit. The ChatGPT Deep Research connector is not a callable Supabase backend credential. A separate Cloudflare Workers AI research service was investigated but **not deployed** because transferring the secret between connectors was blocked by a security control. Do not bypass that control.
+The optional OpenAI Responses API provider remains disabled without an approved `OPENAI_API_KEY`. The ChatGPT Deep Research connector is not a callable Supabase backend credential. To avoid transferring credentials between tools, an isolated **Cloudflare Workers AI** research Worker `ifund-training-research` was deployed using a dedicated D1 database `ifund-agent-training-research` (UUID `0068715f-bcdf-4f3d-8884-f7870c054660`). Its Cron schedule `*/5 10-13 * * SUN` searches/summarizes public official-source pages only; no account data or user financial data is sent. Its read-only public-source results endpoint is `https://ifund-training-research.interplanetary-fund.workers.dev/results`. Supabase Edge Function v4 polls the endpoint for completed signed-off-schema **candidate-only** research and durably records candidates with evaluation required. Worker code and configuration are version-controlled at `worker/training/`. Real scheduled Workers AI inference completion was NOT observed in the current acceptance window; research remains pending. Do not claim success until D1 and Supabase have real completed receipts.
 
 No evidence yet supports successful production research, actual external browser automation, credible comparative skill evaluations, independent specialist improvement, shared skill activation, Trigger.dev use, or a live production agent using an approved skill. The deterministic rule-based practicum in source is not proof of model-quality gains. Do not represent scheduling, queue creation, or code deployment as genuine training completion.
 
@@ -29,7 +29,7 @@ No evidence yet supports successful production research, actual external browser
 
 ## Acceptance remaining
 
-1. Connect an explicitly authorized inference/research provider through its supported secret mechanism and verify real citation-backed research calls.
+1. Verify that the isolated Cloudflare scheduled Workers AI research actually fetches at least two real authoritative URLs per specialist, returns valid JSON and populates D1, and that all nine are ingested into Supabase. Optional OpenAI Deep Research remains disabled unless separately authorized.
 2. Implement a real evaluation worker using the professional training rubric, synthetic fixtures, and independently scored baseline-versus-candidate comparisons.
 3. Implement approved knowledge retrieval at the existing Workers AI team gateway while preserving owner privacy and tool-permission boundaries.
 4. Verify run completion for all nine agents, durable retry/lease behavior, run summaries, operational alarms, and actual user-agent improvement in an isolated acceptance environment.
