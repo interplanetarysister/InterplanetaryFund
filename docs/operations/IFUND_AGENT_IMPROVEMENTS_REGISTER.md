@@ -18,7 +18,7 @@ Statuses: **existing** = source capability precedes this change but live journey
 | 10 | ORBIT | Reconciliation exception view | STAGED | Read-only cents and attribution anomaly checks added to admin finance. |
 | 11 | ORBIT | Payout-readiness explanations | EXISTING | Owner finance/withdrawal UI gates already exist; provider journey needs acceptance. |
 | 12 | ORBIT | Refund-aware financial trends | STAGED | Owner-scoped monthly captures and recorded provider-referenced refunds RPC/UI staged; not a cleared balance. |
-| 13 | POLARIS | Campaign budget planning | STAGED | Local integer-cent expense planner includes estimated 7% withdrawal fee. |
+| 13 | POLARIS | Campaign budget planning | STAGED | Local integer-cent expense planner includes estimated 3% withdrawal fee. |
 | 14 | POLARIS | Context-specific rewriting guidance | PARTIAL | Story regeneration exists; Strategy-specific contextual guidance is not complete. |
 | 15 | POLARIS | One-click preparation fixes | PARTIAL | Story editor deep link and local punctuation/duplication acceptance exist; field-level auto-navigation remains. |
 | 16 | FORGE | Previous-period trend comparisons | STAGED | Seven-day daily activity compared with preceding 23 days using verified counts. |

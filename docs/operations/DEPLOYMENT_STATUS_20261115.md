@@ -25,7 +25,7 @@ The staged application route acceptance manifest last independently parsed in th
 
 **Not yet certified:** shared-agent credential minimization/owner-scoped Worker persistence, private campaign document RLS/Storage and account erasure, atomic provider refund/capture ledger and replay, signed PayPal webhook coverage, complete website/admin route acceptance, Android/iOS native compiler and signing, device/deep-link tests, and store submission.
 
-**Safety and ownership:** `IFUND_TEAM_CONTEXT_ENABLED` stays OFF pending independent tests. PayPal external partner gifts are provider-hosted, not iFund ledger-confirmed; 7% withdrawal fee applies only to existing first-party flows. Base44 APK and source are read-only. No deployment, payment, SQL or DNS change was performed to create this register.
+**Safety and ownership:** `IFUND_TEAM_CONTEXT_ENABLED` stays OFF pending independent tests. PayPal external partner gifts are provider-hosted, not iFund ledger-confirmed; 3% withdrawal fee applies only to existing first-party flows. Base44 APK and source are read-only. No deployment, payment, SQL or DNS change was performed to create this register.
 
 ## Source of truth / next check
 

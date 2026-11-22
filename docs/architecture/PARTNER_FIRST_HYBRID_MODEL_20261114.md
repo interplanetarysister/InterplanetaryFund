@@ -5,7 +5,7 @@
 ## Positioning and constraints
 Interplanetary Fund is the AI-powered fundraising growth, distribution and measurable-success operating system. Integrate with existing fundraising hosts rather than forcing campaign owners to abandon them. Keep currently verified first-party fundraising while implementing external-campaign linking and partner-directed contributions.
 
-**Never** receive a contribution destined for an outside provider, deduct the existing iFund 7% withdrawal fee, and forward the remainder without independent contract, payment-provider clearance and applicable legal review. External donations go **directly to the provider's authorized checkout**. Keep existing iFund PayPal donation, 7%-at-withdrawal, payout, refunds and ledger intact unless separately authorized and tested. Do not imply tax deductibility or receipt responsibility for external payments.
+**Never** receive a contribution destined for an outside provider, deduct the existing iFund 3% withdrawal fee, and forward the remainder without independent contract, payment-provider clearance and applicable legal review. External donations go **directly to the provider's authorized checkout**. Keep existing iFund PayPal donation, 3%-at-withdrawal, payout, refunds and ledger intact unless separately authorized and tested. Do not imply tax deductibility or receipt responsibility for external payments.
 
 ## Canonical architecture
 - Code: `interplanetarysister/InterplanetaryFund`, `apps/web`; Cloudflare Pages/Workers/R2; Supabase production remains sole durable application database. Independent `apps/mobile` must use the same backend and data, not the Base44 APK. Base44 reference repo and existing APK must remain unchanged.
@@ -22,7 +22,7 @@ Interplanetary Fund is the AI-powered fundraising growth, distribution and measu
 |---|---|---|
 | Agent 1 Frontend | Destination selector, external link management, provider-direct CTA disclosure, creator analytics, readiness rubric, independent mobile UI | Keyboard and accessibility, invalid URL, guest-to-owner, no invented totals |
 | Agent 2 Backend | Additive external mapping, owner RLS, URL parser, APIs, event provenance, secure mobile auth | Unauthorized user/other-owner denied, malicious URL rejected, replay safe |
-| Agent 3 Finance and Connections | Preserve first-party PayPal/ledger, isolate external donations, partner authorization and referral economics, consent/store-policy checks | No 7% fee on outside gifts, no money forwarding, provider receipts accurately attributed |
+| Agent 3 Finance and Connections | Preserve first-party PayPal/ledger, isolate external donations, partner authorization and referral economics, consent/store-policy checks | No 3% fee on outside gifts, no money forwarding, provider receipts accurately attributed |
 | Agent 4 QA/Release | Unit/integration/security tests, route matrix, mobile isolation, finance provenance, external redirect and permission checks | Negative tests and provider proofs; keep existing fail-closed release gates |
 | Agent 5 Coordinator | Subagent routing, conflict avoidance, backlog prioritization and evidence-based milestones | Source-only vs preview vs production tracked; website/admin repairs remain first |
 | Campaign Coach | Transparent improvement scoring and factual writing | No false success predictions |

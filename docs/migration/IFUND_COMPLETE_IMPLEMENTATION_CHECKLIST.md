@@ -67,7 +67,7 @@
 - [ ] **06.08** /giving and /ledger — member receipts, transaction history, refunds and correct private visibility 🟠
 - [ ] **06.09** /admin/finance — verified admin reporting, audit, reconciliation and no sandbox/live mixing 🟠
 - [ ] **06.10** /donors — supporter visibility and privacy; replace ComingSoon 🟠
-- [ ] **06.11** /withdrawals — owner-only requests, 7% platform fee at real withdrawal, processor checks; no activation before gates 🟠
+- [ ] **06.11** /withdrawals — owner-only requests, 3% platform fee at real withdrawal, processor checks; no activation before gates 🟠
 - [ ] **06.12** /subscriptions — plans, entitlement enforcement, PayPal recurring webhooks, cancellations and refunds 🟠
 - [ ] **06.13** Keep live payment gateway fail-closed until verified; never fake successful captures or activate withdrawals
 
