@@ -12,6 +12,7 @@ import { isNativeBundle } from "@/lib/nativeApi";
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
 function loadPayPal(clientId) {
+  if (window.paypal?.Buttons) return Promise.resolve(window.paypal);
   if (sdkPromise) return sdkClient === clientId ? sdkPromise : Promise.reject(new Error("Reload checkout: account changed"));
   sdkClient = clientId;
   sdkPromise = new Promise((resolve, reject) => {
