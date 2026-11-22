@@ -115,7 +115,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
         </label>
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
           <p className="mb-2 font-semibold text-slate-800">Available payment methods</p><p>PayPal, credit/debit card, and Google Pay when eligible.</p>
-          <p className="mt-1">Cash App and bank transfer are not enabled for platform donations yet; they will not appear as active payment methods until settlement is verified.</p>
+          <p className="mt-1">Cash App Pay and direct bank transfer are not connected yet; they will not appear as active payment methods until settlement is verified. PayPal may offer bank-account funding where your account is eligible.</p>
         </div>
         {!valid?<p className="text-xs text-red-700">Enter a valid amount from $1 to $1,000,000.</p>:<>
           {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/>Loading secure checkout…</p>}

@@ -23,5 +23,5 @@ test("platform messages are admin-only and created after verified capture",()=>{
 test("platform UI does not require donor or cardholder name and does not fake unavailable rails",()=>{
  assert.match(ui,/Name on card \(optional\)/);assert.match(ui,/card\.NameField\(\)\.render\(nameHost\.current\)/);
  assert.match(ui,/IFund does not require your name/);
- assert.match(ui,/Cash App and bank transfer are not enabled/);assert.match(ui,/GooglePayDonationButton/);
+ assert.match(ui,/Cash App Pay and direct bank transfer are not connected/);assert.match(ui,/PayPal may offer bank-account funding where your account is eligible/);assert.match(ui,/GooglePayDonationButton/);
 });
