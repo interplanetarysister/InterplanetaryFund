@@ -1,14 +1,14 @@
 
 const topics={
-nexus:["professional chief of staff coordination","https://www.sba.gov/business-guide","https://www.irs.gov/charities-non-profits","https://www.ftc.gov/business-guidance"],
-story:["accurate, dignified fundraising storytelling","https://www.gofundme.com/c/fundraising-tips","https://www.nngroup.com/articles/plain-language","https://www.ftc.gov/business-guidance"],
-orbit:["financial transparency and responsible donor reporting","https://www.irs.gov/charities-non-profits","https://www.ftc.gov/business-guidance","https://www.sba.gov/business-guide"],
-polaris:["campaign goals and measurable strategy","https://www.sba.gov/business-guide","https://www.gofundme.com/c/fundraising-tips","https://www.ftc.gov/business-guidance"],
-forge:["conversion measurement and verifiable attribution","https://support.google.com/analytics/answer/10089681","https://www.ftc.gov/business-guidance","https://www.sba.gov/business-guide"],
-echo:["supporter communications and stewardship","https://www.nngroup.com/articles/plain-language","https://www.gofundme.com/c/fundraising-tips","https://www.ftc.gov/business-guidance"],
-pulse:["responsible partnership and community outreach","https://www.ftc.gov/business-guidance","https://www.gofundme.com/c/fundraising-tips","https://www.sba.gov/business-guide"],
-link:["OAuth and service integration safety","https://developers.google.com/identity/protocols/oauth2","https://www.oauth.com/oauth2-servers/access-tokens/","https://www.ftc.gov/business-guidance"],
-discover:["verified fundraising opportunities and eligibility","https://www.grants.gov/learn-grants","https://www.sba.gov/funding-programs","https://www.irs.gov/charities-non-profits"]
+nexus:["professional chief of staff coordination","https://www.gofundme.com/c/fundraising-tips","https://www.irs.gov/charities-non-profits","https://www.grants.gov/learn-grants"],
+story:["accurate, dignified fundraising storytelling","https://www.gofundme.com/c/fundraising-tips","https://support.google.com/analytics/answer/10089681","https://www.grants.gov/learn-grants"],
+orbit:["financial transparency and responsible donor reporting","https://www.irs.gov/charities-non-profits","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips"],
+polaris:["campaign goals and measurable strategy","https://www.gofundme.com/c/fundraising-tips","https://www.gofundme.com/c/fundraising-tips","https://www.grants.gov/learn-grants"],
+forge:["conversion measurement and verifiable attribution","https://support.google.com/analytics/answer/10089681","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips"],
+echo:["supporter communications and stewardship","https://support.google.com/analytics/answer/10089681","https://www.gofundme.com/c/fundraising-tips","https://www.grants.gov/learn-grants"],
+pulse:["responsible partnership and community outreach","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips","https://www.gofundme.com/c/fundraising-tips"],
+link:["OAuth and service integration safety","https://developers.google.com/identity/protocols/oauth2","https://www.oauth.com/oauth2-servers/access-tokens/","https://www.grants.gov/learn-grants"],
+discover:["verified fundraising opportunities and eligibility","https://www.grants.gov/learn-grants","https://www.irs.gov/charities-non-profits","https://www.irs.gov/charities-non-profits"]
 };
 const ids=Object.keys(topics);
 const send=(body,code=200)=>Response.json(body,{status:code,headers:{"Cache-Control":"public, max-age=60"}});
@@ -39,12 +39,11 @@ async function run(env){
   await env.DB.prepare("update public_research set status='complete',payload=?,error=null,updated_at=CURRENT_TIMESTAMP where week_key=? and agent_id=?").bind(payload,wk,agent).run();
  }catch(e){await env.DB.prepare("update public_research set status='failed',error=?,updated_at=CURRENT_TIMESTAMP where week_key=? and agent_id=?").bind(String(e).slice(0,250),wk,agent).run();}
 }
-async function probeSource(url){try{const abort=new AbortController();const t=setTimeout(()=>abort.abort(),6500);let r;try{r=await fetch(url,{signal:abort.signal,headers:{"Accept":"text/html,text/plain,application/json"}})}finally{clearTimeout(t)}const contentType=r.headers.get("content-type")||"";const body=await r.text();return {url,status:r.status,type:contentType.slice(0,80),length:body.length,afterStrip:textHtml(body).length}}catch(e){return {url,error:String(e).slice(0,110)}}}
 export default{
  async scheduled(controller,env,ctx){ctx.waitUntil(run(env));},
  async fetch(request,env){
   if(request.method!=="GET")return send({error:"Method not allowed"},405);
-  const u=new URL(request.url);if(u.pathname==="/diagnostic"){const agent=u.searchParams.get("agent_id");if(!Object.hasOwn(topics,agent||""))return send({error:"agent"},400);return send({agent,checks:await Promise.all(topics[agent].slice(1).map(probeSource))});}if(u.pathname!=="/results")return send({error:"Not found"},404);
+  const u=new URL(request.url);if(u.pathname!=="/results")return send({error:"Not found"},404);
   const wk=u.searchParams.get("week_key"),agent=u.searchParams.get("agent_id");
   if(!/^\d{4}-\d{2}-\d{2}$/.test(wk||"")||!ids.includes(agent||""))return send({error:"Invalid request"},400);
   const row=await env.DB.prepare("select status,payload,updated_at from public_research where week_key=? and agent_id=?").bind(wk,agent).first();
