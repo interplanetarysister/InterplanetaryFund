@@ -13,7 +13,7 @@ const row={document_id:documentId,campaign_id:campaignId,
  file_size:12,media_type:'text/plain'};
 const receipt={...row,id:documentId,owner_id:ownerId,object_store:'r2',
  allow_agent_use:false,object_verified_at:timestamp};
-function harness({mutateRow=x=>x,mutateReceipt=x=>x,queueReady=true,owner=ownerId}={}){
+function harness({mutateRow=x=>x,mutateReceipt=x=>x,queueReady=true,owner=ownerId,inventoryRows=null}={}){
  const calls=[];
  const rpc=async(name,args,jwt)=>{
   calls.push({name,args,jwt});
@@ -21,11 +21,12 @@ function harness({mutateRow=x=>x,mutateReceipt=x=>x,queueReady=true,owner=ownerI
    return [{request_id:requestId,review_ready:queueReady}];
   if(name==='ifund_super_admin_account_deletion_queue')
    return [{request_id:requestId,request_status:'reviewing',requested_user_id:owner}];
-  if(name==='ifund_super_admin_private_document_inventory')return [mutateRow({...row})];
+  if(name==='ifund_super_admin_private_document_inventory')return inventoryRows ?? [mutateRow({...row})];
   throw Error('Unexpected RPC');
  };
- const resolveReceipt=async()=>mutateReceipt({...receipt});
- return {calls,run:()=>reviewedR2Inventory({requestId,jwt:'synthetic-admin-jwt',rpc,resolveReceipt})};
+ let receiptCalls=0;
+ const resolveReceipt=async()=>{receiptCalls++;return mutateReceipt({...receipt});};
+ return {calls,get receiptCalls(){return receiptCalls;},run:()=>reviewedR2Inventory({requestId,jwt:'synthetic-admin-jwt',rpc,resolveReceipt})};
 }
 test('reviewed queue and owner-matched immutable R2 receipt admit bounded inventory',async()=>{
  const h=harness();const result=await h.run();
@@ -50,3 +51,25 @@ for(const [name,options] of [
  ['swapped document path',{mutateReceipt:r=>({...r,storage_path:'private/campaign-documents/invalid'})}],
  ['forged file size',{mutateReceipt:r=>({...r,file_size:13})}]
 ])test('fail closed: '+name,async()=>{await assert.rejects(harness(options).run());});
+
+// Bounded-work regressions: ten authenticated receipt reads maximum per invocation.
+test('inventory requests exactly ten rows and resolves one authenticated receipt',async()=>{
+ const h=harness();await h.run();
+ const inventory=h.calls.find(x=>x.name==='ifund_super_admin_private_document_inventory');
+ assert.deepEqual(inventory.args,{p_request_id:requestId,p_limit:10});
+ assert.equal(h.receiptCalls,1);
+});
+test('eleven returned rows fail before any receipt lookup',async()=>{
+ const rows=Array.from({length:11},(_,i)=>({...row,document_id:`44444444-4444-4444-8444-${String(i).padStart(12,'0')}`}));
+ const h=harness({inventoryRows:rows});
+ await assert.rejects(h.run(),/Invalid private document inventory/);
+ assert.equal(h.receiptCalls,0);
+ assert.equal(h.calls.at(-1).args.p_limit,10);
+});
+test('ten returned rows never initiate an eleventh receipt lookup',async()=>{
+ const rows=Array.from({length:10},(_,i)=>({...row,document_id:`44444444-4444-4444-8444-${String(i).padStart(12,'0')}`}));
+ const h=harness({inventoryRows:rows});
+ await assert.rejects(h.run(),/Authenticated immutable metadata receipt mismatch/);
+ assert.equal(h.receiptCalls,1);
+ assert.equal(h.calls.at(-1).args.p_limit,10);
+});
