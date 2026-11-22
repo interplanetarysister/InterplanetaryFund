@@ -3,6 +3,17 @@
   "name": "ifund-what-if-ai-preview",
   "main": "index.mjs",
   "compatibility_date": "2026-11-20",
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.01,
+      "invocation_logs": false
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
   "ai": { "binding": "AI" },
   "vars": {
     "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
