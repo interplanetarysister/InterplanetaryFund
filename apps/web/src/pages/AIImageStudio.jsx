@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
+import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 import { overlayExactArtworkCaption, validateArtworkCaption } from "@/lib/exactArtworkCaption.mjs";
 
@@ -156,6 +157,7 @@ export default function AIImageStudio() {
       </p>
       {access&&<p role="status" className="text-sm text-muted-foreground">Membership: {access.entitled?"Eligible":"Not currently eligible"}{access.trial_enabled&&access.trial_expires_at?" · Trial through "+new Date(access.trial_expires_at).toLocaleString():""}{access.paid_weekly_limit===50?" · Paid artwork: "+access.paid_weekly_remaining+" of 50 attempts available this rolling week":""}{!access.trial_enabled?" · Signup trial not activated on this deployment":""}. Referral hours remain available only when verified and activated.</p>}
     </header>
+    <PremiumOpportunity context="artwork" />
     <form onSubmit={generate} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
       <h2 className="text-xl font-semibold">Illustrate your cause</h2>
       <label className="block text-sm font-medium">Campaign title
