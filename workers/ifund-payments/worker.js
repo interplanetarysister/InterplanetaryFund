@@ -9,7 +9,10 @@ const EDGE_FUNCTION = "/functions/v1/ifund-payment-ledger";
 const SUBSCRIPTION_ID = /^I-[A-Z0-9]{10,30}$/;
 const PAYPAL_PLAN_ID = /^P-[A-Z0-9]{20,32}$/;
 const PAYPAL_EVENT_ID = /^WH-[A-Z0-9-]{8,90}$/;
-const BASIC_MONTHLY_PLAN = Object.freeze({tier:"basic",interval:"monthly",amount_cents:1200,plan_id:"P-6YD2273006199630KNLDXBLA"});
+// Owner-supplied PayPal subscription-002 plan. Its existence is not proof of the
+// price, merchant, webhook delivery or paid entitlement; readiness verifies all
+// supported facts against PayPal and the signed subscription ledger before use.
+const BASIC_MONTHLY_PLAN = Object.freeze({tier:"basic",interval:"monthly",amount_cents:499,plan_id:"P-8RG59105D5286480MNMBOKJA"});
 const PAYOUT_SCOPE = "https://uri.paypal.com/payments/payouts";
 const PAYOUT_EVENTS = new Set([
   "PAYMENT.PAYOUTSBATCH.DENIED","PAYMENT.PAYOUTSBATCH.PROCESSING","PAYMENT.PAYOUTSBATCH.SUCCESS",
