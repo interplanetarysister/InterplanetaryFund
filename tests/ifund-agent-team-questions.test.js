@@ -156,3 +156,18 @@ test("team questions use only read-only recommendation permission, not external 
   assert.match(member,/owner_id=eq\." \+ user\.id/);
   assert.doesNotMatch(gateway,/futureInternalAIPermission\("(?:publish|send|payment|withdraw)"/);
 });
+
+test("only explicitly approved skills supplement the specialist advisory prompt",()=>{
+  const question="How do I improve the campaign budget?";
+  const input=validateTeamQuestion({request_id:KEY,question,agent:"orbit"});
+  const baseline=teamQuestionMessages(input);
+  assert.doesNotMatch(baseline[0].content,/Approved professional skill budget-clarity/);
+  const updated=teamQuestionMessages({...input,approvedSkills:[{
+    skill_key:"budget-clarity",version:2,
+    instruction:"Keep verified provider-cleared funds separate from tentative promises."
+  }]});
+  assert.match(updated[0].content,/Approved professional skill budget-clarity v2/);
+  assert.match(updated[0].content,/provider-cleared funds/);
+  assert.match(updated[0].content,/external permissions/);
+  assert.equal(updated[1].role,"user");
+});
