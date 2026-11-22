@@ -8,6 +8,11 @@ import { sumVerifiedCents, sumVerifiedCounts } from "@/lib/verifiedMoney.mjs";
 import { merchantReceiptExceptions } from "@/lib/merchantReconciliation.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
 const operationalCount = n => (typeof n !== "number" && typeof n !== "string") || (typeof n === "string" && !/^(0|[1-9]\d*)$/.test(n.trim())) || !Number.isSafeInteger(Number(n)) || Number(n) < 0 ? "Unavailable" : String(Number(n));
+const withdrawalFeeLabel = row => {
+  const gross=Number(row?.gross_cents),fee=Number(row?.fee_cents);
+  if(!Number.isSafeInteger(gross)||gross<=0||!Number.isSafeInteger(fee)||fee<0)return "Recorded fee";
+  return (Math.round(fee*10000/gross)/100)+"% fee";
+};
 const campaignColumns = [
   { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
   { field: "raised_cents", headerName: "Verified gifts", minWidth: 150, valueFormatter: ({ value }) => formatUsdCents(value) },
@@ -126,7 +131,7 @@ export default function AdminFinance({ embedded = false }) {
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription receipts · gross</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_gross_cents)}</p></div>
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription refunds/reversals</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_refund_cents)}</p></div>
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription ledger · net</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_net_cents)}</p></div>
-          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Realized 7% withdrawal fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.realized_withdrawal_fee_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Realized withdrawal fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.realized_withdrawal_fee_cents)}</p></div>
         </div>
       </section>}
       {superAdminStatus === "super-admin" && <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="IFund operational monitoring">
@@ -156,14 +161,14 @@ export default function AdminFinance({ embedded = false }) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">Super admin · PayPal Payouts</p>
           <h2 className="mt-1 text-xl font-semibold">Owner withdrawal queue</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Execution is allowed only after owner/AAL2 reservation, provider-cleared refund-adjusted funds, exact 7% fee accounting, and a verified owner payout recipient. A PayPal submission is not marked paid until item-level SUCCESS.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Execution is allowed only after owner/AAL2 reservation, provider-cleared refund-adjusted funds, exact recorded fee accounting, and a verified owner payout recipient. A PayPal submission is not marked paid until item-level SUCCESS.</p>
         </div>
         {state.payoutQueue===null ? <p role="alert" className="text-sm text-amber-700">Withdrawal queue could not be verified. Payout actions are unavailable until refreshed.</p> : state.payoutQueue.length===0 ? <p className="text-sm text-muted-foreground">No owner withdrawals are currently awaiting payout or reconciliation.</p> :
           <div className="space-y-3">{state.payoutQueue.map(row=><div key={row.withdrawal_id} className="rounded-xl border border-border p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-semibold">{row.campaign_title}</p>
-                <p className="text-sm text-muted-foreground">Gross {money(row.gross_cents)} · 7% fee {money(row.fee_cents)} · owner net {money(row.net_cents)}</p>
+                <p className="text-sm text-muted-foreground">Gross {money(row.gross_cents)} · {withdrawalFeeLabel(row)} {money(row.fee_cents)} · owner net {money(row.net_cents)}</p>
                 <p className="text-xs text-muted-foreground">Status: {String(row.request_status||"").replace(/_/g," ")}{row.provider_transaction_status ? " · PayPal "+row.provider_transaction_status : ""}</p>
               </div>
               <button type="button"

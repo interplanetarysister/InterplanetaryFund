@@ -277,7 +277,7 @@ async function executePayout(req,env) {
       amount:{currency:"USD",value:usd(Number(payout.net_cents))},
       receiver:payout.receiver_email,
       sender_item_id:payout.sender_item_id,
-      note:"Interplanetary Fund campaign withdrawal after the 7% platform fee.",
+      note:"Interplanetary Fund campaign withdrawal after the 3% platform fee.",
       purpose:"DONATIONS"
     }]
   });

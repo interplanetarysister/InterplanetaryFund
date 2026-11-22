@@ -60,7 +60,7 @@ export default function PayPalDonateButton({ label = "Support Interplanetary Fun
             Payment details are entered on PayPal, not stored by IFund
           </p>
           <p className="flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-500">
-            <ShieldCheck className="h-3.5 w-3.5" /> The 7% campaign-owner withdrawal fee does not apply to platform support.
+            <ShieldCheck className="h-3.5 w-3.5" /> The 3% campaign-owner withdrawal fee does not apply to platform support.
           </p>
         </div>
       </DialogContent>
