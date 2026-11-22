@@ -29,11 +29,19 @@ test("long preferences and section context reach native Story without truncating
     method: "POST", headers: { authorization: "Bearer test.jwt", "content-type": "application/json" },
     body: JSON.stringify({ ...base, details, section, writing_preferences }),
   });
-  const response = await campaignPreview(request, { IFUND_STORY_AGENT: { fetch: async forwarded => {
+  const response = await campaignPreview(request, { SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_PUBLISHABLE_KEY:"mock-key",IFUND_STORY_AGENT: { fetch: async forwarded => {
     if (forwarded.method === "GET") return Response.json({ active: true, level: 1 });
     calls.push(await forwarded.json());
     return Response.json({ draft: { id, payload: { section: "A reviewed rewritten section." } } }, { status: 201 });
-  } } });
+  } }, (url) => {
+    if(String(url).endsWith("/ifund_trial_ai_generation_reserve"))
+      return Promise.resolve(Response.json({allowed:true,state:"reserved",remaining:14}));
+    if(String(url).endsWith("/ifund_trial_ai_generation_complete"))
+      return Promise.resolve(Response.json(true));
+    if(String(url).endsWith("/ifund_trial_ai_generation_release"))
+      return Promise.resolve(Response.json(true));
+    throw Error("Unexpected quota service request");
+  });
   assert.equal(response.status, 200);
   assert.equal(calls[0].details, details);
   assert.equal(calls[0].section, section);
