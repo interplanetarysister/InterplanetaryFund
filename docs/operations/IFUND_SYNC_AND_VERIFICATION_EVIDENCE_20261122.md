@@ -95,3 +95,14 @@ Canonical web build assets: `assets/index-D_jLqvSm.js`, `assets/index-CB7xWWc9.c
 3. Run the role-specific browser matrix and cross-account negative cases; record redacted receipts.
 4. Complete route evidence before any release gate can pass. Do not bulk-approve the 89 rows.
 5. Provide a Cloudflare API token only when a controlled preview is authorized; build and seal one immutable artifact, publish, verify, and only then consider a separately authorized promotion.
+
+## Addendum — post-push branch and PR audit
+
+A read-only topology audit after the fast-forward push confirmed local `main`, `origin/main`, and the recovery branch are identical at `2f376abd933efb61a8a752b4d0f81b6765d5d035` (`left-right 0 0`). No further `main` synchronization is currently needed.
+
+- The Stitch/recovery commits `2bd3ff53…`, `1b12ef79…`, `aa71b396…`, `c88ce190…`, and `2f376abd…` entered `main` by the controlled fast-forward sequence during this synchronization. GitHub reports no PR association for them; this record preserves that fact rather than implying PR review.
+- 278 remote branches were inventoried; 39 contain patch-unique work. None were deleted, rewritten, squash-merged, or inferred duplicate by name.
+- Eight open PRs remain. #361 (`4732e354…`, Cloudflare observability) is the only clean, non-draft, no-overlap candidate, with two unique commits; it still requires configuration review and controlled preview evidence before integration. #362, #350, #297, and the drafts #299/#300/#301/#304 are dirty, heavily overlapping, or far behind, and remain unfinished.
+- Closed-unmerged PR work with unique patches (#302, #298, #326, #339) remains preserved as evidence and is not reintroduced automatically.
+- `origin/feat/cash-app-donation-privacy` (`c70d1183…`, 36 unique commits) is a hard policy blocker: it changes the first-party withdrawal fee to 3%, conflicting with current main and the standing 7% withdrawal rule. Do not integrate without a separate explicit owner pricing decision and payment acceptance.
+- No duplicate-looking SKILL.md, configuration, generated file, backup, or historical document was deleted or consolidated. Distinct consumer verification remains mandatory.
