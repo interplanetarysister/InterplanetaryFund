@@ -7,6 +7,7 @@ const donorSql=file("../../../supabase/migrations/20261112_ifund_authenticated_d
 const reservationSql=file("../../../supabase/migrations/20261112_ifund_cleared_withdrawal_reservations.sql");
 const withdrawalRepairSql=file("../../../supabase/migrations/20261112231500_ifund_refund_aware_withdrawal_journal.sql");
 const payoutSql=file("../../../supabase/migrations/20261112234000_ifund_live_paypal_payout_execution.sql");
+const feePolicySql=file("../../../supabase/migrations/20261121200000_ifund_three_percent_withdrawal_fee.sql");
 const edge=file("../../../supabase/functions/ifund-payment-ledger/index.ts");
 const worker=file("../../../workers/ifund-payments/worker.js");
 const dialog=file("../src/components/payments/CampaignDonationDialog.jsx");
@@ -59,14 +60,15 @@ test("all withdrawal reservations require authoritative account owner and MFA",(
   assert.match(reservationSql,/grant execute on function public\.ifund_request_withdrawal/);
   assert.doesNotMatch(reservationSql,/paypal\.com\/v1\/payments\/payouts/);
 });
-test("single 7% fee is calculated at reservation; not recognized as earned before payout",()=>{
+test("new owner withdrawals use a 3% fee at reservation; fee is not recognized as earned before payout",()=>{
   for(const cents of [1000,1050,3333,10001,100000000]){
-    const fee=Number((BigInt(cents)*7n+50n)/100n);
-    assert.equal(fee,Math.floor((cents*7+50)/100));
+    const fee=Number((BigInt(cents)*3n+50n)/100n);
+    assert.equal(fee,Math.floor((cents*3+50)/100));
     assert.equal(cents-fee+fee,cents);
   }
-  assert.match(reservationSql,/v_fee:=round\(p_gross_cents::numeric\*0\.07\)::bigint/);
-  assert.match(withdrawalRepairSql,/v_fee:=round\(p_gross_cents::numeric\*0\.07\)::bigint/);
+  assert.match(feePolicySql,/v_fee:=round\(p_gross_cents::numeric\*0\.03\)::bigint/);
+  assert.match(feePolicySql,/platform_fee_bps/);
+  assert.match(feePolicySql,/withdrawal_fee_rate_consistency/);
   assert.match(withdrawalRepairSql,/holding_ledger_entry/);
   assert.match(withdrawalRepairSql,/'reserve','reserved','withdrawal'/);
   assert.doesNotMatch(withdrawals,/BigInt\(gross\)\*7n\+50n/);

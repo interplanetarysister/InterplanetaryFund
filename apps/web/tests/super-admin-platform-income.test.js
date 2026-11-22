@@ -22,6 +22,6 @@ test("admin finance renders super-admin-only platform income breakdown",()=>{
   assert.match(page,/Platform support · gross/);
   assert.match(page,/PayPal processing fees/);
   assert.match(page,/Subscription ledger · net/);
-  assert.match(page,/Realized 7% withdrawal fees/);
+  assert.match(page,/Realized withdrawal fees/);
   assert.match(page,/superAdminStatus === "super-admin"/);
 });

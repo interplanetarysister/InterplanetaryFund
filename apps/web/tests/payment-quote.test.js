@@ -33,7 +33,7 @@ test("checkout UI shows processing charges before provider approval", () => {
   assert.match(src, /PayPal processing surcharge/);
   assert.match(src, /Total you approve in PayPal/);
   assert.match(src, /IFund covers payment processing costs/);
-  assert.match(src, /7% IFund platform fee is deducted from the organizer/);
+  assert.match(src, /3% IFund platform fee is deducted from the organizer/);
   assert.match(src, /data\.amount_cents!==paymentQuoteCents\(gift,tip,channel\)\?\.totalCents/);
   assert.match(src, /The payment charge changed/);
   assert.doesNotMatch(src, /Today's total/);

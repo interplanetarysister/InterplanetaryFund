@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const file = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const payoutSql=file("../../../supabase/migrations/20261112234000_ifund_live_paypal_payout_execution.sql");
+const feePolicySql=file("../../../supabase/migrations/20261121200000_ifund_three_percent_withdrawal_fee.sql");
 const edge=file("../../../supabase/functions/ifund-payment-ledger/index.ts");
 const worker=file("../../../workers/ifund-payments/worker.js");
 const owner=file("../src/pages/WithdrawalVerification.jsx");
@@ -22,7 +23,7 @@ test("owner payout destination requires verified session, AAL2, legal acceptance
 test("payout preparation is super-admin, owner destination, refund, reservation and 7% gated",()=>{
   assert.match(payoutSql,/raw_app_meta_data->>'role',''\)='super_admin'/);
   assert.match(payoutSql,/canonical_reservation_id is null/);
-  assert.match(payoutSql,/platform_fee<>round\(w\.gross_amount\*0\.07,2\)/);
+  assert.match(feePolicySql,/platform_fee<>round\(w\.gross_amount\*w\.platform_fee_bps\/10000,2\)/);
   assert.match(payoutSql,/campaign_refunded_cents/);
   assert.match(payoutSql,/payouts_enabled is true/);
   assert.match(payoutSql,/details_submitted is true/);
@@ -50,7 +51,7 @@ test("provider ambiguity cannot double pay and definite failures release reserva
 test("withdrawal is paid only from provider item SUCCESS and fee is realized at settlement",()=>{
   assert.match(payoutSql,/if p_transaction_status='SUCCESS'/);
   assert.match(payoutSql,/set status='paid'/);
-  assert.match(payoutSql,/Realized IFund 7% withdrawal fee/);
+  assert.match(feePolicySql,/Realized IFund %s%% withdrawal fee/);
   assert.match(payoutSql,/w\.canonical_operation_key\|\|':payout'/);
   assert.match(payoutSql,/w\.canonical_operation_key\|\|':fee'/);
   assert.match(worker,/applyPayoutItem/);

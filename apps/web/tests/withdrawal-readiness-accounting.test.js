@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const migration=readFileSync(new URL("../../../supabase/migrations/20261112231500_ifund_refund_aware_withdrawal_journal.sql",import.meta.url),"utf8");
+const feePolicy=readFileSync(new URL("../../../supabase/migrations/20261121200000_ifund_three_percent_withdrawal_fee.sql",import.meta.url),"utf8");
 const worker=readFileSync(new URL("../../../workers/ifund-payments/worker.js",import.meta.url),"utf8");
 const page=readFileSync(new URL("../src/pages/WithdrawalVerification.jsx",import.meta.url),"utf8");
 
@@ -31,7 +32,7 @@ test("withdrawal request remains owner MFA and payout-destination gated",()=>{
   assert.match(migration,/status='ready'/);
   assert.match(migration,/payouts_enabled is true/);
   assert.match(migration,/details_submitted is true/);
-  assert.match(migration,/round\(p_gross_cents::numeric\*0\.07\)/);
+  assert.match(feePolicy,/round\(p_gross_cents::numeric\*0\.03\)/);
 });
 
 test("PayPal payout readiness remains read only while execution is separately admin-gated",()=>{
