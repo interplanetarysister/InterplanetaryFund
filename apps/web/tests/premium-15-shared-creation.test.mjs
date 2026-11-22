@@ -29,8 +29,9 @@ test("generated stories and images share single trial content allowance",()=>{
   assert.match(mod,/releaseTrialContent\(/);
   assert.match(mod,/trialReceipt/);
  }
- assert.match(helper,/ifund_trial_ai_generation_reserve/);
- assert.match(helper,/ifund_trial_ai_generation_complete/);
+ assert.match(helper,/ifund_ai_content_reserve/);
+ assert.match(read("../../../supabase/migrations/20261122150000_ifund_paid_monthly_50_content_credits.sql"),/ifund_trial_ai_generation_reserve/);
+ assert.match(helper,/ifund_ai_content_complete/);
  assert.match(helper,/cannot delete active reservations/);
  assert.ok(sql.includes("revoke all on function public.ifund_trial_ai_generation_release(uuid,text) from public,anon,authenticated"));
 });
@@ -42,7 +43,7 @@ test("premium offers appear in context without blocking campaign editing",()=>{
  const image=read("../src/pages/AIImageStudio.jsx");
  const panel=read("../src/components/agents/AgentSidePanel.jsx");
  assert.match(c,/to="\/subscriptions"/);
- assert.match(balance,/rpc\("ifund_trial_ai_generation_status"\)/);
+ assert.match(balance,/rpc\("ifund_ai_content_status"\)/);
  assert.match(balance,/15 free AI creations/);
  assert.match(campaign,/<TrialCreationBalance compact/);
  assert.match(campaign,/Save private draft/);
