@@ -22,9 +22,11 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
       !valid(matching[0].requested_user_id))
     throw Error('Deletion request owner cannot be authenticated');
   const ownerId = matching[0].requested_user_id;
+  // Bound receipt RPC work to the same ten-object deletion batch. Never resolve
+  // 100 authenticated receipts merely to return ten; retries re-query the queue.
   const rows = await rpc('ifund_super_admin_private_document_inventory',
-    { p_request_id: requestId, p_limit: 100 }, jwt);
-  if (!Array.isArray(rows) || rows.length > 100) throw Error('Invalid private document inventory');
+    { p_request_id: requestId, p_limit: 10 }, jwt);
+  if (!Array.isArray(rows) || rows.length > 10) throw Error('Invalid private document inventory');
   const verified = [];
   const seen = new Set();
   for (const row of rows) {
