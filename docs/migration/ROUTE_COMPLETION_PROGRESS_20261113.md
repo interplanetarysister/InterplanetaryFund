@@ -47,7 +47,7 @@
 | `/admin/integrations` | Dedicated 47-platform Connections implementation is already being developed in **PR #286**; staged provider grants/SQL and conflicts with main remain. | Reconcile with its owner; verify authorized provider scopes/grants, migrations, revoke and failure paths before merging. Avoid duplicate implementation. |
 | `/admin/audit`, `/admin/help` | Sidebar still advertises these destinations, but no explicit independently accepted implementation is registered. | Implement purpose-built admin pages with server-verified role gates, scoped data, and tests; or remove only if owner formally retires their functionality. |
 | Full-site source and runtime | This branch is **source-staged only**. No complete Node/Vite suite, authenticated multi-user RLS browser test, mobile 320px test, provider acceptance, or build passed in this increment. | Complete all 77 acceptance records with source+test evidence and reconcile canonical main, then run **one** consolidated build and preview first. |
-| Finances | Sandbox captures and test receipts cannot establish live provider success or production isolation. | Preserve verified sandbox/live separation, 7% fee only at real owner withdrawal, signed webhooks, idempotent ledger, no payouts without provider gates. |
+| Finances | Sandbox captures and test receipts cannot establish live provider success or production isolation. | Preserve verified sandbox/live separation, 3% fee only at real owner withdrawal, signed webhooks, idempotent ledger, no payouts without provider gates. |
 
 ## Evidence and next actions
 

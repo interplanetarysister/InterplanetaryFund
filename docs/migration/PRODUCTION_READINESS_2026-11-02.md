@@ -131,7 +131,7 @@ AGENTS.md. Google and Facebook OAuth are **implemented in the root app**
 (`src/pages/Auth.jsx` calls `signInWithOAuth`) but **not ported to `apps/web`**.
 Porting them is a concrete, bounded next task.
 
-**Financial features:** the directive specifies a 7% platform fee deducted at
+**Financial features:** the directive specifies a 3% platform fee deducted at
 withdrawal. There is no donation, ledger, withdrawal or fee code in this
 repository and no table for any of it. Nothing was activated, which is correct.
 This remains entirely unbuilt.

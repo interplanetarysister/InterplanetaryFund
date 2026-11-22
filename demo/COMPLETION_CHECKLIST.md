@@ -112,7 +112,7 @@ This section consolidates the reported findings from the proposed photo/payment 
 - [ ] **LED-01** Automated read-only reconciliation: provider captured total = sum of unique matched captured receipts = expected gross test ledger movement; each journal group balances to zero in integer minor units. Explain differences from signs/contra accounts rather than blindly summing all journal lines.
 - [ ] **LED-02** Detect orphaned order intents, captured orders without receipts, receipts without valid provider captures, webhook rows without known provider events, duplicate capture IDs, duplicate provider event IDs, negative balances and impossible state transitions.
 - [ ] **LED-03** Reconcile per-campaign totals, donor history, owner finance and administrative totals with confirmed isolated receipt source; compare cache freshness and refresh behavior, never compare demo totals to real donations.
-- [ ] **LED-04** Preserve and test the live-platform 7% withdrawal-fee *rule separately* without inventing payouts or charging a sandbox withdrawal fee at checkout; payouts remain disabled until owner authorization, accounting and idempotency pass.
+- [ ] **LED-04** Preserve and test the live-platform 3% withdrawal-fee *rule separately* without inventing payouts or charging a sandbox withdrawal fee at checkout; payouts remain disabled until owner authorization, accounting and idempotency pass.
 - [ ] **LED-05** Port **code/tests and schema invariants**, not sandbox payment rows or identities, into live checkout paths only after environment-specific review. Re-run provider-backed live validation under separate authorization, and prevent sandbox credentials/webhooks leaking into production.
 
 ### P2 — showcase and recurring automation quality

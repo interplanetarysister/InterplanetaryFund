@@ -20,7 +20,7 @@ Last evidence check: 2026-11-11 20:55 UTC. **Never use live PayPal credentials, 
 | Failed/declined, refund, cancellation | N/A | No fresh provider event this run | Blocked/unverified | Sandbox-only provider-backed negative flows, no synthetic receipts |
 | Browser/mobile visual | N/A | /discover at 390×844: 85/85 image elements loaded; /hackathon rendered | Pass for media rendering only | Checkout and finance browser journey after Cloudflare browser quota reset |
 
-**Current release reported by deployed /api/status:** `ce7fd0a49ae17f6a95d69b60a65c1400bdf2503e`. No new Worker deployment or new capture in this audit. Test amounts above are coverage targets, not payments made. R2 image provenance remains separately documented in [MEDIA_SOURCE_MANIFEST.md](MEDIA_SOURCE_MANIFEST.md). No 7% withdrawal fee is applied to fictional demo transactions.
+**Current release reported by deployed /api/status:** `ce7fd0a49ae17f6a95d69b60a65c1400bdf2503e`. No new Worker deployment or new capture in this audit. Test amounts above are coverage targets, not payments made. R2 image provenance remains separately documented in [MEDIA_SOURCE_MANIFEST.md](MEDIA_SOURCE_MANIFEST.md). No withdrawal fee is applied to fictional demo transactions.
 
 
 ## Independent database-only regression audit — 2026-11-11 22:03 UTC (automation)

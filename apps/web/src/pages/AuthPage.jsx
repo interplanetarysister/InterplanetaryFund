@@ -270,7 +270,7 @@ export default function AuthPage({ mode = "login" }) {
             <form className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); if (legalAgreed) setLegalReviewed(true); }}>
               <label className="flex items-start gap-3 rounded-2xl border border-slate-500/60 p-4 text-sm leading-6">
                 <input type="checkbox" required className="mt-1 h-5 w-5 shrink-0 accent-cyan-400" checked={legalAgreed} onChange={(event) => setLegalAgreed(event.target.checked)} />
-                <span>I confirm I am at least 18 years old, agree to the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/terms">Terms of Service</Link>, and acknowledge the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/privacy">Privacy Policy</Link>. I understand these terms include the current 7% campaign withdrawal fee.</span>
+                <span>I confirm I am at least 18 years old, agree to the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/terms">Terms of Service</Link>, and acknowledge the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/privacy">Privacy Policy</Link>. I understand these terms include the current 3% campaign withdrawal fee.</span>
               </label>
               <button disabled={!legalAgreed} type="submit" className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">Agree and continue to registration</button>
             </form>
