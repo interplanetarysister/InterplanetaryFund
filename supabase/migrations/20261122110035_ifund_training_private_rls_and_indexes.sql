@@ -1,0 +1,11 @@
+create index if not exists ifund_training_candidate_job_idx on ifund_training.candidates(job_id);
+create index if not exists ifund_training_evaluations_candidate_idx on ifund_training.evaluations(candidate_id);
+create index if not exists ifund_training_audit_run_idx on ifund_training.audit(run_id,created_at desc);
+create index if not exists ifund_training_audit_job_idx on ifund_training.audit(job_id,created_at desc);
+create index if not exists ifund_training_jobs_run_state_idx on ifund_training.jobs(run_id,state);
+alter table ifund_training.runs enable row level security;
+alter table ifund_training.jobs enable row level security;
+alter table ifund_training.candidates enable row level security;
+alter table ifund_training.evaluations enable row level security;
+alter table ifund_training.audit enable row level security;
+alter table ifund_training.settings enable row level security;
