@@ -94,8 +94,8 @@ test("historical 3500-character SQL gate is superseded by current no-minimum pol
  // This migration is immutable history, NOT the effective production trigger.
  // A live DB trigger inspection is required separately before release approval.
  const legacy=source("../../../supabase/migrations/20261113_ifund_prepublication_whitespace_alignment.sql");
- assert.match(legacy,/pg_catalog\\.char_length\\(v_story\\)<3500/);
- assert.match(legacy,/old\\.status is distinct from 'active'/);
+ assert.match(legacy,/pg_catalog\.char_length\(v_story\)<3500/);
+ assert.match(legacy,/old\.status is distinct from 'active'/);
  for(const story of ["A short, factual campaign story.", "  Useful details.  "]) {
    assert.equal(publishReadiness({...base,story}).ready,true,
      "Current client publication readiness must not impose the historical 3500-character minimum");
