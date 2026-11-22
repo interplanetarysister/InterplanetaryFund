@@ -13,23 +13,24 @@ export default function TrialCreationBalance({ compact = false }) {
   useEffect(()=>{
     if(info!==null)return;
     let live=true;
-    authClient().rpc("ifund_trial_ai_generation_status").then(({data,error})=>{
-      if(live && !error && Number.isInteger(data?.remaining) && data.limit===15)setInfo(data);
+    authClient().rpc("ifund_ai_content_status").then(({data,error})=>{
+      if(live && !error && Number.isInteger(data?.remaining) && [15,50].includes(data.limit))setInfo(data);
     }).catch(()=>{});
     return ()=>{live=false;};
   },[info]);
-  if(!info || !info.trial)return null;
+  if(!info || (!info.trial && !info.paid))return null;
   const done=info.remaining<=0;
-  return <section aria-label="Free trial AI generation allowance"
+  const maximum=info.paid?50:15;
+  return <section aria-label="Account AI generation allowance"
     className={compact
       ?"rounded-lg bg-cyan-500/[.055] px-2 py-2 text-xs"
       :"rounded-xl border "+(done?"border-amber-400/40":"border-cyan-400/30")+" bg-background/70 p-4"}>
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="text-sm font-semibold">{done?"Your 15 free AI creations are used":"Trial AI creations: "+info.remaining+" of 15 left"}</p>
-      {done&&<Link to="/subscriptions" className="inline-flex min-h-11 items-center rounded-lg bg-cyan-700 px-3 text-sm font-semibold text-white">Explore premium access</Link>}
+      <p className="text-sm font-semibold">{done?(info.paid?"Monthly AI creations used":"Your 15 free AI creations are used"):(info.paid?"Premium AI creations: ":"Trial AI creations: ")+info.remaining+" of "+maximum+" left"}</p>
+      {done&&<Link to="/subscriptions" className="inline-flex min-h-11 items-center rounded-lg bg-cyan-700 px-3 text-sm font-semibold text-white">Review plan & credits</Link>}
     </div>
     {!compact&&<p className="mt-1 text-xs text-muted-foreground">{done
       ?"You can still write, upload, edit, save and publish campaigns without AI."
-      :"AI-created writing, artwork and image improvements share this allowance. Manual campaign tools remain free."}</p>}
+      :"AI writing, artwork and image improvements share your account allowance. Premium creations renew with a verified monthly payment; unused credits do not roll over. Manual campaign tools remain free."}</p>}
   </section>;
 }
