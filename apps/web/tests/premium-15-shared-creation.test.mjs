@@ -20,6 +20,7 @@ test("generated stories and images share single trial content allowance",()=>{
  const image=read("../../../worker/imageStudio.js");
  const enhance=read("../../../worker/imageImprove.js");
  const helper=read("../../../worker/trialAiContent.js");
+ const sql=read("../../../supabase/migrations/20261122123000_ifund_trial_shared_15_ai_generations.sql");
  assert.match(story,/reserveTrialContent\(env,trialJwt,"campaign_story"/);
  assert.match(story,/completeTrialContent\(env,trialJwt,trialReceipt/);
  assert.match(image,/reserveTrialContent\(env,account.jwt,"image"/);
