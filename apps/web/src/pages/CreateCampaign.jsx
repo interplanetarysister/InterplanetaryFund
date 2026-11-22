@@ -24,6 +24,7 @@ import CampaignVoiceInput from "@/components/campaigns/CampaignVoiceInput";
 import CampaignVoiceGuide from "@/components/campaigns/CampaignVoiceGuide";
 import CampaignImageChoices from "@/components/campaigns/CampaignImageChoices";
 import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
+import TrialCreationBalance from "@/components/subscriptions/TrialCreationBalance";
 import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
 
@@ -677,6 +678,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             </div>}
             {step===1&&<div className="space-y-5">
               <label className="block text-sm font-medium">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={5} value={form.story} onChange={e=>change("story",e.target.value)} placeholder="What should supporters know?" className={fld}/></label>
+              <TrialCreationBalance compact />
               <PremiumOpportunity context="creator" compact />
               <button type="button" onClick={suggestDraft} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"} title="Generate campaign ideas">{suggesting?"Preparing ideas…":"Help me write this with AI"}</button>
               {suggestionError&&<p role="alert" className="text-sm text-amber-200">{suggestionError} <Link to="/permissions" className="underline">AI permissions</Link></p>}
