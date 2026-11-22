@@ -110,7 +110,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
           <label className="block space-y-1 text-sm font-semibold">Other amount<input className={field} inputMode="decimal" value={amount} disabled={locked} onChange={e=>setAmount(e.target.value)}/></label>
         </div>
         <label className="block space-y-1 text-sm font-semibold">Message to the IFund team (optional)
-          <textarea rows={3} maxLength={500} className={field+" resize-y"} disabled={locked} value={message} onChange={e=>setMessage(e.target.value)} placeholder="Leave a note for the IFund team"/>
+          <textarea rows={3} maxLength={500} className={field+" resize-y"} disabled={locked} value={message} onChange={e=>{messageRef.current=e.target.value;setMessage(e.target.value);}} placeholder="Leave a note for the IFund team"/>
           <span className="block text-xs font-normal text-slate-500">Visible only to authorized administrators after your payment is verified.</span>
         </label>
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">

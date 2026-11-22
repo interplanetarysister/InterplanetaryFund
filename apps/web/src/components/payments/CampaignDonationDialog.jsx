@@ -230,7 +230,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           </label>}
         </section>
         <label className="block space-y-1 text-sm font-semibold text-slate-900">Message of support (optional)
-          <textarea rows={3} maxLength={500} disabled={checkoutLocked} className={field+" resize-y"} value={supportMessage} onChange={e=>setSupportMessage(e.target.value)} placeholder="Add a note for the campaign owner (up to 500 characters)"/>
+          <textarea rows={3} maxLength={500} disabled={checkoutLocked} className={field+" resize-y"} value={supportMessage} onChange={e=>{visibilityRef.current={...visibilityRef.current,supportMessage:e.target.value};setSupportMessage(e.target.value);}} placeholder="Add a note for the campaign owner (up to 500 characters)"/>
           <span className="block text-xs font-normal text-slate-500">Delivered privately to the campaign owner's IFund inbox after your donation is verified.</span>
         </label>
         <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
