@@ -15,8 +15,9 @@ test("cardholder name is not a required IFund card field", () => {
   assert.match(dialog, /IFund does not require your name/);
 });
 
-test("card checkout leaves issuer-required billing details to PayPal", () => {
-  assert.match(dialog, /PayPal will request them securely/);
+test("cardholder name remains optional unless the card provider requests it", () => {
+  assert.match(dialog, /Name on card \\(optional\\)/);
+  assert.match(dialog, /your card provider requests it/);
 });
 
 test("campaign support messages are optional and length limited", () => {
