@@ -34,9 +34,10 @@ export async function completeTrialContent(env,jwt,receipt,fetcher=fetch) {
   return invoke(env,jwt,"ifund_trial_ai_generation_complete",
     {p_request_id:receipt.requestId,p_kind:receipt.kind},fetcher);
 }
-export async function releaseTrialContent(env,jwt,receipt,fetcher=fetch) {
-  if(!receipt?.tracked)return;
-  try { await invoke(env,jwt,"ifund_trial_ai_generation_release",
-    {p_request_id:receipt.requestId,p_kind:receipt.kind},fetcher); }
-  catch { /* Reservation automatically expires after thirty minutes. */ }
+export async function releaseTrialContent(_env,_jwt,_receipt,_fetcher=fetch) {
+  // Authenticated users cannot delete active reservations: that would let
+  // forged browser calls remove in-flight usage and defeat the shared cap.
+  // The database expires unsuccessful reservations after thirty minutes.
+  // A future trusted service-role-only cleanup path can release sooner.
+  return false;
 }
