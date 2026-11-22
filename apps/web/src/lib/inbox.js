@@ -28,12 +28,17 @@ export async function loadUniversalInbox(client) {
     client.from("ifund_platform_support_messages").select(PLATFORM_SUPPORT_MESSAGE_COLUMNS)
       .order("created_at", { ascending: false }).limit(100),
   ]);
-  if (inboxResult.error || notificationResult.error || donationMessageResult.error || platformSupportResult.error ||
-      !Array.isArray(inboxResult.data) || !Array.isArray(notificationResult.data) || !Array.isArray(donationMessageResult.data) || !Array.isArray(platformSupportResult.data) ||
+  const optionalTableMissing = error => ["PGRST205", "42P01"].includes(error?.code);
+  const donationMessageRows = optionalTableMissing(donationMessageResult.error) ? [] : donationMessageResult.data;
+  const platformSupportRows = optionalTableMissing(platformSupportResult.error) ? [] : platformSupportResult.data;
+  if (inboxResult.error || notificationResult.error ||
+      (donationMessageResult.error && !optionalTableMissing(donationMessageResult.error)) ||
+      (platformSupportResult.error && !optionalTableMissing(platformSupportResult.error)) ||
+      !Array.isArray(inboxResult.data) || !Array.isArray(notificationResult.data) || !Array.isArray(donationMessageRows) || !Array.isArray(platformSupportRows) ||
       inboxResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")) ||
       notificationResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")) ||
-      donationMessageResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")) ||
-      platformSupportResult.data.some(row => !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")))
+      donationMessageRows.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")) ||
+      platformSupportRows.some(row => !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")))
     throw new Error("We couldn't verify your private inbox. Please try again.");
   // Discard a response from a previous account if the session changed while loading.
   const { data: current, error: currentError } = await client.auth.getUser();
@@ -55,7 +60,7 @@ export async function loadUniversalInbox(client) {
     date: item.created_at,
     priority: item.mailbox_priority === "priority",
   }));
-  const donationMessages = (donationMessageResult.data || []).map(item => ({
+  const donationMessages = (donationMessageRows || []).map(item => ({
     key: "d-" + item.id,
     id: item.id,
     owner_id: item.owner_id,
@@ -71,7 +76,7 @@ export async function loadUniversalInbox(client) {
     date: item.created_at,
     priority: true,
   }));
-  const platformSupportMessages = (platformSupportResult.data || []).map(item => ({
+  const platformSupportMessages = (platformSupportRows || []).map(item => ({
     key: "p-" + item.id, id: item.id, source: "inbox", platform: "Interplanetary Fund",
     type: "platform_support_message", author: "IFund supporter",
     content: "Platform donation: $" + (Number(item.amount_cents || 0) / 100).toFixed(2) + " " + item.currency + " — " + item.message,

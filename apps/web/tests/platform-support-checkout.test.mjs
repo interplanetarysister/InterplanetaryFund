@@ -13,7 +13,7 @@ test("platform support uses dedicated create and capture routes",()=>{
 });
 test("platform support is accounted separately from campaign donations",()=>{
  assert.match(sql,/ifund_platform_support_donations/);assert.match(sql,/ifund_platform_support_ledger_entries/);
- assert.match(sql,/IFUND-PLATFORM/);assert.match(edge,/ifund_finalize_verified_platform_support_capture/);
+ assert.match(worker,/IFUND-PLATFORM/);assert.match(edge,/ifund_finalize_verified_platform_support_capture/);
 });
 test("platform messages are admin-only and created after verified capture",()=>{
  assert.match(sql,/p_capture_status is distinct from 'COMPLETED'/);
