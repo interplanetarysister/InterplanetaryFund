@@ -48,9 +48,9 @@ function binding({
     fetcher: async (url, init) => {
       const endpoint=String(url);
       assert.equal(init?.headers?.Authorization,"Bearer own.test.jwt");
-      if(endpoint.endsWith("/ifund_trial_ai_generation_reserve"))
+      if(endpoint.endsWith("/ifund_ai_content_reserve"))
         return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
-      if(endpoint.endsWith("/ifund_trial_ai_generation_complete"))
+      if(endpoint.endsWith("/ifund_ai_content_complete"))
         return Response.json(true);
       if(endpoint.endsWith("/ifund_trial_ai_generation_release"))
         return Response.json(true);
