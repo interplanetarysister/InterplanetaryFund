@@ -13,16 +13,22 @@ const row = {
   object_verified_at: "2026-11-20T00:00:00Z", file_size: 5,
 };
 const approved = [{ request_id: requestId, review_ready: true }];
+const timestamp = "2026-11-20T00:00:00Z";
+row.deletion_requested_at = timestamp;
+row.media_type = "application/pdf";
+const receipt = { ...row, id: documentId, owner_id: owner, object_store: "r2", allow_agent_use: false };
 const run = ({ queue = approved, rows = [row], jwt = "caller-session", ownerId = owner, failAt = "" } = {}) => {
   const calls = [];
   const rpc = async (name, args, token) => {
     calls.push({ name, args, token });
     if (name === failAt) throw Error("RPC failure");
     if (name === "ifund_super_admin_private_document_reviewed_queue") return queue;
+    if (name === "ifund_super_admin_account_deletion_queue") return [{ request_id: requestId, request_status: "reviewing", requested_user_id: ownerId }];
     if (name === "ifund_super_admin_private_document_inventory") return rows;
     throw Error("Unexpected RPC");
   };
-  return { calls, result: reviewedR2Inventory({ requestId, jwt, ownerId, rpc }) };
+  const resolveReceipt = async ({ documentId: id }) => ({ ...receipt, id, owner_id: ownerId });
+  return { calls, result: reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt }) };
 };
 
 test("reviewed queue must be queried first with empty args and caller JWT", async () => {
@@ -30,12 +36,15 @@ test("reviewed queue must be queried first with empty args and caller JWT", asyn
   assert.equal((await result).length, 1);
   assert.deepEqual(calls.map(c => c.name), [
     "ifund_super_admin_private_document_reviewed_queue",
+    "ifund_super_admin_account_deletion_queue",
     "ifund_super_admin_private_document_inventory",
   ]);
   assert.deepEqual(calls[0].args, {});
   assert.equal(calls[0].token, "caller-session");
-  assert.deepEqual(calls[1].args, { p_request_id: requestId, p_limit: 100 });
+  assert.deepEqual(calls[1].args, { p_limit: 200 });
+  assert.deepEqual(calls[2].args, { p_request_id: requestId, p_limit: 100 });
   assert.equal(calls[1].token, "caller-session");
+  assert.equal(calls[2].token, "caller-session");
 });
 test("unauthenticated request cannot query inventory", async () => {
   const { calls, result } = run({ jwt: "" });
@@ -65,5 +74,5 @@ test("RPC errors fail closed without retry or fabricated approval", async () => 
 test("partial batch is bounded to ten, with no mutation RPC", async () => {
   const { calls, result } = run({ rows: Array.from({ length: 12 }, () => ({ ...row })) });
   assert.equal((await result).length, 10);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
 });
