@@ -315,9 +315,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try {
       const result = await requestCampaignDraft(authClient(), { ...input, campaign_id: linkedCampaignId }, { requestId: id });
       writingRequests.current.delete(key);
+      if(result?.ai_inference===true)window.dispatchEvent(new Event("ifund-ai-creation-completed"));
       return result;
     } catch (error) {
       if (error?.code === "new_request_required") writingRequests.current.delete(key);
+      if (error?.code === "queued") window.dispatchEvent(new Event("ifund-ai-creation-completed"));
       throw error;
     }
   }
