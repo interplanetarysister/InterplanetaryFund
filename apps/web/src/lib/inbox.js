@@ -4,6 +4,7 @@ import { isVerifiedEmailUser } from "./verifiedEmailUser.js";
 const INBOX_COLUMNS = "id,owner_id,platform,type,author,content,link,campaign_id,campaign_title,status,ai_draft,recipient_address,mailbox_priority,created_at";
 const NOTIFICATION_COLUMNS = "id,owner_id,title,body,type,link,read,created_at";
 const DONATION_MESSAGE_COLUMNS = "id,donation_id,owner_id,campaign_id,campaign_title,donor_display_name,message,created_at";
+const PLATFORM_SUPPORT_MESSAGE_COLUMNS = "id,donation_id,amount_cents,currency,message,created_at";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function verifiedOwner(client) {
@@ -17,19 +18,22 @@ async function verifiedOwner(client) {
 
 export async function loadUniversalInbox(client) {
   const owner = await verifiedOwner(client);
-  const [inboxResult, notificationResult, donationMessageResult] = await Promise.all([
+  const [inboxResult, notificationResult, donationMessageResult, platformSupportResult] = await Promise.all([
     client.from("ifund_inbox_items").select(INBOX_COLUMNS)
       .eq("owner_id", owner).order("created_at", { ascending: false }).limit(100),
     client.from("ifund_notifications").select(NOTIFICATION_COLUMNS)
       .eq("owner_id", owner).order("created_at", { ascending: false }).limit(50),
     client.from("ifund_campaign_donation_messages").select(DONATION_MESSAGE_COLUMNS)
       .eq("owner_id", owner).order("created_at", { ascending: false }).limit(100),
+    client.from("ifund_platform_support_messages").select(PLATFORM_SUPPORT_MESSAGE_COLUMNS)
+      .order("created_at", { ascending: false }).limit(100),
   ]);
-  if (inboxResult.error || notificationResult.error || donationMessageResult.error ||
-      !Array.isArray(inboxResult.data) || !Array.isArray(notificationResult.data) || !Array.isArray(donationMessageResult.data) ||
+  if (inboxResult.error || notificationResult.error || donationMessageResult.error || platformSupportResult.error ||
+      !Array.isArray(inboxResult.data) || !Array.isArray(notificationResult.data) || !Array.isArray(donationMessageResult.data) || !Array.isArray(platformSupportResult.data) ||
       inboxResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")) ||
       notificationResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")) ||
-      donationMessageResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")))
+      donationMessageResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")) ||
+      platformSupportResult.data.some(row => !UUID.test(row?.id || "") || !UUID.test(row?.donation_id || "")))
     throw new Error("We couldn't verify your private inbox. Please try again.");
   // Discard a response from a previous account if the session changed while loading.
   const { data: current, error: currentError } = await client.auth.getUser();
@@ -67,6 +71,12 @@ export async function loadUniversalInbox(client) {
     date: item.created_at,
     priority: true,
   }));
+  const platformSupportMessages = (platformSupportResult.data || []).map(item => ({
+    key: "p-" + item.id, id: item.id, source: "inbox", platform: "Interplanetary Fund",
+    type: "platform_support_message", author: "IFund supporter",
+    content: "Platform donation: $" + (Number(item.amount_cents || 0) / 100).toFixed(2) + " " + item.currency + " — " + item.message,
+    link: "/inbox", status: "open", date: item.created_at, priority: true,
+  }));
   const notifications = (notificationResult.data || []).map(item => ({
     key: "n-" + item.id,
     id: item.id,
@@ -81,7 +91,7 @@ export async function loadUniversalInbox(client) {
     date: item.created_at,
     priority: false,
   }));
-  return [...inbox, ...donationMessages, ...notifications].sort((a, b) =>
+  return [...inbox, ...donationMessages, ...platformSupportMessages, ...notifications].sort((a, b) =>
     Number(b.priority) - Number(a.priority) || new Date(b.date) - new Date(a.date)
   );
 }

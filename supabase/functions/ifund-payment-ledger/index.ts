@@ -93,6 +93,65 @@ Deno.serve(async req=>{
       const ready=await db("rpc/ifund_subscription_atomic_readiness","POST",{});
       if(ready?.enabled!==true||ready?.version!==1)return fail("Atomic subscription accounting is not ready",503);
     }
+    if(body.op==="platform_begin"){
+      const p=body.data||{};
+      if(!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")||!["paypal","card","googlepay"].includes(p.payment_channel)
+        ||!["live","sandbox"].includes(p.environment)||!Number.isSafeInteger(p.gift_cents)||p.gift_cents<100||p.gift_cents>100000000
+        ||p.total_cents!==p.gift_cents||!/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")
+        ||(p.support_message!==null&&p.support_message!==undefined&&(typeof p.support_message!=="string"||p.support_message.trim().length>500)))
+        return fail("Invalid platform support quote");
+      const donorId=await resolveVerifiedDonor(p.donor_access_token);
+      let row=await findOne("ifund_platform_support_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));
+      if(!row){
+        try{row=(await db("ifund_platform_support_intents","POST",{request_key:p.request_key,gift_cents:p.gift_cents,total_cents:p.total_cents,
+          payment_channel:p.payment_channel,environment:p.environment,checkout_token_hash:p.checkout_token_hash,
+          support_message:typeof p.support_message==="string"&&p.support_message.trim()?p.support_message.trim():null,
+          donor_id:donorId,status:"creating"}))[0];}
+        catch(error){if(error.status===409)row=await findOne("ifund_platform_support_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));else throw error;}
+      }
+      if(!row||row.gift_cents!==p.gift_cents||row.total_cents!==p.total_cents||row.payment_channel!==p.payment_channel
+        ||row.environment!==p.environment||row.checkout_token_hash!==p.checkout_token_hash||row.donor_id!==donorId
+        ||row.support_message!==(typeof p.support_message==="string"&&p.support_message.trim()?p.support_message.trim():null))
+        return fail("Platform support request conflicts with existing intent",409);
+      return Response.json({ok:true,status:row.status,order_id:row.paypal_order_id||null});
+    }
+    if(body.op==="platform_bind"){
+      const p=body.data||{};
+      if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||"")||!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||""))
+        return fail("Invalid platform support order binding");
+      const rows=await db("ifund_platform_support_intents?request_key=eq."+encodeURIComponent(p.request_key));
+      if(rows.length!==1||!["creating","created"].includes(rows[0].status)||(rows[0].paypal_order_id&&rows[0].paypal_order_id!==p.paypal_order_id))
+        return fail("Platform support intent mismatch",409);
+      await db("ifund_platform_support_intents?request_key=eq."+encodeURIComponent(p.request_key),"PATCH",
+        {paypal_order_id:p.paypal_order_id,status:"created",updated_at:new Date().toISOString()});
+      return Response.json({ok:true});
+    }
+    if(body.op==="platform_get"){
+      const p=body.data||{};
+      if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||""))return fail("Invalid platform support order reference");
+      const row=await findOne("ifund_platform_support_intents?select=*&paypal_order_id=eq."+encodeURIComponent(p.paypal_order_id));
+      if(!row)return fail("Platform support order not found",404);
+      return Response.json({ok:true,intent:{gift_cents:row.gift_cents,total_cents:row.total_cents,
+        payment_channel:row.payment_channel,environment:row.environment,status:row.status,checkout_token_hash:row.checkout_token_hash}});
+    }
+    if(body.op==="platform_finalize"){
+      const p=body.data||{};
+      const id=await db("rpc/ifund_finalize_verified_platform_support_capture","POST",{
+        p_order_id:p.paypal_order_id,p_capture_id:p.paypal_capture_id,p_captured_cents:p.captured_cents,
+        p_capture_status:p.capture_status,p_currency:p.currency});
+      return Response.json({ok:true,donation_id:id});
+    }
+    if(body.op==="platform_event"){
+      const p=body.data||{},validId=v=>typeof v==="string"&&/^[A-Za-z0-9_-]{8,100}$/.test(v);
+      if(!validId(p.paypal_event_id)||!validId(p.paypal_order_id)||!validId(p.paypal_capture_id)||p.event_type!=="PAYMENT.CAPTURE.COMPLETED")
+        return fail("Invalid signed platform support event");
+      try{await db("ifund_platform_support_events","POST",{paypal_event_id:p.paypal_event_id,paypal_order_id:p.paypal_order_id,
+        paypal_capture_id:p.paypal_capture_id,event_type:p.event_type});}catch(error){if(error.status!==409)throw error;}
+      const row=await findOne("ifund_platform_support_events?select=paypal_order_id,paypal_capture_id,event_type&paypal_event_id=eq."+encodeURIComponent(p.paypal_event_id));
+      if(!row||row.paypal_order_id!==p.paypal_order_id||row.paypal_capture_id!==p.paypal_capture_id||row.event_type!==p.event_type)
+        return fail("Platform support event identity conflict",409);
+      return Response.json({ok:true,recorded:true});
+    }
     if(body.op==="begin"){
       const p=body.data||{};
       if(!patternId.test(p.campaign_id||"")||!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")
