@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ifund-training-research",
+  "main": "weeklyAgentResearch.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "ai": { "binding": "AI" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ifund-agent-training-research",
+      "database_id": "0068715f-bcdf-4f3d-8884-f7870c054660"
+    }
+  ],
+  "triggers": { "crons": ["*/5 10-13 * * SUN"] }
+}

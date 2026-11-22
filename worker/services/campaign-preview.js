@@ -1,5 +1,6 @@
 import { BodyError, readJsonBody } from "../bodyLimit.js";
 import { storyOutput } from "../agents/story.js";
+import { reserveTrialContent, completeTrialContent, releaseTrialContent } from "../trialAiContent.js";
 import { normalizeWritingPreferences, WritingPreferencesError } from "../agents/writingPreferences.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -146,7 +147,7 @@ function nativeDetails(input) {
     .join("\n");
 }
 
-export async function campaignPreview(request, env) {
+export async function campaignPreview(request, env, fetcher = fetch) {
   if (request.method !== "POST")
     return json(405, { error: "Method not allowed." });
   const bearer = request.headers.get("authorization") || "";
@@ -157,6 +158,8 @@ export async function campaignPreview(request, env) {
       error:
         "Writing suggestions are temporarily unavailable. Your text is safe.",
     });
+  let trialReceipt = null;
+  let trialJwt = null;
   try {
     const input = campaignPreviewInput(await readJsonBody(request, 64000));
     const url = new URL(request.url);
@@ -198,6 +201,13 @@ export async function campaignPreview(request, env) {
         });
       return json(200, basicCampaignOutline(input));
     }
+    trialJwt=bearer.slice(7);
+    trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id,fetcher);
+    if(!trialReceipt.allowed) return json(
+      trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
+      {code:trialReceipt.code,error:trialReceipt.code==="trial_limit"
+        ?"Your 15 trial AI creations are used. View subscription plans for more AI, or write and publish manually for free."
+        :"Your AI generation allowance could not be verified. Your current text is unchanged."});
     url.pathname = "/api/agents/story/drafts";
     const response = await env.IFUND_STORY_AGENT.fetch(
       new Request(url, {
@@ -219,6 +229,11 @@ export async function campaignPreview(request, env) {
           502,
           "Your writing request could not be confirmed. Your text is safe.",
         );
+      // A confirmed queue entry reserves one trial creation; otherwise queued
+      // AI work could bypass the shared total. No automatic payments follow.
+      if(!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher))) fail(503,
+        "The AI allowance could not be finalized. Your draft remains unchanged.");
+      trialReceipt=null;
       return json(202, {
         state: "queued",
         request_id: input.request_id,
@@ -255,6 +270,9 @@ export async function campaignPreview(request, env) {
       { response: result.draft.payload },
       Boolean(input.section),
     );
+    if(!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher))) fail(503,
+      "The AI allowance could not be finalized. Your draft remains unchanged.");
+    trialReceipt=null;
     return json(200, {
       ...output,
       assistance: "assisted",
@@ -271,5 +289,7 @@ export async function campaignPreview(request, env) {
           ? "The writing assistant returned an incomplete suggestion."
           : "Writing suggestions are temporarily unavailable. Your text is safe.",
     });
+  } finally {
+    if(trialReceipt) await releaseTrialContent(env,trialJwt,trialReceipt,fetcher);
   }
 }

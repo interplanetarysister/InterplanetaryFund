@@ -1,5 +1,6 @@
 import { authenticatedUser, response } from './reads.js';
 import { verifyOwnerAIConsent } from './aiConsent.js';
+import { reserveTrialContent, completeTrialContent, releaseTrialContent } from './trialAiContent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
 
 export const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
@@ -77,17 +78,26 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
   // without an independently approved Pages AI binding and canonical project.
   if (!imageAIReady(env))
     return response(503, { error: 'AI image generation is not currently available.' });
+  let trialReceipt = null;
+  let trialJwt = null;
   try {
     const input = await readJsonBody(request, 3000);
     const { style, prompt } = validateImageRequest(input);
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with a verified account to generate artwork.' });
+    trialJwt = account.jwt;
     const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
     if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
 
     // Atomic database check verifies the active 24-hour/referral trial or a real paid entitlement,
     // and enforces fair-use pacing plus the shared Workers AI hard budget.
     // No browser role, referral credit or trial expiry is trusted.
+    trialReceipt = await reserveTrialContent(env,account.jwt,"image",crypto.randomUUID(),fetcher);
+    if (!trialReceipt.allowed) return response(
+      trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
+      {error:trialReceipt.code==="trial_limit"
+        ?"Your 15 trial AI creations are used. Subscribe to keep creating, or use manual campaign tools for free."
+        :"Your trial generation allowance is unavailable. Manual uploads and editing remain available."});
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
@@ -97,6 +107,9 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     const image = generated?.image;
     if (!validImageBase64(image))
       return response(502, { error: 'The generated artwork could not be verified.' });
+    if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
+      return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
+    trialReceipt = null;
     return response(200, {
       mime_type: 'image/jpeg', image_base64: image, style, generated: true,
       model: IMAGE_MODEL,
@@ -105,5 +118,7 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     if (cause instanceof BodyError)
       return response(cause.status, { error: cause.message });
     return response(503, { error: 'Artwork generation could not be completed. Please try later.' });
+  } finally {
+    if (trialReceipt) await releaseTrialContent(env,trialJwt,trialReceipt,fetcher);
   }
 }

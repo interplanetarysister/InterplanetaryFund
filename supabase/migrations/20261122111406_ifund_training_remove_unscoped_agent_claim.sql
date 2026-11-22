@@ -1,0 +1,1 @@
+drop function if exists public.ifund_training_claim_agent(text);

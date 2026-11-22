@@ -166,6 +166,24 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   // unblocking remains available without an active membership requirement.
   // Owner-only verified signup trial/code issuance, one-time referral claim,
   // and trigger-only published-campaign qualification. No paid-plan grant.
+  // Fifteen-item trial AI content counter is owner scoped; manual tools are not charged.
+  "public.ifund_trial_ai_generation_reserve",
+  "public.ifund_trial_ai_generation_complete",
+  "public.ifund_trial_ai_generation_release",
+  "public.ifund_trial_ai_generation_status",
+  // Weekly agent training control plane. Job start/claim/finish and agent
+  // claims revoke public/anon/authenticated EXECUTE and grant only service_role;
+  // review_candidate requires the verified super-admin RPC plus an independent
+  // passing evaluation. Report and routing functions are trigger-only with no
+  // browser EXECUTE grant. See WEEKLY_TRAINING_RUNTIME_20261122.md and the
+  // 2026112210*_ifund_training_* migrations. No payment or publication effect.
+  "public.ifund_training_start",
+  "public.ifund_training_claim",
+  "public.ifund_training_finish",
+  "public.ifund_training_claim_agent",
+  "public.ifund_training_review_candidate",
+  "ifund_training.build_weekly_report",
+  "ifund_training.route_new_skill_candidate",
   "public.ifund_agent_referral_status",
   "public.ifund_claim_campaign_referral",
   "public.ifund_credit_published_referral",
