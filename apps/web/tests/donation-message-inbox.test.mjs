@@ -16,7 +16,7 @@ test("cardholder name is not a required IFund card field", () => {
 });
 
 test("cardholder name remains optional unless the card provider requests it", () => {
-  assert.match(dialog, /Name on card \\(optional\\)/);
+  assert.ok(dialog.includes("Name on card (optional)"));
   assert.match(dialog, /your card provider requests it/);
 });
 
