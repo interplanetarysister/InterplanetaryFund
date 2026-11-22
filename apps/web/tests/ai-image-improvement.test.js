@@ -21,8 +21,8 @@ function services(quota=true,verified=true,aiAllowed=true) {
   if(destination.endsWith("/auth/v1/user")) return Response.json(verified?{id:owner,app_metadata:{role:"member"}}:{},{status:verified?200:401});
   if(destination.includes("/rest/v1/ifund_ai_permission_preferences?"))
    return Response.json([{owner_id:owner,allow_ai_campaign_drafts:aiAllowed,allow_ai_outreach_drafts:aiAllowed,allow_future_internal_ai_assistance:aiAllowed}]);
-  if(destination.endsWith("/rpc/ifund_trial_ai_generation_reserve")) return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
-  if(destination.endsWith("/rpc/ifund_trial_ai_generation_complete")) return Response.json(true);
+  if(destination.endsWith("/rpc/ifund_ai_content_reserve")) return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
+  if(destination.endsWith("/rpc/ifund_ai_content_complete")) return Response.json(true);
   if(destination.endsWith("/rpc/ifund_trial_ai_generation_release")) return Response.json(true);
   if(destination.endsWith("/rpc/ifund_ai_image_consume_free_quota")) return Response.json(quota);
   throw Error("Unexpected remote request");
