@@ -79,7 +79,7 @@ create schema if not exists private;
 revoke all on schema private from public,anon,authenticated;
 grant usage on schema private to service_role;
 create or replace function private.ifund_notify_platform_support_admins(p_title text,p_body text)
-returns void language plpgsql security definer set search_path to '' as $
+returns void language plpgsql security definer set search_path to '' as $$
 declare v_admin record;
 begin
   for v_admin in select id from auth.users where raw_app_meta_data->>'role' in ('admin','super_admin') loop
@@ -87,14 +87,14 @@ begin
     values(v_admin.id,left(p_title,160),left(p_body,500),'platform_support_message','/inbox',false);
   end loop;
 end;
-$;
+$$;
 revoke all on function private.ifund_notify_platform_support_admins(text,text) from public,anon,authenticated;
 grant execute on function private.ifund_notify_platform_support_admins(text,text) to service_role;
 
 create or replace function public.ifund_finalize_verified_platform_support_capture(
   p_order_id text,p_capture_id text,p_captured_cents bigint,p_capture_status text,p_currency text
 ) returns uuid language plpgsql security invoker set search_path to ''
-as $
+as $$
 declare
   v_intent public.ifund_platform_support_intents%rowtype;
   v_donation public.ifund_platform_support_donations%rowtype;
