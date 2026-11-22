@@ -11,6 +11,7 @@ export function documentObjectKey({ownerId,campaignId,documentId,extension}){
 }
 export function verifyDocumentIdentity(row,ownerId){
  if(!row||typeof row!=="object"||!UUID.test(ownerId||"")||
+    row.object_store!=="r2"||row.owner_id!==ownerId||
     !UUID.test(row.document_id||"")||!UUID.test(row.campaign_id||"")||
     typeof row.storage_path!=="string")throw Error("Unverifiable private document metadata");
  const match=/^private\/campaign-documents\/([0-9a-f-]{36})\/([0-9a-f-]{36})\/([0-9a-f-]{36})\.([a-z0-9]+)$/.exec(row.storage_path);
