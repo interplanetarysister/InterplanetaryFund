@@ -23,7 +23,8 @@ create index if not exists ifund_campaign_donation_messages_owner_recent
 
 alter table public.ifund_campaign_donation_messages enable row level security;
 revoke all on public.ifund_campaign_donation_messages from public, anon, authenticated;
-grant select, update on public.ifund_campaign_donation_messages to authenticated;
+grant select on public.ifund_campaign_donation_messages to authenticated;
+grant update (read_at) on public.ifund_campaign_donation_messages to authenticated;
 grant select, insert on public.ifund_campaign_donation_messages to service_role;
 drop policy if exists ifund_campaign_donation_messages_owner_read
   on public.ifund_campaign_donation_messages;
