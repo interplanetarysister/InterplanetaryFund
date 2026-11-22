@@ -21,7 +21,7 @@ test("campaign creator and editor both accept an optional Cash App cashtag",()=>
 
 test("Cash App external payments are disclosed as unverified and separate from campaign totals",()=>{
   assert.match(detail,/CashAppDonateButton/);
-  assert.match(button,/not verified or an IFund-verified capture/);
+  assert.match(button,/not an IFund-verified capture/);
   assert.match(button,/not an IFund-verified capture or a ledger credit/);
 });
 
