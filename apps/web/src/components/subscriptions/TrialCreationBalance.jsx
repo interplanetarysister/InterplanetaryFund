@@ -6,14 +6,9 @@ import { authClient } from "@/api/auth";
 export default function TrialCreationBalance({ compact = false }) {
   const [info,setInfo]=useState(null);
   useEffect(()=>{
-    let live=true;
-    authClient().rpc("ifund_trial_ai_generation_status").then(({data,error})=>{
-      if(live&& !error && Number.isInteger(data?.remaining) && data.limit===15)
-        setInfo(data);
-    }).catch(()=>{});
     const refresh=()=>setInfo(null);
     window.addEventListener("ifund-ai-creation-completed",refresh);
-    return ()=>{live=false;window.removeEventListener("ifund-ai-creation-completed",refresh);};
+    return ()=>window.removeEventListener("ifund-ai-creation-completed",refresh);
   },[]);
   useEffect(()=>{
     if(info!==null)return;
