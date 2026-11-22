@@ -722,7 +722,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {autosaveError && <p role="alert" className="text-xs text-amber-200">{autosaveError}</p>}
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-4">
           <button type="button" className={btn} disabled={disabled||step===0} onClick={()=>next(step-1)}>Back</button>
-          {step<2&&<button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>}
+          <button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>
           {step<2&&<button type="button" className={primary} disabled={disabled} onClick={()=>next(step+1)}>Continue</button>}
           {step===2&&<button type="button" onClick={() => save("active")} className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness">{busy==="active"?"Publishing…":"Publish campaign"}</button>}
         </footer>
