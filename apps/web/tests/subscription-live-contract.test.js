@@ -38,8 +38,9 @@ test("subscription ledger is durable, idempotent, and member scoped",()=>{
 });
 
 test("only the owner supplied basic monthly plan is initially eligible",()=>{
-  assert.match(worker,/P-6YD2273006199630KNLDXBLA/);
-  assert.match(worker,/amount_cents:1200/);
+  assert.match(worker,/P-8RG59105D5286480MNMBOKJA/);
+  assert.match(worker,/amount_cents:499/);
+  assert.doesNotMatch(worker,/const BASIC_MONTHLY_PLAN[^\n]*P-6YD2273006199630KNLDXBLA/);
   assert.match(worker,/exactBasicPlan/);
   assert.match(worker,/subscription_plan_readiness/);
   assert.match(worker,/plan_ready:planReady,webhook_ready:webhookReady/);
@@ -48,6 +49,8 @@ test("only the owner supplied basic monthly plan is initially eligible",()=>{
   assert.match(edge,/active:p\.plan_ready&&p\.webhook_ready/);
   assert.match(migration,/\('basic','monthly',1200,'USD','2026-10-v1','P-6YD2273006199630KNLDXBLA'\)/);
   assert.match(worker,/subscription_plan_unavailable/);
+  assert.match(worker,/IFUND_SUBSCRIPTION_ATOMIC_ENABLED/);
+  assert.match(worker,/subscription_provider_identity_mismatch/);
 });
 
 test("subscription billing webhooks require PayPal signature verification",()=>{
