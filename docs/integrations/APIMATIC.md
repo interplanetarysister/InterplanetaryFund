@@ -7,7 +7,7 @@ Use APIMatic as an optional **development-time** tool to generate and validate t
 - Keep the existing Cloudflare Workers and Supabase architecture. Do not introduce new hosting or backend services.
 - Begin with an OpenAPI 3.x description of existing, verified, non-secret API routes. Do not invent endpoints.
 - Generate a TypeScript client through APIMatic only after validating its free-plan eligibility and license. Pin generator version and review generated diffs.
-- Preserve existing PayPal SDK/payment verification, webhook signature validation, idempotency and the 7% withdrawal fee. Never let a generated client bypass server-side checks.
+- Preserve existing PayPal SDK/payment verification, webhook signature validation, idempotency and the 3% withdrawal fee. Never let a generated client bypass server-side checks.
 - User social account linking requires each provider's OAuth consent, permissions and approved APIs; generated SDKs do not provide authorization.
 - Keep generated clients server-side where they use secrets. Do not commit tokens, credentials, or generated clients containing secrets.
 - No required APIMatic runtime dependency; the app must build and operate without an APIMatic subscription.

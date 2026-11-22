@@ -44,7 +44,7 @@ has its own public source, deployment and isolated sandbox financial records.
 4. In the *sandbox* PayPal REST app, subscribe the actual HTTPS preview URL `https://<preview-host>/api/paypal/sandbox/webhook`, record its **assigned webhook ID** as encrypted `PAYPAL_WEBHOOK_ID` (not as a webhook secret), and subscribe the appropriate Orders/Capture/Refund/Dispute events. Live webhook subscriptions do not configure the sandbox application. Never invent webhook IDs.
 5. Open `/hackathon` on that exact preview host. An active owned/public demo campaign must exist; do not invent real fundraiser facts. Select a sandbox amount, approve with a provider-controlled sandbox buyer, return, and click verify/capture. Confirm exactly one isolated captured receipt, a corresponding verified PayPal order, and no change to real campaign totals.
 6. Verify duplicate capture requests do not create second captures; unsigned/tampered webhooks are rejected; verified duplicate events are deduplicated; provider errors display no false success; unauthenticated browsers cannot read sandbox order/event tables directly.
-7. Keep all live campaign donations and owner withdrawals disabled until separately verified and approved. The 7% platform fee is due at **real withdrawal**, not per sandbox checkout.
+7. Keep all live campaign donations and owner withdrawals disabled until separately verified and approved. The 3% platform fee is due at **real withdrawal**, not per sandbox checkout.
 
 ## Submission must be verifiably complete
 

@@ -23,4 +23,4 @@ Owner product decision: maintain the three-step AI-assisted campaign creator and
 
 ## Future acceptance required before trial and $4.99 billing launch
 
-Verify actual live Workers AI binding and Agent Team question gateway, rate/cost monitoring, new signup with email verification and referral claim, first eligible published campaign and idempotent credit, non-owner denial, account deletion cascades, and billing plan identity/webhooks. Do not alter the canonical first-party 7% withdrawal fee.
+Verify actual live Workers AI binding and Agent Team question gateway, rate/cost monitoring, new signup with email verification and referral claim, first eligible published campaign and idempotent credit, non-owner denial, account deletion cascades, and billing plan identity/webhooks. Do not alter the canonical first-party 3% withdrawal fee.

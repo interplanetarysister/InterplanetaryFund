@@ -42,7 +42,7 @@ External-host checkout = provider-direct, never through iFund custody
 
 All nine are **private**: no \`anon\` grants, owner-filtered authenticated SELECT under RLS, active account and non-anonymous claim required. Member writes additionally need current accepted terms; no member grants to mint provider confirmations, plan evidence, agent-action receipts, financial facts or audit events. Server writers must check owner, capability, consent and verified provider receipts on each action; \`service_role\` must never be sent to the browser or assumed to be safe without authorization checks.
 
-\`ifund_missions\` has its own statuses \`draft\`, \`planned\`, \`in_progress\`, \`completed\`, \`archived\`; unlike a campaign, it does not require a fundraising goal or story. \`ifund_campaigns\` retains existing draft/active/paused/completed constraints and its published-story/positive-goal gate. \`ifund_mission_campaign_links\` requires equal verified owners for both records. Existing campaign creation/editing routes, draft recovery, partner direct checkout and 7%-at-withdrawal first-party accounting remain unchanged.
+\`ifund_missions\` has its own statuses \`draft\`, \`planned\`, \`in_progress\`, \`completed\`, \`archived\`; unlike a campaign, it does not require a fundraising goal or story. \`ifund_campaigns\` retains existing draft/active/paused/completed constraints and its published-story/positive-goal gate. \`ifund_mission_campaign_links\` requires equal verified owners for both records. Existing campaign creation/editing routes, draft recovery, partner direct checkout and 3%-at-withdrawal first-party accounting remain unchanged.
 
 ## Platform connection states — no shortcuts
 | Platform | Source of truth | Proposed wiring | Claims allowed now |
