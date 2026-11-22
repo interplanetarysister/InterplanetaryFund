@@ -137,5 +137,6 @@ revoke all on function public.ifund_trial_ai_generation_release(uuid,text) from 
 revoke all on function public.ifund_trial_ai_generation_status() from public,anon,authenticated;
 grant execute on function public.ifund_trial_ai_generation_reserve(uuid,text) to authenticated;
 grant execute on function public.ifund_trial_ai_generation_complete(uuid,text) to authenticated;
-grant execute on function public.ifund_trial_ai_generation_release(uuid,text) to authenticated;
+-- Deliberately no authenticated GRANT on release: browser users must never
+-- delete their own in-flight reservations to bypass the 15-item cap.
 grant execute on function public.ifund_trial_ai_generation_status() to authenticated;
