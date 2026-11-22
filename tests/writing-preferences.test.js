@@ -33,7 +33,7 @@ test("long preferences and section context reach native Story without truncating
     if (forwarded.method === "GET") return Response.json({ active: true, level: 1 });
     calls.push(await forwarded.json());
     return Response.json({ draft: { id, payload: { section: "A reviewed rewritten section." } } }, { status: 201 });
-  } }, (url) => {
+  } } }, (url) => {
     if(String(url).endsWith("/ifund_trial_ai_generation_reserve"))
       return Promise.resolve(Response.json({allowed:true,state:"reserved",remaining:14}));
     if(String(url).endsWith("/ifund_trial_ai_generation_complete"))
