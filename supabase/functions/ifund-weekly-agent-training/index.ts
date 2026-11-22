@@ -51,6 +51,38 @@ Return one JSON object: {"summary":"...","candidates":[{"title":"...","instructi
   return {state:"completed",research:{summary:data.summary.slice(0,5000),source:"openai_responses_web_search",model:body.model,provider_request_id:body.id,usage:body.usage??null},candidates};
  }finally{clearTimeout(timeout);}
 }
+
+const externalResearchUrl="https://ifund-training-research.interplanetary-fund.workers.dev/results";
+const trainingAgents=Object.keys(agents);
+async function collectedCloudflareResults(){
+ const utcNow=new Date();
+ const sunday=new Date(utcNow.getTime());
+ sunday.setUTCDate(sunday.getUTCDate()-sunday.getUTCDay());
+ const weekKey=sunday.toISOString().slice(0,10);
+ return (await Promise.all(trainingAgents.map(async(agentId)=>{
+  try{
+   const controller=new AbortController();
+   const timer=setTimeout(()=>controller.abort(),5500);
+   let resp;
+   try{resp=await fetch(externalResearchUrl+"?week_key="+weekKey+"&agent_id="+agentId,{signal:controller.signal})}finally{clearTimeout(timer)}
+   if(!resp.ok || resp.status!==200)return null;
+   const data=await resp.json();
+   if(data.week_key!==weekKey || data.agent_id!==agentId || data.provider!=="cloudflare_workers_ai" || 
+      typeof data.summary!=="string" || !Array.isArray(data.sources) || data.sources.length<2 ||
+      !Array.isArray(data.candidates) || data.evaluated!==false || data.approved!==false)return null;
+   const safeSources=new Set(data.sources.filter(s=>typeof s==="string"&&s.startsWith("https://")));
+   const candidates=data.candidates.slice(0,3).filter(c=>
+      c&&typeof c.title==="string"&&typeof c.instruction==="string"&&Array.isArray(c.sources)&&
+      new Set(c.sources.filter(s=>safeSources.has(s))).size>=2
+   ).map(c=>({title:c.title.slice(0,200),instruction:c.instruction.slice(0,4000),
+      sources:[...new Set(c.sources.filter(s=>safeSources.has(s)))]}));
+   return {agentId,weekKey,candidates,research:{summary:data.summary.slice(0,5000),
+      source:"cloudflare_workers_ai",model:data.model||null,
+      sources:[...safeSources],researched_at:data.researched_at||null,agent_id:agentId}};
+  }catch{return null}
+ }))).filter(Boolean);
+}
+
 Deno.serve(async(req)=>{
  if(req.method!=="POST")return response({error:"Method not allowed"},405);
  if(!url||!key)return response({error:"Server not configured"},503);
@@ -65,7 +97,16 @@ Deno.serve(async(req)=>{
    const out=await rpc("ifund_training_start",{p_source:"supabase_cron"});
    return response({ok:true,queued:9,...out});
   }
-  if (!Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"provider_not_configured",job_claimed:false});
+  const externallyResearched=await collectedCloudflareResults();
+  for(const ready of externallyResearched){
+   const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId});
+   if(!claimed?.job_id)continue;
+   const done=await rpc("ifund_training_finish",{p_job_id:claimed.job_id,
+     p_state:"completed",p_research:ready.research,p_error:null,p_candidates:ready.candidates});
+   return response({ok:true,provider:"cloudflare_workers_ai",job_id:claimed.job_id,
+     agent_id:ready.agentId,state:"completed",run_id:done.run_id});
+  }
+  if (!Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"awaiting_public_source_research",job_claimed:false});
   const job=await rpc("ifund_training_claim",{});
   if(!job?.job_id)return response({ok:true,job:"none"});
   let result;
