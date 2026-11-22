@@ -211,7 +211,7 @@ Deno.serve(async req=>{
       return Response.json({ok:true,plan:updated[0]||null});
     }
     if(body.op==="subscription_plans"){
-      const rows=await db("ifund_subscription_plans?select=tier,interval,amount_cents,currency,catalog_version,paypal_plan_id,paypal_product_id,active,verified_at&order=tier.asc,interval.asc");
+      const rows=await db("ifund_subscription_plans?select=tier,interval,amount_cents,currency,catalog_version,paypal_plan_id,paypal_product_id,active,verified_at,webhook_verified_at&order=tier.asc,interval.asc");
       return Response.json({ok:true,plans:rows});
     }
     if(body.op==="subscription_begin"){
