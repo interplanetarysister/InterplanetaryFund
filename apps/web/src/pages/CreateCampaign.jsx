@@ -697,7 +697,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
                     <h3 className="text-sm font-semibold text-cyan-100">Cash App giving (optional)</h3>
                     <p className="text-xs text-slate-300">Add your campaign Cash App $Cashtag for direct supporter payments. These external transfers are not verified by IFund or added to campaign totals automatically.</p>
                     <label className="block text-sm">Your Cash App $Cashtag (optional)
-                      <input id="campaign-cashapp-tag" type="text" autoComplete="off" maxLength={21} value={form.cashapp_tag||""} onChange={e=>change("cashapp_tag",e.target.value.replace(/^\\$/,""))} placeholder="$yourtag" className={fld}/>
+                      <input id="campaign-cashapp-tag" type="text" autoComplete="off" maxLength={21} value={form.cashapp_tag||""} onChange={e=>change("cashapp_tag",e.target.value.replace(/^\$/,""))} placeholder="$yourtag" className={fld}/>
                     </label>
                   </section>
                   <div className="text-slate-900 dark:text-white"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId}/></div>
