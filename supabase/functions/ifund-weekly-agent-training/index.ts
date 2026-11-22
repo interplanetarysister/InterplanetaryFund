@@ -99,6 +99,8 @@ Deno.serve(async(req)=>{
   if(ok!==true)return response({error:"Unauthorized"},401);
   let body;try{body=await req.json()}catch{return response({error:"Invalid JSON"},400);}
   if(!body||!["start","work"].includes(body.action))return response({error:"Unknown action"},400);
+  const policy=await rpc("ifund_training_policy",{});
+  if(!policy?.enabled)return response({ok:true,state:"training_disabled",job_claimed:false});
   if(body.action==="start"){
    const out=await rpc("ifund_training_start",{p_source:"supabase_cron"});
    return response({ok:true,queued:9,...out});
@@ -114,7 +116,7 @@ Deno.serve(async(req)=>{
      agent_id:ready.agentId,state:ready.failed?"failed":"completed",
      retry_scheduled:done.retry_scheduled===true,run_id:done.run_id??claimed.run_id});
   }
-  if (!Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"awaiting_public_source_research",job_claimed:false});
+  if (policy.allow_paid_requests!==true || !Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"awaiting_public_source_research",job_claimed:false});
   const job=await rpc("ifund_training_claim",{});
   if(!job?.job_id)return response({ok:true,job:"none"});
   let result;
