@@ -116,6 +116,7 @@ export default function AIImageStudio() {
       objectUrl.current = url;
       setFile(jpeg);
       setImageUrl(url);
+      window.dispatchEvent(new Event("ifund-ai-creation-completed"));
       setArtworkKind(improve ? "improved" : "generated");
       setMessage(improve
         ? "The selected image was improved with AI. Review it before saving; the original file was not stored by this action."
