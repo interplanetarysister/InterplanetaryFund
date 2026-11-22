@@ -30,6 +30,9 @@ function fakeServices({ quota = true, verified = true, aiAllowed = true, foreign
       return Response.json(verified ? { id: OWNER, app_metadata: { role: "member" } } : {}, {status: verified ? 200 : 401});
     if (url.includes("/rest/v1/ifund_ai_permission_preferences?"))
       return Response.json([{owner_id:foreign ? "22222222-2222-4222-8222-222222222222" : OWNER,allow_ai_campaign_drafts:aiAllowed,allow_ai_outreach_drafts:aiAllowed,allow_future_internal_ai_assistance:aiAllowed}]);
+    if (url.endsWith("/rpc/ifund_trial_ai_generation_reserve")) return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
+    if (url.endsWith("/rpc/ifund_trial_ai_generation_complete")) return Response.json(true);
+    if (url.endsWith("/rpc/ifund_trial_ai_generation_release")) return Response.json(true);
     if (url.endsWith("/rest/v1/rpc/ifund_ai_image_consume_free_quota"))
       return Response.json(quota);
     throw Error("Unexpected external network call.");
@@ -72,7 +75,7 @@ test("enabled image generation verifies owner, consumes quota before AI, and ret
   assert.equal(json.image_base64, validImage);
   assert.equal(json.generated, true);
   assert.equal(aiCalls, 1);
-  assert.equal(service.calls.length, 3);
+  assert.equal(service.calls.length, 5);
   assert.ok(!JSON.stringify(json).includes(OWNER), "owner identities must not be returned");
 });
 
