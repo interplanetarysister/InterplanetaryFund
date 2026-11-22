@@ -150,7 +150,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           setSupportType(supportNeed(brief.support_type).id);
           const sections=splitStory(data.story || "");
           storySectionsRef.current=sections;setStorySections(sections);
-          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
+          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", cashapp_tag:data.cashapp_tag||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
           setLoadedDraftId(draftId);
           setSaved(data.id);
           setSavedStatus("draft");
@@ -693,6 +693,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
               </details>
               <details className="border-t border-white/10 pt-3"><summary className="cursor-pointer py-2 text-sm text-cyan-100">More editing tools (optional)</summary>
                 <div className="mt-3 space-y-4"><label className="block text-sm">Short description<textarea id="campaign-summary" aria-label="Short description" rows={2} maxLength={SUMMARY_MAX} value={form.summary} onChange={e=>change("summary",e.target.value)} className={fld}/></label>
+                  <section className="space-y-2 rounded-xl border border-white/15 bg-white/[.04] p-3">
+                    <h3 className="text-sm font-semibold text-cyan-100">Cash App giving (optional)</h3>
+                    <p className="text-xs text-slate-300">Add your campaign Cash App $Cashtag for direct supporter payments. These external transfers are not verified by IFund or added to campaign totals automatically.</p>
+                    <label className="block text-sm">Your Cash App $Cashtag (optional)
+                      <input id="campaign-cashapp-tag" type="text" autoComplete="off" maxLength={21} value={form.cashapp_tag||""} onChange={e=>change("cashapp_tag",e.target.value.replace(/^\\$/,""))} placeholder="$yourtag" className={fld}/>
+                    </label>
+                  </section>
                   <div className="text-slate-900 dark:text-white"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId}/></div>
                   <div className="text-slate-900 dark:text-white"><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId||null} disabled={disabled} onApply={copy=>{applyCampaignFields(copy);setError("");}}/></div>
                   <div className="text-slate-900 dark:text-white"><AgentAdviceReview ownerId={ownerId} campaignId={draftId||null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)}/></div>
