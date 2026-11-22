@@ -26,13 +26,14 @@ async function api(path,options={}) {
 export default function PlatformSupportDonationDialog({open,onOpenChange}) {
   const [amount,setAmount]=useState("10"),[message,setMessage]=useState(""),[status,setStatus]=useState("idle");
   const [error,setError]=useState(""),[eligible,setEligible]=useState(null),[complete,setComplete]=useState(false);
-  const paypalHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const paypalHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null),messageRef=useRef("");
+  useEffect(()=>{messageRef.current=message;},[message]);
   const cardSession=useRef(null),tokens=useRef(new Map()),keys=useRef(new Map()),checkoutTokens=useRef(new Map());
   const nativeUnavailable=isNativeBundle();
   const giftCents=/^\d+(?:\.\d{1,2})?$/.test(amount.trim())?Math.round(Number(amount)*100):0;
   const valid=giftCents>=100&&giftCents<=100000000,locked=status==="capturing"||complete;
   const requestKey=channel=>{
-    const key=[giftCents,channel,message.trim()].join("|");
+    const key=[giftCents,channel,messageRef.current.trim()].join("|");
     if(!keys.current.has(key))keys.current.set(key,crypto.randomUUID().replace(/-/g,""));
     return keys.current.get(key);
   };
@@ -45,7 +46,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
     const session=data?.session,accessToken=session&&!session.user?.is_anonymous?session.access_token:null;
     const result=await api("/api/payments/create-platform-support-order",{method:"POST",
       headers:accessToken?{"authorization":"Bearer "+accessToken}:{},
-      body:JSON.stringify({gift_cents:giftCents,payment_channel:channel,request_key:key,checkout_token:token,support_message:message.trim()||null})});
+      body:JSON.stringify({gift_cents:giftCents,payment_channel:channel,request_key:key,checkout_token:token,support_message:messageRef.current.trim()||null})});
     if(!result.id||result.checkout_token!==token||result.environment!=="live"||result.amount_cents!==giftCents)
       throw new Error("Platform donation needs review. No payment was confirmed.");
     tokens.current.set(result.id,token);return result.id;
@@ -85,7 +86,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
     })();
     return ()=>{cancelled=true;try{buttons?.close?.();}catch(_){}cardSession.current=null;
       for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current])try{node?.replaceChildren();}catch(_){}};
-  },[nativeUnavailable,open,valid,giftCents,message]);
+  },[nativeUnavailable,open,valid,giftCents]);
   if(nativeUnavailable)return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent>
     <DialogHeader><DialogTitle>Platform donations are not available in the app yet</DialogTitle><DialogDescription>Open InterplanetaryFund.com to donate. No payment was started.</DialogDescription></DialogHeader>
   </DialogContent></Dialog>;
