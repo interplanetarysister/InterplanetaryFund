@@ -20,7 +20,7 @@ test("owner payout destination requires verified session, AAL2, legal acceptance
   assert.match(owner,/ifund_connect_paypal_payout_to_verified_email/);
 });
 
-test("payout preparation is super-admin, owner destination, refund, reservation and 7% gated",()=>{
+test("payout preparation is super-admin, owner destination, refund, reservation and recorded-rate gated",()=>{
   assert.match(payoutSql,/raw_app_meta_data->>'role',''\)='super_admin'/);
   assert.match(payoutSql,/canonical_reservation_id is null/);
   assert.match(feePolicySql,/platform_fee<>round\(w\.gross_amount\*w\.platform_fee_bps\/10000,2\)/);
