@@ -26,13 +26,15 @@ export default function TrialCreationBalance({ compact = false }) {
   if(!info || !info.trial)return null;
   const done=info.remaining<=0;
   return <section aria-label="Free trial AI generation allowance"
-    className={"rounded-xl border "+(done?"border-amber-400/40":"border-cyan-400/30")+" bg-background/70 "+(compact?"p-3":"p-4")}>
+    className={compact
+      ?"rounded-lg bg-cyan-500/[.055] px-2 py-2 text-xs"
+      :"rounded-xl border "+(done?"border-amber-400/40":"border-cyan-400/30")+" bg-background/70 p-4"}>
     <div className="flex flex-wrap items-center justify-between gap-2">
       <p className="text-sm font-semibold">{done?"Your 15 free AI creations are used":"Trial AI creations: "+info.remaining+" of 15 left"}</p>
       {done&&<Link to="/subscriptions" className="inline-flex min-h-11 items-center rounded-lg bg-cyan-700 px-3 text-sm font-semibold text-white">Explore premium access</Link>}
     </div>
-    <p className="mt-1 text-xs text-muted-foreground">{done
+    {!compact&&<p className="mt-1 text-xs text-muted-foreground">{done
       ?"You can still write, upload, edit, save and publish campaigns without AI."
-      :"AI-created writing, artwork and image improvements share this allowance. Manual campaign tools remain free."}</p>
+      :"AI-created writing, artwork and image improvements share this allowance. Manual campaign tools remain free."}</p>}
   </section>;
 }
