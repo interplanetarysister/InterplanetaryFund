@@ -16,6 +16,8 @@ const textHtml=s=>s.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ").replace(/
 async function sourceFetch(url){const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),7500);try{const r=await fetch(url,{signal:abort.signal,headers:{"Accept":"text/html"}});if(!r.ok||!(r.headers.get("content-type")||"").includes("text/html"))return null;const t=textHtml(await r.text());return t.length>=350?{url,excerpt:t}:null}catch{return null}finally{clearTimeout(timer)}}
 async function run(env){
  const wk=new Date().toISOString().slice(0,10);
+ // Recover abandoned second attempts after an unexpected Worker termination.
+ await env.DB.prepare("update public_research set status='failed',error='Research attempt expired',updated_at=CURRENT_TIMESTAMP where week_key=? and status='running' and attempts>=2 and updated_at < datetime('now','-15 minutes')").bind(wk).run();
  const existing=await env.DB.prepare("select agent_id from public_research where week_key=? and (status='complete' or attempts>=2)").bind(wk).all();
  const seen=new Set((existing.results||[]).map(r=>r.agent_id));
  const agent=ids.find(x=>!seen.has(x));if(!agent)return;
@@ -84,6 +86,11 @@ export default{
   if(!/^\d{4}-\d{2}-\d{2}$/.test(wk||"")||!ids.includes(agent||""))return send({error:"Invalid request"},400);
   const row=await env.DB.prepare("select status,payload,updated_at from public_research where week_key=? and agent_id=?").bind(wk,agent).first();
   if(!row)return send({status:"pending",week_key:wk,agent_id:agent},202);
+  if(row.status==="failed"){
+    const failed=await env.DB.prepare("select attempts,error from public_research where week_key=? and agent_id=?").bind(wk,agent).first();
+    if((failed?.attempts||0)>=2)return send({status:"failed",week_key:wk,agent_id:agent,provider:"cloudflare_workers_ai",attempts:failed.attempts,error:"Research provider exhausted safe retries"});
+    return send({status:"retry_pending",week_key:wk,agent_id:agent},202);
+  }
   if(row.status!=="complete"||!row.payload)return send({status:row.status,week_key:wk,agent_id:agent},202);
   try{return send(JSON.parse(row.payload))}catch{return send({error:"Stored result invalid"},500)}
  }
