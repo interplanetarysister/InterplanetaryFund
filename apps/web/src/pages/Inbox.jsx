@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2, Loader2, MailOpen, RefreshCw, Search } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead } from "@/lib/inbox";
+import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead, markCampaignDonationMessageDone, markPlatformSupportMessageDone } from "@/lib/inbox";
 import { safeNoticeDestination } from "@/lib/notifications";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -83,7 +83,9 @@ export default function Inbox() {
     setBusy(item.key);
     setError("");
     try {
-      if (item.source === "inbox") await markInboxItemDone(authClient(), item.id);
+      if (item.type === "donation_message") await markCampaignDonationMessageDone(authClient(), item.id);
+      else if (item.type === "platform_support_message") await markPlatformSupportMessageDone(authClient(), item.id);
+      else if (item.source === "inbox") await markInboxItemDone(authClient(), item.id);
       else await markInboxNotificationRead(authClient(), item.id);
       setItems(current => current.map(row => row.key === item.key ? { ...row, status: "done" } : row));
     } catch (err) {

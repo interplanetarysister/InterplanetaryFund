@@ -40,6 +40,8 @@ test("messages enter the private owner inbox only after verified capture", () =>
   assert.match(migration, /owner_id = \(select auth\.uid\(\)\)/);
   assert.match(inbox, /ifund_campaign_donation_messages/);
   assert.match(inbox, /donationMessages/);
+  assert.match(inbox, /markCampaignDonationMessageDone/);
+  assert.match(inbox, /read_at/);
 });
 
 test("message notification is deduplicated with the durable inbox delivery", () => {

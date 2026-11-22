@@ -57,6 +57,7 @@ create table if not exists public.ifund_platform_support_messages (
   amount_cents bigint not null,
   currency text not null default 'USD',
   message text not null check (length(btrim(message)) between 1 and 500),
+  read_at timestamptz,
   created_at timestamptz not null default now()
 );
 alter table public.ifund_platform_support_intents enable row level security;
@@ -70,10 +71,14 @@ revoke all on public.ifund_platform_support_intents,public.ifund_platform_suppor
 grant select,insert,update on public.ifund_platform_support_intents to service_role;
 grant select,insert on public.ifund_platform_support_donations,public.ifund_platform_support_ledger_entries,
   public.ifund_platform_support_events,public.ifund_platform_support_messages to service_role;
-grant select on public.ifund_platform_support_messages to authenticated;
+grant select,update on public.ifund_platform_support_messages to authenticated;
 drop policy if exists ifund_platform_support_messages_admin_read on public.ifund_platform_support_messages;
 create policy ifund_platform_support_messages_admin_read on public.ifund_platform_support_messages
   for select to authenticated using ((auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'));
+drop policy if exists ifund_platform_support_messages_admin_update on public.ifund_platform_support_messages;
+create policy ifund_platform_support_messages_admin_update on public.ifund_platform_support_messages
+  for update to authenticated using ((auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'))
+  with check ((auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'));
 
 create schema if not exists private;
 revoke all on schema private from public,anon,authenticated;

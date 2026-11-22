@@ -15,6 +15,7 @@ create table if not exists public.ifund_campaign_donation_messages (
   campaign_title text not null,
   donor_display_name text not null default 'Anonymous',
   message text not null check (length(btrim(message)) between 1 and 500),
+  read_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index if not exists ifund_campaign_donation_messages_owner_recent
@@ -22,13 +23,19 @@ create index if not exists ifund_campaign_donation_messages_owner_recent
 
 alter table public.ifund_campaign_donation_messages enable row level security;
 revoke all on public.ifund_campaign_donation_messages from public, anon, authenticated;
-grant select on public.ifund_campaign_donation_messages to authenticated;
+grant select, update on public.ifund_campaign_donation_messages to authenticated;
 grant select, insert on public.ifund_campaign_donation_messages to service_role;
 drop policy if exists ifund_campaign_donation_messages_owner_read
   on public.ifund_campaign_donation_messages;
 create policy ifund_campaign_donation_messages_owner_read
   on public.ifund_campaign_donation_messages
   for select to authenticated using (owner_id = (select auth.uid()));
+drop policy if exists ifund_campaign_donation_messages_owner_update
+  on public.ifund_campaign_donation_messages;
+create policy ifund_campaign_donation_messages_owner_update
+  on public.ifund_campaign_donation_messages
+  for update to authenticated using (owner_id = (select auth.uid()))
+  with check (owner_id = (select auth.uid()));
 
 create or replace function public.ifund_deliver_verified_campaign_donation_message()
 returns trigger

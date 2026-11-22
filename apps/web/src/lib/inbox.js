@@ -3,8 +3,8 @@ import { isVerifiedEmailUser } from "./verifiedEmailUser.js";
 
 const INBOX_COLUMNS = "id,owner_id,platform,type,author,content,link,campaign_id,campaign_title,status,ai_draft,recipient_address,mailbox_priority,created_at";
 const NOTIFICATION_COLUMNS = "id,owner_id,title,body,type,link,read,created_at";
-const DONATION_MESSAGE_COLUMNS = "id,donation_id,owner_id,campaign_id,campaign_title,donor_display_name,message,created_at";
-const PLATFORM_SUPPORT_MESSAGE_COLUMNS = "id,donation_id,amount_cents,currency,message,created_at";
+const DONATION_MESSAGE_COLUMNS = "id,donation_id,owner_id,campaign_id,campaign_title,donor_display_name,message,read_at,created_at";
+const PLATFORM_SUPPORT_MESSAGE_COLUMNS = "id,donation_id,amount_cents,currency,message,read_at,created_at";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function verifiedOwner(client) {
@@ -72,7 +72,7 @@ export async function loadUniversalInbox(client) {
     link: "/campaigns/" + item.campaign_id,
     campaign_id: item.campaign_id,
     campaign_title: item.campaign_title,
-    status: "open",
+    status: item.read_at ? "done" : "open",
     date: item.created_at,
     priority: true,
   }));
@@ -80,7 +80,7 @@ export async function loadUniversalInbox(client) {
     key: "p-" + item.id, id: item.id, source: "inbox", platform: "Interplanetary Fund",
     type: "platform_support_message", author: "IFund supporter",
     content: "Platform donation: $" + (Number(item.amount_cents || 0) / 100).toFixed(2) + " " + item.currency + " — " + item.message,
-    link: "/inbox", status: "open", date: item.created_at, priority: true,
+    link: "/inbox", status: item.read_at ? "done" : "open", date: item.created_at, priority: true,
   }));
   const notifications = (notificationResult.data || []).map(item => ({
     key: "n-" + item.id,
@@ -122,5 +122,28 @@ export async function markInboxNotificationRead(client, notificationId) {
     .select("id,owner_id,read").maybeSingle();
   if (error || data?.id !== notificationId || data.owner_id !== owner || data.read !== true)
     throw new Error("This notification could not be marked read.");
+  return data.id;
+}
+
+export async function markCampaignDonationMessageDone(client, itemId) {
+  if (!UUID.test(itemId || "")) throw new Error("Invalid donation message.");
+  const owner = await verifiedOwner(client);
+  const { data, error } = await client.from("ifund_campaign_donation_messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", itemId).eq("owner_id", owner)
+    .select("id,owner_id,read_at").maybeSingle();
+  if (error || data?.id !== itemId || data.owner_id !== owner || !data.read_at)
+    throw new Error("This donation message could not be marked read.");
+  return data.id;
+}
+
+export async function markPlatformSupportMessageDone(client, itemId) {
+  if (!UUID.test(itemId || "")) throw new Error("Invalid platform support message.");
+  await verifiedOwner(client);
+  const { data, error } = await client.from("ifund_platform_support_messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", itemId).select("id,read_at").maybeSingle();
+  if (error || data?.id !== itemId || !data.read_at)
+    throw new Error("This platform support message could not be marked read.");
   return data.id;
 }
