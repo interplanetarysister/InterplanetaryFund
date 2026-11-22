@@ -140,3 +140,12 @@ test("private draft save remains available on every campaign step and persists t
   assert.match(saveBody,/saveCampaignSetup\(client,data\.id,setupToSave,setupToSave\.draft_step,scope\)/);
   assert.match(saveBody,/const setupToSave=wizardSnapshot\(wizardSaveStep\.current\?\?step\)/);
 });
+
+test("campaign draft setup preserves the selected illustration style and exact caption",()=>{
+  const payload=campaignSetupPayload({...emptyWizard(),ai_profile:{image_style:"cyberpunk",image_caption:"Help our neighborhood garden"}});
+  assert.equal(payload.ai_profile.image_style,"cyberpunk");
+  assert.equal(payload.ai_profile.image_caption,"Help our neighborhood garden");
+  const bounded=campaignSetupPayload({...emptyWizard(),ai_profile:{image_style:"unknown",image_caption:"x".repeat(140)}});
+  assert.equal(bounded.ai_profile.image_style,"interstellar");
+  assert.equal(bounded.ai_profile.image_caption.length,100);
+});
