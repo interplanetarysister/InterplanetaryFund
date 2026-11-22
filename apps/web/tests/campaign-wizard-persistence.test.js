@@ -130,3 +130,22 @@ test("actual writing preference changes immediately invalidate in-flight proposa
   change("never_change","Keep original figures");
   assert.equal(invalidated,true);assert.equal(wizard.ai_profile.never_change,"Keep original figures");
 });
+
+test("private draft save remains available on every campaign step and persists the full form plus setup snapshot",()=>{
+  const footer=source.slice(source.indexOf("<footer className="),source.indexOf("</footer>"));
+  assert.match(footer,/<button type="button" className=\{btn\} disabled=\{disabled\} onClick=\{\(\)=>save\("draft"\)\}>Save draft<\/button>/);
+  assert.doesNotMatch(footer,/step<2&&<button[^>]*save\("draft"\)/);
+  const saveBody=source.slice(source.indexOf("  async function save(status)"),source.indexOf("  const stepIcons"));
+  assert.match(saveBody,/saveOwnerCampaign\(client, form, \{ id: campaignId\.current, status:"draft"/);
+  assert.match(saveBody,/saveCampaignSetup\(client,data\.id,setupToSave,setupToSave\.draft_step,scope\)/);
+  assert.match(saveBody,/const setupToSave=wizardSnapshot\(wizardSaveStep\.current\?\?step\)/);
+});
+
+test("campaign draft setup preserves the selected illustration style and exact caption",()=>{
+  const payload=campaignSetupPayload({...emptyWizard(),ai_profile:{image_style:"cyberpunk",image_caption:"Help our neighborhood garden"}});
+  assert.equal(payload.ai_profile.image_style,"cyberpunk");
+  assert.equal(payload.ai_profile.image_caption,"Help our neighborhood garden");
+  const bounded=campaignSetupPayload({...emptyWizard(),ai_profile:{image_style:"unknown",image_caption:"x".repeat(140)}});
+  assert.equal(bounded.ai_profile.image_style,"interstellar");
+  assert.equal(bounded.ai_profile.image_caption.length,100);
+});
