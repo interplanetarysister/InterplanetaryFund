@@ -6,7 +6,7 @@ const create=read("../src/pages/CreateCampaign.jsx");
 const edit=read("../src/pages/EditCampaign.jsx");
 const lifecycle=read("../src/lib/campaignLifecycle.js");
 const owner=read("../src/api/ownerCampaigns.js");
-const detail=read("../src/pages/CampaignDetail.jsx");
+const dialog=read("../src/components/payments/CampaignDonationDialog.jsx");
 const button=read("../src/components/payments/CashAppDonateButton.jsx");
 const migration=read("../../../supabase/migrations/20261121190000_ifund_public_donation_visibility.sql");
 
@@ -20,7 +20,9 @@ test("campaign creator and editor both accept an optional Cash App cashtag",()=>
 });
 
 test("Cash App external payments are disclosed as unverified and separate from campaign totals",()=>{
-  assert.match(detail,/CashAppDonateButton/);
+  assert.match(dialog,/CashAppDonateButton/);
+  assert.match(dialog,/cannot verify this external transfer/);
+  assert.match(dialog,/will not update verified campaign totals/);
   assert.match(button,/not an IFund-verified capture/);
   assert.match(button,/not an IFund-verified capture or a ledger credit/);
 });
