@@ -3,12 +3,12 @@ const topics={
 nexus:["professional chief of staff coordination","https://www.gofundme.com/c/fundraising-tips","https://www.irs.gov/charities-non-profits","https://www.grants.gov/learn-grants"],
 story:["accurate, dignified fundraising storytelling","https://www.gofundme.com/c/fundraising-tips","https://support.google.com/analytics/answer/10089681","https://www.grants.gov/learn-grants"],
 orbit:["financial transparency and responsible donor reporting","https://www.irs.gov/charities-non-profits","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips"],
-polaris:["campaign goals and measurable strategy","https://www.gofundme.com/c/fundraising-tips","https://www.gofundme.com/c/fundraising-tips","https://www.grants.gov/learn-grants"],
+polaris:["campaign goals and measurable strategy","https://www.gofundme.com/c/fundraising-tips","https://support.google.com/analytics/answer/10089681","https://www.grants.gov/learn-grants"],
 forge:["conversion measurement and verifiable attribution","https://support.google.com/analytics/answer/10089681","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips"],
 echo:["supporter communications and stewardship","https://support.google.com/analytics/answer/10089681","https://www.gofundme.com/c/fundraising-tips","https://www.grants.gov/learn-grants"],
-pulse:["responsible partnership and community outreach","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips","https://www.gofundme.com/c/fundraising-tips"],
+pulse:["responsible partnership and community outreach","https://www.grants.gov/learn-grants","https://www.gofundme.com/c/fundraising-tips","https://www.irs.gov/charities-non-profits"],
 link:["OAuth and service integration safety","https://developers.google.com/identity/protocols/oauth2","https://www.oauth.com/oauth2-servers/access-tokens/","https://www.grants.gov/learn-grants"],
-discover:["verified fundraising opportunities and eligibility","https://www.grants.gov/learn-grants","https://www.irs.gov/charities-non-profits","https://www.irs.gov/charities-non-profits"]
+discover:["verified fundraising opportunities and eligibility","https://www.grants.gov/learn-grants","https://www.irs.gov/charities-non-profits","https://www.gofundme.com/c/fundraising-tips"]
 };
 const ids=Object.keys(topics);
 const send=(body,code=200)=>Response.json(body,{status:code,headers:{"Cache-Control":"public, max-age=60"}});
