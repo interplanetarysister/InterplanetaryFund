@@ -69,7 +69,7 @@ begin
     and d.paypal_capture_id is not null and d.paypal_capture_verified_at is not null
   where c.owner_id=auth.uid()
   group by c.id,c.title order by c.title;
-end $function$
+end $function$;
 
 
 CREATE OR REPLACE FUNCTION public.ifund_request_withdrawal(p_campaign_id uuid, p_gross_cents bigint, p_request_key text)
@@ -177,7 +177,7 @@ begin
     where id=v_id;
   return v_id;
 end
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.ifund_internal_prepare_paypal_payout(p_withdrawal_id uuid, p_admin_user_id uuid)
@@ -281,7 +281,7 @@ begin
     (w.gross_amount*100)::bigint,(w.platform_fee*100)::bigint,
     v_sender,w.id::text,w.payout_batch_id,w.status;
 end
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.ifund_internal_record_payout_state(p_withdrawal_id uuid, p_payout_batch_id text, p_payout_item_id text, p_transaction_status text, p_provider_fee_cents bigint DEFAULT NULL::bigint, p_paypal_event_id text DEFAULT NULL::text)
@@ -419,5 +419,5 @@ begin
     where id=w.id;
   return true;
 end
-$function$
+$function$;
 
