@@ -21,6 +21,7 @@ test("platform messages are admin-only and created after verified capture",()=>{
  assert.match(inbox,/ifund_platform_support_messages/);
 });
 test("platform UI does not require donor or cardholder name and does not fake unavailable rails",()=>{
- assert.doesNotMatch(ui,/NameField\(\)|nameHost/);assert.match(ui,/Cardholder name is not required by IFund/);
+ assert.match(ui,/Name on card \(optional\)/);assert.match(ui,/card\.NameField\(\)\.render\(nameHost\.current\)/);
+ assert.match(ui,/IFund does not require your name/);
  assert.match(ui,/Cash App and bank transfer are not enabled/);assert.match(ui,/GooglePayDonationButton/);
 });

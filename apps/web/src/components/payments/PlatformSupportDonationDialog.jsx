@@ -26,7 +26,7 @@ async function api(path,options={}) {
 export default function PlatformSupportDonationDialog({open,onOpenChange}) {
   const [amount,setAmount]=useState("10"),[message,setMessage]=useState(""),[status,setStatus]=useState("idle");
   const [error,setError]=useState(""),[eligible,setEligible]=useState(null),[complete,setComplete]=useState(false);
-  const paypalHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null),messageRef=useRef("");
+  const paypalHost=useRef(null),nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null),messageRef=useRef("");
   useEffect(()=>{messageRef.current=message;},[message]);
   const cardSession=useRef(null),tokens=useRef(new Map()),keys=useRef(new Map()),checkoutTokens=useRef(new Map());
   const nativeUnavailable=isNativeBundle();
@@ -77,7 +77,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
             onCancel:()=>{if(!cancelled)setStatus("ready");}});
           if(card.isEligible()){
             cardSession.current=card;
-            await Promise.all([card.NumberField().render(numberHost.current),card.ExpiryField().render(expiryHost.current),card.CVVField().render(cvvHost.current)]);
+            await Promise.all([card.NameField().render(nameHost.current),card.NumberField().render(numberHost.current),card.ExpiryField().render(expiryHost.current),card.CVVField().render(cvvHost.current)]);
             if(!cancelled)setEligible(true);
           }else if(!cancelled)setEligible(false);
         }else if(!cancelled)setEligible(false);
@@ -85,7 +85,7 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
       }catch(e){if(!cancelled){setError(e.message||"Secure checkout unavailable.");setStatus("error");}}
     })();
     return ()=>{cancelled=true;try{buttons?.close?.();}catch(_){}cardSession.current=null;
-      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current])try{node?.replaceChildren();}catch(_){}};
+      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current])try{node?.replaceChildren();}catch(_){}};
   },[nativeUnavailable,open,valid,giftCents]);
   if(nativeUnavailable)return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent>
     <DialogHeader><DialogTitle>Platform donations are not available in the app yet</DialogTitle><DialogDescription>Open InterplanetaryFund.com to donate. No payment was started.</DialogDescription></DialogHeader>
@@ -121,7 +121,8 @@ export default function PlatformSupportDonationDialog({open,onOpenChange}) {
           {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/>Loading secure checkout…</p>}
           <section aria-busy={status==="capturing"} aria-label="Credit or debit card checkout" className="space-y-2 rounded-xl border border-slate-200 p-3" style={{display:eligible===false?"none":"block"}}>
             <h3 className="flex items-center gap-2 text-sm font-semibold"><CreditCard className="h-4 w-4"/>Credit or debit card</h3>
-            <p className="text-xs text-slate-500">Cardholder name is not required by IFund. If your issuer requires billing details, PayPal will request them securely.</p>
+            <p className="text-xs text-slate-500">IFund does not require your name. Enter it only if you want to or your card provider requests it.</p>
+            <label className="block text-xs">Name on card (optional)<div ref={nameHost} className={field}/></label>
             <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
             <div className="grid grid-cols-2 gap-2"><label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label><label className="block text-xs">Security code<div ref={cvvHost} className={field}/></label></div>
             {eligible===true&&<button type="button" disabled={status!=="ready"} onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout failed. Check your receipt before retrying.");}}}

@@ -10,8 +10,9 @@ const inbox = read("../src/lib/inbox.js");
 const migration = read("../../../supabase/migrations/20261121193000_ifund_verified_donation_messages.sql");
 
 test("cardholder name is not a required IFund card field", () => {
-  assert.doesNotMatch(dialog, /NameField\(\)|nameHost/);
-  assert.match(dialog, /Cardholder name is not required by IFund/);
+  assert.match(dialog, /Name on card \(optional\)/);
+  assert.match(dialog, /card\.NameField\(\)\.render\(nameHost\.current\)/);
+  assert.match(dialog, /IFund does not require your name/);
 });
 
 test("card checkout leaves issuer-required billing details to PayPal", () => {

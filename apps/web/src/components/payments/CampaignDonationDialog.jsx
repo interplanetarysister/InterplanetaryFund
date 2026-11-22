@@ -47,7 +47,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const [error,setError]=useState("");
   const [eligible,setEligible]=useState(null);
   const [complete,setComplete]=useState(false);
-  const paypalHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const paypalHost=useRef(null),nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
   useEffect(()=>{visibilityRef.current={displayNamePublic,publicDisplayName,supportMessage};},[displayNamePublic,publicDisplayName,supportMessage]);
@@ -142,6 +142,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           if(card.isEligible()){
             cardSession.current=card;
             await Promise.all([
+              card.NameField().render(nameHost.current),
               card.NumberField().render(numberHost.current),
               card.ExpiryField().render(expiryHost.current),
               card.CVVField().render(cvvHost.current),
@@ -156,7 +157,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       cancelled=true;
       try{buttons?.close?.();}catch(_){}
       cardSession.current=null;
-      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
+      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
         try{node?.replaceChildren();}catch(_){}
       }
     };
@@ -259,7 +260,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">PayPal provides these secure card fields. PayPal decides whether guests can pay by card; you may not need a PayPal account.</p>
-              <p className="text-xs text-slate-500">Cardholder name is not required by IFund. If your card issuer requires additional billing details, PayPal will request them securely.</p>
+              <p className="text-xs text-slate-500">IFund does not require your name. Enter it only if you want to or your card provider requests it.</p>
+              <label className="block text-xs">Name on card (optional)<div ref={nameHost} className={field}/></label>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label>
