@@ -641,6 +641,7 @@ async function createOrder(req,env) {
    ||!["paypal","card","googlepay","applepay","venmo"].includes(channel)
    ||(input.display_name_public!==undefined&&typeof input.display_name_public!=="boolean")
    ||((input.display_name_public===true)&&(typeof input.public_display_name!=="string"||!input.public_display_name.trim()||input.public_display_name.trim().length>60))
+   ||(input.support_message!==undefined&&input.support_message!==null&&(typeof input.support_message!=="string"||input.support_message.trim().length>500))
    ||((input.display_name_public!==true)&&input.public_display_name!==null&&input.public_display_name!==undefined)
    ||!Number.isSafeInteger(gift)||gift<100||gift>100000000
    ||!Number.isSafeInteger(tip)||tip<0||tip>Math.round(gift*0.1))return asError("invalid_donation_request");
@@ -665,6 +666,7 @@ async function createOrder(req,env) {
     payment_channel:channel,environment:"live",checkout_token_hash:tokenHash,
     display_name_public:input.display_name_public===true,
     public_display_name:input.display_name_public===true?input.public_display_name.trim():null,
+    support_message:typeof input.support_message==="string"&&input.support_message.trim()?input.support_message.trim():null,
     donor_access_token:donorToken});
   // A completed bind is authoritative. Never create another PayPal order
   // after an HTTP timeout or retry with the same request key.

@@ -100,6 +100,8 @@ Deno.serve(async req=>{
         || typeof p.display_name_public!=="boolean"
         || (p.display_name_public && (typeof p.public_display_name!=="string" || !p.public_display_name.trim() || p.public_display_name.trim().length>60))
         || (!p.display_name_public && p.public_display_name!==null)
+        || (p.support_message!==null && p.support_message!==undefined &&
+            (typeof p.support_message!=="string" || p.support_message.trim().length>500))
         || !["live","sandbox"].includes(p.environment)
         || !Number.isSafeInteger(p.gift_cents)||p.gift_cents<100||p.gift_cents>100000000
         || !Number.isSafeInteger(p.optional_support_cents)||p.optional_support_cents<0
@@ -116,6 +118,7 @@ Deno.serve(async req=>{
              gift_cents:p.gift_cents,optional_support_cents:p.optional_support_cents,total_cents:p.total_cents,
              environment:p.environment,payment_channel:p.payment_channel,currency:"USD",checkout_token_hash:p.checkout_token_hash,
              display_name_public:p.display_name_public,public_display_name:p.public_display_name,
+             support_message:typeof p.support_message==="string"&&p.support_message.trim()?p.support_message.trim():null,
              donor_id:donorId,status:"creating"});
           existing=created[0];
         }catch(error){
@@ -127,6 +130,7 @@ Deno.serve(async req=>{
          ||existing.gift_cents!==p.gift_cents||existing.optional_support_cents!==p.optional_support_cents
          ||existing.total_cents!==p.total_cents||existing.payment_channel!==p.payment_channel
          ||existing.display_name_public!==p.display_name_public||existing.public_display_name!==p.public_display_name
+         ||existing.support_message!==(typeof p.support_message==="string"&&p.support_message.trim()?p.support_message.trim():null)
          ||existing.checkout_token_hash!==p.checkout_token_hash || existing.donor_id!==donorId) return fail("Checkout request conflicts with existing intent",409);
       return Response.json({ok:true,status:existing.status,order_id:existing.paypal_order_id||null});
     }

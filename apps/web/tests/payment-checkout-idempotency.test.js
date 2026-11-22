@@ -26,7 +26,7 @@ async function harness(enabled=true) {
         const existing=intents.get(data.request_key);
         if(existing){
           const valid=["campaign_id","gift_cents","optional_support_cents",
-            "total_cents","payment_channel","checkout_token_hash","display_name_public","public_display_name"].every(k=>existing[k]===data[k]);
+            "total_cents","payment_channel","checkout_token_hash","display_name_public","public_display_name","support_message"].every(k=>existing[k]===data[k]);
           return valid?Response.json({ok:true,status:existing.status,order_id:existing.order_id||null}):
             Response.json({ok:false,error:"conflict"},{status:409});
         }
@@ -58,7 +58,8 @@ async function harness(enabled=true) {
   return {
     async create(checkoutToken=token,request_key=requestKey,donorToken=null,display_name_public=false,public_display_name=null){
       const body={campaign_id:campaignId,gift_cents:100,optional_support_cents:0,
-        payment_channel:"paypal",request_key,checkout_token:checkoutToken,display_name_public,public_display_name};
+        payment_channel:"paypal",request_key,checkout_token:checkoutToken,display_name_public,public_display_name,
+        support_message:"Thank you for helping our community."};
       const req=new Request("https://interplanetaryfund.com/api/payments/create-order",
         {method:"POST",headers:{origin:"https://interplanetaryfund.com",
           "content-type":"application/json",...(donorToken===null?{}:{authorization:donorToken})},body:JSON.stringify(body)});
@@ -144,6 +145,12 @@ test("public display is opt-in and chosen label is bound to the payment intent",
 test("public name cannot be supplied while public display is disabled",async()=>{
   const h=await harness();const result=await h.create(token,"BADPUBLICREQUESTKEY123456789012",null,false,"Unexpected Name");
   assert.equal(result.status,400);assert.equal(h.orders(),0);
+});
+test("campaign message of support is carried into the verified payment intent",async()=>{
+  const h=await harness();
+  const result=await h.create(token,"MESSAGEKEY1234567890123456789012");
+  assert.equal(result.status,200);
+  assert.equal(h.beginData[0].support_message,"Thank you for helping our community.");
 });
 test("malformed donor session cannot create intent or provider order",async()=>{
   const h=await harness();

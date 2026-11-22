@@ -8,6 +8,8 @@ grant insert (cashapp_tag), update (cashapp_tag) on public.ifund_campaigns to au
 
 alter table public.ifund_payment_intents add column if not exists public_display_name text,
   add column if not exists display_name_public boolean not null default false;
+alter table public.ifund_donations add column if not exists public_display_name text,
+  add column if not exists display_name_public boolean not null default false;
 alter table public.ifund_donations alter column display_name_public set default false;
 alter table public.ifund_payment_intents drop constraint if exists ifund_payment_intents_public_display_check,
   add constraint ifund_payment_intents_public_display_check check (

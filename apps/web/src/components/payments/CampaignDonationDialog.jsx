@@ -41,15 +41,16 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const [support,setSupport]=useState(false);
   const [displayNamePublic,setDisplayNamePublic]=useState(false);
   const [publicDisplayName,setPublicDisplayName]=useState("");
-  const visibilityRef=useRef({displayNamePublic:false,publicDisplayName:""});
+  const [supportMessage,setSupportMessage]=useState("");
+  const visibilityRef=useRef({displayNamePublic:false,publicDisplayName:"",supportMessage:""});
   const [status,setStatus]=useState("idle");
   const [error,setError]=useState("");
   const [eligible,setEligible]=useState(null);
   const [complete,setComplete]=useState(false);
-  const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const paypalHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
-  useEffect(()=>{visibilityRef.current={displayNamePublic,publicDisplayName};},[displayNamePublic,publicDisplayName]);
+  useEffect(()=>{visibilityRef.current={displayNamePublic,publicDisplayName,supportMessage};},[displayNamePublic,publicDisplayName,supportMessage]);
   const nativeCheckoutUnavailable = isNativeBundle();
   const checkoutLocked=status==="capturing"||complete;
   const parsedGift=parseDonationCents(amount);
@@ -59,7 +60,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const quote = valid ? paymentQuoteCents(gift, tip) : null;
   const requestKey=channel=>{
     const visibility=visibilityRef.current;
-    const key=[campaign?.id,gift,tip,channel,visibility.displayNamePublic?"public":"anonymous",visibility.displayNamePublic?visibility.publicDisplayName.trim():""].join("|");
+    const key=[campaign?.id,gift,tip,channel,visibility.displayNamePublic?"public":"anonymous",visibility.displayNamePublic?visibility.publicDisplayName.trim():"",visibility.supportMessage.trim()].join("|");
     if(!keys.current.has(key))keys.current.set(key,crypto.randomUUID().replace(/-/g,""));
     return keys.current.get(key);
   };
@@ -88,6 +89,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       payment_channel:channel,request_key:key,checkout_token:checkoutToken,
       display_name_public:visibility.displayNamePublic,
       public_display_name:visibility.displayNamePublic?visibility.publicDisplayName.trim():null,
+      support_message:visibility.supportMessage.trim()||null,
     })});
     if(!data.id||data.checkout_token!==checkoutToken||data.environment!=="live")
       throw new Error("This payment needs review. No payment was started or recorded.");
@@ -140,7 +142,6 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           if(card.isEligible()){
             cardSession.current=card;
             await Promise.all([
-              card.NameField().render(nameHost.current),
               card.NumberField().render(numberHost.current),
               card.ExpiryField().render(expiryHost.current),
               card.CVVField().render(cvvHost.current),
@@ -155,7 +156,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       cancelled=true;
       try{buttons?.close?.();}catch(_){}
       cardSession.current=null;
-      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
+      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
         try{node?.replaceChildren();}catch(_){}
       }
     };
@@ -226,6 +227,10 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             <input type="text" autoComplete="off" maxLength={60} className={field} disabled={checkoutLocked} value={publicDisplayName} onChange={e=>setPublicDisplayName(e.target.value)} placeholder="Name shown on this campaign"/>
           </label>}
         </section>
+        <label className="block space-y-1 text-sm font-semibold text-slate-900">Message of support (optional)
+          <textarea rows={3} maxLength={500} disabled={checkoutLocked} className={field+" resize-y"} value={supportMessage} onChange={e=>setSupportMessage(e.target.value)} placeholder="Add a note for the campaign owner (up to 500 characters)"/>
+          <span className="block text-xs font-normal text-slate-500">Delivered privately to the campaign owner's IFund inbox after your donation is verified.</span>
+        </label>
         <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
           <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
           <span className="font-semibold">Add 10% optional support for Interplanetary Fund <span className="mt-1 block text-xs font-normal text-slate-600">Entirely optional, separate from the campaign donation; unchecked by default.</span></span>
@@ -254,7 +259,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">PayPal provides these secure card fields. PayPal decides whether guests can pay by card; you may not need a PayPal account.</p>
-              <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
+              <p className="text-xs text-slate-500">Cardholder name is not required by IFund. If your card issuer requires additional billing details, PayPal will request them securely.</p>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label>
@@ -262,7 +267,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
               </div>
             </section>
             {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. PayPal may offer guest card checkout.</p>}
-            <section aria-label="Payment actions" className="sticky bottom-0 z-10 -mx-5 -mb-5 space-y-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <section aria-label="Payment actions" className="space-y-3 border-t border-slate-200 bg-white px-1 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
               <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Pay securely with PayPal</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
