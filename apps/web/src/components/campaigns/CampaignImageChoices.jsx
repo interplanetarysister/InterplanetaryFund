@@ -5,9 +5,9 @@ import {overlayExactArtworkCaption} from "@/lib/exactArtworkCaption.mjs";
 import {uploadCampaignCover} from "@/api/campaignCovers";
 
 const STYLES=[["interstellar","Interstellar"],["futuristic","Futuristic"],["cyberpunk","Cyberpunk"],["comic","Comic illustration"]];
-export default function CampaignImageChoices({title,description,onApply,disabled=false}){
- const [style,setStyle]=useState("interstellar");
- const [caption,setCaption]=useState("");
+export default function CampaignImageChoices({title,description,onApply,disabled=false,initialStyle="interstellar",initialCaption="",onSettingsChange}){
+ const [style,setStyle]=useState(initialStyle||"interstellar");
+ const [caption,setCaption]=useState(initialCaption||"");
  const [status,setStatus]=useState("idle");
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
@@ -18,6 +18,9 @@ export default function CampaignImageChoices({title,description,onApply,disabled
  const busy=useRef(false);
  const id=useRef(0);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;id.current++;if(urlRef.current)URL.revokeObjectURL(urlRef.current);};},[]);
+ useEffect(()=>{setStyle(initialStyle||"interstellar");setCaption(initialCaption||"");},[initialStyle,initialCaption]);
+ function updateStyle(value){setStyle(value);onSettingsChange?.({image_style:value,image_caption:caption});}
+ function updateCaption(value){setCaption(value);onSettingsChange?.({image_style:style,image_caption:value});}
  function clear(){
   id.current++;if(urlRef.current)URL.revokeObjectURL(urlRef.current);
   urlRef.current="";setPreview("");setFile(null);setError("");setMessage("");
@@ -72,14 +75,14 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    <summary className="cursor-pointer font-semibold">Or create your own original iFund illustration</summary>
    <p className="mt-3 text-sm text-muted-foreground">Make original campaign art. Eligible signup and referral-bonus trials provide time-limited access; paid subscribers have up to 50 image-generation or improvement attempts per rolling seven days. Shared provider capacity and fair-use pacing still apply. Review each illustration before using it.</p>
    <label className="mt-3 block text-sm font-medium">Illustration style
-    <select value={style} disabled={disabled||status!=="idle"} onChange={e=>setStyle(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3">
+    <select value={style} disabled={disabled||status!=="idle"} onChange={e=>updateStyle(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3">
       {STYLES.map(([value,label])=><option key={value} value={value}>{label}</option>)}
     </select>
    </label>
    <label className="mt-3 block text-sm font-medium">Image words (optional, exact spelling)
-     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{setCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
+     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{updateCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
    </label>
-   <button type="button" disabled={disabled||status!=="idle"} onClick={()=>{setCaption(title.slice(0,100));clear();}} className="mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">Use campaign title exactly</button>
+   <button type="button" disabled={disabled||status!=="idle"} onClick={()=>{const value=title.slice(0,100);updateCaption(value);clear();}} className="mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">Use campaign title exactly</button>
    <p className="mt-2 text-xs text-muted-foreground">The image model draws without lettering; iFund adds these exact words using a regular font after generation. You can correct the phrase before creating your artwork.</p>
    <button type="button" onClick={generate} disabled={disabled||status!=="idle"} className="mt-3 min-h-11 rounded-xl bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">
      {status==="generating"?"Creating illustration…":"Generate illustration"}
