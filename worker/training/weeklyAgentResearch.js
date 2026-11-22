@@ -39,11 +39,12 @@ async function run(env){
   await env.DB.prepare("update public_research set status='complete',payload=?,error=null,updated_at=CURRENT_TIMESTAMP where week_key=? and agent_id=?").bind(payload,wk,agent).run();
  }catch(e){await env.DB.prepare("update public_research set status='failed',error=?,updated_at=CURRENT_TIMESTAMP where week_key=? and agent_id=?").bind(String(e).slice(0,250),wk,agent).run();}
 }
+async function probeSource(url){try{const abort=new AbortController();const t=setTimeout(()=>abort.abort(),6500);let r;try{r=await fetch(url,{signal:abort.signal,headers:{"Accept":"text/html,text/plain,application/json"}})}finally{clearTimeout(t)}const contentType=r.headers.get("content-type")||"";const body=await r.text();return {url,status:r.status,type:contentType.slice(0,80),length:body.length,afterStrip:textHtml(body).length}}catch(e){return {url,error:String(e).slice(0,110)}}}
 export default{
  async scheduled(controller,env,ctx){ctx.waitUntil(run(env));},
  async fetch(request,env){
   if(request.method!=="GET")return send({error:"Method not allowed"},405);
-  const u=new URL(request.url);if(u.pathname!=="/results")return send({error:"Not found"},404);
+  const u=new URL(request.url);if(u.pathname==="/diagnostic"){const agent=u.searchParams.get("agent_id");if(!Object.hasOwn(topics,agent||""))return send({error:"agent"},400);return send({agent,checks:await Promise.all(topics[agent].slice(1).map(probeSource))});}if(u.pathname!=="/results")return send({error:"Not found"},404);
   const wk=u.searchParams.get("week_key"),agent=u.searchParams.get("agent_id");
   if(!/^\d{4}-\d{2}-\d{2}$/.test(wk||"")||!ids.includes(agent||""))return send({error:"Invalid request"},400);
   const row=await env.DB.prepare("select status,payload,updated_at from public_research where week_key=? and agent_id=?").bind(wk,agent).first();
