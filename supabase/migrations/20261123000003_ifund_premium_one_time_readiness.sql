@@ -10,7 +10,8 @@ begin
    to_regclass('public.ifund_premium_one_time_purchases') is not null and
    to_regprocedure('public.ifund_premium_one_time_begin(uuid,text,text,text)') is not null and
    to_regprocedure('public.ifund_premium_one_time_finalize(uuid,text,text,text,timestamp with time zone,text)') is not null and
-   to_regprocedure('public.ifund_premium_one_time_refund(text,text,text)') is not null,
+   to_regprocedure('public.ifund_premium_one_time_refund(text,text,text)') is not null and
+   to_regprocedure('public.ifund_premium_one_time_reverse(text,text,text)') is not null,
    'version',1);
 end $$;
 revoke all on function public.ifund_premium_one_time_readiness()
