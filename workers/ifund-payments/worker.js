@@ -816,7 +816,9 @@ async function premiumOneTimeStatus(req,env){
 async function premiumOneTimeWebhook(payload,env){
   // Refunds and already-completed purchases must reconcile after enrollment
   // is paused. Never abandon financial events when a feature flag is turned off.
-  if(env.IFUND_PAYPAL_MODE!=="live")return null;
+  if(env.IFUND_PAYPAL_MODE!=="live"||
+     (env.IFUND_PREMIUM_ONE_TIME_ENABLED!=="true"&&
+      env.IFUND_PREMIUM_ONE_TIME_RECONCILIATION_ENABLED!=="true"))return null;
   const kind=String(payload.event_type||"");
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
