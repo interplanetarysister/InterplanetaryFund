@@ -94,7 +94,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           style:{layout:"vertical",label:"paypal",shape:"rect"}});
         if(paypalHost.current)await buttons.render(paypalHost.current);
         if(disposed)return;
-        if(typeof paypal.CardFields==="function"){
+        if(method==="card"&&typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
             createOrder:()=>createOrder("card"),onApprove,
             onError:()=>{if(!disposed)setError("Card payment needs review before retrying.");}
