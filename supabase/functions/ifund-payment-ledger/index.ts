@@ -253,32 +253,15 @@ Deno.serve(async req=>{
         const profile=await findOne("ifund_profiles?select=account_status,account_deletion_pending&id=eq."+owner);
         if(profile?.account_status!=="active"||profile?.account_deletion_pending===true)
           return fail("Active member account required",403);
-        const already=await db("ifund_subscription_intents?select=id&member_id=eq."+owner
-          +"&status=in.(initiated,approval_pending,pending,active,past_due)&limit=1");
-        if(already.length)return fail("Manage an existing recurring subscription first",409);
-        const ent=await db("ifund_premium_one_time_purchases?select=id&member_id=eq."+owner
-          +"&status=eq.captured&valid_until=gt."+encodeURIComponent(new Date().toISOString())+"&limit=1");
-        if(ent.length)return fail("Premium membership is already active",409);
-        let row=await findOne("ifund_premium_one_time_purchases?select=*&request_key=eq."+encodeURIComponent(p.request_key));
-        if(!row){
-          const custom="IFUND-PREMIUM-"+crypto.randomUUID();
-          try{
-            const created=await db("ifund_premium_one_time_purchases","POST",{
-              member_id:owner,request_key:p.request_key,checkout_token_hash:p.checkout_token_hash,
-              custom_id:custom,payment_channel:p.payment_channel,amount_cents:499,currency:"USD",
-              environment:"live",status:"initiated"
-            });
-            row=created[0];
-          }catch(err){
-            if(err.status===409)row=await findOne("ifund_premium_one_time_purchases?select=*&request_key=eq."+encodeURIComponent(p.request_key));
-            else throw err;
-          }
-        }
-        if(!row||row.member_id!==owner||row.checkout_token_hash!==p.checkout_token_hash
-          ||row.payment_channel!==p.payment_channel||row.status==="refunded")
-          return fail("Premium request key is already allocated",409);
-        return Response.json({ok:true,purchase_id:row.id,order_id:row.paypal_order_id||null,
-          custom_id:row.custom_id,status:row.status});
+        // A single transactional RPC serializes by member, rejects duplicate
+        // pending orders, and binds the idempotency key to the same identity.
+        const claim=await db("rpc/ifund_premium_one_time_begin","POST",{
+          p_member_id:owner,p_request_key:p.request_key,
+          p_checkout_token_hash:p.checkout_token_hash,
+          p_payment_channel:p.payment_channel
+        });
+        if(claim?.ok!==true)return fail("Premium checkout intent unavailable",503);
+        return Response.json(claim);
       }
       if(body.op==="premium_one_time_bind"){
         if(!patternId.test(p.purchase_id||"")
