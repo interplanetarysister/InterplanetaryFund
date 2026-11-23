@@ -81,11 +81,9 @@ begin
  select * into v_ent from ifund_access.member_entitlements
    where owner_id=v.member_id for update;
  if found and v_ent.status='active' and v_ent.valid_until>now()
-    and v_ent.provider='paypal' and
-    exists(select 1 from public.ifund_subscription_intents i
-      where i.member_id=v.member_id and i.status='active'
-        and i.last_payment_at is not null)
- then raise exception 'active renewal plan requires manual reconciliation' using errcode='55000'; end if;
+    and (v_ent.provider is distinct from 'paypal'
+      or v_ent.receipt_id is distinct from p_capture_id)
+ then raise exception 'another active Premium purchase requires manual reconciliation' using errcode='55000'; end if;
  v_expiry=p_captured_at+interval '1 month';
  update public.ifund_premium_one_time_purchases set
    paypal_capture_id=p_capture_id,provider_merchant_id=p_merchant_id,
