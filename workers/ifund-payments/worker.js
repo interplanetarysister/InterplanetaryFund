@@ -715,8 +715,19 @@ function premiumOneTimeEnabled(env) {
 }
 async function premiumOneTimeReadiness(env){
   if(!premiumOneTimeEnabled(env))return {ready:false};
-  const atomic=await subscriptionAtomicReadiness(env);
-  return {ready:atomic.ready===true,merchant_id:atomic.merchant_id};
+  const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
+  if(!webhookId)return {ready:false};
+  const [atomic,edge,hook]=await Promise.all([
+    subscriptionAtomicReadiness(env),
+    signLedger(env,"premium_one_time_readiness",{}).catch(()=>null),
+    paypal(env,"/v1/notifications/webhooks/"+encodeURIComponent(webhookId)).catch(()=>null)
+  ]);
+  const events=new Set(Array.isArray(hook?.event_types)?hook.event_types.map(x=>x?.name):[]);
+  const webhookReady=hook?.id===webhookId&&typeof hook?.url==="string"&&
+    ["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED"].every(x=>events.has(x)||events.has("*"));
+  return {ready:atomic.ready===true&&Boolean(atomic.merchant_id)&&
+     edge?.enabled===true&&edge?.version===1&&webhookReady,
+     merchant_id:atomic.merchant_id};
 }
 async function verifyPremiumOneTimeCapture(env,orderId,intent){
   const atomic=await subscriptionAtomicReadiness(env);
