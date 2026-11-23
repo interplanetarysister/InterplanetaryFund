@@ -36,6 +36,11 @@ create policy ifund_premium_one_time_owner_read
  on public.ifund_premium_one_time_purchases for select to authenticated
  using ((select auth.uid())=member_id);
 
+-- Only the signed server-side ledger broker may update private member access.
+-- No API member/anonymous grants are added to this protected schema or table.
+grant usage on schema ifund_access to service_role;
+grant select,insert,update on table ifund_access.member_entitlements to service_role;
+
 create or replace function public.ifund_premium_one_time_finalize(
   p_purchase_id uuid,p_order_id text,p_capture_id text,
   p_merchant_id text,p_captured_at timestamptz,p_custom_id text
