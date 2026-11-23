@@ -233,6 +233,113 @@ Deno.serve(async req=>{
       const rows=await db("ifund_subscription_plans?select=tier,interval,amount_cents,currency,catalog_version,paypal_plan_id,paypal_product_id,active,verified_at&order=tier.asc,interval.asc");
       return Response.json({ok:true,plans:rows});
     }
+    // Non-renewing Premium purchases are entirely separate from campaign gifts
+    // and PayPal recurring agreements. Only signed Worker messages reach here.
+    if(body.op?.startsWith("premium_one_time_")){
+      if(Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
+        return fail("Non-renewing Premium purchases are not activated",503);
+      const p=body.data||{};
+      if(body.op==="premium_one_time_begin"){
+        const owner=await resolveVerifiedDonor(p.member_access_token);
+        if(!owner)return fail("Verified member required",401);
+        if(!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")
+          || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")
+          || !["paypal","card","googlepay"].includes(p.payment_channel)
+          || p.environment!=="live" || p.amount_cents!==499 || p.currency!=="USD")
+          return fail("Invalid Premium purchase request");
+        const profile=await findOne("ifund_profiles?select=account_status,account_deletion_pending&id=eq."+owner);
+        if(profile?.account_status!=="active"||profile?.account_deletion_pending===true)
+          return fail("Active member account required",403);
+        const already=await db("ifund_subscription_intents?select=id&member_id=eq."+owner
+          +"&status=in.(initiated,approval_pending,pending,active,past_due)&limit=1");
+        if(already.length)return fail("Manage an existing recurring subscription first",409);
+        const ent=await db("ifund_premium_one_time_purchases?select=id&member_id=eq."+owner
+          +"&status=eq.captured&valid_until=gt."+encodeURIComponent(new Date().toISOString())+"&limit=1");
+        if(ent.length)return fail("Premium membership is already active",409);
+        let row=await findOne("ifund_premium_one_time_purchases?select=*&request_key=eq."+encodeURIComponent(p.request_key));
+        if(!row){
+          const custom="IFUND-PREMIUM-"+crypto.randomUUID();
+          try{
+            const created=await db("ifund_premium_one_time_purchases","POST",{
+              member_id:owner,request_key:p.request_key,checkout_token_hash:p.checkout_token_hash,
+              custom_id:custom,payment_channel:p.payment_channel,amount_cents:499,currency:"USD",
+              environment:"live",status:"initiated"
+            });
+            row=created[0];
+          }catch(err){
+            if(err.status===409)row=await findOne("ifund_premium_one_time_purchases?select=*&request_key=eq."+encodeURIComponent(p.request_key));
+            else throw err;
+          }
+        }
+        if(!row||row.member_id!==owner||row.checkout_token_hash!==p.checkout_token_hash
+          ||row.payment_channel!==p.payment_channel||row.status==="refunded")
+          return fail("Premium request key is already allocated",409);
+        return Response.json({ok:true,purchase_id:row.id,order_id:row.paypal_order_id||null,
+          custom_id:row.custom_id,status:row.status});
+      }
+      if(body.op==="premium_one_time_bind"){
+        if(!patternId.test(p.purchase_id||"")
+          || !/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||""))return fail("Invalid order binding");
+        const row=await findOne("ifund_premium_one_time_purchases?select=*&id=eq."+p.purchase_id);
+        if(!row||!["initiated","created"].includes(row.status)
+           ||(row.paypal_order_id&&row.paypal_order_id!==p.paypal_order_id))
+          return fail("Premium purchase order conflicts",409);
+        await db("ifund_premium_one_time_purchases?id=eq."+p.purchase_id,"PATCH",{
+          paypal_order_id:p.paypal_order_id,status:"created",updated_at:new Date().toISOString()});
+        return Response.json({ok:true});
+      }
+      if(body.op==="premium_one_time_get"||body.op==="premium_one_time_lookup"){
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||""))return fail("Invalid Premium order");
+        const row=await findOne("ifund_premium_one_time_purchases?select=*&paypal_order_id=eq."+encodeURIComponent(p.paypal_order_id));
+        if(!row)return fail("Premium purchase not found",404);
+        if(body.op==="premium_one_time_get"){
+          const owner=await resolveVerifiedDonor(p.member_access_token);
+          if(!owner||row.member_id!==owner||row.checkout_token_hash!==p.checkout_token_hash)
+            return fail("Premium purchase not owned by member",403);
+        }
+        return Response.json({ok:true,purchase:{
+          id:row.id,member_id:row.member_id,paypal_order_id:row.paypal_order_id,
+          paypal_capture_id:row.paypal_capture_id,custom_id:row.custom_id,
+          checkout_token_hash:row.checkout_token_hash,payment_channel:row.payment_channel,
+          status:row.status,amount_cents:row.amount_cents,currency:row.currency,
+          environment:row.environment,captured_at:row.captured_at,valid_until:row.valid_until
+        }});
+      }
+      if(body.op==="premium_one_time_finalize"){
+        if(!patternId.test(p.purchase_id||"")
+          || !/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||"")
+          || !/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_capture_id||"")
+          || typeof p.merchant_id!=="string"||p.merchant_id.length<4
+          || typeof p.captured_at!=="string"||!Number.isFinite(Date.parse(p.captured_at))
+          || typeof p.custom_id!=="string")return fail("Invalid captured Premium receipt");
+        const out=await db("rpc/ifund_premium_one_time_finalize","POST",{
+          p_purchase_id:p.purchase_id,p_order_id:p.paypal_order_id,
+          p_capture_id:p.paypal_capture_id,p_merchant_id:p.merchant_id,
+          p_captured_at:p.captured_at,p_custom_id:p.custom_id
+        });
+        if(out?.ok!==true)return fail("Premium receipt could not be recorded",503);
+        return Response.json(out);
+      }
+      if(body.op==="premium_one_time_refund"){
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_capture_id||"")
+          || !/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_refund_id||"")
+          || typeof p.merchant_id!=="string"||p.merchant_id.length<4)
+          return fail("Invalid refunded Premium receipt");
+        const out=await db("rpc/ifund_premium_one_time_refund","POST",{
+          p_capture_id:p.paypal_capture_id,p_refund_id:p.paypal_refund_id,
+          p_merchant_id:p.merchant_id});
+        if(out?.ok!==true)return fail("Premium refund could not be reconciled",503);
+        return Response.json(out);
+      }
+      if(body.op==="premium_one_time_status"){
+        const owner=await resolveVerifiedDonor(p.member_access_token);
+        if(!owner)return fail("Verified member required",401);
+        const rows=await db("ifund_premium_one_time_purchases?select=id,status,amount_cents,currency,payment_channel,created_at,captured_at,valid_until&member_id=eq."
+          +owner+"&order=created_at.desc&limit=1");
+        return Response.json({ok:true,purchase:rows[0]||null});
+      }
+      return fail("Unknown non-recurring Premium operation",400);
+    }
     if(body.op==="subscription_begin"){
       const p=body.data||{};
       const memberId=await resolveVerifiedDonor(p.member_access_token);
