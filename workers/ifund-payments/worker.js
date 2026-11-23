@@ -814,7 +814,9 @@ async function premiumOneTimeStatus(req,env){
   return asJson(await signLedger(env,"premium_one_time_status",{member_access_token:access}));
 }
 async function premiumOneTimeWebhook(payload,env){
-  if(!premiumOneTimeEnabled(env))return null;
+  // Refunds and already-completed purchases must reconcile after enrollment
+  // is paused. Never abandon financial events when a feature flag is turned off.
+  if(env.IFUND_PAYPAL_MODE!=="live")return null;
   const kind=String(payload.event_type||"");
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
@@ -902,7 +904,6 @@ export default {
       }catch(_){return asJson({ok:true,ready:false,auto_renews:false},200,cors)}
     }
     if(path==="/api/payments/premium-one-time/status"&&request.method==="GET"){
-      if(!premiumOneTimeEnabled(env))return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
       try{const response=await premiumOneTimeStatus(request,env);
         for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
       }catch(_){return asJson({ok:false,error:"premium_purchase_status_unavailable"},503,cors)}
