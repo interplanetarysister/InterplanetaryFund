@@ -153,3 +153,47 @@ Branch `reconcile/agent1-frontend-20261122` tip `024d1fcb`; local `main` fast-fo
 - `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_REF`, `IFUND_QA_PROVISION_APPROVED` absent (QA identities, authenticated role matrix).
 - Authenticated browser acceptance, production deployment SHA verification, live provider verification: BLOCKED/UNVERIFIED.
 - Six specialist subagent audits: no results produced (recorded in checkpoint).
+
+## Addendum - push + final verification (2026-11-23)
+
+### Push
+
+- `git push origin main` exit 0: `6de92636..e8ac2bd0 main -> main` - origin/main now `e8ac2bd0`; local `main` == `origin/main` tip. Working tree clean. The two new fix branches were merged earlier as normal merges (`c7f60434` on main).
+
+### Six removed regression tests - coverage verification (origin/main = new main, authoritative)
+
+Verified via `git show origin/main:<file>` string checks:
+
+- **command-center-creator-separation.test.mjs**: equivalents on origin/main - `step===2&&<div aria-label="Campaign launch review"` (FOUND), `Publishing requires a secure account with a verified owner ID` (FOUND), `save("active")` (FOUND), CampaignStrategy `ifund_owner_campaign_strategy_readiness` + `private campaign readiness could not be verified` (FOUND). New main redesigned the flow (no "Want to improve your campaign further" / "Guest drafts stay in this browser" strings - new main's guest flow uses its own `importGuestWizard` design) - no restoration needed; no valid newer implementation was reverted.
+- **sandbox-alias-cookie-scope.test.mjs**: origin/main serves sandbox via the new Pages design (`apps/web/functions/api/paypal/sandbox/[[path]].js`, `worker/paypalSandboxSecurity.js` cookie `Path=/api/paypal/sandbox`) - equivalent/stronger coverage: `paypal-sandbox-compliance.test.js`, `paypal-sandbox-buyer-guidance.test.js`, `premium-direct-guest-card-acceptance.test.mjs` (admin/verified/owner).
+- **dual-mode-gateway.test.mjs**: equivalents on origin/main: `premium-direct-guest-card-acceptance.test.mjs`, `atomic-paypal-edge-release.test.mjs` (verified).
+- **subscription-five-dollar-safe-contract.test.mjs**: equivalents on origin/main: `subscription-live-availability.test.js` (verified), `subscription-live-contract.test.js` (499/verified/owner), `public-subscription-plans.test.js` (verified). New main worker: `amount_cents:499`, `verifyPremiumOneTimeCapture`, `payments/premium-one-time/readiness` FOUND; ledger `p.amount_cents!==499`, `p.currency!=="USD"`, `subscription_plan_readiness` FOUND.
+- **r2-reviewed-inventory-negative-qa.test.mjs + qa-r2-reviewed-inventory-boundary.test.mjs**: equivalents on origin/main: `private-document-erasure.test.js` (reviewed/owner/does not belong/refused/ten/byte) + `campaign-media-r2.test.js` (R2/owner/receipt).
+
+### Payment safety (origin/main, source-verified)
+
+- 7% withdrawal fee untouched (no changes to payout code; `quote(gift,tip)` = gift+tip).
+- Basic subscription $4.99: `BASIC_MONTHLY_PLAN = {tier:"basic",interval:"monthly",amount_cents:499,plan_id:"P-8RG59105D5288480MNMBOKJA"}` on origin/main worker; `product_id.length>=6` present.
+- Ledger guards on origin/main: `p.amount_cents!==499` (Premium purchase request validation), `p.currency!=="USD"`, `subscription_plan_readiness`, super_admin guard `user.app_metadata?.role!=="super_admin"` throw "Verified super administrator required".
+- Migrations on origin/main: `20261123000005_premium_owner_only_checkout_acceptance.sql` (admin/verified/grant/revoke), `20261123000006_premium_private_trial_allowlist.sql` (allowlist/service_role).
+- Direct-card: new main's `premium-direct-guest-card-acceptance.test.mjs` + `atomic-paypal-edge-release.test.mjs` + `subscription-live-contract.test.js` (499/verified/owner) - fail-closed provider verification unchanged; no payment activated without provider verification (no live provider credentials present).
+
+### R2 protections (origin/main, source-verified)
+
+- `worker/services/privateDocumentErasure.js` == merged main version (identical); `worker/index.js` has NO privateDocumentErasure wiring (deletion not exposed); origin/main has no Agent-2 R2 adapter files (`r2ErasureAdapter` etc. absent).
+- Deletion stays disabled/fenced pending Agent 2 backend concurrency protection - nothing was enabled; no frontend-only re-enable.
+- Equivalent tests: `private-document-erasure.test.js` + `campaign-media-r2.test.js` on origin/main.
+
+### Final verification (main, commit e8ac2bd0, exit codes)
+
+- Root suite `npm test`: exit 0, failing tests 0 (rerun after the leftover-conflict fix; branch merge changes are web-only but root rerun confirms).
+- Web suite (`apps/web npm test`): exit 0.
+- Web build (`apps/web npm run build`): exit 0 (`vite build`: `built in 17.86s`; chunk-size warnings only).
+- Route-readiness gate (`apps/web/ci/verify-route-readiness.mjs`): exit 1 - fail-closed by design (89 routes `not_verified`, e.g. /templates, /terms, /u/:id, /what-if, /withdrawals). Records that preview/production not compilable until routes finish.
+- Fix found during final verification: leftover `<<<<<<< HEAD` conflict markers in `apps/web/src/components/payments/CampaignDonationDialog.jsx` (from the M2 merge) - resolved (commit e8ac2bd0).
+- Push: main -> origin/main at e8ac2bd0; working tree clean.
+
+### Blocked / UNVERIFIED (no credentials present)
+
+- Browser acceptance (real user/member flows) - BLOCKED/UNVERIFIED: no `CLOUDFLARE_API_TOKEN` (Wrangler/preview impossible) and no authenticated-browser credentials. Not fabricated.
+- Route verification (live-browser) - expected to stay fail-closed; route gate exit 1 recorded.
