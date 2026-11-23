@@ -23,6 +23,7 @@ test("One-time readiness requires a verified signed-in member before hosted fiel
   assert.match(once,/if\(method==="paypal"\)/);
   assert.match(once,/if\(!ready\)return <div/);
   assert.match(once,/disabled aria-disabled="true"/);
+  assert.match(once,/if\(activeSubscription\)return <div/);
   assert.match(once,/!cardReady\|\|busy/);
 });
 test("First live checkout requires verified super admin and atomic service role gate",()=>{
