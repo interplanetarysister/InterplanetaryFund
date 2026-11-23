@@ -27,7 +27,7 @@ export default function CardSubscriptionCheckout({plan,hasExistingSubscription=f
 
   useEffect(()=>{
     let active=true;
-    if(native){setLoading(false);return;}
+    if(native){setLoading(false);return undefined;}
     readJson(API+"/provider-readiness")
       .then(data=>{if(active)setReady(data.live===true&&data.purchase_ready===true&&
           data.plan_ready===true&&data.webhook_ready===true&&data.atomic_ready===true);})
@@ -53,7 +53,8 @@ export default function CardSubscriptionCheckout({plan,hasExistingSubscription=f
       if(target.protocol!=="https:"||target.port||target.username||target.password||
          !PAYPAL_HOSTS.has(target.hostname)||!/^I-[A-Z0-9]{10,30}$/.test(result.subscription_id||""))
         throw Error("The provider returned an untrusted subscription approval link.");
-      // PayPal decides whether a card-funded recurring agreement is offered.
+      // PayPal decides whether a card-funded recurring agreement is offered. This
+      // option is not an independently provider-confirmed card funding method.
       // Returning from PayPal does NOT grant access: the existing /confirm
       // route and signed financial receipt reconciliation are authoritative.
       window.location.assign(target.href);
@@ -69,12 +70,12 @@ export default function CardSubscriptionCheckout({plan,hasExistingSubscription=f
     <button type="button" disabled={!enabled||busy} onClick={startCardSubscription}
       className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-500/35 bg-card px-4 py-2 font-semibold text-foreground transition-colors hover:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
       {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
-      {busy?"Opening PayPal card options…":loading?"Checking secure card billing…":
-        !enabled?"Card-funded subscription not yet available":"Choose credit or debit card with PayPal"}
+      {busy?"Opening PayPal billing…":loading?"Checking secure subscription billing…":
+        !enabled?"Card funding options unavailable":"Check card options in PayPal"}
     </button>
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>
-      $4.99 USD every month until canceled. PayPal securely handles eligible card-funded recurring agreements; card availability is decided by PayPal. No card details are stored by IFund. Approval alone never grants Premium access.
+      $4.99 USD each month until canceled. PayPal may offer a credit or debit card on its subscription approval screen, depending on eligibility. If no card option appears, no card payment can be started here. IFund never receives your card details. Premium activates only after a verified payment receipt.
     </p>
     {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>;
