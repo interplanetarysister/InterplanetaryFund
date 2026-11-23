@@ -15,7 +15,7 @@ async function stripe(env,path,init={}){
   const key=await secret(env.STRIPE_SECRET_KEY);
   if(keyMode(key)!==env.IFUND_CARD_MODE)throw new Error("stripe_mode_mismatch");
   const response=await fetch(api+path,{
-    ...init,headers:{"authorization":"Bearer "+key,"Stripe-Version":"2026-10-28.clover",...(init.headers||{})}
+    ...init,headers:{"authorization":"Bearer "+key,...(init.headers||{})}
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error("stripe_provider_unavailable");
@@ -52,7 +52,8 @@ export default {
     if(request.method==="GET"&&url.pathname==="/api/payments/card-subscriptions/readiness"){
       const status=await providerReadiness(env);
       return json({ok:true,provider:"stripe",mode:env.IFUND_CARD_MODE||"unconfigured",
-        amount_cents:499,currency:"USD",interval:"monthly",...status});
+        amount_cents:499,currency:"USD",interval:"monthly",
+        provider_verified:status.ready,ready:false,reason:status.ready?"card_atomic_entitlement_adapter_pending":status.reason});
     }
     if(request.method==="POST"&&url.pathname==="/api/payments/card-subscriptions/start"){
       // Neither a checkout approval nor a return URL can grant Premium.
