@@ -1,0 +1,157 @@
+import {useEffect,useRef,useState} from "react";
+import {authClient} from "@/api/auth";
+import {CreditCard,ShieldCheck,Loader2} from "lucide-react";
+import {isNativeBundle} from "@/lib/nativeApi";
+
+const API="/api/payments/premium-one-time";
+let scriptPromise,scriptClient;
+function loadPayPal(clientId){
+  if(window.paypal?.Buttons&&window.paypal?.CardFields)return Promise.resolve(window.paypal);
+  if(scriptPromise)return scriptClient===clientId?scriptPromise:Promise.reject(Error("PayPal merchant changed. Reload checkout."));
+  scriptClient=clientId;
+  scriptPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src="https://www.paypal.com/sdk/js?client-id="+encodeURIComponent(clientId)+
+      "&components=buttons,card-fields&currency=USD&intent=capture";
+    script.async=true;
+    script.onload=()=>window.paypal?.Buttons?resolve(window.paypal):reject(Error("PayPal SDK unavailable"));
+    script.onerror=()=>reject(Error("PayPal SDK unavailable"));
+    document.head.appendChild(script);
+  }).catch(error=>{scriptPromise=null;scriptClient=null;throw error});
+  return scriptPromise;
+}
+async function api(path,options={}){
+  const response=await fetch(path,{...options,cache:"no-store"});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data.ok===false)throw Error(data.error||"One-month payment unavailable");
+  return data;
+}
+async function memberToken(){
+  const {data,error}=await authClient().auth.getSession();
+  if(error||!data?.session?.access_token)throw Error("Sign in to purchase Premium.");
+  return data.session.access_token;
+}
+export default function PremiumOneTimeCheckout({method,activeSubscription=false}){
+  const [ready,setReady]=useState(false),[busy,setBusy]=useState(false);
+  const [sdkReady,setSdkReady]=useState(false),[cardReady,setCardReady]=useState(false);
+  const [error,setError]=useState(""),[complete,setComplete]=useState(null);
+  const nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const paypalHost=useRef(null),cardSession=useRef(null),intent=useRef(null);
+  const native=isNativeBundle();
+
+  useEffect(()=>{
+    let mounted=true;
+    if(native||activeSubscription){setReady(false);return;}
+    api(API+"/readiness").then(v=>{
+      if(mounted)setReady(v.ready===true&&v.auto_renews===false&&v.amount_cents===499&&v.currency==="USD");
+    }).catch(()=>{if(mounted)setReady(false)});
+    return()=>{mounted=false;};
+  },[activeSubscription,native]);
+
+  useEffect(()=>{
+    if(!ready||native||activeSubscription||complete||method==="googlepay")return;
+    let disposed=false,buttons=null,card=null;
+    setSdkReady(false);setCardReady(false);setError("");
+    (async()=>{
+      try{
+        const cfg=await api("/api/payments/config");
+        if(cfg.environment!=="live"||!cfg.client_id)throw Error("Live card checkout unavailable");
+        const paypal=await loadPayPal(cfg.client_id);
+        if(disposed)return;
+        async function createOrder(channel){
+          if(intent.current?.orderId)return intent.current.orderId;
+          const token=crypto.randomUUID().replaceAll("-","")+crypto.randomUUID().replaceAll("-","");
+          const requestKey=crypto.randomUUID();
+          const response=await api(API+"/create-order",{
+            method:"POST",headers:{"content-type":"application/json",
+              authorization:"Bearer "+await memberToken()},
+            body:JSON.stringify({request_key:requestKey,checkout_token:token,
+              payment_channel:channel,amount_cents:499,currency:"USD"})
+          });
+          if(!response.id||response.amount_cents!==499||response.currency!=="USD")
+            throw Error("PayPal order does not match the one-month purchase.");
+          intent.current={orderId:response.id,token};
+          return response.id;
+        }
+        async function onApprove(data){
+          if(disposed||!intent.current||data?.orderID!==intent.current.orderId)return;
+          setBusy(true);
+          try{
+            const result=await api(API+"/capture-order",{
+              method:"POST",headers:{"content-type":"application/json",
+                authorization:"Bearer "+await memberToken()},
+              body:JSON.stringify({order_id:intent.current.orderId,checkout_token:intent.current.token})
+            });
+            if(result.ok!==true||result.status!=="captured"||!result.valid_until)
+              throw Error("Payment receipt was not verified. Check account status before retrying.");
+            setComplete(result.valid_until);
+          }catch(_){setError("Payment confirmation needs review. Check your account before retrying; do not pay twice.");}
+          finally{if(!disposed)setBusy(false)}
+        }
+        buttons=paypal.Buttons({createOrder:()=>createOrder("paypal"),onApprove,
+          onCancel:()=>{if(!disposed)setBusy(false)},
+          onError:()=>{if(!disposed)setError("PayPal checkout needs review before retrying.");},
+          style:{layout:"vertical",label:"paypal",shape:"rect"}});
+        if(paypalHost.current)await buttons.render(paypalHost.current);
+        if(disposed)return;
+        if(typeof paypal.CardFields==="function"){
+          card=paypal.CardFields({
+            createOrder:()=>createOrder("card"),onApprove,
+            onError:()=>{if(!disposed)setError("Card payment needs review before retrying.");}
+          });
+          if(card.isEligible()){
+            cardSession.current=card;
+            await Promise.all([
+              card.NameField().render(nameHost.current),card.NumberField().render(numberHost.current),
+              card.ExpiryField().render(expiryHost.current),card.CVVField().render(cvvHost.current)
+            ]);
+            if(!disposed)setCardReady(true);
+          }
+        }
+        if(!disposed)setSdkReady(true);
+      }catch(_){if(!disposed)setError("One-time PayPal checkout could not load. No payment was started.");}
+    })();
+    return()=>{
+      disposed=true;
+      try{buttons?.close?.()}catch(_){}
+      cardSession.current=null;
+      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]){
+        try{node?.replaceChildren()}catch(_){}
+      }
+    };
+  },[ready,method,native,activeSubscription,complete]);
+
+  if(native)return <p className="text-xs text-muted-foreground">Purchases in the mobile app require separate store billing approval.</p>;
+  if(activeSubscription)return <p className="text-xs text-muted-foreground">Manage your current membership before purchasing another month.</p>;
+  if(method==="googlepay")return <p className="text-sm text-muted-foreground">One-time Google Pay enrollment is not yet verified for Premium. Choose card or PayPal.</p>;
+  if(!ready)return <p className="text-sm text-muted-foreground">One-month checkout is awaiting verified payment and entitlement activation. No charge can be started.</p>;
+  if(complete)return <div role="status" className="rounded-xl border border-emerald-500/30 p-4">
+    <strong>One month of Premium verified.</strong>
+    <p className="mt-1 text-sm">Access through {new Date(complete).toLocaleDateString()}. No future payments are scheduled.</p>
+  </div>;
+  const field="min-h-11 w-full rounded-lg border border-border bg-background px-2 py-2";
+  return <div className="mt-4 space-y-3">
+    <p className="text-sm font-semibold">One-time Premium purchase · $4.99 USD</p>
+    <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
+    {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
+      <label className="block text-xs">Cardholder name<div className={field} ref={nameHost}/></label>
+      <label className="block text-xs">Card number<div className={field} ref={numberHost}/></label>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="text-xs">Expiry<div className={field} ref={expiryHost}/></label>
+        <label className="text-xs">Security code<div className={field} ref={cvvHost}/></label>
+      </div>
+      <button type="button" disabled={!cardReady||busy} onClick={async()=>{
+        setError("");try{await cardSession.current?.submit()}catch(_){setError("Unable to submit card. Check receipt before retrying.")}
+      }} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white disabled:opacity-50">
+        {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
+        Pay $4.99 once — no renewal
+      </button>
+      {!cardReady&&sdkReady&&<p className="text-xs text-muted-foreground">PayPal has not enabled guest card fields for this device or merchant. Try PayPal checkout instead.</p>}
+    </section>}
+    <div ref={paypalHost} style={{display:method==="paypal"?"block":"none"}} aria-label="One-time PayPal payment" className="min-h-11"/>
+    <p className="flex items-start gap-2 text-xs text-muted-foreground">
+      <ShieldCheck className="h-4 w-4 shrink-0"/>Card details are hosted securely by PayPal. A PayPal account is not required when guest card checkout is available. IFund verifies the completed receipt before enabling Premium.
+    </p>
+    {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
+  </div>;
+}
