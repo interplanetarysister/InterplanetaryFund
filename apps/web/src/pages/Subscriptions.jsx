@@ -4,6 +4,7 @@ import { isNativeBundle } from "@/lib/nativeApi";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
+import CardSubscriptionCheckout from "@/components/subscriptions/CardSubscriptionCheckout";
 
 const PLAN_NAMES={
   basic:"Interplanetary Fund Premium",outreach:"AI Outreach Agent",professional:"Professional Outreach",
@@ -158,6 +159,7 @@ export default function Subscriptions(){
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
               native?"Unavailable in the mobile app":!available?"Provider verification pending":statusLoad!=="ready"?"Verify account status first":canBegin?"Subscribe with PayPal":"Subscription already pending or active"}
           </button>
+          <CardSubscriptionCheckout plan={plan} hasExistingSubscription={statusLoad!=="ready"||Boolean(status&&["active","pending","past_due","approval_pending"].includes(status.status))}/>
         </article>;
       })}
     </section>
