@@ -242,6 +242,12 @@ Deno.serve(async req=>{
         &&Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
         return fail("Non-renewing Premium purchases are not activated",503);
       const p=body.data||{};
+      if(body.op==="premium_one_time_readiness"){
+        if(Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
+          return Response.json({ok:true,enabled:false,version:1});
+        const ready=await db("rpc/ifund_premium_one_time_readiness","POST",{});
+        return Response.json({ok:true,enabled:ready?.enabled===true&&ready?.version===1,version:1});
+      }
       if(body.op==="premium_one_time_begin"){
         const owner=await resolveVerifiedDonor(p.member_access_token);
         if(!owner)return fail("Verified member required",401);
