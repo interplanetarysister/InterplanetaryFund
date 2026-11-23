@@ -579,7 +579,7 @@ async function webhook(req,env) {
     return await payoutBatchWebhook(payload,env);
   }
   if(SUBSCRIPTION_EVENTS.has(kind))return await subscriptionWebhook(payload,env);
-  if(["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED"].includes(kind)){
+  if(["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED","PAYMENT.CAPTURE.REVERSED"].includes(kind)){
     const premium=await premiumOneTimeWebhook(payload,env);
     if(premium)return premium;
   }
@@ -724,7 +724,7 @@ async function premiumOneTimeReadiness(env){
   ]);
   const events=new Set(Array.isArray(hook?.event_types)?hook.event_types.map(x=>x?.name):[]);
   const webhookReady=hook?.id===webhookId&&typeof hook?.url==="string"&&
-    ["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED"].every(x=>events.has(x)||events.has("*"));
+    ["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED","PAYMENT.CAPTURE.REVERSED"].every(x=>events.has(x)||events.has("*"));
   return {ready:atomic.ready===true&&Boolean(atomic.merchant_id)&&
      edge?.enabled===true&&edge?.version===1&&webhookReady,
      merchant_id:atomic.merchant_id};
@@ -867,6 +867,29 @@ async function premiumOneTimeWebhook(payload,env){
       merchant_id:claim.purchase.provider_merchant_id
     });
     return asJson({...record,recorded:true});
+  }
+  if(kind==="PAYMENT.CAPTURE.REVERSED"){
+    const captureId=payload.resource?.id,eventId=payload.id;
+    if(!ORDER_ID.test(captureId||"")||!PAYPAL_EVENT_ID.test(eventId||""))
+      return null;
+    let claim;
+    try{claim=await signLedger(env,"premium_one_time_lookup_capture",{paypal_capture_id:captureId})}
+    catch(_){return null}
+    if(claim.purchase.status==="reversed")return asJson({ok:true,duplicate:true});
+    const amount=payload.resource?.amount;
+    if(amount?.currency_code!=="USD"||cents(amount.value)!==PREMIUM_ONE_TIME_CENTS)
+      return asError("premium_reversal_amount_unverified",409);
+    const captured=await paypal(env,"/v2/payments/captures/"+encodeURIComponent(captureId));
+    if(captured?.id!==captureId||
+       captured.amount?.currency_code!=="USD"||
+       cents(captured.amount.value)!==PREMIUM_ONE_TIME_CENTS||
+       captured.payee?.merchant_id!==claim.purchase.provider_merchant_id)
+      return asError("premium_reversal_provider_identity_unverified",409);
+    const result=await signLedger(env,"premium_one_time_reverse",{
+      paypal_capture_id:captureId,paypal_reversal_event_id:eventId,
+      merchant_id:claim.purchase.provider_merchant_id
+    });
+    return asJson({...result,recorded:true});
   }
   return null;
 }
