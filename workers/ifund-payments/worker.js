@@ -874,7 +874,6 @@ async function premiumOneTimeWebhook(payload,env){
     let claim;
     try{claim=await signLedger(env,"premium_one_time_lookup_capture",{paypal_capture_id:captureId})}
     catch(_){return null}
-    if(claim.purchase.status==="refunded")return asJson({ok:true,duplicate:true});
     if(receipt?.id!==refundId||receipt.status!=="COMPLETED"||
       receipt.amount?.currency_code!=="USD"||
       cents(receipt.amount.value)!==PREMIUM_ONE_TIME_CENTS)
@@ -893,7 +892,6 @@ async function premiumOneTimeWebhook(payload,env){
     let claim;
     try{claim=await signLedger(env,"premium_one_time_lookup_capture",{paypal_capture_id:captureId})}
     catch(_){return null}
-    if(claim.purchase.status==="reversed")return asJson({ok:true,duplicate:true});
     const amount=payload.resource?.amount;
     if(amount?.currency_code!=="USD"||cents(amount.value)!==PREMIUM_ONE_TIME_CENTS)
       return asError("premium_reversal_amount_unverified",409);
