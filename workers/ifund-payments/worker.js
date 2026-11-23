@@ -824,6 +824,22 @@ async function premiumOneTimeStatus(req,env){
   if(!access)return asError("sign_in_required",401);
   return asJson(await signLedger(env,"premium_one_time_status",{member_access_token:access}));
 }
+async function verifyPremiumCaptureOwnership(env,purchase,captureId){
+  if(!ORDER_ID.test(purchase?.paypal_order_id||"")||!ORDER_ID.test(captureId||""))
+    throw Error("premium_capture_owner_unresolved");
+  const order=await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(purchase.paypal_order_id));
+  const units=Array.isArray(order?.purchase_units)?order.purchase_units:[];
+  const unit=units.length===1?units[0]:null;
+  const captures=Array.isArray(unit?.payments?.captures)?unit.payments.captures:[];
+  if(order?.id!==purchase.paypal_order_id||!unit
+    ||unit.reference_id!=="ifund-premium-one-time"
+    ||unit.custom_id!==purchase.custom_id
+    ||unit.payee?.merchant_id!==purchase.provider_merchant_id
+    ||unit.amount?.currency_code!=="USD"||cents(unit.amount.value)!==499
+    ||captures.length!==1||captures[0]?.id!==captureId)
+    throw Error("premium_capture_ownership_unverified");
+  return true;
+}
 async function premiumOneTimeWebhook(payload,env){
   // Refunds and already-completed purchases must reconcile after enrollment
   // is paused. Never abandon financial events when a feature flag is turned off.
@@ -845,23 +861,25 @@ async function premiumOneTimeWebhook(payload,env){
   }
   if(kind==="PAYMENT.CAPTURE.REFUNDED"){
     const refundId=payload.resource?.id;
-    const captureId=payload.resource?.supplementary_data?.related_ids?.capture_id;
-    if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(captureId||""))return null;
+    if(!ORDER_ID.test(refundId||""))return null;
+    // Read the immutable PayPal refund: webhooks may omit capture_id, and
+    // PayPal can expose it through the refund's supplementary related_ids.
+    const receipt=await paypal(env,"/v2/payments/refunds/"+encodeURIComponent(refundId));
+    const captureId=receipt?.supplementary_data?.related_ids?.capture_id||
+      payload.resource?.supplementary_data?.related_ids?.capture_id;
+    if(!ORDER_ID.test(captureId||""))return null;
+    const eventCapture=payload.resource?.supplementary_data?.related_ids?.capture_id;
+    if(eventCapture&&eventCapture!==captureId)
+      return asError("premium_refund_capture_identity_conflict",409);
     let claim;
     try{claim=await signLedger(env,"premium_one_time_lookup_capture",{paypal_capture_id:captureId})}
     catch(_){return null}
     if(claim.purchase.status==="refunded")return asJson({ok:true,duplicate:true});
-    const receipt=await paypal(env,"/v2/payments/refunds/"+encodeURIComponent(refundId));
     if(receipt?.id!==refundId||receipt.status!=="COMPLETED"||
       receipt.amount?.currency_code!=="USD"||
-      cents(receipt.amount.value)!==PREMIUM_ONE_TIME_CENTS||
-      receipt.supplementary_data?.related_ids?.capture_id!==captureId)
+      cents(receipt.amount.value)!==PREMIUM_ONE_TIME_CENTS)
       return asError("premium_refund_receipt_unverified",409);
-    // A refund event must match the immutable captured purchase, including its merchant.
-    const captured=await paypal(env,"/v2/payments/captures/"+encodeURIComponent(captureId));
-    if(captured?.id!==captureId||(captured.payee?.merchant_id&&
-       captured.payee.merchant_id!==claim.purchase.provider_merchant_id))
-       return asError("premium_refund_merchant_mismatch",409);
+    await verifyPremiumCaptureOwnership(env,claim.purchase,captureId);
     const record=await signLedger(env,"premium_one_time_refund",{
       paypal_capture_id:captureId,paypal_refund_id:refundId,
       merchant_id:claim.purchase.provider_merchant_id
@@ -879,12 +897,7 @@ async function premiumOneTimeWebhook(payload,env){
     const amount=payload.resource?.amount;
     if(amount?.currency_code!=="USD"||cents(amount.value)!==PREMIUM_ONE_TIME_CENTS)
       return asError("premium_reversal_amount_unverified",409);
-    const captured=await paypal(env,"/v2/payments/captures/"+encodeURIComponent(captureId));
-    if(captured?.id!==captureId||
-       captured.amount?.currency_code!=="USD"||
-       cents(captured.amount.value)!==PREMIUM_ONE_TIME_CENTS||
-       captured.payee?.merchant_id!==claim.purchase.provider_merchant_id)
-      return asError("premium_reversal_provider_identity_unverified",409);
+    await verifyPremiumCaptureOwnership(env,claim.purchase,captureId);
     const result=await signLedger(env,"premium_one_time_reverse",{
       paypal_capture_id:captureId,paypal_reversal_event_id:eventId,
       merchant_id:claim.purchase.provider_merchant_id
