@@ -8,7 +8,7 @@ const here=dirname(fileURLToPath(import.meta.url));
 const source=readFileSync(resolve(here,'../../apps/web/functions/api/payments/sandbox/[[path]].js'),'utf8');
 const importLine='import {onRequest as sandboxCheckout} from "../../paypal/sandbox/[[path]].js";';
 assert.ok(source.includes(importLine),'sandbox alias import must match tested source');
-const executable=source.replace(importLine,'const sandboxCheckout = globalThis.__sandboxCheckout;');
+const executable=source.replace(importLine,'const sandboxCheckout = (...args) => globalThis.__sandboxCheckout(...args);');
 const moduleUrl='data:text/javascript;base64,'+Buffer.from(executable).toString('base64');
 const {onRequest}=await import(moduleUrl);
 
