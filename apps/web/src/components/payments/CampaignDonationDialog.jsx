@@ -209,7 +209,6 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c5d6ee] bg-white px-3 py-1 text-[11px] font-semibold text-[#003087]"><LockKeyhole className="h-3.5 w-3.5" /> Secure checkout by PayPal</span>
         </div>
         <DialogTitle className="pr-9 text-xl font-bold leading-snug text-[#11264b] sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
-<<<<<<< HEAD
         <DialogDescription className="text-sm text-slate-600">{sandboxMode
           ?"SANDBOX TEST ONLY - no real money, donation or withdrawal will be recorded. Use a PayPal sandbox Personal buyer account."
           :"Review your payment before approving it securely with PayPal. You do not need an iFund account, and you can choose to donate as a guest. PayPal decides whether guests can pay by card. Guest donations are not automatically added to an iFund giving history."}</DialogDescription>
@@ -218,16 +217,6 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />{sandboxMode?"Sandbox capture verified. No real donation was recorded.":"Donation verified with PayPal and recorded. Thank you!"}</p>
         <p className="text-sm">{sandboxMode?"This is a test receipt only. It is excluded from financial totals and withdrawals.":"If you were signed in, you can find your verified receipt in My Giving. Guest donations are private and are not automatically added to an iFund giving history."}</p>
         {!sandboxMode&&<Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>}
-=======
-        <DialogDescription className="text-sm text-slate-600">{sandboxMode
-          ?"SANDBOX TEST ONLY — no real money, donation or withdrawal will be recorded. Use a PayPal sandbox Personal buyer account."
-          :"Review your entire payment before approving it securely with PayPal. No IFund account is needed."}</DialogDescription>
-      </DialogHeader>
-      {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-        <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />{sandboxMode?"Sandbox capture verified. No real donation was recorded.":"Donation verified with PayPal and recorded. Thank you!"}</p>
-        <p className="text-sm">{sandboxMode?"This is a test receipt only. It is excluded from financial totals and withdrawals.":"Signed-in donors can find their verified campaign receipts in My Giving. Guest donations remain private and are not automatically assigned to an account."}</p>
-        {!sandboxMode&&<Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>}
->>>>>>> origin/ifund/agent-5-integration-20261120
       </div>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div className="space-y-2">
