@@ -38,7 +38,7 @@ test("Card subscription uses owner-bound signed PayPal flow; no Orders v2 captur
 });
 test("Card checkout communicates provider availability and no premature entitlement",()=>{
   assert.match(card,/depending on eligibility/i);
-  assert.match(card,/no card option appears/i);
+  assert.match(card,/if it does not, this recurring card option is unavailable/i);
   assert.match(card,/Premium activates only after a verified payment receipt/);
   assert.match(page,/<PremiumBillingChoices/);
   assert.match(chooser,/<CardSubscriptionCheckout/);
