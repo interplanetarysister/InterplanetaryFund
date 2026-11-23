@@ -853,6 +853,13 @@ async function premiumOneTimeWebhook(payload,env){
     let claim;
     try{claim=await signLedger(env,"premium_one_time_lookup",{paypal_order_id:orderId})}
     catch(_){return null}
+    // A delayed capture notification must never revive a refunded/reversed
+    // purchase. Verify it identifies the same immutable capture and acknowledge.
+    if(["refunded","reversed"].includes(claim.purchase.status)){
+      if(payload.resource?.id!==claim.purchase.paypal_capture_id)
+        return asError("premium_stale_capture_identity_mismatch",409);
+      return asJson({ok:true,ignored:true,reason:"purchase_already_reversed"});
+    }
     const proof=await verifyPremiumOneTimeCapture(env,orderId,claim.purchase);
     if(payload.resource?.id!==proof.paypal_capture_id)
       return asError("premium_capture_webhook_mismatch",409);
