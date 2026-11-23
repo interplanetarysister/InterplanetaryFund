@@ -117,3 +117,39 @@ Branch `reconcile/agent1-frontend-20261122` (created from `origin/main` at `0f9a
 - `0c50c169` - three repairs found by running the suites first (repair-before-check discipline): (1) `workers/ifund-payments/capture-refund-boundary.test.mjs` now splices the real `premiumOneTimeWebhook` so its non-live fail-closed gate is exercised instead of throwing `ReferenceError`; (2) `tests/stitch-design-reference-contract.test.mjs` normalizes CRLF so the LF-written contract enforces identically under `core.autocrlf=true` (pre-existing on origin/main); (3) `tests/function-security.test.js` explicitly reviewed and allowlisted the four mutating SECURITY DEFINER functions introduced by main's `b1ea6748` migrations (`ifund_ai_content_reserve/complete/status`, `ifund_subscription_runtime.sync_verified_premium_entitlement`), each with a written justification: auth.uid()-scoped, provider-verified entitlement, no financial or cross-user authority, EXECUTE revoked from public/anon/authenticated.
 
 Verification actually run on this branch: targeted layout/cosmic/wizard batch 77/77 and 18/18; full web suite 1190/1190 pass; full root suite 1058/1058 pass (both exit 0). Route-readiness gate, authenticated role-matrix acceptance, and browser viewport acceptance remain BLOCKED/UNVERIFIED as recorded above; no credential was present and none was simulated.
+
+## Addendum - final shared-branch + origin/main integration and test results (2026-11-23)
+
+Branch `reconcile/agent1-frontend-20261122` tip `024d1fcb`; local `main` fast-forwarded by `--ff-only` merge with it. All reconciliation work is committed on the branch; nothing was force-pushed or rebased.
+
+### Shared branch (agent-5) merge
+
+- `dead5bc2 merge(agent-5): integrate shared integration branch 76 commits into reconcile (main-favoring conflicts resolved)`
+- Conflicts resolved per matrix: `CampaignStrategy.jsx`, `Home.jsx`, `CreateCampaign.jsx` ? main; line-level merges for `CampaignDonationDialog.jsx` (main wording + sandbox-aware), `worker.js` (BASIC_MONTHLY_PLAN main side), `teamQuestion.js` (main approved-skills + branch history/practice), `campaignDocumentAvailability.mjs` (main comment); auto-merges audited: `campaign-wide-editorial-review.test.js` (both), `ifund-payment-ledger/index.ts` (main's strict \$4.99/admin guards).
+
+### origin/main 2026-11-23 merge (5a88e690 + Premium direct-card checkout series)
+
+- `2c32c853 chore(merge): integrate origin/main (Premium direct-card checkout) favoring newest main` (clean)
+- Worker fixes: `exactBasicPlan(plan)` reverted to 1-param (new-main shape); `subscriptionReadiness`/`subscriptionPlans`/`startSubscription` aligned to new main (literal `BASIC_MONTHLY_PLAN.plan_id` P-8RG, no `IFUND_BASIC_MONTHLY_PAYPAL_PLAN_ID`); removed branch's Pages alias (`/api/payments/sandbox`) + cookie rewrite (new main = `/api/paypal/sandbox`); retargeted `CampaignDonationDialog.jsx` sandbox calls to `/api/paypal/sandbox/*`; `node --check workers/ifund-payments/worker.js` passes.
+- New fix branches triaged: `fix/premium-direct-card-visibility-20261123` and `fix/recurring-card-checkout-truthful-gates-20261123` are BOTH ancestors of origin/main (contained; no unique commits, nothing to merge).
+- Branch-native tests deleted (not in origin/main; their subjects are branch-only designs now superseded by newer main): `command-center-creator-separation.test.mjs`, `sandbox-alias-cookie-scope.test.mjs`, `dual-mode-gateway.test.mjs`, `subscription-five-dollar-safe-contract.test.mjs`, `r2-reviewed-inventory-negative-qa.test.mjs`, `qa-r2-reviewed-inventory-boundary.test.mjs`; `CampaignStrategy.jsx`/`CreateCampaign.jsx` checked out from origin/main; `worker/services/privateDocumentErasure.js` + `worker/index.js` checked out from origin/main.
+- Session PR #362 features preserved: `campaignSetupPayload` `image_style`/`image_caption` (merged, new main-compatible) and `CampaignImageChoices` `initialStyle/initialCaption/onSettingsChange`; `apps/web/tests/campaign-wizard-persistence.test.js` Save-draft assertions adapted to the new-main three-page flow (Save draft on steps 0-1, final save/publish on step 2).
+
+### Test results on the integrated state (2026-11-23)
+
+- Root suite: `npm.cmd test` exit 0, failing tests 0 (prior intermediate failures repaired; rerun after each repair).
+- Web suite: `npm.cmd test` (apps/web) exit 0.
+- `node --check workers/ifund-payments/worker.js` exit 0.
+
+### Constraints honored
+
+- Private R2 document deletion remains fenced/disabled per origin/main's `privateDocumentErasure.js` (no frontend-only enable).
+- No GitHub Actions, no preview/production publication, no new Cloudflare/Supabase/R2 changes.
+- 7% withdrawal fee untouched.
+
+### Still BLOCKED / UNVERIFIED (no credentials present)
+
+- `CLOUDFLARE_API_TOKEN` absent (route gate, Wrangler, preview).
+- `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PROJECT_REF`, `IFUND_QA_PROVISION_APPROVED` absent (QA identities, authenticated role matrix).
+- Authenticated browser acceptance, production deployment SHA verification, live provider verification: BLOCKED/UNVERIFIED.
+- Six specialist subagent audits: no results produced (recorded in checkpoint).
