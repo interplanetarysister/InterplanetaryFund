@@ -81,3 +81,54 @@ test('inventory is scoped to authenticated deletion owner, never caller request 
  assert.equal(Object.hasOwn(inventory.args,'p_request_id'),false);
  assert.equal(h.calls.find(x=>x.name==='ifund_super_admin_account_deletion_queue').args.p_limit,200);
 });
+
+test('invalidated administrator session rejects before inventory or receipt reads',async()=>{
+ const calls=[];let receipts=0;
+ const rpc=async(name,args,jwt)=>{
+  calls.push({name,args,jwt});
+  throw Error('JWT session revoked');
+ };
+ await assert.rejects(reviewedR2Inventory({
+  requestId,jwt:'revoked-synthetic-jwt',rpc,
+  resolveReceipt:async()=>{receipts++;return receipt;}
+ }),/JWT session revoked/);
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].name,'ifund_super_admin_private_document_reviewed_queue');
+ assert.equal(receipts,0);
+});
+test('missing administrator JWT rejects without contacting backend',async()=>{
+ let calls=0;
+ await assert.rejects(reviewedR2Inventory({
+  requestId,jwt:'',rpc:async()=>{calls++;return [];},
+  resolveReceipt:async()=>{calls++;return receipt;}
+ }),/Invalid authenticated inventory request/);
+ assert.equal(calls,0);
+});
+test('duplicate reviewed queue authorization fails before owner inventory',async()=>{
+ const calls=[];
+ const rpc=async(name)=>{
+  calls.push(name);
+  if(name==='ifund_super_admin_private_document_reviewed_queue')
+   return [{request_id:requestId,review_ready:true},{request_id:requestId,review_ready:true}];
+  throw Error('Should not reach deletion queue');
+ };
+ await assert.rejects(reviewedR2Inventory({
+  requestId,jwt:'synthetic-admin-jwt',rpc,resolveReceipt:async()=>receipt
+ }),/Private document review is not authorized/);
+ assert.deepEqual(calls,['ifund_super_admin_private_document_reviewed_queue']);
+});
+test('duplicate owner deletion request fails before private document inventory',async()=>{
+ const calls=[];
+ const rpc=async(name)=>{
+  calls.push(name);
+  if(name==='ifund_super_admin_private_document_reviewed_queue')
+   return [{request_id:requestId,review_ready:true}];
+  if(name==='ifund_super_admin_account_deletion_queue')
+   return [0,1].map(()=>({request_id:requestId,request_status:'reviewing',requested_user_id:ownerId}));
+  throw Error('Should not reach inventory');
+ };
+ await assert.rejects(reviewedR2Inventory({
+  requestId,jwt:'synthetic-admin-jwt',rpc,resolveReceipt:async()=>receipt
+ }),/Deletion request owner cannot be authenticated/);
+ assert.equal(calls.includes('ifund_super_admin_private_document_inventory'),false);
+});
