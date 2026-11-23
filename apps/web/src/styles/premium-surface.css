@@ -1,0 +1,66 @@
+/* Interplanetary Fund professional material layer.
+   Contract: docs/design/IFUND_FRONTEND_QUALITY_CONTRACT_20261120.md
+   Reconciled 2026-11-22 from PR #350 against current main (0f9a8061).
+   Verified scope decisions:
+   - Shared page geometry is rendered by src/styles-cosmic-refinement.css (newer:
+     symmetric local asset, drift animation with reduced-motion and print guards,
+     Earth-dashboard scoping). This file intentionally does NOT define background
+     geometry, so the rendered surface and ifund-preserve-earth stay unchanged.
+   - The floating two-button rail (Account + Ask IFund) is owned by
+     src/styles/agent-companion.css. This file must never reposition it; it only
+     adds the missing contract guards: contrast, print, and 320px collapse.
+   - Decorative assets stay local (public/*.svg): no external requests, no paid
+     assets, no fixed page attachment, no unguarded animation. */
+
+:root {
+  --ifund-surface-line: rgba(88, 117, 174, .12);
+  --ifund-surface-wash: rgba(78, 140, 208, .085);
+  --ifund-surface-depth: 0 18px 48px rgb(18 39 73 / .07);
+}
+.dark {
+  --ifund-surface-line: rgba(157, 188, 239, .14);
+  --ifund-surface-wash: rgba(81, 132, 225, .11);
+  --ifund-surface-depth: 0 20px 56px rgb(0 0 0 / .23);
+}
+
+/* Contract: meaningful focus indication on every interactive surface. */
+.ifund-shell :where(button, a):focus-visible,
+.ifund-public :where(button, a):focus-visible {
+  outline-offset: 3px;
+}
+
+/* Contract: decorative geometry must not compete with high-contrast reading.
+   `!important` is required to suppress the newer geometry layer, which marks
+   its background declarations important; accessibility wins over decoration. */
+@media (prefers-contrast: more) {
+  .ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-shell [data-page-scroll],
+  .ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-public:not(.ifund-auth) {
+    background-image: none !important;
+  }
+  .ifund-global-companion-shell .ifund-global-agent-launcher {
+    border-width: 2px;
+    border-color: #b3f5ff;
+  }
+}
+
+/* Contract: fixed layers must not print or obscure paper output. */
+@media print {
+  .ifund-global-companion-shell .ifund-global-agent-launcher,
+  .ifund-global-companion-shell .ifund-global-account-launcher,
+  .ifund-global-companion-shell .ifund-tour-card {
+    display: none !important;
+  }
+}
+
+/* Contract: 320px support. Keep the verified rail positions (right/bottom are
+   owned by agent-companion.css) while tightening the pill so Ask IFund, the
+   Account pill and the left-anchored quick-actions FAB keep safe margins. */
+@media (max-width: 360px) {
+  .ifund-global-companion-shell .ifund-global-agent-launcher {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  .ifund-global-companion-shell .ifund-global-agent-launcher svg:last-child {
+    display: none;
+  }
+}

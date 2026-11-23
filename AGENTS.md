@@ -1,3 +1,7 @@
+## Permanent premium frontend quality requirement (owner directive — 2026-11-20)
+
+Every visible iFund surface—including public pages, member dashboard, campaign wizard, dialogs, agent chat, administration, mobile/PWA, and error/loading states—must meet the professional design and UX acceptance contract in [IFUND_FRONTEND_QUALITY_CONTRACT_20261120.md](docs/design/IFUND_FRONTEND_QUALITY_CONTRACT_20261120.md). Before any UI change, inspect CSS cascade, fixed elements, responsive breakpoints, navigation and contrast. Never let Ask IFund overlap the quick-actions + button or let decorative geometry become unbalanced, low-contrast, or visually noisy. Preserve distinct source files; use a coherent shared design layer. Test real mobile/desktop rendering and repair defects before release. A passing bundle alone does not meet this bar.
+
 ## Mandatory repair-first build sequence (owner directive — 2026-11-20)
 
 Before executing automated checks, tests, preview/production builds or deployments, inspect affected code, its dependencies, recent regressions and active runtime contracts. Repair all identifiable defects first and add regression assertions. **Only then run checks and builds.** When checks reveal new defects, repair them and rerun. A green build cannot replace this proactive audit, and a successful preview is not authenticated end-to-end acceptance. Preserve existing release, security and payment controls.

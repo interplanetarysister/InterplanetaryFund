@@ -3,6 +3,7 @@
 @import "./styles-ifund-studio.css";
 @import "./styles-studio.css";
 @import "./styles-cosmic-refinement.css";
+@import "./styles/premium-surface.css";
 
 @tailwind base;
 @tailwind components;
