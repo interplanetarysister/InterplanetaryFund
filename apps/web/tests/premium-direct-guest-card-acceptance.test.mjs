@@ -13,13 +13,16 @@ test("Direct guest card option is prominent and defaults to one-time, not recurr
   assert.ok(chooser.indexOf('id:"card"')<chooser.indexOf('id:"paypal"'));
   assert.match(chooser,/no PayPal account needed/);
   assert.match(once,/Pay by card · \$4\.99 USD once/);
-  assert.match(once,/Pay \$4\.99 once — no renewal/);
+  assert.match(once,/Pay \$4\.99 now — one month, no renewal/);
 });
 test("One-time readiness requires a verified signed-in member before hosted fields load",()=>{
   assert.match(once,/memberToken\(\)\.then\(token=>api\(API\+"\/readiness"/);
   assert.match(once,/authorization:"Bearer "\+token/);
   assert.match(once,/if\(!ready\)return/);
   assert.match(once,/card\.isEligible\(\)/);
+  assert.match(once,/if\(method==="paypal"\)/);
+  assert.match(once,/if\(!ready\)return <div/);
+  assert.match(once,/disabled aria-disabled="true"/);
   assert.match(once,/!cardReady\|\|busy/);
 });
 test("First live checkout requires verified super admin and atomic service role gate",()=>{
