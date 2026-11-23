@@ -25,7 +25,7 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
   // Bound receipt RPC work to the same ten-object deletion batch. Never resolve
   // 100 authenticated receipts merely to return ten; retries re-query the queue.
   const rows = await rpc('ifund_super_admin_private_document_inventory',
-    { p_request_id: requestId, p_limit: 10 }, jwt);
+    { p_owner_id: ownerId, p_limit: 10 }, jwt);
   if (!Array.isArray(rows) || rows.length > 10) throw Error('Invalid private document inventory');
   const verified = [];
   const seen = new Set();
@@ -49,7 +49,7 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
         receipt.deletion_requested_at !== row.deletion_requested_at ||
         receipt.allow_agent_use !== false)
       throw Error('Authenticated immutable metadata receipt mismatch');
-    verifyDocumentIdentity({ ...row, object_verified_at: receipt.object_verified_at }, ownerId);
+    verifyDocumentIdentity({ ...receipt, document_id: row.document_id }, ownerId);
     verified.push(Object.freeze({ ...row, object_verified_at: receipt.object_verified_at }));
   }
   return boundedDocumentBatch(verified);
