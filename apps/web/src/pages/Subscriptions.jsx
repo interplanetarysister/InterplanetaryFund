@@ -30,19 +30,24 @@ export default function Subscriptions(){
   const [status,setStatus]=useState(null);
   const [statusLoad,setStatusLoad]=useState("loading");
   const [providerVerified,setProviderVerified]=useState(false);
+  const [oneTimePurchase,setOneTimePurchase]=useState(null);
   const [busy,setBusy]=useState("");
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const query=useMemo(()=>new URLSearchParams(window.location.search),[]);
   const native=isNativeBundle();
+  const oneTimeActive=oneTimePurchase?.status==="captured"&&
+    Number.isFinite(Date.parse(oneTimePurchase?.valid_until||""))&&
+    Date.parse(oneTimePurchase.valid_until)>Date.now();
 
   const refresh=useCallback(async()=>{
     // Plans are public; an unavailable private status endpoint must not hide
     // the catalog or falsely imply that a user has no paid subscription.
     setStatusLoad("loading");
-    const [catalog,current]=await Promise.allSettled([
+    const [catalog,current,oneTime]=await Promise.allSettled([
       call("/api/payments/subscriptions/plans"),
-      call("/api/payments/subscriptions/status",{auth:true})
+      call("/api/payments/subscriptions/status",{auth:true}),
+      call("/api/payments/premium-one-time/status",{auth:true})
     ]);
     if(catalog.status==="fulfilled" && Array.isArray(catalog.value.plans)) {
       setPlans(catalog.value.plans);
@@ -50,6 +55,7 @@ export default function Subscriptions(){
       setPlans([]);
       setError("Subscription plans are temporarily unavailable. Please retry.");
     }
+    setOneTimePurchase(oneTime.status==="fulfilled"?oneTime.value.purchase||null:null);
     if(current.status==="fulfilled") {
       setStatus(current.value.subscription||null);
       setProviderVerified(current.value.provider_verified===true);
@@ -126,9 +132,16 @@ export default function Subscriptions(){
 
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Your subscription</h2>
+      {oneTimeActive&&<div role="status" className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 text-sm">
+        <p><strong>Premium · one-month purchase</strong></p>
+        <p className="mt-1">Access expires {new Date(oneTimePurchase.valid_until).toLocaleString()}.</p>
+        <p className="mt-1 text-muted-foreground">Paid once. No automatic renewal or recurring payment agreement.</p>
+      </div>}
+      {oneTimePurchase?.status==="refunded"||oneTimePurchase?.status==="reversed"?
+        <p className="mt-2 text-sm text-muted-foreground">Your previous one-month Premium payment was refunded or reversed; it no longer provides access.</p>:null}
       {statusLoad==="loading"?<p role="status" className="mt-2 text-sm text-muted-foreground">Checking verified subscription status…</p>:
       statusLoad==="unavailable"?<div role="alert" className="mt-2 space-y-3 text-sm text-amber-600"><p>Your subscription status could not be verified. Existing paid access has not been changed. Checkout is paused until account status is confirmed.</p><button type="button" disabled={busy!==""} onClick={()=>refresh().catch(e=>setError(e.message))} className="min-h-11 rounded-xl border border-current px-4 py-2 font-semibold disabled:opacity-50">Retry subscription verification</button></div>:
-      !status?<p className="mt-2 text-sm text-muted-foreground">No paid subscription is recorded for this account.</p>:
+      !status?<p className="mt-2 text-sm text-muted-foreground">{oneTimeActive?"No recurring subscription is scheduled.":"No paid subscription is recorded for this account."}</p>:
         <div className="mt-3 space-y-2 text-sm">
           <p><strong>{PLAN_NAMES[status.tier]||status.tier}</strong> · {status.interval} · <span className="capitalize">{status.status}</span></p>
           {status.last_payment_at&&<p>Last verified payment: {new Date(status.last_payment_at).toLocaleString()}</p>}
@@ -155,7 +168,7 @@ export default function Subscriptions(){
           <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>Verified Premium payment</div>
           {plan.tier==="basic"&&plan.interval==="monthly"?
             <PremiumBillingChoices plan={plan} status={status} statusLoad={statusLoad}
-              busy={busy} native={native} onSubscribe={subscribe}/>:
+              busy={busy} native={native} oneTimeActive={oneTimeActive} onSubscribe={subscribe}/>:
           <>
           <button type="button" disabled={!canBegin}
             onClick={()=>subscribe(plan)}
