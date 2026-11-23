@@ -197,3 +197,25 @@ Verified via `git show origin/main:<file>` string checks:
 
 - Browser acceptance (real user/member flows) - BLOCKED/UNVERIFIED: no `CLOUDFLARE_API_TOKEN` (Wrangler/preview impossible) and no authenticated-browser credentials. Not fabricated.
 - Route verification (live-browser) - expected to stay fail-closed; route gate exit 1 recorded.
+
+## Addendum - route audit + browser acceptance status (2026-11-23)
+
+### Route audit (`apps/web/ci/verify-route-readiness.mjs`, main @ 2fc04455)
+
+- Gate output (UTF-16LE, parsed): **89 routes missing source+test acceptance** and **36 routes missing backend authorization evidence** (overlapping set, not_verified by design). Sample of 89: `*`, `/`, `/about`, `/activate`, `/admin` (×7), `/agents`, `/ai-images`, `/analytics`, `/atlas`, `/auth/callback`, `/auth/mobile-callback`, `/blog`, `/blogs`, `/campaign/:id`, `/campaigns`, `/campaigns/:id/edit`, `/communications`, `/community`, `/connect`, `/connections`, `/contact`, `/create`, `/dashboard`, `/delete-account`, `/devices`, `/discover`, `/donors`, `/download`, `/embed/campaign/:id`, `/engagement`, `/finances`, `/following`, `/forgot-password`, `/founding-members`, `/fundraising-partners`, `/giving`, `/globe`, `/hackathon`, `/hackathon/tracker`, `/health-privacy`, `/help`, `/help/:slug`, `/inbox`, `/institutions`, `/institutions/:id`, `/ledger`, `/login`, `/mail`, `/messaging`, `/mission`, `/missions`, `/missions/:id`, `/my-blog`, `/my-profile`, `/news`, `/notifications`, `/oauth/callback/:provider`, `/onboarding`, `/ops`, `/our-story`, `/p/:slug`, `/permissions`, `/plans`, `/platform`, `/privacy`, `/profile`, `/publication`, `/publications/:id`, `/register`, `/reset-password`, `/social`, `/social/post/:id`, `/strategy`, `/subscriptions`, `/support`, `/templates`, `/terms`, `/u/:id`, `/what-if`, `/withdrawals`.
+- Sample missing backend auth: `/admin`, `/admin/audit`, `/admin/deletions`, `/admin/finance`, `/admin/help`, `/admin/social-moderation`, `/admin/studio`, `/admin/sustainability`, `/ai-images`, `/analytics`, `/campaigns`, `/campaigns/:id/edit`, `/communications`, `/connections`, `/devices`, `/donors`, `/engagement`, `/finances`, `/following`, `/hackathon/tracker`, `/inbox`, `/mail`, `/messaging`, `/missions`, `/missions/:id`, `/my-blog`, `/notifications`, `/onboarding`, `/ops`, `/permissions`, `/platform`, `/profile`, `/publication`, `/strategy`, `/subscriptions`, `/support`.
+- Spot-check of `apps/web/src/pages`: page files exist for many routes (e.g., `Terms`, `Dashboard`, `Home`, `CreateCampaign`, `Atlas`); the gate's dominant gap is missing acceptance evidence, not obviously missing page implementations. No functional defects were repaired in this audit (none identified before budget exhaustion; the gate's fail-closed posture is preserved — preview/production compile stays blocked until acceptance evidence lands).
+
+### Browser acceptance (local, 320/390/desktop) — BLOCKED/UNVERIFIED
+
+- No Playwright installed: no `playwright` binary in `apps/web/node_modules/.bin`, no `@playwright` package directory.
+- `vite preview` on 127.0.0.1:4817 did not stay in a listening state when attempted in the background.
+- No browser-automation credentials or runtime browser environment available. Local Playwright acceptance at 320/390/desktop was NOT run and NOT claimed.
+
+### Premium subscription checkout flow — source-verified fail-closed (priorities 3+4)
+
+- `PremiumOneTimeCheckout.jsx`: readiness gate requires `v.ready===true && v.auto_renews===false && v.amount_cents===499 && v.currency==="USD"` (non-renewing $4.99 only); `create-order` validates `response.amount_cents!==499 || response.currency!=="USD"` before continuing; backend `verifyPremiumOneTimeCapture` (origin/main worker) requires verified merchant, immutable order/capture match, merchant ID and amount before `signLedger("premium_one_time_finalize")`; entitlements granted via migration-gated admin-only acceptance (`20261123000005_premium_owner_only_checkout_acceptance.sql` — admin/verified/grant/revoke verified); direct-card/PayPal guest card cannot mint entitlement before verified provider capture + backend authorization (no live provider credentials present, not activated).
+
+### Pushes this session
+
+- `git push origin main` exit 0: `e8ac2bd0..2fc04455 main -> main`; origin/main = 2fc04455. Working tree clean.
