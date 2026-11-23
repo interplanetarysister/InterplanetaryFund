@@ -4,7 +4,7 @@ import { isNativeBundle } from "@/lib/nativeApi";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
-import CardSubscriptionCheckout from "@/components/subscriptions/CardSubscriptionCheckout";
+import PremiumBillingChoices from "@/components/subscriptions/PremiumBillingChoices";
 
 const PLAN_NAMES={
   basic:"Interplanetary Fund Premium",outreach:"AI Outreach Agent",professional:"Professional Outreach",
@@ -115,7 +115,7 @@ export default function Subscriptions(){
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
       <h1 className="font-display text-3xl font-bold">Plans & subscriptions</h1>
-      <p className="mt-2 text-muted-foreground">Recurring billing is verified against PayPal before IFund records paid access. Approval alone never activates a plan.</p>
+      <p className="mt-2 text-muted-foreground">Choose monthly automatic renewal or pay once for a month of Premium. Every payment is verified before paid access begins.</p>
     </header>
 
     {native&&<p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
@@ -152,14 +152,18 @@ export default function Subscriptions(){
           <h2 className="text-lg font-semibold">{name}</h2>
           <p className="mt-1 text-sm capitalize text-muted-foreground">{plan.interval}</p>
           <p className="mt-4 text-3xl font-bold">{verifiedSubscriptionPrice(plan)}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
-          <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>PayPal recurring billing</div>
+          <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>Verified Premium payment</div>
+          {plan.tier==="basic"&&plan.interval==="monthly"?
+            <PremiumBillingChoices plan={plan} status={status} statusLoad={statusLoad}
+              busy={busy} native={native} onSubscribe={subscribe}/>:
+          <>
           <button type="button" disabled={!canBegin}
             onClick={()=>subscribe(plan)}
             className="mt-5 min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
               native?"Unavailable in the mobile app":!available?"Provider verification pending":statusLoad!=="ready"?"Verify account status first":canBegin?"Subscribe with PayPal":"Subscription already pending or active"}
           </button>
-          <CardSubscriptionCheckout plan={plan} hasExistingSubscription={statusLoad!=="ready"||Boolean(status&&["active","pending","past_due","approval_pending"].includes(status.status))}/>
+          </>}
         </article>;
       })}
     </section>
