@@ -105,6 +105,11 @@ async function deleteOne({fetcher,url,key,owner,row}){
  }
 }
 export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,requestId,jwt}){
+  // Production stores private campaign documents in Cloudflare R2, not Supabase Storage.
+  // This legacy deletion implementation must never run against the live R2 contract:
+  // it cannot prove an owner-bound immutable object receipt or serialized deletion.
+  // Fail closed even if the historical feature flag is accidentally enabled.
+  throw Error("R2 private-document deletion requires verified identity-locked adapter.");
  const {url,key}=config(env);
  if(!UUID.test(requestId||"")||!jwt||!/^[\w.~-]+$/.test(jwt))
    throw Error("Verified deletion request and administrator session required.");

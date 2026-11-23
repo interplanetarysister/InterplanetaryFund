@@ -14,8 +14,9 @@ const base={
  category:"community",goal_amount:"1000",cover_image_url:"https://example.org/cover.jpg",
 };
 
-test("minimum 3,500 full-story characters block new publishing without blocking drafts",()=>{
+test("short stories are publishable; editorial length and repetition are advisory",()=>{
  const short={...base,story:"Useful details.".repeat(200)};
+ assert.equal(publishReadiness({...base,story:"A short, factual campaign story."}).ready,true, "No minimum story length");
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
  assert.equal(publishReadiness(short).ready,true);
  const long={...short,story:"Useful details.".repeat(250)};
@@ -92,12 +93,18 @@ test("owner-only discussion RPC rejects anonymous and cross-owner posting and av
  assert.match(board,/not proof of live agent discussion/);
 });
 
-test("server gate trims whitespace consistently before counting publication length",()=>{
- const sql=source("../../../supabase/migrations/20261113_ifund_prepublication_whitespace_alignment.sql");
- assert.match(sql,/regexp_replace/);
- assert.match(sql,/\[\[:space:\]\]/);
- assert.match(sql,/pg_catalog\.char_length\(v_story\)<3500/);
- assert.match(sql,/old\.status is distinct from 'active'/);
+test("historical 3500-character SQL gate is superseded by current no-minimum policy",()=>{
+ // This migration is immutable history, NOT the effective production trigger.
+ // A live DB trigger inspection is required separately before release approval.
+ const legacy=source("../../../supabase/migrations/20261113_ifund_prepublication_whitespace_alignment.sql");
+ assert.match(legacy,/pg_catalog\.char_length\(v_story\)<3500/);
+ assert.match(legacy,/old\.status is distinct from 'active'/);
+ for(const story of ["A short, factual campaign story.", "  Useful details.  "]) {
+   assert.equal(publishReadiness({...base,story}).ready,true,
+     "Current client publication readiness must not impose the historical 3500-character minimum");
+ }
+ assert.equal(publishReadiness({...base,story:"   "}).ready,false,
+   "Whitespace-only stories must still be rejected");
 });
 
 test("individual repeated sentences between summary and story are queued for review",()=>{

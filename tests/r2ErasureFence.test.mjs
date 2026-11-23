@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assertErasureFence} from '../worker/services/r2ErasureFence.mjs';
+const ownerId='11111111-1111-4111-8111-111111111111';
+const documentId='22222222-2222-4222-8222-222222222222';
+const receipt={object_etag:'"etag-a"',object_sha256:'a'.repeat(64),storage_path:`private/campaign-documents/${ownerId}/33333333-3333-4333-8333-333333333333/${documentId}.pdf`};
+const valid=()=>({document_id:documentId,owner_id:ownerId,fence_id:'44444444-4444-4444-8444-444444444444',version:1,state:'deleting',writers_blocked:true,object_etag:receipt.object_etag,object_sha256:receipt.object_sha256,storage_path:receipt.storage_path,expires_at:new Date(Date.now()+120000).toISOString()});
+const check=f=>assertErasureFence(f,{documentId,ownerId,receipt});
+test('valid writer-blocking fence',()=>assert.equal(check(valid()).version,1));
+for(const [name,change] of Object.entries({crossOwner:{owner_id:'55555555-5555-4555-8555-555555555555'},wrongDocument:{document_id:ownerId},unblocked:{writers_blocked:false},staleVersion:{version:0},wrongEtag:{object_etag:'"replacement"'},wrongHash:{object_sha256:'b'.repeat(64)},wrongPath:{storage_path:'other'},expired:{expires_at:'2020-01-01T00:00:00Z'},nearExpiry:{expires_at:new Date(Date.now()+1000).toISOString()},notDeleting:{state:'active'},noFenceId:{fence_id:null}}))test(`reject ${name}`,()=>assert.throws(()=>check({...valid(),...change}),/fence not verified/));

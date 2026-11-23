@@ -122,6 +122,19 @@ async function status(env,request){
     return json({...notReady,enabled:true,webhook_ready:true,database_ready:true});
   }catch{return json({...notReady,webhook_ready:true})}
 }
+async function publicSandboxConfig(env,request){
+  // Provider, webhook and receipt storage must all pass readiness before a
+  // sandbox SDK client ID becomes usable in checkout.
+  const readiness=await status(env,request);
+  const body=await readiness.json();
+  if(!body.enabled||!body.webhook_ready||!body.database_ready)
+    return fail("Sandbox checkout is not ready",503);
+  const id=env.IFUND_SANDBOX_BROKER
+    ?(await broker(env,"config")).client_id
+    :env.PAYPAL_CLIENT_ID;
+  if(typeof id!=="string"||!id)return fail("Sandbox SDK client unavailable",503);
+  return json({ok:true,mode:"sandbox",environment:"sandbox",client_id:id});
+}
 async function orders(env,request){
   if(!browserPost(request))return fail("Sandbox checkout requires a same-origin preview browser",403);
   const input=await bodyJson(request);
@@ -336,6 +349,8 @@ export async function onRequest({request,env,params}){
     return status(env,request);
   if(route==="diagnostics"&&request.method==="GET")
     return diagnostics(env,request);
+  if(route==="config"&&request.method==="GET")
+    return publicSandboxConfig(env,request);
   if(!["orders","capture","webhook"].includes(route))return fail("Route not found",404);
   if(request.method!=="POST")return fail("Method not allowed",405);
   if(!sandboxReady(env))return fail("PayPal sandbox is not configured",503);

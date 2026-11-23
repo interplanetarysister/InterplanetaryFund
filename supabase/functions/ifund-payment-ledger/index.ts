@@ -230,7 +230,7 @@ Deno.serve(async req=>{
       return Response.json({ok:true,plan:updated[0]||null});
     }
     if(body.op==="subscription_plans"){
-      const rows=await db("ifund_subscription_plans?select=tier,interval,amount_cents,currency,catalog_version,paypal_plan_id,paypal_product_id,active,verified_at&order=tier.asc,interval.asc");
+      const rows=await db("ifund_subscription_plans?select=tier,interval,amount_cents,currency,catalog_version,paypal_plan_id,paypal_product_id,active,verified_at,webhook_verified_at&order=tier.asc,interval.asc");
       return Response.json({ok:true,plans:rows});
     }
     // Non-renewing Premium purchases are entirely separate from campaign gifts
@@ -360,12 +360,14 @@ Deno.serve(async req=>{
       const p=body.data||{};
       const memberId=await resolveVerifiedDonor(p.member_access_token);
       if(!memberId)return fail("Verified member session required",401);
-      if(!["basic","outreach","professional","enterprise","nonprofit"].includes(p.tier)
-        ||!["monthly","annual"].includes(p.interval))return fail("Invalid subscription selection");
+      // Only the independently price-checked Basic monthly contract is supported here.
+      // Other tiers must remain unavailable until their own provider-backed pricing and webhook acceptance exist.
+      if(p.tier!=="basic"||p.interval!=="monthly")return fail("Subscription tier is not provider-verified",409);
       const plan=await findOne("ifund_subscription_plans?select=*&tier=eq."+encodeURIComponent(p.tier)
         +"&interval=eq."+encodeURIComponent(p.interval));
-      if(!plan||plan.active!==true||!planId.test(plan.paypal_plan_id||""))
-        return fail("Subscription plan is not provider verified",409);
+      if(!plan||plan.active!==true||plan.currency!=="USD"||plan.amount_cents!==499||
+        !plan.verified_at||!plan.webhook_verified_at||!planId.test(plan.paypal_plan_id||""))
+        return fail("The $4.99 plan requires matching PayPal and webhook verification",409);
       const current=await db("ifund_subscription_intents?select=id,status,paypal_subscription_id&member_id=eq."+memberId
         +"&status=in.(initiated,approval_pending,pending,active,past_due)&order=created_at.desc&limit=1");
       if(current.length)return fail("Manage the existing subscription before starting another",409);

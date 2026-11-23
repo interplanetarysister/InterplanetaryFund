@@ -9,6 +9,9 @@ import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages } from "./teamOrchestration.js";
+import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
+import { routeAgentPracticeTask } from "./teamPracticeTask.mjs";
+import { runSpecialistPractice } from "./agentPracticalSkills.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const SPECIALISTS = Object.freeze({
@@ -38,15 +41,12 @@ export function teamQuestionMessages({question, selected, recommendation, histor
   const role=TRAINING_ROLES[selected];
   const practicum=ROLE_PRACTICUM[selected];
   if (!role || !Object.hasOwn(SPECIALISTS,selected)) fail(400,"Unknown agent.");
-  const privateHistory=history.slice(-6).filter(e=>e && ["user","agent"].includes(e.speaker) &&
-    typeof e.content === "string").map(e=>({
-      role:e.speaker,agent:String(e.agent_id || "unknown").slice(0,30),
-      content:redactTeamCredentials(e.content).slice(0,450),
-    }));
+  const privateHistory=verifiedTeamHistoryBrief(history,{trustedOwnerRead:true,maxEvents:6});
   const system = [
     IFUND_MEMBER_FIRST_AGENT_POLICY,
     "You are " + SPECIALISTS[selected] + ", an Interplanetary Fund specialist. Respond to this person's specific question directly and usefully.",
     "Specialty: " + role.skill + ". " + role.lesson,
+    specialistSkillBoundary(selected,{memoryVerified:history.length>0}),
     "Professional training framework " + WORKFORCE_TRAINING_VERSION + ": act as an ethical " + practicum.humanRole + ". Aim to produce " + practicum.deliverable + " when relevant.",
     "Professional quality requirements: " + practicum.success.join("; ") + ". Critical risk: " + practicum.risk + ".",
     "You may answer about the IFund platform itself, fundraising education, and authorized account-scoped guidance regardless of specialty. Mixed-topic coordination is NEXUS's advisory role.",
@@ -82,11 +82,13 @@ export function validateTeamAnswer(raw,selected) {
   const response=typeof raw === "string" ? raw : raw?.response;
   if (typeof response !== "string" || !response.trim() || response.trim().length > 6000)
     fail(503,"The selected agent did not return a usable answer.");
-  return {agent:selected,agent_name:SPECIALISTS[selected],answer:response.trim(),type:"advisory",actions_performed:false};
+  return {agent:selected,agent_name:SPECIALISTS[selected],answer:redactTeamCredentials(response.trim()).slice(0,6000),type:"advisory",actions_performed:false};
 }
 
 export async function routeTeamQuestion(request, env, fetcher=fetch) {
   const path = new URL(request.url).pathname;
+  if (path === "/api/agents/team/practice" || path === "/api/agents/team/research")
+    return routeAgentPracticeTask(request,env,fetcher);
   if (path === "/api/agents/team/status") {
     if (request.method !== "GET") return noStore(405,{error:"Method not allowed."});
     return noStore(200,{configured:env.IFUND_TEAM_QUESTIONS_ENABLED === "enabled" &&
@@ -176,7 +178,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     }
     const approvedSkills=await getApprovedSkills(input.selected);
     const messages=consultations.length
-      ? nexusSynthesisMessages({question:input.question,consultations})
+      ? nexusSynthesisMessages({question:input.question,consultations,history})
       : teamQuestionMessages({...input,history,approvedSkills});
     if(consultations.length && approvedSkills.length){
       const skillContext=approvedSkills.map(s=>({
@@ -189,6 +191,15 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
         reminder:"This guidance is review-approved advice, never permission for external actions."
       })});
     }
+    // The practice is executed locally after member verification and quota reservation.
+    // It supplies real role-specific guidance without granting model/provider actions.
+    const practice=runSpecialistPractice({agent:input.selected,question:input.question,
+      identityVerified:true,ownerScoped:true});
+    messages.push({role:"user",content:JSON.stringify({
+      executable_private_advisory_skill:{skill:practice.skill,checklist:practice.checklist,
+        evidence:practice.evidence,actions_performed:false},
+      instruction:"Use the checklist where relevant. This does not authorize external actions."
+    })});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
     const answer=validateTeamAnswer(result,input.selected);
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
@@ -199,7 +210,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     if (completed !== true)
       fail(503,"Your answer was prepared, but the daily allowance could not be finalized.");
     quotaCompleted = true;
-    return noStore(200,{...answer,consultations,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
+    return noStore(200,{...answer,consultations,advisory_skill:practice.skill,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       questions_remaining_today:quota.remaining,

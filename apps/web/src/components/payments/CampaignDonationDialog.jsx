@@ -10,13 +10,15 @@ import { isNativeBundle } from "@/lib/nativeApi";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
-function loadPayPal(clientId) {
-  if (sdkPromise) return sdkClient === clientId ? sdkPromise : Promise.reject(new Error("Reload checkout: account changed"));
-  sdkClient = clientId;
+function loadPayPal(clientId, sandbox=false) {
+  const sdkKey=(sandbox?"sandbox:":"live:")+clientId;
+  if (sdkPromise) return sdkClient === sdkKey ? sdkPromise : Promise.reject(new Error("Reload checkout: account changed"));
+  sdkClient = sdkKey;
   sdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId)
-      + "&components=buttons,card-fields,googlepay&currency=USD&intent=capture";
+      + (sandbox?"&components=buttons":"&components=buttons,card-fields,googlepay")
+      + "&currency=USD&intent=capture";
     script.async = true;
     script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("Secure checkout is unavailable."));
     script.onerror = () => reject(new Error("Secure checkout is unavailable."));
@@ -46,11 +48,15 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
   const nativeCheckoutUnavailable = isNativeBundle();
+  // The preview site accepts only isolated PayPal sandbox payments.
+  const sandboxMode = typeof window !== "undefined" &&
+    /^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/.test(window.location.hostname);
+  const mode = sandboxMode ? "sandbox" : "live";
   const checkoutLocked=status==="capturing"||complete;
   const parsedGift=parseDonationCents(amount);
   const gift=parsedGift ?? 0;
   const valid=parsedGift !== null;
-  const tip=valid&&support?Math.round(gift*.10):0;
+  const tip=valid&&support&&!sandboxMode?Math.round(gift*.10):0;
   const quote = valid ? paymentQuoteCents(gift, tip) : null;
   const requestKey=channel=>{
     const key=[campaign?.id,gift,tip,channel].join("|");
@@ -60,6 +66,15 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const begin=async channel=>{
     if(!valid||!campaign?.id)throw new Error("Enter a donation of at least $1");
     if(campaign.status!=="active"||campaign.preview_only)throw new Error("This campaign is not accepting donations.");
+    if(sandboxMode){
+      if(tip!==0)throw new Error("Sandbox checkout cannot include platform support.");
+      if(gift>10000)throw new Error("Sandbox test amount must be between $1 and $100.");
+      const result=await api("/api/payments/sandbox/orders",{method:"POST",
+        body:JSON.stringify({campaign_id:campaign.id,amount_cents:gift})});
+      if(result.mode!=="sandbox"||!result.order_id)
+        throw new Error("Sandbox order could not be verified.");
+      return result.order_id;
+    }
     const key=requestKey(channel);
     let checkoutToken=checkoutTokens.current.get(key);
     if(!checkoutToken){
@@ -88,8 +103,16 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   };
   const capture=async data=>{
     const id=data?.orderID,token=tokens.current.get(id);
-    if(!id||!token)throw new Error("This payment needs review. No payment was confirmed.");
+    if(!id||(!sandboxMode&&!token))throw new Error("This payment needs review. No payment was confirmed.");
     setStatus("capturing");
+    if(sandboxMode){
+      const result=await api("/api/payments/sandbox/capture",{
+        method:"POST",body:JSON.stringify({order_id:id})});
+      if(result.mode!=="sandbox"||result.status!=="captured"||!result.capture_id)
+        throw new Error("Sandbox capture requires reconciliation.");
+      setComplete(true);setStatus("complete");
+      return; // Never credit a test receipt to My Giving or the real donation ledger.
+    }
     const result=await api("/api/payments/capture-order",{
       method:"POST",body:JSON.stringify({order_id:id,checkout_token:token}),
     });
@@ -105,10 +128,11 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     setError("");setStatus("loading");setEligible(null);
     (async()=>{
       try{
-        const config=await api("/api/payments/config");
+        const config=await api(sandboxMode?"/api/payments/sandbox/config":"/api/payments/config");
         if(cancelled)return;
-        if(config.environment!=="live"||!config.client_id)throw new Error("Live checkout is unavailable. No payment was started.");
-        const paypal=await loadPayPal(config.client_id);
+        if(config.environment!==mode||!config.client_id)
+          throw new Error((sandboxMode?"Sandbox test":"Live")+" checkout is unavailable. No payment was started.");
+        const paypal=await loadPayPal(config.client_id,sandboxMode);
         if(cancelled)return;
         const onApprove=async data=>{
           try{await capture(data);}catch(e){if(!cancelled){setError(e.message);setStatus("error");}}
@@ -148,7 +172,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         try{node?.replaceChildren();}catch(_){}
       }
     };
-  },[nativeCheckoutUnavailable,open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid]);
+  },[nativeCheckoutUnavailable,open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid,sandboxMode,mode]);
   // Native payment eligibility remains provider- and store-policy gated.
   // Preserve access to financial history while preventing an unusable PayPal
   // iframe or a misleading payment success state inside the native shell.
@@ -185,12 +209,25 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c5d6ee] bg-white px-3 py-1 text-[11px] font-semibold text-[#003087]"><LockKeyhole className="h-3.5 w-3.5" /> Secure checkout by PayPal</span>
         </div>
         <DialogTitle className="pr-9 text-xl font-bold leading-snug text-[#11264b] sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
-        <DialogDescription className="text-sm text-slate-600">Review your payment before approving it securely with PayPal. You do not need an iFund account, and you can choose to donate as a guest. PayPal decides whether guests can pay by card. Guest donations are not automatically added to an iFund giving history.</DialogDescription>
+<<<<<<< HEAD
+        <DialogDescription className="text-sm text-slate-600">{sandboxMode
+          ?"SANDBOX TEST ONLY - no real money, donation or withdrawal will be recorded. Use a PayPal sandbox Personal buyer account."
+          :"Review your payment before approving it securely with PayPal. You do not need an iFund account, and you can choose to donate as a guest. PayPal decides whether guests can pay by card. Guest donations are not automatically added to an iFund giving history."}</DialogDescription>
       </DialogHeader>
       {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-        <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />Donation verified with PayPal and recorded. Thank you!</p>
-        <p className="text-sm">If you were signed in, you can find your verified receipt in My Giving. Guest donations are private and are not automatically added to an iFund giving history.</p>
-        <Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>
+        <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />{sandboxMode?"Sandbox capture verified. No real donation was recorded.":"Donation verified with PayPal and recorded. Thank you!"}</p>
+        <p className="text-sm">{sandboxMode?"This is a test receipt only. It is excluded from financial totals and withdrawals.":"If you were signed in, you can find your verified receipt in My Giving. Guest donations are private and are not automatically added to an iFund giving history."}</p>
+        {!sandboxMode&&<Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>}
+=======
+        <DialogDescription className="text-sm text-slate-600">{sandboxMode
+          ?"SANDBOX TEST ONLY — no real money, donation or withdrawal will be recorded. Use a PayPal sandbox Personal buyer account."
+          :"Review your entire payment before approving it securely with PayPal. No IFund account is needed."}</DialogDescription>
+      </DialogHeader>
+      {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+        <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />{sandboxMode?"Sandbox capture verified. No real donation was recorded.":"Donation verified with PayPal and recorded. Thank you!"}</p>
+        <p className="text-sm">{sandboxMode?"This is a test receipt only. It is excluded from financial totals and withdrawals.":"Signed-in donors can find their verified campaign receipts in My Giving. Guest donations remain private and are not automatically assigned to an account."}</p>
+        {!sandboxMode&&<Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>}
+>>>>>>> origin/ifund/agent-5-integration-20261120
       </div>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div className="space-y-2">
@@ -207,7 +244,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <input type="text" inputMode="decimal" autoComplete="off" className={field} disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
         <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
-          <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
+          <input type="checkbox" disabled={checkoutLocked||sandboxMode} className="mt-1 h-4 w-4 accent-cyan-600" checked={!sandboxMode&&support} onChange={e=>setSupport(e.target.checked)}/>
           <span className="font-semibold">Add 10% optional support for Interplanetary Fund <span className="mt-1 block text-xs font-normal text-slate-600">Entirely optional, separate from the campaign donation; unchecked by default.</span></span>
         </label>
         {valid&&<section aria-label="Your PayPal payment summary" aria-live="polite" className="overflow-hidden rounded-2xl border border-[#c9d9f1] bg-[#f6f9ff] text-sm text-[#183153] shadow-sm">
@@ -224,6 +261,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
         </section>}
         {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
+          sandboxMode&&gift>10000?<p role="alert" className="text-xs text-amber-700">Sandbox test payments are limited to $100. Choose a smaller amount.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
@@ -244,8 +282,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
                 {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
               </button>}
-              <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
-                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
+              {!sandboxMode&&<GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
+                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>}
               <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
               <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#003087]"/> Checkout and card fields securely provided by PayPal. Your payment details are never stored by IFund.</p>
             </section>
