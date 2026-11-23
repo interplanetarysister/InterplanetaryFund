@@ -21,7 +21,7 @@ async function invoke(route,{method='POST',host=preview,withCookie=true}={}){
 }
 test('order creation rewrites sandbox cookie path',async()=>{
   const result=await invoke('orders');
-  assert.match(result.headers.get('set-cookie'),/Path=\\/api\\/payments\\/sandbox(?:;|$)/);
+  assert.ok(result.headers.get('set-cookie').includes('Path=/api/payments/sandbox;'));
 });
 test('capture response never rewrites sandbox cookie',async()=>{
   const result=await invoke('capture');
