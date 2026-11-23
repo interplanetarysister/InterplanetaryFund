@@ -692,7 +692,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
                 <div id="campaign-cover" className="mt-3 space-y-3">
                   <label className="block text-sm">Upload your photo<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={disabled} onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value="";if(file)void handleCoverUpload(file);}} className="mt-2 block w-full rounded-xl border border-white/20 p-3 text-sm"/></label>
                   {coverUploading&&<p role="status">Uploading photo…</p>}{coverUploadMessage&&<p role="status">{coverUploadMessage}</p>}
-                  <div className="text-slate-900 dark:text-white"><CampaignImageChoices title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)} onApply={(url,provenance)=>{applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:provenance?.cover_image_is_ai===true});setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}} disabled={disabled}/></div>
+                  <div className="text-slate-900 dark:text-white"><CampaignImageChoices title={form.title} description={(form.summary||form.story||draftDetails).slice(0,900)} initialStyle={wizard.ai_profile.image_style} initialCaption={wizard.ai_profile.image_caption} onSettingsChange={values=>{for(const [field,value] of Object.entries(values))changeWritingPreference(field,value);}} onApply={(url,provenance)=>{applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:provenance?.cover_image_is_ai===true});setCoverUploadMessage("Your original iFund illustration is selected. Save your campaign draft to retain the cover.");}} disabled={disabled}/></div>
                   {form.cover_image_url&&<img src={form.cover_image_url} alt="Campaign cover preview" className="max-h-44 w-full rounded-xl object-contain"/>}
                   <details><summary className="cursor-pointer text-sm text-cyan-100">Use an image URL instead</summary><input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>{const url=e.target.value;applyCampaignFields({cover_image_url:coverImageUrl(url),cover_image_is_ai:coverIsAI(url)});setCoverUploadMessage("");}} className={fld}/></details>
                 </div>
@@ -728,7 +728,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {autosaveError && <p role="alert" className="text-xs text-amber-200">{autosaveError}</p>}
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-4">
           <button type="button" className={btn} disabled={disabled||step===0} onClick={()=>next(step-1)}>Back</button>
-          {step<2&&<button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>}
+          <button type="button" className={btn} disabled={disabled} onClick={()=>save("draft")}>Save draft</button>
           {step<2&&<button type="button" className={primary} disabled={disabled} onClick={()=>next(step+1)}>Continue</button>}
           {step===2&&<button type="button" onClick={() => save("active")} className={primary+" flex-1"} disabled={disabled||!readiness.ready} aria-describedby="campaign-publish-readiness">{busy==="active"?"Publishing…":"Publish campaign"}</button>}
         </footer>
