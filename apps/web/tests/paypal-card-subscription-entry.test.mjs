@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 
 const card=readFileSync(new URL("../src/components/subscriptions/CardSubscriptionCheckout.jsx",import.meta.url),"utf8");
 const page=readFileSync(new URL("../src/pages/Subscriptions.jsx",import.meta.url),"utf8");
+const chooser=readFileSync(new URL("../src/components/subscriptions/PremiumBillingChoices.jsx",import.meta.url),"utf8");
 const worker=readFileSync(new URL("../../../workers/ifund-payments/worker.js",import.meta.url),"utf8");
 
 test("Subscription card option reuses PayPal and never initializes Stripe",()=>{
@@ -39,5 +40,6 @@ test("Card checkout communicates provider availability and no premature entitlem
   assert.match(card,/depending on eligibility/i);
   assert.match(card,/no card option appears/i);
   assert.match(card,/Premium activates only after a verified payment receipt/);
-  assert.match(page,/<CardSubscriptionCheckout/);
+  assert.match(page,/<PremiumBillingChoices/);
+  assert.match(chooser,/<CardSubscriptionCheckout/);
 });
