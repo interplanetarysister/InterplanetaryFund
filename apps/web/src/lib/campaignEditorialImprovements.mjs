@@ -56,16 +56,21 @@ export function proposeCampaignWideRedundancy(form = {}) {
   const after = {...before};
   const removed = {};
   for (const key of ["summary","story"]) {
-    const parts = text(before[key]).split(/(?<=[.!?…])\s+/u);
+    // Capture original separators instead of rebuilding with single spaces.
+    // A kept sentence retains its own leading separator, including paragraph breaks.
+    const parts = text(before[key]).split(/(?<=[.!?…])(\s+)/u);
     const seen = new Set();
     let count = 0;
-    const kept = parts.filter(p => {
-      const n = normalize(p);
-      if (n.length < 50) return true;
-      if (seen.has(n)) {count++; return false;}
-      seen.add(n);return true;
-    });
-    if (count) { after[key] = kept.join(" "); removed[key] = count; }
+    let proposal = "";
+    for (let index = 0; index < parts.length; index += 2) {
+      const sentence = parts[index];
+      const separator = index === 0 ? "" : parts[index - 1];
+      const n = normalize(sentence);
+      if (n.length >= 50 && seen.has(n)) { count++; continue; }
+      if (n.length >= 50) seen.add(n);
+      proposal += proposal ? separator + sentence : sentence;
+    }
+    if (count) { after[key] = proposal; removed[key] = count; }
   }
   return {before,after,removed,changed:Object.keys(removed),hasChanges:Object.keys(removed).length>0};
 }
