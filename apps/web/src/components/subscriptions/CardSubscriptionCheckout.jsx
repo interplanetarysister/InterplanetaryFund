@@ -70,7 +70,7 @@ export default function CardSubscriptionCheckout({plan,hasExistingSubscription=f
       className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-cyan-500/35 bg-card px-4 py-2 font-semibold text-foreground transition-colors hover:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
       {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
       {busy?"Opening PayPal card options…":loading?"Checking secure card billing…":
-        !enabled?"Card subscription option not yet available":"Subscribe using a credit or debit card"}
+        !enabled?"Card-funded subscription not yet available":"Choose credit or debit card with PayPal"}
     </button>
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>
