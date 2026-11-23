@@ -112,3 +112,25 @@ test("individual repeated sentences between summary and story are queued for rev
  });
  assert.ok(findings.some(f=>f.id==="cross_field_sentences"));
 });
+
+test("paragraph-boundary redundancy proposal remains reversible and preserves exact unchanged fields",()=>{
+ const sentence="We will publish verified receipts and monthly progress reports for the neighborhood.";
+ const unique="Neighbors will review the budget at an open community meeting.";
+ const original={title:"Community project",summary:"A factual summary.",story:sentence+"\n\n"+sentence+" "+unique};
+ const proposal=proposeCampaignWideRedundancy(original);
+ assert.equal(proposal.hasChanges,true);
+ assert.deepEqual(proposal.changed,["story"]);
+ assert.equal(proposal.removed.story,1);
+ assert.equal(proposal.after.story,sentence+"\n\n"+unique);
+ assert.equal(proposal.after.summary,original.summary);
+ assert.equal(proposal.after.title,original.title);
+ assert.equal(original.story,sentence+"\n\n"+sentence+" "+unique,"proposal must not mutate draft");
+ // Cancel/undo restores the exact original, including whitespace and paragraph structure.
+ const applied={...original,...proposal.after};
+ const undone={...applied,...proposal.before};
+ assert.deepEqual(undone,original);
+ const unchanged=proposeCampaignWideRedundancy({title:"T",summary:"A  double-spaced description.",story:sentence+"\n\n"+unique});
+ assert.equal(unchanged.hasChanges,false);
+ assert.equal(unchanged.after.story,sentence+"\n\n"+unique);
+ assert.equal(unchanged.after.summary,"A  double-spaced description.");
+});
