@@ -305,6 +305,19 @@ Deno.serve(async req=>{
           environment:row.environment,captured_at:row.captured_at,valid_until:row.valid_until
         }});
       }
+      if(body.op==="premium_one_time_lookup_capture"){
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_capture_id||""))
+          return fail("Invalid Premium capture reference");
+        const row=await findOne("ifund_premium_one_time_purchases?select=*&paypal_capture_id=eq."
+          +encodeURIComponent(p.paypal_capture_id));
+        if(!row)return fail("Premium capture not found",404);
+        return Response.json({ok:true,purchase:{
+          id:row.id,member_id:row.member_id,custom_id:row.custom_id,
+          paypal_order_id:row.paypal_order_id,paypal_capture_id:row.paypal_capture_id,
+          provider_merchant_id:row.provider_merchant_id,status:row.status,
+          amount_cents:row.amount_cents,currency:row.currency
+        }});
+      }
       if(body.op==="premium_one_time_finalize"){
         if(!patternId.test(p.purchase_id||"")
           || !/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_order_id||"")
