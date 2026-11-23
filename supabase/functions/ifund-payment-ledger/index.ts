@@ -336,6 +336,17 @@ Deno.serve(async req=>{
         if(out?.ok!==true)return fail("Premium refund could not be reconciled",503);
         return Response.json(out);
       }
+      if(body.op==="premium_one_time_reverse"){
+        if(!/^[A-Za-z0-9_-]{8,100}$/.test(p.paypal_capture_id||"")
+          || !/^WH-[A-Z0-9-]{8,90}$/.test(p.paypal_reversal_event_id||"")
+          || typeof p.merchant_id!=="string"||p.merchant_id.length<4)
+          return fail("Invalid reversed Premium receipt");
+        const out=await db("rpc/ifund_premium_one_time_reverse","POST",{
+          p_capture_id:p.paypal_capture_id,p_reversal_event_id:p.paypal_reversal_event_id,
+          p_merchant_id:p.merchant_id});
+        if(out?.ok!==true)return fail("Premium reversal could not be reconciled",503);
+        return Response.json(out);
+      }
       if(body.op==="premium_one_time_status"){
         const owner=await resolveVerifiedDonor(p.member_access_token);
         if(!owner)return fail("Verified member required",401);
