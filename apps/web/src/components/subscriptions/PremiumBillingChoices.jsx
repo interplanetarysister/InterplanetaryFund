@@ -62,17 +62,36 @@ export default function PremiumBillingChoices({plan,status,statusLoad,busy,nativ
           onChange={event=>setRenewalConsent(event.target.checked)}/>
         <span>I understand that this plan bills $4.99 USD each month until canceled, and I will approve its recurring billing agreement.</span>
       </label>
-      {choice.method==="googlepay"?<div className="rounded-xl border border-border p-3 text-sm text-muted-foreground">
-        Google Pay recurring billing requires a separately verified vaulted payment authorization. iFund's current Google Pay donation checkout only supports one-time payments. This option cannot start a subscription yet.
-      </div>:choice.method==="card"?<div>
-        {renewalConsent?<CardSubscriptionCheckout plan={plan} hasExistingSubscription={existing}/>:
-        <p className="text-xs text-muted-foreground">Review and acknowledge the renewal terms to check card options at PayPal.</p>}
-      </div>:<button type="button" disabled={!canRecurring||!renewalConsent}
-        onClick={()=>onSubscribe(plan)}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
-        {busy?<Loader2 className="h-4 w-4 animate-spin"/>:null}
-        Agree and subscribe with PayPal
-      </button>}
+      {choice.method==="googlepay"?<div className="space-y-2">
+        <button type="button" disabled aria-disabled="true"
+          className="min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white opacity-50">
+          Subscribe $4.99/month with Google Pay
+        </button>
+        <p role="status" className="text-xs text-muted-foreground">
+          Google Pay recurring billing is not yet authorized for this merchant. Choose PayPal to approve recurring billing, or card with the one-time option. No charge is initiated here.
+        </p>
+      </div>:choice.method==="card"?<div className="space-y-2">
+        <CardSubscriptionCheckout plan={plan} hasExistingSubscription={existing} consented={renewalConsent}/>
+        {!renewalConsent&&<p role="status" className="text-xs text-muted-foreground">
+          To continue to the recurring approval page, acknowledge the monthly renewal terms above.
+        </p>}
+      </div>:<div className="space-y-2">
+        <button type="button" disabled={!canRecurring||!renewalConsent}
+          onClick={()=>onSubscribe(plan)}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
+          {busy?<Loader2 className="h-4 w-4 animate-spin"/>:null}
+          Continue to PayPal — $4.99/month
+        </button>
+        {!renewalConsent&&<p role="status" className="text-xs text-muted-foreground">Acknowledge the monthly renewal terms to continue.</p>}
+      </div>}
+    </div>:choice.method==="googlepay"?<div className="mt-4 space-y-2">
+      <button type="button" disabled aria-disabled="true"
+        className="min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white opacity-50">
+        Pay $4.99 once with Google Pay
+      </button>
+      <p role="status" className="text-xs text-muted-foreground">
+        One-time Google Pay for Premium is not provider-verified. Select card or PayPal to continue without automatic renewal.
+      </p>
     </div>:<PremiumOneTimeCheckout key={choice.method} method={choice.method} activeSubscription={existing}/>}
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>Selecting a payment method does not authorize automatic charges. Your billing choice is confirmed when you approve checkout.
