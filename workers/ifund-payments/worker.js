@@ -135,7 +135,7 @@ function memberToken(req) {
   if(!/^Bearer [A-Za-z0-9._-]{40,8192}$/.test(header)) return "";
   return header.slice(7);
 }
-function exactBasicPlan(plan,expectedPlanId) {
+function exactBasicPlan(plan,expectedPlanId=BASIC_MONTHLY_PLAN.plan_id) {
   const cycle=plan?.billing_cycles?.find(row=>row.tenure_type==="REGULAR");
   return Boolean(plan?.id===expectedPlanId&&PAYPAL_PLAN_ID.test(expectedPlanId||"")&&plan?.status==="ACTIVE"&&
     cycle?.frequency?.interval_unit==="MONTH"&&
