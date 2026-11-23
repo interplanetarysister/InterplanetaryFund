@@ -236,7 +236,10 @@ Deno.serve(async req=>{
     // Non-renewing Premium purchases are entirely separate from campaign gifts
     // and PayPal recurring agreements. Only signed Worker messages reach here.
     if(body.op?.startsWith("premium_one_time_")){
-      if(Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
+      // Emergency pause blocks only NEW purchases. Existing paid receipts and
+      // refunds must remain reconcilable to protect customer entitlements.
+      if(["premium_one_time_begin","premium_one_time_bind"].includes(body.op)
+        &&Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
         return fail("Non-renewing Premium purchases are not activated",503);
       const p=body.data||{};
       if(body.op==="premium_one_time_begin"){
