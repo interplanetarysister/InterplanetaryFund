@@ -713,8 +713,16 @@ function premiumOneTimeEnabled(env) {
   return env.IFUND_PREMIUM_ONE_TIME_ENABLED==="true" &&
     env.IFUND_PAYMENTS_ENABLED==="true" && env.IFUND_PAYPAL_MODE==="live";
 }
-async function premiumOneTimeReadiness(env){
+async function premiumOneTimeReadiness(env,req){
   if(!premiumOneTimeEnabled(env))return {ready:false};
+  // First live acceptance is restricted to verified super administrators.
+  // A public request never advertises an available one-time checkout.
+  if(env.IFUND_PREMIUM_ONE_TIME_TEST_ONLY==="true"){
+    const token=memberToken(req);
+    if(!token)return {ready:false};
+    const check=await signLedger(env,"premium_one_time_test_eligible",{member_access_token:token}).catch(()=>null);
+    if(check?.eligible!==true)return {ready:false};
+  }
   const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
   if(!webhookId)return {ready:false};
   const [atomic,edge,hook]=await Promise.all([
@@ -758,6 +766,8 @@ async function verifyPremiumOneTimeCapture(env,orderId,intent){
     merchant_id:atomic.merchant_id,captured_at:capturedAt.toISOString(),custom_id:intent.custom_id};
 }
 async function startPremiumOneTime(req,env){
+  const readiness=await premiumOneTimeReadiness(env,req);
+  if(!readiness.ready)return asError("premium_one_time_merchant_not_ready",503);
   const access=memberToken(req);
   if(!access)return asError("sign_in_required",401);
   const p=await readBody(req);
@@ -952,7 +962,7 @@ export default {
     // Separate nonrenewing Premium purchase routes. Explicit flag and the same
     // atomic signed financial broker must both be ready before creating money.
     if(path==="/api/payments/premium-one-time/readiness"&&request.method==="GET"){
-      try{const r=await premiumOneTimeReadiness(env);
+      try{const r=await premiumOneTimeReadiness(env,request);
         return asJson({ok:true,ready:r.ready===true,amount_cents:499,currency:"USD",
           duration:"one_month",auto_renews:false,guest_card_eligible:"provider_decides"},200,cors);
       }catch(_){return asJson({ok:true,ready:false,auto_renews:false},200,cors)}
