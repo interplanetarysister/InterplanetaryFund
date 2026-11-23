@@ -579,6 +579,10 @@ async function webhook(req,env) {
     return await payoutBatchWebhook(payload,env);
   }
   if(SUBSCRIPTION_EVENTS.has(kind))return await subscriptionWebhook(payload,env);
+  if(["PAYMENT.CAPTURE.COMPLETED","PAYMENT.CAPTURE.REFUNDED"].includes(kind)){
+    const premium=await premiumOneTimeWebhook(payload,env);
+    if(premium)return premium;
+  }
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
     if(!ORDER_ID.test(orderId||""))return asError("webhook_order_unresolved",409);
@@ -702,6 +706,155 @@ async function captureOrder(req,env) {
   }
   return asJson(await finalize(env,p.order_id,intent));
 }
+// An optional one-time Premium purchase uses Orders v2, like campaign card
+// donations, but never enters donation totals or recurring subscription intents.
+const PREMIUM_ONE_TIME_CENTS=499;
+function premiumOneTimeEnabled(env) {
+  return env.IFUND_PREMIUM_ONE_TIME_ENABLED==="true" &&
+    env.IFUND_PAYMENTS_ENABLED==="true" && env.IFUND_PAYPAL_MODE==="live";
+}
+async function premiumOneTimeReadiness(env){
+  if(!premiumOneTimeEnabled(env))return {ready:false};
+  const atomic=await subscriptionAtomicReadiness(env);
+  return {ready:atomic.ready===true,merchant_id:atomic.merchant_id};
+}
+async function verifyPremiumOneTimeCapture(env,orderId,intent){
+  const atomic=await subscriptionAtomicReadiness(env);
+  if(!atomic.ready||!atomic.merchant_id)throw Error("premium_merchant_unverified");
+  if(intent.paypal_order_id!==orderId||intent.status==="refunded")
+    throw Error("premium_purchase_identity_unverified");
+  const order=await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(orderId));
+  const units=Array.isArray(order?.purchase_units)?order.purchase_units:[];
+  const unit=units.length===1?units[0]:null;
+  const captures=Array.isArray(unit?.payments?.captures)?unit.payments.captures:[];
+  const capture=captures.length===1?captures[0]:null;
+  if(order?.id!==orderId||order.status!=="COMPLETED"||!unit
+    ||unit.custom_id!==intent.custom_id||unit.reference_id!=="ifund-premium-one-time"
+    ||unit.payee?.merchant_id!==atomic.merchant_id
+    ||unit.amount?.currency_code!=="USD"||cents(unit.amount.value)!==PREMIUM_ONE_TIME_CENTS
+    ||capture?.status!=="COMPLETED"||!ORDER_ID.test(capture.id||"")
+    ||capture.amount?.currency_code!=="USD"||cents(capture.amount.value)!==PREMIUM_ONE_TIME_CENTS
+    ||(capture.seller_receivable_breakdown?.gross_amount &&
+      (capture.seller_receivable_breakdown.gross_amount.currency_code!=="USD"||
+       cents(capture.seller_receivable_breakdown.gross_amount.value)!==PREMIUM_ONE_TIME_CENTS))
+    ||(capture.payee?.merchant_id&&capture.payee.merchant_id!==atomic.merchant_id))
+    throw Error("premium_receipt_unverified");
+  const capturedAt=new Date(capture.create_time||"");
+  if(!Number.isFinite(capturedAt.getTime())||
+    capturedAt.getTime()>Date.now()+300000||capturedAt.getTime()<Date.now()-7*86400000)
+    throw Error("premium_capture_timestamp_invalid");
+  return {purchase_id:intent.id,paypal_order_id:orderId,paypal_capture_id:capture.id,
+    merchant_id:atomic.merchant_id,captured_at:capturedAt.toISOString(),custom_id:intent.custom_id};
+}
+async function startPremiumOneTime(req,env){
+  const access=memberToken(req);
+  if(!access)return asError("sign_in_required",401);
+  const p=await readBody(req);
+  if(!INTENT.test(p.request_key||"")||!["paypal","card","googlepay"].includes(p.payment_channel)
+    ||p.amount_cents!==PREMIUM_ONE_TIME_CENTS||p.currency!=="USD"
+    ||typeof p.checkout_token!=="string"||!/^[a-f0-9]{64}$/.test(p.checkout_token))
+    return asError("invalid_nonrecurring_purchase");
+  const claim=await signLedger(env,"premium_one_time_begin",{
+    member_access_token:access,request_key:p.request_key,checkout_token_hash:await hash(p.checkout_token),
+    payment_channel:p.payment_channel,amount_cents:PREMIUM_ONE_TIME_CENTS,currency:"USD",environment:"live"
+  });
+  if(claim.order_id){
+    if(claim.status!=="created"||!ORDER_ID.test(claim.order_id))return asError("purchase_requires_reconciliation",409);
+    return asJson({ok:true,id:claim.order_id,purchase_id:claim.purchase_id,amount_cents:499,currency:"USD"});
+  }
+  const created=await paypal(env,"/v2/checkout/orders","POST",{
+    intent:"CAPTURE",purchase_units:[{
+      reference_id:"ifund-premium-one-time",custom_id:claim.custom_id,
+      description:"Interplanetary Fund Premium — one month, no auto-renewal",
+      amount:{currency_code:"USD",value:"4.99"}
+    }]
+  },"premium-onetime-"+claim.purchase_id);
+  if(!ORDER_ID.test(created?.id||""))return asError("premium_paypal_order_unavailable",502);
+  await signLedger(env,"premium_one_time_bind",{purchase_id:claim.purchase_id,paypal_order_id:created.id});
+  return asJson({ok:true,id:created.id,purchase_id:claim.purchase_id,amount_cents:499,currency:"USD"});
+}
+async function capturePremiumOneTime(req,env){
+  const access=memberToken(req);
+  if(!access)return asError("sign_in_required",401);
+  const p=await readBody(req);
+  if(!ORDER_ID.test(p.order_id||"")||
+     typeof p.checkout_token!=="string"||!/^[a-f0-9]{64}$/.test(p.checkout_token))
+    return asError("invalid_nonrecurring_capture");
+  const lookup=await signLedger(env,"premium_one_time_get",{
+    member_access_token:access,paypal_order_id:p.order_id,
+    checkout_token_hash:await hash(p.checkout_token)
+  });
+  const intent=lookup.purchase;
+  if(intent.status==="refunded")return asError("premium_purchase_refunded",409);
+  if(intent.status==="captured"){
+    const evidence=await verifyPremiumOneTimeCapture(env,p.order_id,intent);
+    const result=await signLedger(env,"premium_one_time_finalize",evidence);
+    return asJson({...result,order_id:p.order_id,capture_id:evidence.paypal_capture_id});
+  }
+  if(intent.status!=="created")return asError("premium_purchase_not_capturable",409);
+  try{
+    await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(p.order_id)+"/capture",
+      "POST",{},"premium-capture-"+p.order_id);
+  }catch(_){
+    // If PayPal captured before a network timeout, read the provider first.
+    // The browser must check status rather than create a second purchase.
+    try{
+      const evidence=await verifyPremiumOneTimeCapture(env,p.order_id,intent);
+      const result=await signLedger(env,"premium_one_time_finalize",evidence);
+      return asJson({...result,order_id:p.order_id,capture_id:evidence.paypal_capture_id});
+    }catch(_){return asError("premium_capture_requires_receipt_review",502)}
+  }
+  const evidence=await verifyPremiumOneTimeCapture(env,p.order_id,intent);
+  const result=await signLedger(env,"premium_one_time_finalize",evidence);
+  return asJson({...result,order_id:p.order_id,capture_id:evidence.paypal_capture_id});
+}
+async function premiumOneTimeStatus(req,env){
+  const access=memberToken(req);
+  if(!access)return asError("sign_in_required",401);
+  return asJson(await signLedger(env,"premium_one_time_status",{member_access_token:access}));
+}
+async function premiumOneTimeWebhook(payload,env){
+  if(!premiumOneTimeEnabled(env))return null;
+  const kind=String(payload.event_type||"");
+  if(kind==="PAYMENT.CAPTURE.COMPLETED"){
+    const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
+    if(!ORDER_ID.test(orderId||""))return null;
+    let claim;
+    try{claim=await signLedger(env,"premium_one_time_lookup",{paypal_order_id:orderId})}
+    catch(_){return null}
+    const proof=await verifyPremiumOneTimeCapture(env,orderId,claim.purchase);
+    if(payload.resource?.id!==proof.paypal_capture_id)
+      return asError("premium_capture_webhook_mismatch",409);
+    const record=await signLedger(env,"premium_one_time_finalize",proof);
+    return asJson({...record,recorded:true});
+  }
+  if(kind==="PAYMENT.CAPTURE.REFUNDED"){
+    const refundId=payload.resource?.id;
+    const captureId=payload.resource?.supplementary_data?.related_ids?.capture_id;
+    if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(captureId||""))return null;
+    let claim;
+    try{claim=await signLedger(env,"premium_one_time_lookup_capture",{paypal_capture_id:captureId})}
+    catch(_){return null}
+    if(claim.purchase.status==="refunded")return asJson({ok:true,duplicate:true});
+    const receipt=await paypal(env,"/v2/payments/refunds/"+encodeURIComponent(refundId));
+    if(receipt?.id!==refundId||receipt.status!=="COMPLETED"||
+      receipt.amount?.currency_code!=="USD"||
+      cents(receipt.amount.value)!==PREMIUM_ONE_TIME_CENTS||
+      receipt.supplementary_data?.related_ids?.capture_id!==captureId)
+      return asError("premium_refund_receipt_unverified",409);
+    // A refund event must match the immutable captured purchase, including its merchant.
+    const captured=await paypal(env,"/v2/payments/captures/"+encodeURIComponent(captureId));
+    if(captured?.id!==captureId||(captured.payee?.merchant_id&&
+       captured.payee.merchant_id!==claim.purchase.provider_merchant_id))
+       return asError("premium_refund_merchant_mismatch",409);
+    const record=await signLedger(env,"premium_one_time_refund",{
+      paypal_capture_id:captureId,paypal_refund_id:refundId,
+      merchant_id:claim.purchase.provider_merchant_id
+    });
+    return asJson({...record,recorded:true});
+  }
+  return null;
+}
 export default {
   async fetch(request,env) {
     const url=new URL(request.url),origin=request.headers.get("origin")||"";
@@ -740,6 +893,34 @@ export default {
     }
     // Non-mutating provider readiness check. It never grants entitlement or
     // attempts payment; expose booleans only, never merchant/secret identifiers.
+    // Separate nonrenewing Premium purchase routes. Explicit flag and the same
+    // atomic signed financial broker must both be ready before creating money.
+    if(path==="/api/payments/premium-one-time/readiness"&&request.method==="GET"){
+      try{const r=await premiumOneTimeReadiness(env);
+        return asJson({ok:true,ready:r.ready===true,amount_cents:499,currency:"USD",
+          duration:"one_month",auto_renews:false,guest_card_eligible:"provider_decides"},200,cors);
+      }catch(_){return asJson({ok:true,ready:false,auto_renews:false},200,cors)}
+    }
+    if(path==="/api/payments/premium-one-time/status"&&request.method==="GET"){
+      if(!premiumOneTimeEnabled(env))return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
+      try{const response=await premiumOneTimeStatus(request,env);
+        for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
+      }catch(_){return asJson({ok:false,error:"premium_purchase_status_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/premium-one-time/create-order"&&request.method==="POST"){
+      if(!premiumOneTimeEnabled(env)||!permitted.includes(origin))
+        return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
+      try{const response=await startPremiumOneTime(request,env);
+        for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
+      }catch(_){return asJson({ok:false,error:"premium_purchase_start_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/premium-one-time/capture-order"&&request.method==="POST"){
+      if(!premiumOneTimeEnabled(env)||!permitted.includes(origin))
+        return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
+      try{const response=await capturePremiumOneTime(request,env);
+        for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
+      }catch(_){return asJson({ok:false,error:"premium_capture_requires_receipt_review"},503,cors)}
+    }
     if(path==="/api/payments/subscriptions/provider-readiness"&&request.method==="GET"){
       if(env.IFUND_PAYPAL_MODE!=="live")
         return asJson({ok:true,live:false,plan_ready:false,webhook_ready:false,atomic_ready:false},200,cors);
