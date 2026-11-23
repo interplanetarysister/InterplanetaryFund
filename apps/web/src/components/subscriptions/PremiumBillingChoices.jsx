@@ -6,12 +6,12 @@ import CardSubscriptionCheckout from "./CardSubscriptionCheckout";
 import PremiumOneTimeCheckout from "./PremiumOneTimeCheckout";
 
 const METHODS=[
+  {id:"card",label:"Credit or debit card — no PayPal account needed"},
   {id:"paypal",label:"PayPal"},
-  {id:"googlepay",label:"Google Pay"},
-  {id:"card",label:"Credit or debit card"}
+  {id:"googlepay",label:"Google Pay"}
 ];
 export default function PremiumBillingChoices({plan,status,statusLoad,busy,native,oneTimeActive=false,onSubscribe}){
-  const [choice,setChoice]=useState(()=>initialBillingChoice("paypal"));
+  const [choice,setChoice]=useState(()=>initialBillingChoice("card"));
   const [renewalConsent,setRenewalConsent]=useState(false);
   const existing=oneTimeActive||statusLoad!=="ready"||Boolean(status&&
     ["active","pending","past_due","approval_pending"].includes(status.status));
