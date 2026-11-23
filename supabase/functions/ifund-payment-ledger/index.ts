@@ -256,7 +256,7 @@ Deno.serve(async req=>{
         return Response.json({ok:true,enabled:ready?.enabled===true&&ready?.version===1,version:1});
       }
       if(body.op==="premium_one_time_begin"){
-        const owner=await resolveVerifiedSuperAdmin(p.member_access_token);
+        const owner=await resolveVerifiedDonor(p.member_access_token);
         if(!owner)return fail("Verified member required",401);
         if(!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")
           || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")
