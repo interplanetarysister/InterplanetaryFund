@@ -176,7 +176,14 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           :"Secure card form is loading. The payment button will activate only after card fields are available."}
       </p>}
     </section>}
+    {method==="paypal"&&!sdkReady&&<button type="button" disabled aria-disabled="true"
+      className="min-h-11 w-full rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
+      Continue with PayPal — pay $4.99 once
+    </button>}
     <div ref={paypalHost} style={{display:method==="paypal"?"block":"none"}} aria-label="One-time PayPal payment" className="min-h-11"/>
+    {method==="paypal"&&!sdkReady&&<p role="status" className="text-xs text-muted-foreground">
+      The secure PayPal payment button is loading. Payment cannot begin until PayPal is available.
+    </p>}
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
       <ShieldCheck className="h-4 w-4 shrink-0"/>Card details are hosted securely by PayPal. A PayPal account is not required when guest card checkout is available. IFund verifies the completed receipt before enabling Premium.
     </p>
