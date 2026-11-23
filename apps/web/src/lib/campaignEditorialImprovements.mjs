@@ -62,13 +62,21 @@ export function proposeCampaignWideRedundancy(form = {}) {
     const seen = new Set();
     let count = 0;
     let proposal = "";
+    let pendingParagraphBreak = "";
     for (let index = 0; index < parts.length; index += 2) {
       const sentence = parts[index];
       const separator = index === 0 ? "" : parts[index - 1];
       const n = normalize(sentence);
-      if (n.length >= 50 && seen.has(n)) { count++; continue; }
+      if (n.length >= 50 && seen.has(n)) {
+        count++;
+        // A duplicate at the start of a paragraph must not erase that boundary.
+        if (/\n/u.test(separator)) pendingParagraphBreak = separator;
+        continue;
+      }
       if (n.length >= 50) seen.add(n);
-      proposal += proposal ? separator + sentence : sentence;
+      const join = pendingParagraphBreak && !/\n/u.test(separator) ? pendingParagraphBreak : separator;
+      proposal += proposal ? join + sentence : sentence;
+      pendingParagraphBreak = "";
     }
     if (count) { after[key] = proposal; removed[key] = count; }
   }
