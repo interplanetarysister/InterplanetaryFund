@@ -41,7 +41,10 @@ function externalReferences(text) {
 
 test("DESIGN.md follows the official Stitch section order and token schema", () => {
   assert.ok(existsSync(designPath), "missing .stitch/DESIGN.md");
-  const design = readFileSync(designPath, "utf8");
+  // Git checkout on Windows (core.autocrlf=true) yields CRLF in the working
+  // tree while every contract pattern below is written for LF. Normalize once
+  // so this contract is enforced identically on every platform.
+  const design = readFileSync(designPath, "utf8").replace(/\r\n/g, "\n");
   const frontmatter = design.match(/^---\n([\s\S]*?)\n---/)?.[1];
   assert.ok(frontmatter, "DESIGN.md must begin with YAML frontmatter");
 

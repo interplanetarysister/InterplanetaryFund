@@ -7,7 +7,15 @@ const source=readFileSync(new URL('./worker.js',import.meta.url),'utf8');
 const start=source.indexOf('async function readBody(req)');
 const end=source.indexOf('\nasync function createOrder(',start);
 assert.ok(start>=0&&end>start,'actual Worker webhook source must be present');
-const build=new Function('getSecret','paypal','asError','asJson','PAYOUT_EVENTS','SUBSCRIPTION_EVENTS','subscriptionWebhook','signLedger','ORDER_ID','verifyCapture','finalize','cents',source.slice(start,end)+';return webhook;');
+// webhook() routes capture events through premiumOneTimeWebhook(), which lives
+// outside the webhook slice. Splice in the REAL handler so its gate is exercised:
+// this synthetic env is never IFUND_PAYPAL_MODE=live, so premium handling must
+// return null and fall through to the legacy refund boundary under test. A stub
+// would hide regressions in that fail-closed gate.
+const premiumStart=source.indexOf('async function premiumOneTimeWebhook(payload,env){');
+const premiumEnd=source.indexOf('\nexport default',premiumStart);
+assert.ok(premiumStart>=0&&premiumEnd>premiumStart,'actual premium one-time webhook source must be present');
+const build=new Function('getSecret','paypal','asError','asJson','PAYOUT_EVENTS','SUBSCRIPTION_EVENTS','subscriptionWebhook','signLedger','ORDER_ID','verifyCapture','finalize','cents',source.slice(start,end)+'\n'+source.slice(premiumStart,premiumEnd)+';return webhook;');
 const make=(kind='PAYMENT.CAPTURE.REFUNDED')=>({id:'WH-EVENT-1234567',event_type:kind,resource:{id:'REFUND12345',supplementary_data:{related_ids:{capture_id:'CAPTURE12345'}},amount:{currency_code:'USD',value:'2.00'}}});
 const validHeaders=()=>new Map([['paypal-transmission-id','test-id'],['paypal-transmission-time','2026-11-15T12:00:00Z'],['paypal-cert-url','https://api-m.paypal.com/cert'],['paypal-auth-algo','SHA256withRSA'],['paypal-transmission-sig','synthetic-signature']]);
 async function run(event,options={}){

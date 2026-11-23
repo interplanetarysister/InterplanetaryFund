@@ -171,6 +171,23 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_trial_ai_generation_complete",
   "public.ifund_trial_ai_generation_release",
   "public.ifund_trial_ai_generation_status",
+  // Verified-paid monthly counterpart of the reviewed trial counter above.
+  // Reviewed 2026-11-22 against migration 20261122150000: owner is derived
+  // from auth.uid() (anonymous and inactive accounts rejected), entitlement
+  // requires current terms plus a provider-verified paid payment or admin
+  // grant, rows are owner-scoped and idempotent under an advisory lock, and
+  // usage is capped at 50 per verified payment. EXECUTE is revoked from
+  // public/anon/authenticated and granted to authenticated only. No ledger,
+  // payout, refund or cross-user authority.
+  "public.ifund_ai_content_reserve",
+  "public.ifund_ai_content_complete",
+  "public.ifund_ai_content_status",
+  // Provider-confirmed Premium entitlement trigger (migration 20261122152000).
+  // Fires only after signed service-role intent updates, requires verified
+  // merchant control and an unrefunded live $4.99 ledger receipt for the exact
+  // owner-authorized plan, writes only that member's entitlement row, and is
+  // revoked from public/anon/authenticated with no EXECUTE grant at all.
+  "ifund_subscription_runtime.sync_verified_premium_entitlement",
   // Weekly agent training control plane. Job start/claim/finish and agent
   // claims revoke public/anon/authenticated EXECUTE and grant only service_role;
   // review_candidate requires the verified super-admin RPC plus an independent
