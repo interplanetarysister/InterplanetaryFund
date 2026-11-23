@@ -128,7 +128,16 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   },[ready,method,native,activeSubscription,complete]);
 
   if(native)return <p className="text-xs text-muted-foreground">Purchases in the mobile app require separate store billing approval.</p>;
-  if(activeSubscription)return <p className="text-xs text-muted-foreground">Manage your current membership before purchasing another month.</p>;
+  if(activeSubscription)return <div className="mt-4 space-y-2">
+    <button type="button" disabled aria-disabled="true"
+      className="min-h-11 w-full rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
+      Pay $4.99 now — one month, no renewal
+    </button>
+    <p role="status" className="text-xs text-muted-foreground">
+      Your existing Premium membership or account status must be verified before another payment.
+      No new charge can be started.
+    </p>
+  </div>;
   if(method==="googlepay")return <p className="text-sm text-muted-foreground">One-time Google Pay enrollment is not yet verified for Premium. Choose card or PayPal.</p>;
   if(!ready)return <div className="mt-4 space-y-3">
     <button type="button" disabled aria-disabled="true"
