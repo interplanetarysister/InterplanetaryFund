@@ -56,7 +56,7 @@ for(const [name,options] of [
 test('inventory requests exactly ten rows and resolves one authenticated receipt',async()=>{
  const h=harness();await h.run();
  const inventory=h.calls.find(x=>x.name==='ifund_super_admin_private_document_inventory');
- assert.deepEqual(inventory.args,{p_request_id:requestId,p_limit:10});
+ assert.deepEqual(inventory.args,{p_owner_id:ownerId,p_limit:10});
  assert.equal(h.receiptCalls,1);
 });
 test('eleven returned rows fail before any receipt lookup',async()=>{
@@ -72,4 +72,12 @@ test('ten returned rows never initiate an eleventh receipt lookup',async()=>{
  await assert.rejects(h.run(),/Authenticated immutable metadata receipt mismatch/);
  assert.equal(h.receiptCalls,1);
  assert.equal(h.calls.at(-1).args.p_limit,10);
+});
+
+test('inventory is scoped to authenticated deletion owner, never caller request ID',async()=>{
+ const h=harness();await h.run();
+ const inventory=h.calls.find(x=>x.name==='ifund_super_admin_private_document_inventory');
+ assert.equal(inventory.args.p_owner_id,ownerId);
+ assert.equal(Object.hasOwn(inventory.args,'p_request_id'),false);
+ assert.equal(h.calls.find(x=>x.name==='ifund_super_admin_account_deletion_queue').args.p_limit,200);
 });
