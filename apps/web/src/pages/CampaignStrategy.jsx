@@ -6,6 +6,7 @@ import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
 import { reviewCampaignWideEditorial } from "@/lib/campaignEditorialImprovements.mjs";
 import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
 import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
+import GoalSuccessAnalysis from "@/components/agents/GoalSuccessAnalysis";
 
 const fieldId = finding => finding.field === "title" || finding.id === "title_repetition" ? "campaign-title"
   : finding.field === "summary" || finding.id === "summary_repeated" ? "campaign-summary"
@@ -42,7 +43,7 @@ export default function CampaignStrategy() {
       const owned=new Map(campaigns.filter(c=>c.owner_id===owner).map(c=>[c.id,c]));
       const items=data.filter(item=>owned.has(item.campaign_id)).map(item=>{
         const campaign=owned.get(item.campaign_id);
-        return {...item,editorial:reviewCampaignPublication(campaign),
+        return {...item,ownerCampaign:campaign,editorial:reviewCampaignPublication(campaign),
           campaignWide:reviewCampaignWideEditorial(campaign)};
       });
       if(items.length!==data.length)throw Error("Strategy results did not match your owned campaigns.");
@@ -91,6 +92,7 @@ export default function CampaignStrategy() {
           )}</ul>
           <p className="text-xs text-muted-foreground">Cover check verifies only that a reference exists, not that its image URL loads or that you have image rights.</p>
           <AgentDocumentReferences campaignId={item.campaign_id}/>
+          <GoalSuccessAnalysis campaign={item.ownerCampaign} />
           {item.editorial && [...item.editorial.findings, ...item.campaignWide.filter(f=>!item.editorial.findings.some(g=>g.id===f.id))].length>0 && <section className="space-y-3 rounded-xl border border-border p-3" aria-label="Contextual campaign writing guidance">
             <h3 className="font-semibold">POLARIS · Writing improvements</h3>
             <p className="text-xs text-muted-foreground">These recommendations come from this campaign's saved text. They never fabricate supporting facts or rewrite your story without approval.</p>
