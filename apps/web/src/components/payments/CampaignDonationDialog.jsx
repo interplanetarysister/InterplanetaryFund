@@ -69,7 +69,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     if(sandboxMode){
       if(tip!==0)throw new Error("Sandbox checkout cannot include platform support.");
       if(gift>10000)throw new Error("Sandbox test amount must be between $1 and $100.");
-      const result=await api("/api/payments/sandbox/orders",{method:"POST",
+      const result=await api("/api/paypal/sandbox/orders",{method:"POST",
         body:JSON.stringify({campaign_id:campaign.id,amount_cents:gift})});
       if(result.mode!=="sandbox"||!result.order_id)
         throw new Error("Sandbox order could not be verified.");
@@ -106,7 +106,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     if(!id||(!sandboxMode&&!token))throw new Error("This payment needs review. No payment was confirmed.");
     setStatus("capturing");
     if(sandboxMode){
-      const result=await api("/api/payments/sandbox/capture",{
+      const result=await api("/api/paypal/sandbox/capture",{
         method:"POST",body:JSON.stringify({order_id:id})});
       if(result.mode!=="sandbox"||result.status!=="captured"||!result.capture_id)
         throw new Error("Sandbox capture requires reconciliation.");
@@ -128,7 +128,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     setError("");setStatus("loading");setEligible(null);
     (async()=>{
       try{
-        const config=await api(sandboxMode?"/api/payments/sandbox/config":"/api/payments/config");
+        const config=await api(sandboxMode?"/api/paypal/sandbox/config":"/api/payments/config");
         if(cancelled)return;
         if(config.environment!==mode||!config.client_id)
           throw new Error((sandboxMode?"Sandbox test":"Live")+" checkout is unavailable. No payment was started.");

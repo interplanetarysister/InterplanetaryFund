@@ -42,8 +42,7 @@ export default {
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/ops/analyze') return routeAgentOperations(request, env);
-    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question' ||
-        pathname === '/api/agents/team/practice' || pathname === '/api/agents/team/research') {
+    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
       // The local route remains fail-closed when inference is not configured.
       if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') {
