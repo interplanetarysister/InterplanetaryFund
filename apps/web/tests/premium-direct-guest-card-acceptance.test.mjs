@@ -6,6 +6,7 @@ const once=readFileSync(new URL("../src/components/subscriptions/PremiumOneTimeC
 const edge=readFileSync(new URL("../../../supabase/functions/ifund-payment-ledger/index.ts",import.meta.url),"utf8");
 const worker=readFileSync(new URL("../../../workers/ifund-payments/worker.js",import.meta.url),"utf8");
 const sql=readFileSync(new URL("../../../supabase/migrations/20261123000005_premium_owner_only_checkout_acceptance.sql",import.meta.url),"utf8");
+const allowlist=readFileSync(new URL("../../../supabase/migrations/20261123000006_premium_private_trial_allowlist.sql",import.meta.url),"utf8");
 
 test("Direct guest card option is prominent and defaults to one-time, not recurring",()=>{
   assert.match(chooser,/initialBillingChoice\("card"\)/);
@@ -30,4 +31,8 @@ test("First live checkout requires verified super admin and atomic service role 
   assert.match(sql,/premium_one_time_test_eligible\(p_member_id\)/);
   assert.match(sql,/revoke all on function public\.ifund_premium_one_time_test_eligible/);
   assert.doesNotMatch(sql,/grant execute.*to authenticated/);
+  assert.match(allowlist,/premium_checkout_trial_members/);
+  assert.match(allowlist,/grant select on ifund_subscription_runtime\.premium_checkout_trial_members to service_role/);
+  assert.match(allowlist,/enable row level security/);
+  assert.doesNotMatch(allowlist,/grant select on auth\.users/);
 });
