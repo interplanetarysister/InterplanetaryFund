@@ -10,12 +10,12 @@ const METHODS=[
   {id:"googlepay",label:"Google Pay"},
   {id:"card",label:"Credit or debit card"}
 ];
-export default function PremiumBillingChoices({plan,status,statusLoad,busy,native,onSubscribe}){
+export default function PremiumBillingChoices({plan,status,statusLoad,busy,native,oneTimeActive=false,onSubscribe}){
   const [choice,setChoice]=useState(()=>initialBillingChoice("paypal"));
   const [renewalConsent,setRenewalConsent]=useState(false);
-  const existing=statusLoad!=="ready"||Boolean(status&&
+  const existing=oneTimeActive||statusLoad!=="ready"||Boolean(status&&
     ["active","pending","past_due","approval_pending"].includes(status.status));
-  const canRecurring=canStartVerifiedSubscription({plan,status,statusLoad,busy,native});
+  const canRecurring=!oneTimeActive&&canStartVerifiedSubscription({plan,status,statusLoad,busy,native});
   const recurring=choice.mode==="recurring";
   function selectMethod(method){
     setChoice(current=>chooseBillingMethod(current,method));
