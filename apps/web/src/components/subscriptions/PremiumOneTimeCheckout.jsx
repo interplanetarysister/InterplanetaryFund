@@ -42,7 +42,9 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   useEffect(()=>{
     let mounted=true;
     if(native||activeSubscription){setReady(false);return;}
-    api(API+"/readiness").then(v=>{
+    memberToken().then(token=>api(API+"/readiness",{
+      headers:{authorization:"Bearer "+token}
+    })).then(v=>{
       if(mounted)setReady(v.ready===true&&v.auto_renews===false&&v.amount_cents===499&&v.currency==="USD");
     }).catch(()=>{if(mounted)setReady(false)});
     return()=>{mounted=false;};
@@ -88,11 +90,15 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           }catch(_){setError("Payment confirmation needs review. Check your account before retrying; do not pay twice.");}
           finally{if(!disposed)setBusy(false)}
         }
-        buttons=paypal.Buttons({createOrder:()=>createOrder("paypal"),onApprove,
-          onCancel:()=>{if(!disposed)setBusy(false)},
-          onError:()=>{if(!disposed)setError("PayPal checkout needs review before retrying.");},
-          style:{layout:"vertical",label:"paypal",shape:"rect"}});
-        if(paypalHost.current)await buttons.render(paypalHost.current);
+        // A hidden PayPal button can fail iframe rendering and prevent card
+        // fields from initializing. Render buttons only on the PayPal tab.
+        if(method==="paypal"){
+          buttons=paypal.Buttons({createOrder:()=>createOrder("paypal"),onApprove,
+            onCancel:()=>{if(!disposed)setBusy(false)},
+            onError:()=>{if(!disposed)setError("PayPal checkout needs review before retrying.");},
+            style:{layout:"vertical",label:"paypal",shape:"rect"}});
+          if(paypalHost.current)await buttons.render(paypalHost.current);
+        }
         if(disposed)return;
         if(method==="card"&&typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
@@ -122,16 +128,34 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   },[ready,method,native,activeSubscription,complete]);
 
   if(native)return <p className="text-xs text-muted-foreground">Purchases in the mobile app require separate store billing approval.</p>;
-  if(activeSubscription)return <p className="text-xs text-muted-foreground">Manage your current membership before purchasing another month.</p>;
+  if(activeSubscription)return <div className="mt-4 space-y-2">
+    <button type="button" disabled aria-disabled="true"
+      className="min-h-11 w-full rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
+      Pay $4.99 now — one month, no renewal
+    </button>
+    <p role="status" className="text-xs text-muted-foreground">
+      Your existing Premium membership or account status must be verified before another payment.
+      No new charge can be started.
+    </p>
+  </div>;
   if(method==="googlepay")return <p className="text-sm text-muted-foreground">One-time Google Pay enrollment is not yet verified for Premium. Choose card or PayPal.</p>;
-  if(!ready)return <p className="text-sm text-muted-foreground">One-month checkout is awaiting verified payment and entitlement activation. No charge can be started.</p>;
+  if(!ready)return <div className="mt-4 space-y-3">
+    <button type="button" disabled aria-disabled="true"
+      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
+      <CreditCard className="h-4 w-4"/> Pay $4.99 now — one month, no renewal
+    </button>
+    <p role="status" className="text-sm text-muted-foreground">
+      Card payment is unavailable until PayPal and your account pass the secure checkout checks.
+      No payment can be charged. The button will become available only after verification.
+    </p>
+  </div>;
   if(complete)return <div role="status" className="rounded-xl border border-emerald-500/30 p-4">
     <strong>One month of Premium verified.</strong>
     <p className="mt-1 text-sm">Access through {new Date(complete).toLocaleDateString()}. No future payments are scheduled.</p>
   </div>;
   const field="min-h-11 w-full rounded-lg border border-border bg-background px-2 py-2";
   return <div className="mt-4 space-y-3">
-    <p className="text-sm font-semibold">One-time Premium purchase · $4.99 USD</p>
+    <p className="text-sm font-semibold">Pay by card · $4.99 USD once</p>
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
     {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
       <label className="block text-xs">Cardholder name<div className={field} ref={nameHost}/></label>
@@ -144,9 +168,13 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         setError("");try{await cardSession.current?.submit()}catch(_){setError("Unable to submit card. Check receipt before retrying.")}
       }} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white disabled:opacity-50">
         {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
-        Pay $4.99 once — no renewal
+        Pay $4.99 now — one month, no renewal
       </button>
-      {!cardReady&&sdkReady&&<p className="text-xs text-muted-foreground">PayPal has not enabled guest card fields for this device or merchant. Try PayPal checkout instead.</p>}
+      {!cardReady&&<p role="status" className="text-xs text-muted-foreground">
+        {sdkReady
+          ?"Direct card fields are not enabled for this merchant or browser. PayPal controls card eligibility."
+          :"Secure card form is loading. The payment button will activate only after card fields are available."}
+      </p>}
     </section>}
     <div ref={paypalHost} style={{display:method==="paypal"?"block":"none"}} aria-label="One-time PayPal payment" className="min-h-11"/>
     <p className="flex items-start gap-2 text-xs text-muted-foreground">

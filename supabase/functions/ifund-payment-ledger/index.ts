@@ -239,17 +239,24 @@ Deno.serve(async req=>{
       // Emergency pause blocks only NEW purchases. Existing paid receipts and
       // refunds must remain reconcilable to protect customer entitlements.
       if(["premium_one_time_begin","premium_one_time_bind"].includes(body.op)
-        &&Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
+        &&Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")==="false")
         return fail("Non-renewing Premium purchases are not activated",503);
       const p=body.data||{};
+      if(body.op==="premium_one_time_test_eligible"){
+        try{
+          const owner=await resolveVerifiedSuperAdmin(p.member_access_token);
+          const allowed=await db("rpc/ifund_premium_one_time_test_eligible","POST",{p_member_id:owner});
+          return Response.json({ok:true,eligible:allowed===true});
+        }catch(_){return Response.json({ok:true,eligible:false})}
+      }
       if(body.op==="premium_one_time_readiness"){
-        if(Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")!=="true")
+        if(Deno.env.get("IFUND_PREMIUM_ONE_TIME_ENABLED")==="false")
           return Response.json({ok:true,enabled:false,version:1});
         const ready=await db("rpc/ifund_premium_one_time_readiness","POST",{});
         return Response.json({ok:true,enabled:ready?.enabled===true&&ready?.version===1,version:1});
       }
       if(body.op==="premium_one_time_begin"){
-        const owner=await resolveVerifiedDonor(p.member_access_token);
+        const owner=await resolveVerifiedSuperAdmin(p.member_access_token);
         if(!owner)return fail("Verified member required",401);
         if(!/^[A-Za-z0-9_-]{16,100}$/.test(p.request_key||"")
           || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")
