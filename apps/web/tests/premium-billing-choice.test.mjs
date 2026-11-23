@@ -32,7 +32,7 @@ test("No automatic enrollment from method selection; provider and account readin
   assert.equal(canBeginBilling({...base,native:true}),false);
   assert.match(choice,/renewalConsent/);
   assert.match(choice,/I understand that this plan bills \$4\.99 USD each month/);
-  assert.match(choice,/Google Pay recurring billing requires/);
+  assert.match(choice,/Google Pay recurring billing is not yet authorized/);
 });
 test("One-time PayPal uses Orders v2 card-hosted checkout, not donation ledger or subscription vault",()=>{
   assert.match(once,/paypal\.CardFields/);
