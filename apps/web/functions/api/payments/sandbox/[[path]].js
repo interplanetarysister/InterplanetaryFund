@@ -10,7 +10,7 @@ export async function onRequest(context){
     return Response.json({ok:false,error:"sandbox_preview_only"},{status:403});
   const result=await sandboxCheckout(context);
   const cookie=result.headers.get("set-cookie");
-  if(!cookie||context.request.method!=="POST")return result;
+  // Only an order-creation response may set a checkout-session cookie.\n  // Never rewrite cookies returned by capture, webhook, or future routes.\n  const route=Array.isArray(context.params?.path)?context.params.path.join("/"):String(context.params?.path||"");\n  if(!cookie||context.request.method!=="POST"||route!=="orders")return result;
   const response=new Response(result.body,result);
   response.headers.set("set-cookie",cookie.replace(/Path=\/api\/paypal\/sandbox(?=;|$)/i,
     "Path=/api/payments/sandbox"));
