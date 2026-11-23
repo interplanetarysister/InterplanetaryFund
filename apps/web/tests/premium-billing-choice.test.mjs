@@ -48,9 +48,11 @@ test("One-time PayPal uses Orders v2 card-hosted checkout, not donation ledger o
   assert.match(sql,/current_user <> 'service_role'/);
   assert.match(sql,/enable row level security/);
 });
-test("One-time payment must remain disabled unless independent flag and signed readiness pass",()=>{
+test("One-time payment remains gated by Worker, authenticated admin and signed readiness",()=>{
   assert.match(worker,/IFUND_PREMIUM_ONE_TIME_ENABLED==="true"/);
-  assert.match(edge,/IFUND_PREMIUM_ONE_TIME_ENABLED"\)!=="true"/);
+  assert.match(edge,/IFUND_PREMIUM_ONE_TIME_ENABLED"\)==="false"/);
+  assert.match(edge,/premium_one_time_test_eligible/);
+  assert.match(worker,/IFUND_PREMIUM_ONE_TIME_TEST_ONLY==="true"/);
   assert.match(worker,/subscriptionAtomicReadiness\(env\)/);
   assert.match(page,/<PremiumBillingChoices/);
   assert.match(choice,/<PremiumOneTimeCheckout/);
