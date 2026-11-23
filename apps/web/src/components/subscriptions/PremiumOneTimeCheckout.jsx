@@ -42,7 +42,9 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   useEffect(()=>{
     let mounted=true;
     if(native||activeSubscription){setReady(false);return;}
-    api(API+"/readiness").then(v=>{
+    memberToken().then(token=>api(API+"/readiness",{
+      headers:{authorization:"Bearer "+token}
+    })).then(v=>{
       if(mounted)setReady(v.ready===true&&v.auto_renews===false&&v.amount_cents===499&&v.currency==="USD");
     }).catch(()=>{if(mounted)setReady(false)});
     return()=>{mounted=false;};
@@ -124,14 +126,14 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   if(native)return <p className="text-xs text-muted-foreground">Purchases in the mobile app require separate store billing approval.</p>;
   if(activeSubscription)return <p className="text-xs text-muted-foreground">Manage your current membership before purchasing another month.</p>;
   if(method==="googlepay")return <p className="text-sm text-muted-foreground">One-time Google Pay enrollment is not yet verified for Premium. Choose card or PayPal.</p>;
-  if(!ready)return <p className="text-sm text-muted-foreground">One-month checkout is awaiting verified payment and entitlement activation. No charge can be started.</p>;
+  if(!ready)return <p role="status" className="text-sm text-muted-foreground">Secure card entry is unavailable until this account and PayPal’s card processing are verified. No payment can be charged. Sign in with your administrator test account and refresh to check eligibility.</p>;
   if(complete)return <div role="status" className="rounded-xl border border-emerald-500/30 p-4">
     <strong>One month of Premium verified.</strong>
     <p className="mt-1 text-sm">Access through {new Date(complete).toLocaleDateString()}. No future payments are scheduled.</p>
   </div>;
   const field="min-h-11 w-full rounded-lg border border-border bg-background px-2 py-2";
   return <div className="mt-4 space-y-3">
-    <p className="text-sm font-semibold">One-time Premium purchase · $4.99 USD</p>
+    <p className="text-sm font-semibold">Pay by card · $4.99 USD once</p>
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
     {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
       <label className="block text-xs">Cardholder name<div className={field} ref={nameHost}/></label>
@@ -146,7 +148,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
         Pay $4.99 once — no renewal
       </button>
-      {!cardReady&&sdkReady&&<p className="text-xs text-muted-foreground">PayPal has not enabled guest card fields for this device or merchant. Try PayPal checkout instead.</p>}
+      {!cardReady&&sdkReady&&<p role="status" className="text-xs text-muted-foreground">Direct card fields are not available for this merchant or browser. PayPal controls eligibility; no PayPal login is required when the fields are available.</p>}
     </section>}
     <div ref={paypalHost} style={{display:method==="paypal"?"block":"none"}} aria-label="One-time PayPal payment" className="min-h-11"/>
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
