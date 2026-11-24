@@ -745,7 +745,8 @@ async function verifyPremiumOneTimeCapture(env,orderId,intent){
   const capture=captures.length===1?captures[0]:null;
   if(order?.id!==orderId||order.status!=="COMPLETED"||!unit
     ||unit.custom_id!==intent.custom_id||unit.reference_id!=="ifund-premium-one-time"
-    ||unit.payee?.merchant_id!==atomic.merchant_id
+    ||(unit.payee?.merchant_id||capture?.payee?.merchant_id)!==atomic.merchant_id
+    ||(unit.payee?.merchant_id&&capture?.payee?.merchant_id&&unit.payee.merchant_id!==capture.payee.merchant_id)
     ||unit.amount?.currency_code!=="USD"||cents(unit.amount.value)!==PREMIUM_ONE_TIME_CENTS
     ||capture?.status!=="COMPLETED"||!ORDER_ID.test(capture.id||"")
     ||capture.amount?.currency_code!=="USD"||cents(capture.amount.value)!==PREMIUM_ONE_TIME_CENTS
@@ -760,6 +761,23 @@ async function verifyPremiumOneTimeCapture(env,orderId,intent){
     throw Error("premium_capture_timestamp_invalid");
   return {purchase_id:intent.id,paypal_order_id:orderId,paypal_capture_id:capture.id,
     merchant_id:atomic.merchant_id,captured_at:capturedAt.toISOString(),custom_id:intent.custom_id};
+}
+function premiumCheckoutFailure(error,phase="start"){
+  // Forward only stable reason categories. Do not reflect provider payloads,
+  // credentials, payment details or member identities in a public error.
+  if(error?.message==="ledger_rejected"){
+    if(error.status===401||error.status===403)
+      return asError("premium_verified_member_required",403);
+    if(error.status===409)return asError("premium_existing_purchase_review_required",409);
+  }
+  if(error?.message==="paypal_request_failed"){
+    if(error.status===422)return asError("premium_provider_payment_unavailable",422);
+    if(error.status===401||error.status===403)
+      return asError("premium_merchant_authorization_unavailable",503);
+  }
+  return phase==="capture"
+    ?asError("premium_capture_requires_receipt_review",503)
+    :asError("premium_purchase_start_unavailable",503);
 }
 async function startPremiumOneTime(req,env){
   const readiness=await premiumOneTimeReadiness(env,req);
@@ -973,14 +991,14 @@ export default {
         return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
       try{const response=await startPremiumOneTime(request,env);
         for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
-      }catch(_){return asJson({ok:false,error:"premium_purchase_start_unavailable"},503,cors)}
+      }catch(error){const response=premiumCheckoutFailure(error,"start");for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
     }
     if(path==="/api/payments/premium-one-time/capture-order"&&request.method==="POST"){
       if(!premiumOneTimeEnabled(env)||!permitted.includes(origin))
         return asJson({ok:false,error:"premium_one_time_unavailable"},503,cors);
       try{const response=await capturePremiumOneTime(request,env);
         for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
-      }catch(_){return asJson({ok:false,error:"premium_capture_requires_receipt_review"},503,cors)}
+      }catch(error){const response=premiumCheckoutFailure(error,"capture");for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
     }
     if(path==="/api/payments/subscriptions/provider-readiness"&&request.method==="GET"){
       if(env.IFUND_PAYPAL_MODE!=="live")
