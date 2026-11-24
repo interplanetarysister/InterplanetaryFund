@@ -98,3 +98,45 @@ test("Payment does not finalize when PayPal receipt mismatches",async()=>{
   await assert.rejects(h.fn("capturePremiumOneTime")(request,{}));
   assert.equal(h.writes.filter(x=>x.op==="premium_one_time_finalize").length,0);
 });
+
+// PayPal may put the immutable recipient merchant on the capture instead of
+// repeating it on the purchase unit. Either verified field is sufficient,
+// but disagreements and missing identities never grant membership.
+test("Premium accepts provider-confirmed capture payee when purchase-unit payee is omitted",async()=>{
+  const o=providerOrder();delete o.purchase_units[0].payee;
+  o.purchase_units[0].payments.captures[0].payee={merchant_id:"MERCHANT12345"};
+  const h=harness(o);
+  const proof=await h.fn("verifyPremiumOneTimeCapture")({},ORDER,purchase());
+  assert.equal(proof.merchant_id,"MERCHANT12345");
+});
+test("Premium rejects contradictory or absent provider merchant identity",async()=>{
+  for(const conflict of [true,false]){
+    const o=providerOrder();
+    if(conflict){
+      o.purchase_units[0].payments.captures[0].payee={merchant_id:"OTHER"};
+    }else{
+      delete o.purchase_units[0].payee;
+    }
+    const h=harness(o);
+    await assert.rejects(h.fn("verifyPremiumOneTimeCapture")({},ORDER,purchase()));
+    assert.equal(h.writes.length,0);
+  }
+});
+test("Premium checkout failure codes preserve member verification and duplicate-order details",async()=>{
+  const h=harness();
+  const safe=h.fn("premiumCheckoutFailure");
+  const forbidden=new Error("ledger_rejected");forbidden.status=403;
+  let response=safe(forbidden,"start");
+  assert.equal(response.status,403);
+  assert.equal((await response.json()).error,"premium_verified_member_required");
+  const pending=new Error("ledger_rejected");pending.status=409;
+  response=safe(pending,"start");
+  assert.equal(response.status,409);
+  assert.equal((await response.json()).error,"premium_existing_purchase_review_required");
+  const provider=new Error("paypal_request_failed");provider.status=422;
+  response=safe(provider,"start");
+  assert.equal(response.status,422);
+  assert.equal((await response.json()).error,"premium_provider_payment_unavailable");
+  response=safe(new Error("internal_secret_value_should_never_escape"),"capture");
+  assert.equal((await response.json()).error,"premium_capture_requires_receipt_review");
+});
