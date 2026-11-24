@@ -158,7 +158,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         if(method==="card"&&typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
             createOrder:()=>createOrder("card"),onApprove,
-            onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(current=>current&&checkoutPhase==="create-error"?current:premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
+            onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(current=>current||premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
             onCancel:()=>{if(!disposed){setCheckoutPhase("review");setError("Card authentication was canceled. Check your purchase status before submitting another payment.");}}
           });
           if(card.isEligible()){
@@ -238,7 +238,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         }catch(cause){
           const hasOrder=Boolean(intent.current?.orderId);
           setCheckoutPhase(hasOrder?"review":"invalid");
-          setError(premiumCardErrorMessage({stage:hasOrder?"capture":"fields",providerCode:cause?.code||cause?.name,hasOrder}));
+          setError(current=>current||premiumCardErrorMessage({stage:hasOrder?"capture":"fields",providerCode:cause?.code||cause?.name,hasOrder}));
         }finally{
           submitting.current=false;setBusy(false);
         }
