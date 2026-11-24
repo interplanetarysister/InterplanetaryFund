@@ -3,7 +3,7 @@
 // Once an order exists, reconcile before another charge attempt.
 export function premiumCardErrorMessage({stage="fields",providerCode="",hasOrder=false}={}){
   const code=String(providerCode||"").toUpperCase().replace(/[^A-Z0-9_]/g,"").slice(0,64);
-  if(stage==="invalid"||["INVALID_CARD","VALIDATION_ERROR","CARD_FIELDS_VALIDATION_ERROR"].includes(code))
+  if(!hasOrder&&(stage==="invalid"||["INVALID_CARD","VALIDATION_ERROR","CARD_FIELDS_VALIDATION_ERROR"].includes(code)))
     return "Check the card number, expiration date, security code and cardholder name. No payment has been submitted.";
   if(code==="PREMIUM_VERIFIED_MEMBER_REQUIRED")
     return "This account needs completed email verification and an active member profile before a card purchase can begin. No payment order was created.";
