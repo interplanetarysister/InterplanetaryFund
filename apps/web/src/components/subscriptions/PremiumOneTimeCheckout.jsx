@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {CreditCard,ShieldCheck,Loader2} from "lucide-react";
 import {isNativeBundle} from "@/lib/nativeApi";
+import {premiumCardErrorMessage,premiumPurchaseState} from "@/lib/premiumCardCheckoutFeedback.mjs";
 
 const API="/api/payments/premium-one-time";
 let scriptPromise,scriptClient;
@@ -23,7 +24,13 @@ function loadPayPal(clientId){
 async function api(path,options={}){
   const response=await fetch(path,{...options,cache:"no-store"});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok||data.ok===false)throw Error(data.error||"One-month payment unavailable");
+  if(!response.ok||data.ok===false){
+    const reason=typeof data.error==="string"?data.error:"premium_checkout_unavailable";
+    const failure=new Error("Premium checkout could not complete the requested step.");
+    failure.code=reason;
+    failure.httpStatus=response.status;
+    throw failure;
+  }
   return data;
 }
 async function memberToken(){
@@ -35,9 +42,38 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   const [ready,setReady]=useState(false),[busy,setBusy]=useState(false);
   const [sdkReady,setSdkReady]=useState(false),[cardReady,setCardReady]=useState(false);
   const [error,setError]=useState(""),[complete,setComplete]=useState(null);
+  const [statusChecking,setStatusChecking]=useState(false);
+  const [checkoutPhase,setCheckoutPhase]=useState("idle");
+  const [purchaseState,setPurchaseState]=useState("none");
   const nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const paypalHost=useRef(null),cardSession=useRef(null),intent=useRef(null);
+  const submitting=useRef(false);
   const native=isNativeBundle();
+
+  async function checkPurchaseStatus(){
+    setStatusChecking(true);setError("");
+    try{
+      const response=await api(API+"/status",{headers:{authorization:"Bearer "+await memberToken()}});
+      const purchase=response.purchase;
+      const state=premiumPurchaseState(purchase);
+      setPurchaseState(state);
+      if(state==="active"){
+        setComplete(purchase.valid_until);
+        intent.current=null;
+        setCheckoutPhase("completed");
+      }else if(state==="pending"){
+        setError("Your earlier Premium checkout has not been confirmed. Do not submit another payment. Verify the receipt with PayPal or contact support before retrying.");
+      }else if(state==="reversed"){
+        setError("The most recent Premium payment was reversed or refunded. No Premium access was granted for that purchase.");
+      }else{
+        setError("No completed Premium purchase is recorded for this account. If PayPal showed a charge, contact support with the PayPal receipt before paying again.");
+      }
+      return state;
+    }catch(_){
+      setError("Purchase status could not be verified right now. If PayPal may have charged you, do not submit another payment until the status can be checked.");
+      return "unknown";
+    }finally{setStatusChecking(false)}
+  }
 
   useEffect(()=>{
     let mounted=true;
@@ -64,19 +100,31 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           if(intent.current?.orderId)return intent.current.orderId;
           const token=crypto.randomUUID().replaceAll("-","")+crypto.randomUUID().replaceAll("-","");
           const requestKey=crypto.randomUUID();
-          const response=await api(API+"/create-order",{
-            method:"POST",headers:{"content-type":"application/json",
-              authorization:"Bearer "+await memberToken()},
-            body:JSON.stringify({request_key:requestKey,checkout_token:token,
-              payment_channel:channel,amount_cents:499,currency:"USD"})
-          });
+          let response;
+          try{
+            response=await api(API+"/create-order",{
+              method:"POST",headers:{"content-type":"application/json",
+                authorization:"Bearer "+await memberToken()},
+              body:JSON.stringify({request_key:requestKey,checkout_token:token,
+                payment_channel:channel,amount_cents:499,currency:"USD"})
+            });
+          }catch(cause){
+            if(!disposed){setCheckoutPhase("create-error");setError(premiumCardErrorMessage({stage:"create",providerCode:cause?.code,hasOrder:false}));}
+            throw cause;
+          }
           if(!response.id||response.amount_cents!==499||response.currency!=="USD")
             throw Error("PayPal order does not match the one-month purchase.");
           intent.current={orderId:response.id,token};
+          if(!disposed){setCheckoutPhase("order-created");setPurchaseState("pending");}
           return response.id;
         }
         async function onApprove(data){
-          if(disposed||!intent.current||data?.orderID!==intent.current.orderId)return;
+          if(disposed)return;
+          if(!intent.current||data?.orderID!==intent.current.orderId){
+            setCheckoutPhase("review");
+            setError("PayPal returned an unexpected order reference. No access was granted. Check your purchase status before trying again.");
+            return;
+          }
           setBusy(true);
           try{
             const result=await api(API+"/capture-order",{
@@ -87,7 +135,14 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
             if(result.ok!==true||result.status!=="captured"||!result.valid_until)
               throw Error("Payment receipt was not verified. Check account status before retrying.");
             setComplete(result.valid_until);
-          }catch(_){setError("Payment confirmation needs review. Check your account before retrying; do not pay twice.");}
+            setPurchaseState("active");
+            setCheckoutPhase("completed");
+            intent.current=null;
+          }catch(_){
+            if(!disposed){setCheckoutPhase("review");setError(premiumCardErrorMessage({stage:"capture",hasOrder:true}));}
+            // Do not re-capture or start a second order if PayPal may have charged.
+            if(!disposed)void checkPurchaseStatus();
+          }
           finally{if(!disposed)setBusy(false)}
         }
         // A hidden PayPal button can fail iframe rendering and prevent card
@@ -95,7 +150,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         if(method==="paypal"){
           buttons=paypal.Buttons({createOrder:()=>createOrder("paypal"),onApprove,
             onCancel:()=>{if(!disposed)setBusy(false)},
-            onError:()=>{if(!disposed)setError("PayPal checkout needs review before retrying.");},
+            onError:()=>{if(!disposed){setCheckoutPhase("review");setError(premiumCardErrorMessage({stage:"checkout",hasOrder:Boolean(intent.current?.orderId)}));}},
             style:{layout:"vertical",label:"paypal",shape:"rect"}});
           if(paypalHost.current)await buttons.render(paypalHost.current);
         }
@@ -103,7 +158,8 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         if(method==="card"&&typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
             createOrder:()=>createOrder("card"),onApprove,
-            onError:()=>{if(!disposed)setError("Card payment needs review before retrying.");}
+            onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(current=>current||premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
+            onCancel:()=>{if(!disposed){setCheckoutPhase("review");setError("Card authentication was canceled. Check your purchase status before submitting another payment.");}}
           });
           if(card.isEligible()){
             cardSession.current=card;
@@ -115,7 +171,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           }
         }
         if(!disposed)setSdkReady(true);
-      }catch(_){if(!disposed)setError("One-time PayPal checkout could not load. No payment was started.");}
+      }catch(_){if(!disposed){setCheckoutPhase("initialization-error");setError("Secure card checkout did not initialize. No payment has been started. Refresh the page or choose PayPal.");}}
     })();
     return()=>{
       disposed=true;
@@ -164,8 +220,28 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         <label className="text-xs">Expiry<div className={field} ref={expiryHost}/></label>
         <label className="text-xs">Security code<div className={field} ref={cvvHost}/></label>
       </div>
-      <button type="button" disabled={!cardReady||busy} onClick={async()=>{
-        setError("");try{await cardSession.current?.submit()}catch(_){setError("Unable to submit card. Check receipt before retrying.")}
+      <button type="button" disabled={!cardReady||busy||statusChecking||submitting.current||purchaseState==="pending"} onClick={async()=>{
+        if(submitting.current||!cardSession.current||intent.current?.orderId)return;
+        setError("");setCheckoutPhase("validating");
+        try{
+          // PayPal CardFields checks the actual hosted, PCI-scoped inputs.
+          // Incomplete/invalid fields have not created an order or charge.
+          const state=await cardSession.current.getState();
+          if(!state?.isFormValid){
+            setCheckoutPhase("invalid");
+            setError(premiumCardErrorMessage({stage:"invalid"}));
+            return;
+          }
+          submitting.current=true;
+          setBusy(true);setCheckoutPhase("submitting");
+          await cardSession.current.submit();
+        }catch(cause){
+          const hasOrder=Boolean(intent.current?.orderId);
+          setCheckoutPhase(hasOrder?"review":"invalid");
+          setError(current=>current||premiumCardErrorMessage({stage:hasOrder?"capture":"fields",providerCode:cause?.code||cause?.name,hasOrder}));
+        }finally{
+          submitting.current=false;setBusy(false);
+        }
       }} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white disabled:opacity-50">
         {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
         Pay $4.99 now — one month, no renewal
@@ -188,5 +264,12 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
       <ShieldCheck className="h-4 w-4 shrink-0"/>Card details are hosted securely by PayPal. A PayPal account is not required when guest card checkout is available. IFund verifies the completed receipt before enabling Premium.
     </p>
     {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
+    {(purchaseState==="pending"||checkoutPhase==="review"||checkoutPhase==="card-error"||checkoutPhase==="invalid")&&<div className="space-y-2 rounded-xl border border-border p-3">
+      <p className="text-xs text-muted-foreground">{purchaseState==="pending"?"A purchase attempt may already exist. Complete receipt review before any further payment.":"Card inputs are securely hosted by PayPal. A field error does not prove a charge occurred."}</p>
+      <button type="button" disabled={statusChecking||busy} onClick={checkPurchaseStatus}
+        className="min-h-11 rounded-lg border border-cyan-500/40 px-4 text-sm font-semibold disabled:opacity-50">
+        {statusChecking?"Checking recorded purchase…":"Check my Premium purchase status"}
+      </button>
+    </div>}
   </div>;
 }

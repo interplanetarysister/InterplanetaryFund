@@ -31,5 +31,5 @@ test("recurring card enrollment waits for explicit renewal consent and explains 
 test("SDK loading displays a disabled action rather than a missing payment button",()=>{
   assert.match(oneTime,/method==="paypal"&&!sdkReady&&<button type="button" disabled/);
   assert.match(oneTime,/method==="card"&&<section aria-label="Secure one-time card fields"/);
-  assert.match(oneTime,/disabled=\{!cardReady\|\|busy\}/);
+  assert.match(oneTime,/disabled=\{!cardReady\|\|busy\|\|statusChecking\|\|submitting\.current\|\|purchaseState==="pending"\}/);
 });
