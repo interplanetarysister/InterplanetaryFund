@@ -25,7 +25,7 @@ export async function reviewedR2Inventory({ requestId, jwt, rpc, resolveReceipt 
   // Bound receipt RPC work to the same ten-object deletion batch. Never resolve
   // 100 authenticated receipts merely to return ten; retries re-query the queue.
   const rows = await rpc('ifund_super_admin_private_document_inventory',
-    { p_owner_id: ownerId, p_limit: 10 }, jwt);
+    { p_request_id: requestId, p_limit: 10 }, jwt);
   if (!Array.isArray(rows) || rows.length > 10) throw Error('Invalid private document inventory');
   const verified = [];
   const seen = new Set();
