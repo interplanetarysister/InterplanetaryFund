@@ -24,7 +24,13 @@ function loadPayPal(clientId){
 async function api(path,options={}){
   const response=await fetch(path,{...options,cache:"no-store"});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok||data.ok===false)throw Error(data.error||"One-month payment unavailable");
+  if(!response.ok||data.ok===false){
+    const reason=typeof data.error==="string"?data.error:"premium_checkout_unavailable";
+    const failure=new Error("Premium checkout could not complete the requested step.");
+    failure.code=reason;
+    failure.httpStatus=response.status;
+    throw failure;
+  }
   return data;
 }
 async function memberToken(){
@@ -94,12 +100,18 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           if(intent.current?.orderId)return intent.current.orderId;
           const token=crypto.randomUUID().replaceAll("-","")+crypto.randomUUID().replaceAll("-","");
           const requestKey=crypto.randomUUID();
-          const response=await api(API+"/create-order",{
-            method:"POST",headers:{"content-type":"application/json",
-              authorization:"Bearer "+await memberToken()},
-            body:JSON.stringify({request_key:requestKey,checkout_token:token,
-              payment_channel:channel,amount_cents:499,currency:"USD"})
-          });
+          let response;
+          try{
+            response=await api(API+"/create-order",{
+              method:"POST",headers:{"content-type":"application/json",
+                authorization:"Bearer "+await memberToken()},
+              body:JSON.stringify({request_key:requestKey,checkout_token:token,
+                payment_channel:channel,amount_cents:499,currency:"USD"})
+            });
+          }catch(cause){
+            if(!disposed){setCheckoutPhase("create-error");setError(premiumCardErrorMessage({stage:"create",providerCode:cause?.code,hasOrder:false}));}
+            throw cause;
+          }
           if(!response.id||response.amount_cents!==499||response.currency!=="USD")
             throw Error("PayPal order does not match the one-month purchase.");
           intent.current={orderId:response.id,token};
@@ -107,7 +119,12 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           return response.id;
         }
         async function onApprove(data){
-          if(disposed||!intent.current||data?.orderID!==intent.current.orderId)return;
+          if(disposed)return;
+          if(!intent.current||data?.orderID!==intent.current.orderId){
+            setCheckoutPhase("review");
+            setError("PayPal returned an unexpected order reference. No access was granted. Check your purchase status before trying again.");
+            return;
+          }
           setBusy(true);
           try{
             const result=await api(API+"/capture-order",{
@@ -141,7 +158,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         if(method==="card"&&typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
             createOrder:()=>createOrder("card"),onApprove,
-            onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
+            onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(current=>current&&checkoutPhase==="create-error"?current:premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
             onCancel:()=>{if(!disposed){setCheckoutPhase("review");setError("Card authentication was canceled. Check your purchase status before submitting another payment.");}}
           });
           if(card.isEligible()){
