@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
+import CampaignLaunchSuccess from "@/components/campaigns/CampaignLaunchSuccess";
 import { authClient } from "@/api/auth";
 import { getCampaignDetail, listRelatedCampaigns } from "@/api/publicData";
 import { Image } from "@/components/ui/image";
@@ -28,6 +29,7 @@ export default function CampaignDetail() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [donationOpen, setDonationOpen] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -94,6 +96,7 @@ export default function CampaignDetail() {
 
   return (
     <PullToRefresh onRefresh={load} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      {location.state?.justPublished === true && campaign.status === "active" && <CampaignLaunchSuccess onClose={() => navigate(location.pathname + location.search, { replace: true, state: null })} />}
       {platformOnlyMode && <PrelaunchNotice className="mb-6" />}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main column */}
@@ -133,7 +136,7 @@ export default function CampaignDetail() {
             <CampaignFundingCard campaign={campaign} onDonate={() => setDonationOpen(true)} />
           </div>
           <CampaignShareButton campaign={campaign} />
-          <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}`} className="block rounded-xl border border-primary/30 bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">Share this campaign on iFund Social</Link>
+          <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}`} className="ifund-interactive block rounded-xl border border-primary/30 bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">Share this campaign on iFund Social</Link>
           {blogAuthor && <Link to={`/blogs?author=${encodeURIComponent(blogAuthor)}`} className="block rounded-xl border border-border bg-card px-4 py-3 text-center text-sm text-primary underline">Read the creator’s blog</Link>}
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
         </div>
