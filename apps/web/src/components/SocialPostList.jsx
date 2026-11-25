@@ -130,7 +130,7 @@ function SocialItem({ post, likes, onHidden, user }) {
 function PublicCampaignVideoCard({ item }) {
   return <article className="ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-      <span className="font-semibold">Public campaign video</span>
+      <span className="font-semibold">Public campaign</span>
       {item.posted_at && <time className="text-xs text-muted-foreground" dateTime={item.posted_at}>{new Date(item.posted_at).toLocaleDateString()}</time>}
     </div>
     <h2 className="text-xl font-semibold">{item.title}</h2>
