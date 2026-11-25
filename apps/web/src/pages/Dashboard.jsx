@@ -61,8 +61,8 @@ export default function Dashboard() {
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Make your what if happen.</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-200">Your campaigns, people you follow, and AI specialists in one place. Pick up wherever you left off.</p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link to={whatIfEnabled ? "/what-if" : "/create"} className="ifund-dashboard-primary"><PlusCircle size={18}/> {whatIfEnabled ? "Start a Mission" : "Start a campaign"}</Link>
-          <button type="button" className="ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
+          <Link to={whatIfEnabled ? "/what-if" : "/create"} className="ifund-interactive ifund-dashboard-primary"><PlusCircle size={18}/> {whatIfEnabled ? "Start a Mission" : "Start a campaign"}</Link>
+          <button type="button" className="ifund-interactive ifund-dashboard-secondary" onClick={() => window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: "nexus" } }))}><Bot size={18}/> Ask your AI Team</button>
         </div>
         <PromptComposer
           id="dashboard-prompt"
@@ -81,16 +81,16 @@ export default function Dashboard() {
       <h2 className="text-xl font-semibold">Your next possibility starts here</h2>
       <p className="text-sm text-muted-foreground">Build a private Mission from an idea or need. A fundraiser is optional, and nothing is published without your review.</p>
       <div className="flex flex-wrap gap-3">
-        <Link to="/what-if" className="ifund-dashboard-primary">Open What If</Link>
-        <Link to="/missions" className="ifund-dashboard-secondary">My Missions</Link>
+        <Link to="/what-if" className="ifund-interactive ifund-dashboard-primary">Open What If</Link>
+        <Link to="/missions" className="ifund-interactive ifund-dashboard-secondary">My Missions</Link>
       </div>
     </section>}
     <div className="ifund-dashboard-shortcuts">
-      <Link to={whatIfEnabled?"/missions":"/campaigns"} className="ifund-dashboard-shortcut"><FolderKanban size={21}/><span>{whatIfEnabled?"My Missions":"My campaigns"}</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <Link to="/discover" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <Link to="/fund-your-mission" className="ifund-dashboard-shortcut"><Compass size={21}/><span>Fund your Mission</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <Link to="/messaging" className="ifund-dashboard-shortcut"><Bot size={21}/><span>Messaging</span><ArrowUpRight size={15} className="ml-auto"/></Link>
-      <Link to="/analytics" className="ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to={whatIfEnabled?"/missions":"/campaigns"} className="ifund-interactive-card ifund-dashboard-shortcut"><FolderKanban size={21}/><span>{whatIfEnabled?"My Missions":"My campaigns"}</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/discover" className="ifund-interactive-card ifund-dashboard-shortcut"><Compass size={21}/><span>Discover</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/fund-your-mission" className="ifund-interactive-card ifund-dashboard-shortcut"><Compass size={21}/><span>Fund your Mission</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/messaging" className="ifund-interactive-card ifund-dashboard-shortcut"><Bot size={21}/><span>Messaging</span><ArrowUpRight size={15} className="ml-auto"/></Link>
+      <Link to="/analytics" className="ifund-interactive-card ifund-dashboard-shortcut"><Sparkles size={21}/><span>Command Center</span><ArrowUpRight size={15} className="ml-auto"/></Link>
     </div>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Campaign snapshot">
       {[
@@ -111,7 +111,7 @@ export default function Dashboard() {
           <h2 id="dashboard-agent-team-heading" className="mt-1 text-xl font-bold">Nine specialists, one workspace</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Each agent has its own role. Open a card to use that specialist's real tools; nothing is posted, sent, paid or published without your approval.</p>
         </div>
-        <Link to="/agents" className="ifund-dashboard-secondary">Meet the team <ArrowUpRight size={15}/></Link>
+        <Link to="/agents" className="ifund-interactive ifund-dashboard-secondary">Meet the team <ArrowUpRight size={15}/></Link>
       </div>
       <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {AGENT_WORKSPACES.map((role) => (

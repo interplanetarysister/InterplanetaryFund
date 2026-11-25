@@ -27,6 +27,7 @@ import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 import TrialCreationBalance from "@/components/subscriptions/TrialCreationBalance";
 import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
+import { CampaignLaunchProgress } from "@/components/campaigns/CampaignLaunchSuccess";
 
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
@@ -609,7 +610,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // Keep the accessible warning mounted if cleanup fails; navigating away
       // immediately would discard the only visible notice of retained data.
       if (!browserCleanupFailed) {
-        if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
+        if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`, { state: { justPublished: true } });
         else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
       }
       return true;
@@ -623,8 +624,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const stepIcons = [Target, BookOpen, Rocket];
   const stepNames=["Your idea","Your story","Ready to share"];
   const fld="mt-2 w-full min-h-12 rounded-2xl border border-white/20 bg-slate-950/60 px-4 py-3 text-base text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
-  const btn="min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
-  const primary="min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
+  const btn="ifund-interactive min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
+  const primary="ifund-interactive min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
   const next=(target)=>{
     if(step===0&&target===1&&!form.story.trim()&&draftDetails.trim()){
       setForm(previous=>previous.story.trim()?previous:{...previous,story:draftDetails.trim(),summary:previous.summary||draftDetails.trim().slice(0,SUMMARY_MAX)});
@@ -632,6 +633,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     void advanceWizard(target);
   };
   return <main className="mx-auto w-full max-w-3xl px-3 py-4 pb-28 sm:px-6 sm:py-8" aria-label="Campaign creator">
+    {busy === "active" && <CampaignLaunchProgress />}
     <section className={"relative mx-auto w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-300/25 bg-slate-950 text-white shadow-2xl "+(step===2?"ifund-eclipse-moment":"")}
       style={{backgroundImage:step===2?undefined:"radial-gradient(ellipse at 16% 5%,rgba(23,204,226,.19),transparent 43%),radial-gradient(ellipse at 88% 78%,rgba(178,82,226,.19),transparent 46%),repeating-linear-gradient(110deg,transparent,transparent 74px,rgba(170,210,255,.025) 75px,transparent 76px)"}}>
       <div className="relative space-y-5 px-5 py-6 sm:px-10 sm:py-10">

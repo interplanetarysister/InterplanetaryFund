@@ -1,0 +1,38 @@
+/* Shared interaction language for the connected Dashboard → Discover → Social → Campaign → Profile journey. */
+.ifund-interactive {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease, opacity 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ifund-interactive:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15, 165, 235, .14); }
+.ifund-interactive:not(:disabled):active { transform: translateY(0) scale(.975); box-shadow: none; }
+.ifund-interactive:focus-visible { outline: 3px solid #5ddcf7; outline-offset: 3px; }
+.ifund-interactive:disabled { cursor: not-allowed; opacity: .55; }
+.ifund-interactive-card { transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
+.ifund-interactive-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(3, 16, 37, .12); }
+.ifund-interactive-card:active { transform: scale(.992); }
+.ifund-interactive-card:focus-visible { outline: 3px solid #26bde8; outline-offset: 3px; }
+.ifund-launch-backdrop { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: 18px; background: rgba(4, 9, 22, .83); backdrop-filter: blur(9px); animation: ifund-arrive .3s ease-out both; }
+.ifund-launch-panel { position: relative; isolation: isolate; width: min(100%, 520px); border: 1px solid rgba(103, 233, 249, .45); border-radius: 30px; padding: 28px 22px 32px; text-align: center; background: radial-gradient(ellipse at 50% 10%, #184566 0%, #0b1a35 48%, #080d1c 100%); color: #fff; box-shadow: 0 30px 90px rgba(0,0,0,.5); }
+.ifund-launch-close { position: absolute; right: 12px; top: 12px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: #dceafb; }
+.ifund-launch-orbit { width: 180px; height: 175px; margin: 6px auto 12px; display: grid; place-items: center; position: relative; border-radius: 50%; background: radial-gradient(circle, rgba(37, 211, 255,.24), rgba(128, 83, 244,.09) 50%, transparent 72%); }
+.ifund-launch-orbit::before { content: ""; position: absolute; inset: 20px; border: 1px solid rgba(121, 236, 255, .36); border-radius: 50%; animation: ifund-orbit 8s linear infinite; }
+.ifund-launch-rocket { position: relative; transform: rotate(35deg); color: #b5f5ff; filter: drop-shadow(0 0 22px rgba(70,223,255,.6)); animation: ifund-rocket 2.2s ease-in-out infinite; }
+.ifund-launch-eyebrow { margin-top: 14px; margin-bottom: 6px; letter-spacing: .19em; text-transform: uppercase; font-size: 11px; font-weight: 800; color: #8cf3f4; }
+@keyframes ifund-arrive { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ifund-rocket { 0%,100% { transform: translateY(5px) rotate(35deg); } 50% { transform: translateY(-14px) rotate(35deg); } }
+@keyframes ifund-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+ .ifund-interactive, .ifund-interactive-card { transition: none !important; }
+ .ifund-interactive:hover, .ifund-interactive:active, .ifund-interactive-card:hover, .ifund-interactive-card:active { transform: none !important; }
+ .ifund-launch-backdrop, .ifund-launch-orbit::before, .ifund-launch-rocket { animation: none !important; }
+}
+
+.ifund-feedback-success, .ifund-feedback-error, .ifund-feedback-loading {
+  border: 1px solid; border-radius: 14px; padding: 12px 16px; font-size: 14px; line-height: 1.5;
+  animation: ifund-feedback-in 250ms ease-out both;
+}
+.ifund-feedback-success { background: rgba(16,185,129,.10); border-color: rgba(16,185,129,.35); color: inherit; }
+.ifund-feedback-error { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.4); color: inherit; }
+.ifund-feedback-loading { background: rgba(34,211,238,.08); border-color: rgba(34,211,238,.3); color: inherit; }
+@keyframes ifund-feedback-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .ifund-feedback-success, .ifund-feedback-error, .ifund-feedback-loading { animation: none !important; } }

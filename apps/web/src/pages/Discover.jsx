@@ -24,7 +24,7 @@ export default function Discover() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
-  const shortsLink = <Link to="/social?tab=shorts" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Clapperboard className="h-4 w-4" aria-hidden="true" /> Orbit Shorts</Link>;
+  const shortsLink = <Link to="/social?tab=shorts" className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Clapperboard className="h-4 w-4" aria-hidden="true" /> Orbit Shorts</Link>;
   const helpLink = (
     <Link to="/help" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500" aria-label="Open Help Center">
       <LifeBuoy className="h-4 w-4 shrink-0" aria-hidden="true" /> Help Center
@@ -67,7 +67,7 @@ export default function Discover() {
             Browse published campaigns and learn what each organizer is asking for.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">{shortsLink}<Link to="/globe" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
+        <div className="flex flex-wrap items-center gap-2">{shortsLink}<Link to="/globe" className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
       <RecommendedCampaigns allCampaigns={campaigns} />
@@ -102,7 +102,7 @@ export default function Discover() {
         </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
+          {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="ifund-interactive mt-2 min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
         </div>
       )}
     </PullToRefresh>
