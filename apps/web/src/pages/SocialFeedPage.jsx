@@ -1,7 +1,8 @@
 import "@/styles-sacred-social.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getCampaignDetail } from "@/api/publicData";
+import { getCampaignDetail, listPublicVideoCampaigns } from "@/api/publicData";
+import { unifiedSocialEntries } from "@/lib/unifiedSocialFeed.js";
 import { publicShareOrigin } from "@/lib/campaignShare";
 import { getPublishedStory, getFinalPublication } from "@/lib/editorial";
 import { authClient } from "@/api/auth";
@@ -16,6 +17,9 @@ import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
+  const [campaignVideos, setCampaignVideos] = useState([]);
+  const [campaignFeedError, setCampaignFeedError] = useState(false);
+  const timeline = useMemo(() => unifiedSocialEntries(posts, community ? [] : campaignVideos), [posts, campaignVideos, community]);
   const [params] = useSearchParams();
   const campaignToShare = params.get("shareCampaign");
   const sharingUpdate = params.get("kind") === "update";
@@ -57,6 +61,15 @@ export default function SocialFeedPage({ community = false }) {
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (community) return;
+    let active = true;
+    listPublicVideoCampaigns({ limit: 150 }).then(items => {
+      if (active) { setCampaignVideos(items); setCampaignFeedError(false); }
+    }).catch(() => { if (active) setCampaignFeedError(true); });
+    return () => { active = false; };
+  }, [community]);
 
   useEffect(() => {
     if (!draftKey) { setBody(""); return; }
@@ -242,11 +255,13 @@ export default function SocialFeedPage({ community = false }) {
     {publishError && <p role="alert" className="rounded-xl border border-destructive p-4">{publishError}</p>}
     {notice && <p role="status">{notice}</p>}
     <section aria-labelledby="recent-posts" className="space-y-4">
-      <h2 id="recent-posts" className="text-xl font-semibold">Recent updates</h2>
-      <SocialPostList posts={posts} onHidden={postId => setPosts(current => current.filter(post => post.id !== postId))} />
+      <h2 id="recent-posts" className="text-xl font-semibold">{community ? "Recent updates" : "Public timeline"}</h2>
+      {!community && <p className="text-sm text-muted-foreground">Public IFund and member updates, supported video posts, and active campaign videos together. External network content appears only when publicly available through an approved IFund source.</p>}
+      {!community && campaignFeedError && <p role="status" className="text-sm text-muted-foreground">Campaign videos could not be loaded. Community posts are still available.</p>}
+      <SocialPostList posts={timeline} onHidden={postId => setPosts(current => current.filter(post => post.id !== postId))} />
       {loading && <p role="status">Loading updates…</p>}
       {feedError && <p role="alert">{feedError} <button type="button" onClick={() => load(posts.at(-1))} className="min-h-11 text-primary underline">Retry</button></p>}
-      {!loading && !feedError && posts.length === 0 && <p className="rounded-xl border border-border p-5 text-muted-foreground">No public updates yet.</p>}
+      {!loading && !feedError && timeline.length === 0 && <p className="rounded-xl border border-border p-5 text-muted-foreground">No public updates yet.</p>}
       {!loading && !feedError && hasMore && <button type="button" className="min-h-11 rounded-xl border border-border px-4" onClick={() => load(posts.at(-1))}>Load older posts</button>}
     </section>
   </div>;
