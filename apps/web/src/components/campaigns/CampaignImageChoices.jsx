@@ -4,9 +4,9 @@ import {decodeGeneratedArtwork} from "@/lib/imageArtwork.mjs";
 import {overlayExactArtworkCaption} from "@/lib/exactArtworkCaption.mjs";
 import {uploadCampaignCover} from "@/api/campaignCovers";
 
-const STYLES=[["interstellar","Interstellar"],["futuristic","Futuristic"],["cyberpunk","Cyberpunk"],["comic","Comic illustration"]];
-export default function CampaignImageChoices({title,description,onApply,disabled=false,initialStyle="interstellar",initialCaption="",onSettingsChange}){
- const [style,setStyle]=useState(initialStyle||"interstellar");
+const CAMPAIGN_STYLE="ifund";
+export default function CampaignImageChoices({title,description,onApply,disabled=false,initialStyle="ifund",initialCaption="",onSettingsChange}){
+ const style=CAMPAIGN_STYLE;
  const [caption,setCaption]=useState(initialCaption||"");
  const [status,setStatus]=useState("idle");
  const [error,setError]=useState("");
@@ -18,8 +18,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
  const busy=useRef(false);
  const id=useRef(0);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;id.current++;if(urlRef.current)URL.revokeObjectURL(urlRef.current);};},[]);
- useEffect(()=>{setStyle(initialStyle||"interstellar");setCaption(initialCaption||"");},[initialStyle,initialCaption]);
- function updateStyle(value){setStyle(value);onSettingsChange?.({image_style:value,image_caption:caption});}
+ useEffect(()=>{setCaption(initialCaption||"");},[initialCaption]);
  function updateCaption(value){setCaption(value);onSettingsChange?.({image_style:style,image_caption:value});}
  function clear(){
   id.current++;if(urlRef.current)URL.revokeObjectURL(urlRef.current);
@@ -42,7 +41,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
      throw Error("Sign in with a verified account to generate a campaign illustration.");
    const response=await fetch("/api/ai/images/generate",{
     method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.session.access_token},
-    body:JSON.stringify({title:title.trim().slice(0,150),description:description.trim().slice(0,900),style}),
+    body:JSON.stringify({title:title.trim().slice(0,150),description:description.trim().slice(0,900),style:CAMPAIGN_STYLE,purpose:"campaign-cover"}),
     signal:AbortSignal.timeout(90000)
    });
    const result=await response.json().catch(()=>null);
@@ -74,11 +73,7 @@ export default function CampaignImageChoices({title,description,onApply,disabled
  return <details className="space-y-3 rounded-xl border border-cyan-400/30 p-4" aria-label="Generate optional iFund cover art">
    <summary className="cursor-pointer font-semibold">Or create your own original iFund illustration</summary>
    <p className="mt-3 text-sm text-muted-foreground">Make original campaign art. Eligible signup and referral-bonus trials provide time-limited access; paid subscribers have up to 50 image-generation or improvement attempts per rolling seven days. Shared provider capacity and fair-use pacing still apply. Review each illustration before using it.</p>
-   <label className="mt-3 block text-sm font-medium">Illustration style
-    <select value={style} disabled={disabled||status!=="idle"} onChange={e=>updateStyle(e.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3">
-      {STYLES.map(([value,label])=><option key={value} value={value}>{label}</option>)}
-    </select>
-   </label>
+   <p className="mt-3 text-sm text-muted-foreground">Campaign-cover style: <strong>Interplanetary Fund signature</strong> — one unified cosmic-geometry illustration style blending interstellar atmosphere, futuristic forms, restrained cyberpunk light and expressive graphic-novel storytelling. Other media styles are available in Growth Studio.</p>
    <label className="mt-3 block text-sm font-medium">Image words (optional, exact spelling)
      <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{updateCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
    </label>
