@@ -11,7 +11,7 @@ export const BINAURAL_BEAT_PRESETS=Object.freeze([
 ]);
 export const CARRIER_TONE_CHOICES=Object.freeze([432,528,639,741,852]);
 export function synthesizeBinauralSamples({seconds=30,sampleRate=44100,carrierHz=528,deltaHz=6,pinkRatio=0.35,seed=0x8fb34621}={}) {
-  if (!Number.isFinite(seconds) || seconds<=0 || seconds>180 ||
+  if (!Number.isFinite(seconds) || seconds<=0 || seconds>60 ||
     !Number.isInteger(sampleRate) || sampleRate<8000 || sampleRate>48000 ||
     !Number.isFinite(carrierHz) || carrierHz<40 || carrierHz>4000 ||
     !Number.isFinite(deltaHz) || deltaHz<0 || deltaHz>40 ||
