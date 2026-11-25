@@ -262,7 +262,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
               </div>
             </section>
             {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. Choose PayPal wallet checkout only if you prefer that separate payment method.</p>}
-            <section aria-label="Payment actions" className="sticky bottom-0 z-10 -mx-5 -mb-5 space-y-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:-mx-6 sm:px-6">
+            <section aria-label="Payment actions" className="relative isolate space-y-3 border-t border-slate-200 bg-white pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Confirm your payment securely</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
@@ -271,7 +271,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
               </button>}
               {!sandboxMode&&<GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
                 enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>}
-              <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
+              <div className="relative isolate mt-4 space-y-2 border-t border-slate-200 pt-4"><p className="text-center text-xs font-semibold text-slate-600">Or pay with PayPal</p><div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="relative min-h-[44px] w-full"/></div>
               <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#003087]"/> Checkout and card fields securely provided by PayPal. Your payment details are never stored by IFund.</p>
             </section>
           </>}
