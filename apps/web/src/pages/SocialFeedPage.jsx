@@ -253,15 +253,15 @@ export default function SocialFeedPage({ community = false }) {
     </form> : status !== "loading" && <p className="rounded-xl border border-border p-4">
       {user ? "Posting requires a verified, active account." : <><Link className="text-primary underline" to="/login?returnTo=%2Fsocial">Sign in</Link> to share a post.</>}
     </p>}
-    {publishError && <p role="alert" className="rounded-xl border border-destructive p-4">{publishError}</p>}
-    {notice && <p role="status">{notice}</p>}
+    {publishError && <p role="alert" className="ifund-feedback-error">{publishError}</p>}
+    {notice && <p role="status" className="ifund-feedback-success">{notice}</p>}
     <section aria-labelledby="recent-posts" className="space-y-4">
       <h2 id="recent-posts" className="text-xl font-semibold">{community ? "Recent updates" : "Public timeline"}</h2>
       {!community && <p className="text-sm text-muted-foreground">Public IFund and member posts, images, campaign updates, and supported videos together. External network content appears only when publicly available through an approved IFund source.</p>}
       {!community && campaignFeedError && <p role="status" className="text-sm text-muted-foreground">Campaign videos could not be loaded. Community posts are still available.</p>}
       <SocialPostList posts={timeline} onHidden={postId => setPosts(current => current.filter(post => post.id !== postId))} />
-      {loading && <p role="status">Loading updates…</p>}
-      {feedError && <p role="alert">{feedError} <button type="button" onClick={() => load(posts.at(-1))} className="min-h-11 text-primary underline">Retry</button></p>}
+      {loading && <p role="status" className="ifund-feedback-loading">Loading updates…</p>}
+      {feedError && <p role="alert" className="ifund-feedback-error">{feedError} <button type="button" onClick={() => load(posts.at(-1))} className="min-h-11 text-primary underline">Retry</button></p>}
       {!loading && !feedError && timeline.length === 0 && <p className="rounded-xl border border-border p-5 text-muted-foreground">No public updates yet.</p>}
       {!loading && !feedError && hasMore && <button type="button" className="min-h-11 rounded-xl border border-border px-4" onClick={() => load(posts.at(-1))}>Load older posts</button>}
     </section>
