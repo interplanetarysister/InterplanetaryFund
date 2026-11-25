@@ -72,6 +72,10 @@ export default function PremiumBillingChoices({plan,status,statusLoad,busy,nativ
         </p>
       </div>:choice.method==="card"?<div className="space-y-2">
         <CardSubscriptionCheckout plan={plan} hasExistingSubscription={existing} consented={renewalConsent}/>
+        <button type="button" className="ifund-interactive min-h-11 w-full rounded-xl border border-cyan-500/40 px-4 py-2 text-sm font-semibold"
+          onClick={()=>selectMode("one_time")}>
+          Enter my card number instead — pay $4.99 once (no PayPal account)
+        </button>
         {!renewalConsent&&<p role="status" className="text-xs text-muted-foreground">
           To continue to the recurring approval page, acknowledge the monthly renewal terms above.
         </p>}
