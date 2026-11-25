@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { analyzeMediaResponse } from "../../lib/audiencePostReview.mjs";
 import { analyzeAudioSamples } from "../../lib/mediaAudioMetrics.mjs";
 import PlatformVariantEditor from "./PlatformVariantEditor";
+import { authClient } from "../../api/auth";
+import { consumeMediaForOptimization } from "../../lib/mediaDraftHandoff.mjs";
 
 const PLATFORM_PROFILES = Object.freeze([
   { id: "ifund", name: "iFund", ratio: null, notes: ["Check campaign-card cropping and make the purpose apparent.", "Avoid exposing an anonymous organizer's face, name or identifying metadata."], source: null },
@@ -48,8 +50,7 @@ export default function PrePostMediaOptimizer() {
     if (!file || !previewUrl) return undefined;
     return inspectMedia(file, previewUrl, setMetadata);
   }, [file, previewUrl]);
-  function selectFile(event) {
-    const next = event.target.files?.[0] || null;
+  function loadFile(next) {
     if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current);
     mediaUrl.current = null; setPreviewUrl(""); setFile(null); setMetadata(null); setMessage(""); setSoundMetrics(null);
     if (!next) return;
@@ -68,6 +69,16 @@ export default function PrePostMediaOptimizer() {
       img.src = url;
     }
   }
+  function selectFile(event) { loadFile(event.target.files?.[0] || null); }
+  useEffect(() => {
+    let active = true;
+    authClient().auth.getUser().then(({data,error}) => {
+      if (!active || error || !data?.user?.id || mediaUrl.current) return;
+      const prepared = consumeMediaForOptimization(data.user.id);
+      if (prepared) loadFile(prepared);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
   async function inspectSound() {
     if (!file || !file.type.startsWith("audio/") || inspectingSound) return;
     setInspectingSound(true); setMessage(""); setSoundMetrics(null);
