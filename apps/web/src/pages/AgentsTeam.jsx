@@ -257,7 +257,7 @@ export default function AgentsTeam() {
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Free-tier members can ask agents questions, subject to a daily allowance. You need a verified account, available AI service capacity, and saved private AI-assistance permission. Paid plans may offer different allowances. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Free-tier members can ask up to five agent questions per UTC day, without subscribing. You need a verified account, available AI service capacity, and saved private AI-assistance permission. Paid plans may offer different allowances. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
       <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">Compare optional plans</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
