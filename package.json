@@ -18,7 +18,8 @@
     "test:browser:policy": "node --test tests/agent-browser-policy.test.mjs",
     "audit:browser:desktop": "playwright install chromium && node scripts/agent-browser-audit.mjs --json browser-desktop.local",
     "audit:browser:mobile": "playwright install chromium && node scripts/agent-browser-audit.mjs --mobile --json browser-mobile.local",
-    "setup:browser": "playwright install chromium"
+    "setup:browser": "playwright install chromium",
+    "preflight:production": "node scripts/preflight-production.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.4",
