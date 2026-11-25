@@ -36,7 +36,7 @@ function nearSame(a,b) {
   if (left.size===right.size && common===left.size) return true;
   // Subset paraphrases with one extra word are still redundant; two-word
   // slogans share too little evidence to judge on word overlap alone.
-  return min>=4 && (common/union>=.78 || (common/min>=.9 && common/max>=.70));
+  return min>=4 && (common/union>=.70 || (common/min>=.85 && common/max>=.70));
 }
 export function findRedundantCampaignOptions(options) {
   if (!Array.isArray(options)) throw new TypeError("Campaign copy options must be an array");
