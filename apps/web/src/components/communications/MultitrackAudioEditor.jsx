@@ -6,6 +6,7 @@ import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix,
 import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
 import { AUDIO_MIX_PRESETS, chooseAudioPreset, MASTERING_PROFILES, applyMasteringProfile } from "../../lib/mediaPresetCollections.mjs";
 import { BINAURAL_BEAT_PRESETS, CARRIER_TONE_CHOICES, makeBinauralBuffer } from "../../lib/mediaBinauralPresets.mjs";
+import AudioTrackWaveform from "./AudioTrackWaveform";
 
 const styles = {
   input: "mt-1 min-h-10 w-full rounded-lg border border-input bg-background px-3",
@@ -426,6 +427,7 @@ export default function MultitrackAudioEditor() {
             <strong className="max-w-full break-words text-sm">{track.name}</strong>
             <button type="button" className={styles.button} onClick={() => deleteTrack(track.id)} disabled={recordingActive}>Remove</button>
           </div>
+          <AudioTrackWaveform track={track} timelineDuration={duration}/>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs">Start on timeline (s)
               <input type="number" min="0" max={MAX_MIX_SECONDS} step="0.1" value={track.start} disabled={recordingActive}
