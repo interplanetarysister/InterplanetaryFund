@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./../styles/agent-team.css";
+import PublishingWorkflowNav from "@/components/communications/PublishingWorkflowNav";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { rememberAgentAdvice } from "@/lib/agentAdviceHandoff.mjs";
 import { parseAgentFeatureSelection, agentToolHref } from "@/lib/agentFeatureRoutes.mjs";
@@ -172,6 +173,7 @@ export default function AgentsTeam() {
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
   return <div className="ifund-agents-page space-y-6">
+    <PublishingWorkflowNav current="agents" campaignId={selection.campaignId}/>
     <header className="ifund-agents-hero">
       <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
       <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>

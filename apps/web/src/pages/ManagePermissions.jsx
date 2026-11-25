@@ -4,6 +4,7 @@ import AIPermissionPreferences from "@/components/permissions/AIPermissionPrefer
 import MarketingPreferences from "./MarketingPreferences";
 import CommunicationPreferences from "@/components/CommunicationPreferences";
 import Connections from "./Connections";
+import PublishingWorkflowNav from "@/components/communications/PublishingWorkflowNav";
 import CampaignDocumentPermissions from "@/components/permissions/CampaignDocumentPermissions";
 
 export default function ManagePermissions() {
@@ -11,6 +12,7 @@ export default function ManagePermissions() {
   const requestedSection=new URLSearchParams(location.search).get("section");
   const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : ["ai","platforms","marketing","supporter-updates","documents"].includes(requestedSection)?requestedSection:"ai");
   return <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <PublishingWorkflowNav current="connections"/>
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
       <h1 className="font-display text-3xl font-bold">Manage iFund Permissions</h1>
@@ -20,7 +22,7 @@ export default function ManagePermissions() {
     <div className="flex flex-wrap gap-2" role="group" aria-label="Permission categories">
       {[
         ["ai","AI Assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"]
-      ].map(([id,label])=><button key={id} type="button" onClick={()=>setOpen(id)} aria-pressed={open===id} className={`min-h-11 rounded-xl border px-4 font-semibold ${open===id ? "border-primary bg-primary/10" : "border-border"}`}>{label}</button>)}
+      ].map(([id,label])=><button key={id} type="button" onClick={()=>setOpen(id)} aria-pressed={open===id} className={`ifund-interactive min-h-11 rounded-xl border px-4 font-semibold ${open===id ? "border-primary bg-primary/10" : "border-border"}`}>{label}</button>)}
     </div>
     {open==="ai" && <AIPermissionPreferences />}
     {open==="platforms" && <div className="space-y-3">
