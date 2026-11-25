@@ -10,7 +10,7 @@ export const SOUND_PRESETS = Object.freeze([
   {id:"tone", label:"Sine tone", description:"Pure adjustable frequency for an effect or a reference tone"},
 ]);
 export const PRESET_SECONDS = 30;
-export const MAX_PRESET_SECONDS = 180;
+export const MAX_PRESET_SECONDS = 60;
 export const PRESET_RATE = 44100;
 export function validPreset(id) { return SOUND_PRESETS.some(p=>p.id===id); }
 function seededRandom(seed) {
