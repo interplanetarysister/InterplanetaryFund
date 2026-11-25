@@ -5,18 +5,26 @@ import {isNativeBundle} from "@/lib/nativeApi";
 import {premiumCardErrorMessage,premiumPurchaseState} from "@/lib/premiumCardCheckoutFeedback.mjs";
 
 const API="/api/payments/premium-one-time";
+// A dedicated SDK namespace prevents the subscription card form from using
+// the donation widget's SDK instance, which may have different components,
+// merchant settings, or purchase intent.
+const PREMIUM_SDK_NAMESPACE="ifundPremiumPayPal";
 let scriptPromise,scriptClient;
 function loadPayPal(clientId){
-  if(window.paypal?.Buttons&&window.paypal?.CardFields)return Promise.resolve(window.paypal);
   if(scriptPromise)return scriptClient===clientId?scriptPromise:Promise.reject(Error("PayPal merchant changed. Reload checkout."));
   scriptClient=clientId;
   scriptPromise=new Promise((resolve,reject)=>{
+    if(window[PREMIUM_SDK_NAMESPACE]?.Buttons&&window[PREMIUM_SDK_NAMESPACE]?.CardFields){
+      resolve(window[PREMIUM_SDK_NAMESPACE]);return;
+    }
     const script=document.createElement("script");
+    script.setAttribute("data-namespace",PREMIUM_SDK_NAMESPACE);
     script.src="https://www.paypal.com/sdk/js?client-id="+encodeURIComponent(clientId)+
       "&components=buttons,card-fields&currency=USD&intent=capture";
     script.async=true;
-    script.onload=()=>window.paypal?.Buttons?resolve(window.paypal):reject(Error("PayPal SDK unavailable"));
-    script.onerror=()=>reject(Error("PayPal SDK unavailable"));
+    script.onload=()=>window[PREMIUM_SDK_NAMESPACE]?.CardFields&&window[PREMIUM_SDK_NAMESPACE]?.Buttons
+      ?resolve(window[PREMIUM_SDK_NAMESPACE]):reject(Error("PayPal Card Fields SDK unavailable"));
+    script.onerror=()=>reject(Error("PayPal Card Fields SDK unavailable"));
     document.head.appendChild(script);
   }).catch(error=>{scriptPromise=null;scriptClient=null;throw error});
   return scriptPromise;
@@ -43,6 +51,8 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   const [sdkReady,setSdkReady]=useState(false),[cardReady,setCardReady]=useState(false);
   const [error,setError]=useState(""),[complete,setComplete]=useState(null);
   const [statusChecking,setStatusChecking]=useState(false);
+  const [readinessRetry,setReadinessRetry]=useState(0);
+  const [readinessChecking,setReadinessChecking]=useState(true);
   const [checkoutPhase,setCheckoutPhase]=useState("idle");
   const [purchaseState,setPurchaseState]=useState("none");
   const nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
@@ -77,14 +87,16 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
 
   useEffect(()=>{
     let mounted=true;
-    if(native||activeSubscription){setReady(false);return;}
+    if(native||activeSubscription){setReady(false);setReadinessChecking(false);return;}
+    setReadinessChecking(true);
     memberToken().then(token=>api(API+"/readiness",{
       headers:{authorization:"Bearer "+token}
     })).then(v=>{
       if(mounted)setReady(v.ready===true&&v.auto_renews===false&&v.amount_cents===499&&v.currency==="USD");
-    }).catch(()=>{if(mounted)setReady(false)});
+    }).catch(()=>{if(mounted)setReady(false)})
+      .finally(()=>{if(mounted)setReadinessChecking(false)});
     return()=>{mounted=false;};
-  },[activeSubscription,native]);
+  },[activeSubscription,native,readinessRetry]);
 
   useEffect(()=>{
     if(!ready||native||activeSubscription||complete||method==="googlepay")return;
@@ -163,14 +175,27 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           });
           if(card.isEligible()){
             cardSession.current=card;
+            // NameField is optional in PayPal's merchant configurations.
+            // A missing name component must never suppress the three required
+            // hosted inputs or the card submission action.
+            const hosted=[card.NumberField(),card.ExpiryField(),card.CVVField()];
             await Promise.all([
-              card.NameField().render(nameHost.current),card.NumberField().render(numberHost.current),
-              card.ExpiryField().render(expiryHost.current),card.CVVField().render(cvvHost.current)
+              hosted[0].render(numberHost.current),
+              hosted[1].render(expiryHost.current),
+              hosted[2].render(cvvHost.current)
             ]);
+            if(typeof card.NameField==="function" && nameHost.current){
+              try{await card.NameField().render(nameHost.current)}catch(_){/* optional */ }
+            }
             if(!disposed)setCardReady(true);
           }
         }
-        if(!disposed)setSdkReady(true);
+        if(!disposed){
+          if(method==="card"&&!cardReady&&(!card||!card.isEligible())){
+            setError("PayPal did not enable direct card entry for this merchant or browser. You can still select PayPal checkout.");
+          }
+          setSdkReady(true);
+        }
       }catch(_){if(!disposed){setCheckoutPhase("initialization-error");setError("Secure card checkout did not initialize. No payment has been started. Refresh the page or choose PayPal.");}}
     })();
     return()=>{
@@ -201,9 +226,10 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
       <CreditCard className="h-4 w-4"/> Pay $4.99 now — one month, no renewal
     </button>
     <p role="status" className="text-sm text-muted-foreground">
-      Card payment is unavailable until PayPal and your account pass the secure checkout checks.
-      No payment can be charged. The button will become available only after verification.
+      {readinessChecking?"Verifying secure card checkout…":"The payment provider or your account could not be verified. No payment was started."}
     </p>
+    {!readinessChecking&&<button type="button" className="ifund-interactive min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold"
+      onClick={()=>setReadinessRetry(n=>n+1)}>Retry secure card checkout</button>}
   </div>;
   if(complete)return <div role="status" className="rounded-xl border border-emerald-500/30 p-4">
     <strong>One month of Premium verified.</strong>
@@ -211,11 +237,11 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   </div>;
   const field="min-h-11 w-full rounded-lg border border-border bg-background px-2 py-2";
   return <div className="mt-4 space-y-3">
-    <p className="text-sm font-semibold">Pay by card · $4.99 USD once</p>
+    <p className="text-sm font-semibold">{method==="card"?"Enter your card details · $4.99 USD once":"Pay with PayPal · $4.99 USD once"}</p>
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
     {method==="card"&&<p className="text-xs text-muted-foreground">Visa, Mastercard, Discover, and American Express may be used when enabled by PayPal for this merchant and card. American Express cards have a four-digit security code. No PayPal account is needed for eligible direct card payments.</p>}
     {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
-      <label className="block text-xs">Cardholder name<div className={field} ref={nameHost}/></label>
+      <label className="block text-xs">Cardholder name (if available)<div className={field} ref={nameHost}/></label>
       <label className="block text-xs">Card number<div className={field} ref={numberHost}/></label>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs">Expiry<div className={field} ref={expiryHost}/></label>
@@ -245,7 +271,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
         }
       }} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white disabled:opacity-50">
         {busy?<Loader2 className="h-4 w-4 animate-spin"/>:<CreditCard className="h-4 w-4"/>}
-        Pay $4.99 now — one month, no renewal
+        {busy?"Processing secure card payment…":"Pay $4.99 by card now"}
       </button>
       {!cardReady&&<p role="status" className="text-xs text-muted-foreground">
         {sdkReady
