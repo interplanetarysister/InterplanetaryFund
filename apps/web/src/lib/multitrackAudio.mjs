@@ -60,14 +60,26 @@ export function audibleTracks(tracks) {
  * output gain to prevent sudden summing overload. Source nodes are never
  * connected to microphone inputs or the MediaRecorder.
  */
-export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8, duckDb = 0 } = {}) {
+export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3 } = {}) {
   if (!finite(from) || from < 0 || from > MAX_MIX_SECONDS || !finite(master) || master < 0 || master > 1 ||
-      !finite(duckDb) || duckDb < -18 || duckDb > 0)
+      !finite(duckDb) || duckDb < -18 || duckDb > 0 ||
+      !finite(threshold) || threshold < -36 || threshold > -6 ||
+      !finite(ratio) || ratio < 1 || ratio > 8)
     throw new Error("Invalid playback position or master volume.");
   mixLength(tracks);
   const masterGain = context.createGain();
   masterGain.gain.value = master;
-  masterGain.connect(destination);
+  let compressor = null;
+  if(compress && typeof context.createDynamicsCompressor==="function"){
+    compressor=context.createDynamicsCompressor();
+    compressor.threshold.value=threshold;
+    compressor.knee.value=10;
+    compressor.ratio.value=ratio;
+    compressor.attack.value=0.005;
+    compressor.release.value=0.18;
+    masterGain.connect(compressor);
+    compressor.connect(destination);
+  }else masterGain.connect(destination);
   const nodes = [];
   for (const track of audibleTracks(tracks)) {
     const clipEnd = track.start + track.trimEnd - track.trimStart;
@@ -156,6 +168,7 @@ export function scheduleMix(context, tracks, destination = context.destination, 
         for(const node of item.effectNodes)try{node.disconnect();}catch{}
       }
       masterGain.disconnect();
+      compressor?.disconnect();
     },
     nodes,
   };
@@ -188,13 +201,13 @@ export function encodePcmWav(buffer) {
   return new Blob([bytes],{type:"audio/wav"});
 }
 /** OfflineAudioContext is browser-native, with no provider upload or fee. */
-export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8, duckDb = 0 } = {}) {
+export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3 } = {}) {
   const length = mixLength(tracks);
   if (length <= 0 || length > MAX_MIX_SECONDS || sampleRate !== MIX_SAMPLE_RATE)
     throw new Error("Mix length or sample rate is unavailable.");
   const Offline = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
   if (!Offline) throw new Error("Offline audio rendering is not supported on this device.");
   const context = new Offline(2, Math.ceil(length*sampleRate), sampleRate);
-  scheduleMix(context,tracks,context.destination,{from:0,master,duckDb});
+  scheduleMix(context,tracks,context.destination,{from:0,master,duckDb,compress,threshold,ratio});
   return encodePcmWav(await context.startRendering());
 }
