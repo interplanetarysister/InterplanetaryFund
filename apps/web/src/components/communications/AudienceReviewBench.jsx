@@ -19,8 +19,8 @@ export default function AudienceReviewBench() {
   return <div className="space-y-6">
     <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
       <header className="space-y-2">
-        <h2 className="text-xl font-semibold">Post review & audience feedback</h2>
-        <p className="text-sm text-muted-foreground">Check an unpublished draft, then enter ratings actually provided by reviewers. Nothing is posted, submitted or inferred about people. Review notes stay in this browser session and are cleared when you leave the workspace.</p>
+        <h2 className="text-xl font-semibold">Audience testing & observed results</h2>
+        <p className="text-sm text-muted-foreground">Enter ratings actually provided by reviewers after they see the post. Pre-post cognitive and platform-specific predictions are under Media → Pre-post Optimization. Nothing is posted, submitted or inferred about people. Review notes stay in this browser session and are cleared when you leave the workspace.</p>
       </header>
       <label className="block text-sm font-medium">Post draft to review
         <textarea rows={5} value={draft} maxLength={4000} onChange={e => {setDraft(e.target.value); setResponses([]);}}
