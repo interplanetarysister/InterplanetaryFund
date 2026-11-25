@@ -97,7 +97,7 @@ const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
-const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
+const MediaStudio = lazy(() => import("./pages/MediaStudio"));
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
@@ -147,7 +147,8 @@ function AppRoutes() {
       <Route path="/agents" element={<AgentsTeam />} />
       <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
       <Route path="/mission" element={<AgentsTeam />} />
-      <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
+      <Route path="/media-studio" element={<MemberAccess><MediaStudio /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><Navigate to="/media-studio?tab=generator" replace /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />

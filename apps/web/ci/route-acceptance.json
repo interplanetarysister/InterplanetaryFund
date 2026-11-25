@@ -177,12 +177,22 @@
     {
       "route": "/ai-images",
       "role": "member",
-      "component": "AIImageStudio",
+      "component": "MediaStudio",
       "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/MediaStudio.jsx; apps/web/tests/sprint-5-media-studio.test.mjs",
+      "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
       "backend_evidence": "",
-      "owner": "frontend+ai+database"
+      "owner": "frontend"
+    },
+    {
+      "route": "/media-studio",
+      "role": "member",
+      "component": "MediaStudio",
+      "source_status": "not_verified",
+      "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx; apps/web/tests/sprint-5-media-studio.test.mjs",
+      "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
+      "backend_evidence": "",
+      "owner": "frontend"
     },
     {
       "route": "/analytics",

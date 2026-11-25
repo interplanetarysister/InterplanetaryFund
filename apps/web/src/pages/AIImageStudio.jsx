@@ -22,7 +22,7 @@ const button = "ifund-interactive min-h-11 rounded-xl border border-border px-4 
  * Preview and upload are two separately verified actions. No image is attached
  * to a campaign merely because it was generated or saved in object storage.
  */
-export default function AIImageStudio() {
+export default function AIImageStudio({ onArtworkReady, onArtworkSaved, onSendToEditor } = {}) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("interstellar");
@@ -117,6 +117,10 @@ export default function AIImageStudio() {
       objectUrl.current = url;
       setFile(jpeg);
       setImageUrl(url);
+      // Sprint 5: Media Studio listens for generated artwork so it can be
+      // added to the Studio Library and sent to the Editor. Standalone use
+      // passes no callbacks and behaves exactly as before.
+      onArtworkReady?.({ file: jpeg, url, kind: improve ? "improved" : "generated" });
       window.dispatchEvent(new Event("ifund-ai-creation-completed"));
       setArtworkKind(improve ? "improved" : "generated");
       setMessage(improve
@@ -138,6 +142,7 @@ export default function AIImageStudio() {
       const url = await uploadCampaignCover(authClient(), file);
       if (!mounted.current) return;
       setSavedUrl(url);
+      onArtworkSaved?.(url);
       setMessage("The image was saved to your IFund public cover storage. It is not attached to a campaign until you choose it in the campaign editor and save.");
     } catch (cause) { setError(cause?.message || "Artwork could not be saved."); }
     finally { operationLock.current = false; setBusy(""); }
@@ -233,6 +238,12 @@ export default function AIImageStudio() {
         <button type="button" onClick={save} className={button} disabled={Boolean(busy) || Boolean(savedUrl)}>
           {busy === "upload" ? "Saving image…" : savedUrl ? "Image saved" : "Save to IFund cover storage"}
         </button>
+        {onSendToEditor && (
+          <button type="button" className={button}
+            onClick={() => onSendToEditor({ file, url: imageUrl, kind: artworkKind })}>
+            Send to Editor
+          </button>
+        )}
         <a href={imageUrl} download={artworkKind === "improved" ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg"} className={button}>Download JPEG</a>
       </div>
       {savedUrl && <div className="space-y-3">

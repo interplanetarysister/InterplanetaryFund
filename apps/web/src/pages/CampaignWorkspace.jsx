@@ -342,8 +342,8 @@ export default function CampaignWorkspace() {
           <CampaignLocationFields form={form} change={change} disabled={disabled} />
           <CampaignDocuments key={(user?.id||"guest")+":"+id} campaignId={id} ownerId={user?.id||null} />
           <p className="text-sm text-muted-foreground">
-            Image and video generation live in Media Studio. For now, generate images in{" "}
-            <Link to="/ai-images" className="font-semibold text-primary underline">AI Image Studio</Link>{" "}
+            Image and video tools live in Media Studio. Generate images in{" "}
+            <Link to="/media-studio?tab=generator" className="font-semibold text-primary underline">Media Studio</Link>{" "}
             and paste the cover link above.
           </p>
         </div>

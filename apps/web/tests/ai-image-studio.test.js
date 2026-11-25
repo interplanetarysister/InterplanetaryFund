@@ -108,7 +108,11 @@ test("page gates access and routes images into existing verified cover storage",
   const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
   const page = readFileSync(new URL("../src/pages/AIImageStudio.jsx", import.meta.url), "utf8");
   const worker = readFileSync(new URL("../../../worker/index.js", import.meta.url), "utf8");
-  assert.ok(app.includes('path="/ai-images" element={<MemberAccess><AIImageStudio'));
+  // Sprint 5 (2026-11-25): /ai-images is a compatibility redirect into the
+  // unified Media Studio Generator tab; image generation itself still lives
+  // in AIImageStudio, now embedded in MediaStudio.jsx.
+  assert.ok(app.includes('path="/ai-images" element={<MemberAccess><Navigate to="/media-studio?tab=generator"'));
+  assert.ok(app.includes('path="/media-studio" element={<MemberAccess><MediaStudio'));
   assert.ok(worker.includes("routeImageStudio(request, env)"));
   assert.match(page, /uploadCampaignCover\(authClient\(\), file\)/);
   assert.match(page, /paste this link into the cover URL field/i);

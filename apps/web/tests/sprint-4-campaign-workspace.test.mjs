@@ -141,6 +141,8 @@ test("Growth tab keeps agent advice review and links to Strategy and Analytics",
   assert.match(page, /to="\/analytics"/);
   assert.match(page, /Open Campaign Strategy/);
   assert.match(page, /Open Analytics/);
-  assert.match(page, /to="\/ai-images"/);
-  assert.match(page, /AI Image Studio/);
+  // Sprint 5 (2026-11-25): the Media tab link now points at the unified
+  // Media Studio Generator tab; /ai-images redirects there.
+  assert.match(page, /to="\/media-studio\?tab=generator"/);
+  assert.match(page, /Media Studio/);
 });
