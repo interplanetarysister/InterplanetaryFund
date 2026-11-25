@@ -162,8 +162,8 @@ export async function renderLocalVideoVariant({
       if(video.ended||video.currentTime>=clip.to-0.04)stop();
     },Math.round(1000/OUTPUT_FPS));
     timeout=setTimeout(stop,Math.ceil((clip.duration/speed+8)*1000));
-    await video.play();
-    if(overlay && overlay.duration>clip.from)await overlay.play();
+    // Start both tracks together; browser capture is still subject to real-time timing jitter.
+    await Promise.all([video.play(), overlay && overlay.duration>clip.from ? overlay.play() : Promise.resolve()]);
     await completion;
     if(signal?.aborted)throw Error("Video export cancelled.");
     const blob=new Blob(recorderChunks,{type:mediaRecorder.mimeType||format.mime});
