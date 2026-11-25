@@ -42,7 +42,7 @@ export default {
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
     if (pathname === '/api/agents/ops/analyze') return routeAgentOperations(request, env);
-    if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
+    if (['/api/agents/team/status','/api/agents/team/question','/api/agents/team/practice','/api/agents/team/research'].includes(pathname)) {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
       // The local route remains fail-closed when inference is not configured.
       if (typeof env.IFUND_AGENT_SERVICE?.fetch === 'function') {
@@ -50,8 +50,18 @@ export default {
       }
       return routeTeamQuestion(request, env);
     }
-    if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
-    if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
+    if (pathname.startsWith('/api/agents/strategy/')) {
+      // Production has an isolated Strategy Worker with the authorized AI and
+      // database flags; the Pages local fallback is not configured for inference.
+      if (typeof env.IFUND_STRATEGY_AGENT?.fetch === 'function')
+        return env.IFUND_STRATEGY_AGENT.fetch(request);
+      return strategyRoute(request, env);
+    }
+    if (pathname.startsWith('/api/agents/growth/')) {
+      if (typeof env.IFUND_GROWTH_AGENT?.fetch === 'function')
+        return env.IFUND_GROWTH_AGENT.fetch(request);
+      return growthRoute(request, env);
+    }
     if (pathname.startsWith('/api/agents/communications/')) {
       // Production Pages binds the isolated Communications Worker. Direct local
       // invocation has no IFUND_COMMUNICATIONS_* flags and falsely reports 503.
@@ -60,7 +70,11 @@ export default {
         return env.IFUND_COMMUNICATIONS_AGENT.fetch(request);
       return communicationsRoute(request, env);
     }
-    if (pathname.startsWith('/api/agents/connections/')) return handleManagedConnections(request, env);
+    if (pathname.startsWith('/api/agents/connections/')) {
+      if (typeof env.IFUND_CONNECTIONS_AGENT?.fetch === 'function')
+        return env.IFUND_CONNECTIONS_AGENT.fetch(request);
+      return handleManagedConnections(request, env);
+    }
     if (pathname.startsWith('/api/oauth/')) {
       const origin = oauthCorsOrigin(request, env);
       if (request.method === 'OPTIONS' && !origin) return response(403, { error: 'Origin not allowed.' });
