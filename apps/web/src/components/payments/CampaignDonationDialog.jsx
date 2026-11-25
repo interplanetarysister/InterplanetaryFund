@@ -255,7 +255,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
-              <p className="text-xs text-slate-500">PayPal provides these secure card fields. PayPal decides whether guests can pay by card; you may not need a PayPal account.</p>
+              <p className="text-xs text-slate-500">Secure card checkout supports eligible Visa, Mastercard, Discover, and American Express cards when enabled by PayPal for this merchant. American Express uses a four-digit security code. No PayPal account is required for eligible direct card payments.</p>
               <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
