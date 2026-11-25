@@ -14,6 +14,7 @@ const STYLES = [
   ["futuristic", "Futuristic"],
   ["cyberpunk", "Cyberpunk"],
   ["comic", "Comic illustration"],
+  ["hyper-realistic-simulated-event", "Hyper-realistic simulated event"],
 ];
 const field = "mt-2 w-full min-h-11 rounded-xl border border-input bg-background px-4 py-2";
 const button = "ifund-interactive min-h-11 rounded-xl border border-border px-4 py-2 font-semibold disabled:opacity-60";
@@ -27,7 +28,7 @@ export default function AIImageStudio({ embedded = false }) {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [style, setStyle] = useState("interstellar");
+  const [style, setStyle] = useState("ifund");
   const [exactCaption,setExactCaption] = useState("");
   const [access,setAccess] = useState(null);
   const [referenceFile, setReferenceFile] = useState(null);
@@ -97,7 +98,7 @@ export default function AIImageStudio({ embedded = false }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: title.trim(), description: description.trim(), style,
+          title: title.trim(), description: description.trim(), style, purpose: "media",
           ...(improve ? { reference_jpeg: reference.reference_jpeg, confirmed_rights: true } : {}),
         }),
       });
@@ -121,9 +122,11 @@ export default function AIImageStudio({ embedded = false }) {
       setImageUrl(url);
       window.dispatchEvent(new Event("ifund-ai-creation-completed"));
       setArtworkKind(improve ? "improved" : "generated");
-      setMessage(improve
-        ? "The selected image was improved with AI. Review it before saving; the original file was not stored by this action."
-        : "Artwork generated. Review it before saving or using it in a campaign.");
+      setMessage(style === "hyper-realistic-simulated-event"
+        ? "AI-simulated event illustration, not documentary evidence. Review it and keep this label visible wherever it is published."
+        : improve
+          ? "The selected image was improved with AI. Review it before saving; the original file was not stored by this action."
+          : "Artwork generated. Review it before saving or using it in a campaign.");
     } catch (cause) {
       setError(cause?.message || "Artwork generation failed.");
     } finally {
