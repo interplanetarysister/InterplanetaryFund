@@ -363,8 +363,8 @@ export default function MultitrackAudioEditor() {
             {SOUND_PRESETS.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
           </select>
         </label>
-        <label className="text-sm">Duration (seconds)
-          <input type="number" min="1" max={MAX_MIX_SECONDS} step="1" value={soundSeconds}
+        <label className="text-sm">Duration (1–60 seconds)
+          <input type="number" min="1" max={60} step="1" value={soundSeconds}
             onChange={e=>setSoundSeconds(Number(e.target.value))} className={styles.input} disabled={recordingActive}/>
         </label>
         <label className="text-sm">Tone frequency (Hz)
