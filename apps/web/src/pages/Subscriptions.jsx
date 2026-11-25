@@ -71,7 +71,9 @@ export default function Subscriptions(){
       setProviderVerified(false);
       setStatusLoad("unavailable");
     }
-    if(manual)setNotice("Subscription and access status checked. Provider verification details are shown below.");
+    if(manual)setNotice(current.status==="fulfilled"
+      ? "Subscription and access status refreshed. Provider verification details are shown below."
+      : "Refresh completed, but subscription provider status remains unavailable. Existing access was not changed.");
     } finally {if(manual)setRefreshing(false);}
   },[]);
 
@@ -173,7 +175,7 @@ export default function Subscriptions(){
 
     <div id="campaign-email" className="scroll-mt-24"><CampaignEmailAddon /></div>
 
-    <section className="grid gap-4 sm:grid-cols-2">
+    {!adminEntitlement && <section className="grid gap-4 sm:grid-cols-2">
       {plans.map(plan=>{
         const name=PLAN_NAMES[plan.tier]||plan.tier;
         const available=plan.available===true&&plan.verified===true;
@@ -196,7 +198,7 @@ export default function Subscriptions(){
           </>}
         </article>;
       })}
-    </section>
+    </section>}
     <p className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4"/>IFund records recurring-payment evidence only after a live PayPal status check. Subscription events are idempotently stored and member-scoped.</p>
   </main>;
 }
