@@ -53,7 +53,7 @@ export default function PublicMemberProfile() {
   }, [id]);
 
   if (error) return <p role="alert" className="p-8">{error}</p>;
-  if (profile === undefined) return <p role="status" className="p-8">Loading member profile…</p>;
+  if (profile === undefined) return <p role="status" className="ifund-feedback-loading mx-auto my-8 max-w-3xl">Loading member profile…</p>;
   if (!profile) return <div className="mx-auto max-w-3xl space-y-4 p-8">
     <h1 className="text-2xl font-bold">Profile unavailable</h1>
     <p>This profile may be private.</p>
@@ -78,7 +78,8 @@ export default function PublicMemberProfile() {
         {friend === "received" && <><button disabled={friendBusy} onClick={() => changeFriend("accept")} className="ifund-interactive rounded-xl bg-primary px-4 py-3 text-primary-foreground">Accept friend request</button><button disabled={friendBusy} onClick={() => changeFriend("decline")} className="rounded-xl border px-4 py-3">Decline</button></>}
         {friend === "friends" && <><span className="self-center text-sm">Friends</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Remove friend</button></>}
       </div>}
-      {friendError && <p role="alert" className="text-sm text-destructive">{friendError}</p>}
+      {friendBusy && <p role="status" className="ifund-feedback-loading">Updating your connection…</p>}
+      {friendError && <p role="alert" className="ifund-feedback-error">{friendError}</p>}
     </header>
     {profile.campaigns.length > 0 && <section aria-labelledby="featured-campaigns" className="space-y-3">
       <h2 id="featured-campaigns" className="text-xl font-semibold">Featured campaigns</h2>
@@ -89,7 +90,7 @@ export default function PublicMemberProfile() {
     </section>}
     {profile.show_posts && <section aria-labelledby="profile-posts" className="space-y-3">
       <h2 id="profile-posts" className="text-xl font-semibold">Recent posts</h2>
-      {postError && <p role="alert">{postError}</p>}
+      {postError && <p role="alert" className="ifund-feedback-error">{postError}</p>}
       <SocialPostList posts={posts} />
     </section>}
     <Link className="inline-flex min-h-11 items-center text-primary underline" to={`/blogs?author=${profile.id}`}>Read this member’s stories</Link>
