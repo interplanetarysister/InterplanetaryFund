@@ -2,12 +2,12 @@ import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const AIImageStudio = lazy(() => import("../../pages/AIImageStudio"));
-const AudioClipEditor = lazy(() => import("./AudioClipEditor"));
+const MultitrackAudioEditor = lazy(() => import("./MultitrackAudioEditor"));
 const PrePostMediaOptimizer = lazy(() => import("./PrePostMediaOptimizer"));
 
 const MEDIA_TOOLS = [
   ["artwork", "AI artwork"],
-  ["audio", "Edit audio"],
+  ["audio", "Layered audio editor"],
   ["optimization", "Pre-post Optimization"],
 ];
 
@@ -28,7 +28,7 @@ export default function CreatorMediaTools() {
         className={"ifund-interactive min-h-11 rounded-xl border px-4 text-sm font-semibold " + (id === active ? "border-cyan-500 bg-cyan-500/10" : "border-border")}>{label}</button>)}
     </nav>
     <Suspense fallback={<p role="status">Loading media tools…</p>}>
-      {active === "artwork" ? <AIImageStudio embedded /> : active === "audio" ? <AudioClipEditor /> : <PrePostMediaOptimizer />}
+      {active === "artwork" ? <AIImageStudio embedded /> : active === "audio" ? <MultitrackAudioEditor /> : <PrePostMediaOptimizer />}
     </Suspense>
   </div>;
 }
