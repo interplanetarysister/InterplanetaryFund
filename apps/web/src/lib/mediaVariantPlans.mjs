@@ -58,6 +58,11 @@ export function createPlatformVariants(ids, existing = {}) {
       scale: Math.max(1, Math.min(2, Number(base.scale) || 1)),
       cueTime: base.cueTime == null ? null : Number(base.cueTime),
       caption: typeof base.caption === "string" ? base.caption.slice(0, 6000) : "",
+      brightness: Math.max(0.5,Math.min(1.5,Number(base.brightness)||1)),
+      contrast: Math.max(0.5,Math.min(1.5,Number(base.contrast)||1)),
+      saturation: Math.max(0,Math.min(2,base.saturation == null ? 1 : Number(base.saturation))),
+      videoSpeed: Math.max(0.5,Math.min(2,Number(base.videoSpeed)||1)),
+      videoVolume: Math.max(0,Math.min(1,base.videoVolume == null ? 1 : Number(base.videoVolume))),
       source: "original",
     };
   });
