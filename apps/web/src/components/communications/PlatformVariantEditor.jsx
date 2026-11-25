@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { coverCrop, createPlatformVariants, PLATFORM_FRAMES, proposeInterestCue } from "../../lib/mediaVariantPlans.mjs";
 import { packageMediaVariants } from "../../lib/mediaVariantZip.mjs";
+import { VIDEO_LOOK_PRESETS, chooseVideoLook } from "../../lib/mediaPresetCollections.mjs";
 
 const boundedTime = (number, duration) => Math.max(0, Math.min(duration, Number.isFinite(Number(number)) ? Number(number) : 0));
 
@@ -102,6 +103,11 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
       </div>
       <details className="rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-semibold">Visual adjustments</summary>
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="Video and image look presets">
+          {Object.entries(VIDEO_LOOK_PRESETS).map(([id,preset])=><button key={id} type="button"
+            onClick={()=>edit(current.id,chooseVideoLook(id))}
+            className="ifund-interactive min-h-10 rounded-lg border border-border px-3 text-xs font-semibold">{preset.label}</button>)}
+        </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {[
             ["brightness","Brightness",0.5,1.5],
