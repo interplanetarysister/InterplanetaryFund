@@ -5,10 +5,12 @@ import { readJsonBody, BodyError } from './bodyLimit.js';
 
 export const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
 export const IMAGE_STYLES = Object.freeze({
+  ifund: 'cohesive Interplanetary Fund cosmic-geometry story illustration, unifying atmospheric interstellar nebula mist, luminous geometric linework, optimistic futuristic structures, restrained cyberpunk spectral highlights, expressive graphic-novel composition, dramatic yet compassionate cinematic lighting, layered deep-space textures, vivid but credible colors, accessible central focal subject, no writing',
   interstellar: 'atmospheric nebula light, deep-space details and luminous gradients',
   futuristic: 'clean optimistic science-fiction editorial illustration',
   cyberpunk: 'cinematic neon lighting and sharp graphic textures',
   comic: 'colorful graphic-novel ink contours and expressive illustration',
+  'hyper-realistic-simulated-event': 'hyper-realistic cinematic synthetic reconstruction of a hypothetical event, natural material surfaces and physically plausible light, no real-person identity, no claim of actual documentary evidence',
 });
 const CANONICAL_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -41,19 +43,26 @@ export async function consumeImageQuota(env, account, fetcher = fetch) {
 
 export function validateImageRequest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
-      Object.keys(input).some(key => !['title', 'description', 'style'].includes(key)))
+      Object.keys(input).some(key => !['title', 'description', 'style', 'purpose'].includes(key)))
     throw new BodyError(422, 'Describe the fundraiser before generating an image.');
   const title = typeof input.title === 'string' ? input.title.trim() : '';
   const description = typeof input.description === 'string' ? input.description.trim() : '';
   if (title.length < 4 || title.length > 150 ||
       description.length < 20 || description.length > 900 ||
       !Object.hasOwn(IMAGE_STYLES, input.style) ||
+      (input.purpose !== undefined && !['campaign-cover','media'].includes(input.purpose)) ||
+      (input.purpose === 'campaign-cover' && input.style !== 'ifund') ||
       /[\u0000-\u001f\u007f]/.test(title + description))
     throw new BodyError(422, 'Provide a valid campaign title, description and illustration style.');
   const prompt = [
-    'Original non-photorealistic editorial artwork for a personal fundraiser.',
+    input.style === 'hyper-realistic-simulated-event'
+      ? 'Clearly fictional photorealistic simulation or illustrative reconstruction. Not real footage, not a documentary photograph, not verified evidence of an event. Do not imitate any real individual.'
+      : 'Original editorial illustration for an individual purpose or fundraiser.',
     'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. No invented names, no portraits of real people, no claimed donations. The application applies optional user-approved wording separately after generation.',
     'Visual style: ' + IMAGE_STYLES[input.style] + '.',
+    input.style === 'hyper-realistic-simulated-event'
+      ? 'Make the simulation unambiguously representational rather than authentic photojournalism. The UI must label the resulting media as AI simulated.'
+      : '',
     'Campaign title for visual context: ' + title + '.',
     'What the fundraiser is about: ' + description + '.',
   ].join(' ');
