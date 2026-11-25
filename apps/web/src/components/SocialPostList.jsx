@@ -4,6 +4,8 @@ import { isNativeBundle, shareWithDevice } from "@/lib/nativeApi";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Flag, Share2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
+import { ShortsVideo } from "@/pages/OrbitShorts";
+import { videoFromText, videoFromUrl } from "@/lib/videoLinks.js";
 import { getPostLikes, likePost, nativePostId, reportPost, readReplies, replyToPost } from "@/lib/socialCommunity";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -33,6 +35,7 @@ function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
   const externalUrl = safeExternalUrl(post.external_url);
   const mediaUrl = safeExternalUrl(post.media_url);
+  const video = videoFromUrl(post.media_url) || videoFromText(post.body) || videoFromUrl(post.external_url);
   const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
   const discussionId = likeId;
   const [liked, setLiked] = useState(likes?.liked || false);
@@ -88,7 +91,10 @@ function SocialItem({ post, likes, onHidden, user }) {
       {post.posted_at && <time className="text-xs text-muted-foreground" dateTime={post.posted_at}>{new Date(post.posted_at).toLocaleDateString()}</time>}
     </div>
     <p className="whitespace-pre-wrap break-words">{post.body}</p>
-    {mediaUrl && <Image src={mediaUrl} alt="Image shared with this post" loading="lazy"
+    {video && <div className="mx-auto max-w-sm overflow-hidden rounded-xl" aria-label="Video shared with this post">
+      <ShortsVideo item={{ id: post.id, title: post.body?.slice(0, 160) || "Public video", video }} />
+    </div>}
+    {mediaUrl && !video && <Image src={mediaUrl} alt="Image shared with this post" loading="lazy"
       className="max-h-96 w-full rounded-xl object-contain" />}
     {externalUrl && <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
@@ -120,13 +126,32 @@ function SocialItem({ post, likes, onHidden, user }) {
   </article>;
 }
 
+function PublicCampaignVideoCard({ item }) {
+  return <article className="ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      <span className="font-semibold">Public campaign video</span>
+      {item.posted_at && <time className="text-xs text-muted-foreground" dateTime={item.posted_at}>{new Date(item.posted_at).toLocaleDateString()}</time>}
+    </div>
+    <h2 className="text-xl font-semibold">{item.title}</h2>
+    {item.description && <p className="break-words text-sm text-muted-foreground">{item.description}</p>}
+    <div className="mx-auto max-w-sm overflow-hidden rounded-xl">
+      <ShortsVideo item={{ id: item.id, title: item.title, video: item.video }} />
+    </div>
+    <Link to={item.href} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">
+      View campaign
+    </Link>
+  </article>;
+}
+
 export default function SocialPostList({ posts, onHidden }) {
   const { user } = useAuthSession();
   const [likes, setLikes] = useState({});
   useEffect(() => {
     let active = true;
-    getPostLikes(posts).then(data => { if (active) setLikes(data); }).catch(() => { if (active) setLikes({}); });
+    getPostLikes(posts.filter(post => post.type !== "campaign-video")).then(data => { if (active) setLikes(data); }).catch(() => { if (active) setLikes({}); });
     return () => { active = false; };
   }, [posts]);
-  return posts.map(post => <SocialItem key={post.id} post={post} user={user} likes={likes[nativePostId(post) || post.id]} onHidden={onHidden} />);
+  return posts.map(post => post.type === "campaign-video"
+    ? <PublicCampaignVideoCard key={post.id} item={post} />
+    : <SocialItem key={post.id} post={post} user={user} likes={likes[nativePostId(post) || post.id]} onHidden={onHidden} />);
 }
