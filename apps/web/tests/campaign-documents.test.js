@@ -128,7 +128,7 @@ test("failed private file cleanup retains pending metadata and revokes agent acc
 test("source components expose creation and management upload options",()=>{
   const create=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
   const management=readFileSync(new URL("../src/pages/MyCampaigns.jsx",import.meta.url),"utf8");
-  const editor=readFileSync(new URL("../src/pages/EditCampaign.jsx",import.meta.url),"utf8");
+  const editor=readFileSync(new URL("../src/pages/CampaignWorkspace.jsx",import.meta.url),"utf8");
   const story=readFileSync(new URL("../../../worker/agents/story.js",import.meta.url),"utf8");
   const context=readFileSync(new URL("../../../worker/agents/teamContext.js",import.meta.url),"utf8");
   assert.match(create,/<CampaignDocuments/);

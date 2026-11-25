@@ -56,6 +56,7 @@ const MissionWorkspace = lazy(() => import("./pages/MissionWorkspace"));
 const WHAT_IF_ENABLED = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
+const CampaignWorkspace = lazy(() => import("./pages/CampaignWorkspace"));
 const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
@@ -190,6 +191,7 @@ function AppRoutes() {
       <Route path="/templates" element={<CampaignTemplates />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
+      <Route path="/workspace/campaign/:id" element={<MemberAccess><CampaignWorkspace /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
       <Route path="/my-profile" element={<Navigate to="/profile" replace />} />
       <Route path="/u/:id" element={<PublicMemberProfile />} />

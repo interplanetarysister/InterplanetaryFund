@@ -182,7 +182,8 @@ test("the management pages are real member-only routes and never touch Base44", 
   const app = source("src/App.jsx");
   assert.match(app, /path="\/campaigns" element=\{<MemberAccess><MyCampaigns \/><\/MemberAccess>\}/);
   assert.match(app, /path="\/campaigns\/:id\/edit" element=\{<MemberAccess><EditCampaign \/><\/MemberAccess>\}/);
-  for (const name of ["MyCampaigns", "EditCampaign"]) {
+  assert.match(app, /path="\/workspace\/campaign\/:id" element=\{<MemberAccess><CampaignWorkspace \/><\/MemberAccess>\}/);
+  for (const name of ["MyCampaigns", "CampaignWorkspace"]) {
     const page = source(`src/pages/${name}.jsx`);
     assert.doesNotMatch(page, /base44Client|base44\.functions|base44\.entities/, name);
     assert.doesNotMatch(page, /service_role|SUPABASE_SERVICE_ROLE_KEY/, name);
@@ -417,7 +418,7 @@ test("a conflict is distinguishable from a generic save failure", async () => {
 });
 
 test("both management pages resync after a concurrency conflict", () => {
-  for (const name of ["MyCampaigns", "EditCampaign"]) {
+  for (const name of ["MyCampaigns", "CampaignWorkspace"]) {
     const page = source(`src/pages/${name}.jsx`);
     assert.match(page, /isCampaignConflict/, `${name} must detect conflicts`);
     assert.match(page, /if \(isCampaignConflict\(cause\)\) load\(\);/, `${name} must reload on conflict`);

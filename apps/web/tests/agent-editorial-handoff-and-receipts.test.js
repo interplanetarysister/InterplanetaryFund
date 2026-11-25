@@ -15,7 +15,7 @@ test("NEXUS ranks unresolved verified editorial tasks ahead of lower-priority ca
 });
 test("POLARIS provides per-campaign writing advice with target-field links",()=>{
  const page=read("../src/pages/CampaignStrategy.jsx");
- const editor=read("../src/pages/EditCampaign.jsx");
+ const editor=read("../src/pages/CampaignWorkspace.jsx");
  assert.match(page,/reviewCampaignWideEditorial/);
  assert.match(page,/Contextual campaign writing guidance/);
  assert.match(page,/Open the relevant campaign field/);
