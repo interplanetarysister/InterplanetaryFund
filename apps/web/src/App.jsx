@@ -18,7 +18,6 @@ const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
-const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
 const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const FundYourMission = lazy(() => import("./pages/FundYourMission"));
