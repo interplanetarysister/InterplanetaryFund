@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { analyzeMediaResponse } from "../../lib/audiencePostReview.mjs";
 import { analyzeAudioSamples } from "../../lib/mediaAudioMetrics.mjs";
+import PlatformVariantEditor from "./PlatformVariantEditor";
 
 const PLATFORM_PROFILES = Object.freeze([
   { id: "ifund", name: "iFund", ratio: null, notes: ["Check campaign-card cropping and make the purpose apparent.", "Avoid exposing an anonymous organizer's face, name or identifying metadata."], source: null },
@@ -104,7 +105,7 @@ export default function PrePostMediaOptimizer() {
     {previewUrl && file?.type.startsWith("video/") && <video src={previewUrl} controls playsInline className="max-h-80 w-full rounded-xl bg-black" />}
     {previewUrl && file?.type.startsWith("audio/") && <audio src={previewUrl} controls className="w-full" />}
     {previewUrl && file?.type.startsWith("image/") && <img src={previewUrl} alt="Selected media for review" className="max-h-80 max-w-full rounded-xl object-contain" />}
-    {metadata && <p role="status" className="text-xs text-muted-foreground">Measured file metadata: {metadata.width && metadata.height ? metadata.width + " × " + metadata.height + " pixels" : "No image dimensions"}{metadata.duration != null ? " · " + metadata.duration.toFixed(1) + " seconds" : ""}. Timing of scenes, speech and changes in sound has not been measured.</p>}
+    {metadata && <p role="status" className="text-xs text-muted-foreground">Measured file metadata: {metadata.width && metadata.height ? metadata.width + " × " + metadata.height + " pixels" : "No image dimensions"}{metadata.duration != null ? " · " + metadata.duration.toFixed(1) + " seconds" : ""}. Scene boundaries and speech timing have not been measured; any interest-peak markers are editable planning suggestions, not validated optimums.</p>}
     <label className="block text-sm font-medium">Caption, spoken script or transcript
       <textarea rows={4} className="mt-2 w-full rounded-xl border bg-background p-3" value={postText} onChange={e => setPostText(e.target.value)} maxLength={6000} placeholder="Add actual words spoken, shown or planned, for better wording analysis."/>
     </label>
@@ -131,6 +132,7 @@ export default function PrePostMediaOptimizer() {
         <p className="text-xs text-muted-foreground">Measured in half-second windows. Review quiet sections and sudden changes against the intended message. No universal sound frequency predicts a response; {soundMetrics.limitations}</p>
       </div>}
     </section>}
+    <PlatformVariantEditor file={file} previewUrl={previewUrl} metadata={metadata} destinations={destinations} audioWindows={soundMetrics?.windows || []} caption={postText} />
     <section aria-label="Media psychology analysis" className="space-y-3">
       <h3 className="text-lg font-semibold">Psychology-informed assessment</h3>
       <p className="text-sm text-muted-foreground">Research-informed, uncalibrated estimates of risk and opportunity—not numerical probabilities or verified audience outcomes. Memory and behavior depend on the viewer, content, context and exposure. Frequency or wavelength alone does not reliably predict emotion.</p>
