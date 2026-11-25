@@ -3,7 +3,7 @@ import { analyzeMediaResponse } from "../../lib/audiencePostReview.mjs";
 import { analyzeAudioSamples } from "../../lib/mediaAudioMetrics.mjs";
 import PlatformVariantEditor from "./PlatformVariantEditor";
 import { authClient } from "../../api/auth";
-import { consumeMediaForOptimization } from "../../lib/mediaDraftHandoff.mjs";
+import { consumeMediaForOptimization, consumeAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
 import { sampleLocalVideoFrames } from "../../lib/videoTimelineSampling.mjs";
 
 const PLATFORM_PROFILES = Object.freeze([
@@ -49,7 +49,15 @@ export default function PrePostMediaOptimizer() {
   const visualAbort = useRef(null);
   const mediaUrl = useRef(null);
   const [previewUrl, setPreviewUrl] = useState("");
-  useEffect(() => () => { visualAbort.current?.abort(); if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current); }, []);
+  const [layeredAudioUrl, setLayeredAudioUrl] = useState("");
+  const layeredAudioObject = useRef(null);
+  const layeredAudioRef = useRef(null);
+  const videoPlaybackRef = useRef(null);
+  useEffect(() => () => {
+    visualAbort.current?.abort();
+    if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current);
+    if (layeredAudioObject.current) URL.revokeObjectURL(layeredAudioObject.current);
+  }, []);
   useEffect(() => {
     if (!file || !previewUrl) return undefined;
     return inspectMedia(file, previewUrl, setMetadata);
@@ -78,12 +86,31 @@ export default function PrePostMediaOptimizer() {
   useEffect(() => {
     let active = true;
     authClient().auth.getUser().then(({data,error}) => {
-      if (!active || error || !data?.user?.id || mediaUrl.current) return;
-      const prepared = consumeMediaForOptimization(data.user.id);
-      if (prepared) loadFile(prepared);
+      if (!active || error || !data?.user?.id) return;
+      if (!mediaUrl.current) {
+        const prepared = consumeMediaForOptimization(data.user.id);
+        if (prepared) loadFile(prepared);
+      }
+      const mix = consumeAudioForMediaOptimization(data.user.id);
+      if (mix) {
+        if (layeredAudioObject.current) URL.revokeObjectURL(layeredAudioObject.current);
+        layeredAudioObject.current = URL.createObjectURL(mix);
+        setLayeredAudioUrl(layeredAudioObject.current);
+      }
     }).catch(() => {});
     return () => { active = false; };
   }, []);
+  async function playVideoWithLayeredAudio() {
+    const video = videoPlaybackRef.current;
+    const audioTrack = layeredAudioRef.current;
+    if (!video || !audioTrack) return;
+    setMessage("");
+    try {
+      video.pause(); audioTrack.pause();
+      video.currentTime = 0; audioTrack.currentTime = 0;
+      await Promise.all([video.play(), audioTrack.play()]);
+    } catch { video.pause(); audioTrack.pause(); setMessage("Combined preview needs a user-enabled audio and video playback device."); }
+  }
   async function inspectVideo() {
     if (!file?.type.startsWith("video/") || !previewUrl || inspectingVideo) return;
     const abort = new AbortController();
@@ -132,9 +159,15 @@ export default function PrePostMediaOptimizer() {
     <label className="block text-sm font-semibold">Media to analyze (local file, up to 50 MB)
       <input className="mt-2 block w-full text-sm" type="file" accept="video/*,audio/*,image/*" onChange={selectFile}/>
     </label>
-    {previewUrl && file?.type.startsWith("video/") && <video src={previewUrl} controls playsInline className="max-h-80 w-full rounded-xl bg-black" />}
+    {previewUrl && file?.type.startsWith("video/") && <video ref={videoPlaybackRef} src={previewUrl} controls playsInline className="max-h-80 w-full rounded-xl bg-black" onPause={() => layeredAudioRef.current?.pause()} onEnded={() => layeredAudioRef.current?.pause()} />}
     {previewUrl && file?.type.startsWith("audio/") && <audio src={previewUrl} controls className="w-full" />}
     {previewUrl && file?.type.startsWith("image/") && <img src={previewUrl} alt="Selected media for review" className="max-h-80 max-w-full rounded-xl object-contain" />}
+    {layeredAudioUrl && <section className="space-y-3 rounded-xl border p-4" aria-label="Layered audio mix preview">
+      <h3 className="font-semibold">Imported layered audio mix</h3>
+      <audio ref={layeredAudioRef} src={layeredAudioUrl} controls className="w-full" aria-label="Layered voice music and sound effect mix"/>
+      {file?.type.startsWith("video/") && <button type="button" onClick={playVideoWithLayeredAudio} className="ifund-interactive min-h-11 rounded-lg border px-4 font-semibold">Preview video with layered audio</button>}
+      <p className="text-xs text-muted-foreground">Local preview only: the audio and video remain separate source files. Exporting an audio-mixed video requires a verified video encoding/muxing workflow. Use headphones for spoken review where useful.</p>
+    </section>}
     {metadata && <p role="status" className="text-xs text-muted-foreground">Measured file metadata: {metadata.width && metadata.height ? metadata.width + " × " + metadata.height + " pixels" : "No image dimensions"}{metadata.duration != null ? " · " + metadata.duration.toFixed(1) + " seconds" : ""}. Scene boundaries and speech timing have not been measured; any interest-peak markers are editable planning suggestions, not validated optimums.</p>}
     <label className="block text-sm font-medium">Caption, spoken script or transcript
       <textarea rows={4} className="mt-2 w-full rounded-xl border bg-background p-3" value={postText} onChange={e => setPostText(e.target.value)} maxLength={6000} placeholder="Add actual words spoken, shown or planned, for better wording analysis."/>
