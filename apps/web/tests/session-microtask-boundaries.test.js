@@ -45,7 +45,7 @@ test('actual admin dependency consumer rejects an auth event after helper resolu
     rpc: async () => ({ data: { open_request: true, safe_to_erase: false, private: 'A-only snapshot' }, error: null }) }),
     runAdminReview: (...input) => {
       const task = runAdminReview(...input);
-      task.then(() => { h.change('B'); scope.observe('B'); });
+      task.then(() => { h.change('B'); scope.observe('B'); }, () => {});
       return task;
     }, setDependencyBusy() {}, setDependencyIssue() {},
     setDependencySnapshot: update => { exposed = typeof update === 'function' ? update({}) : update; } };
@@ -65,7 +65,7 @@ test('actual withdrawal balance consumer rejects an auth event after helper reso
   const args = { authClient: () => ({ rpc: async () => ({ data: [], error: null }) }),
     runForOwner: operation => {
       const task = guard.run(operation);
-      task.then(() => h.change('B'));
+      task.then(() => h.change('B'), () => {});
       return task;
     }, assertOwnerCurrent: () => guard.assertActive(), setState: value => { exposed = value; } };
   const refresh = new Function(...Object.keys(args), 'return async()=>{' + body + '};')(...Object.values(args));
@@ -106,7 +106,7 @@ test('actual MFA enrollment consumer never publishes a secret after helper resol
     authClient: () => ({ auth: { mfa: { listFactors: async () => ({ data: { all: [] } }), enroll: async () => ({ data: { id: 'factor-A', totp: { secret: 'A-only secret' } } }) } } }),
     runForOwner: operation => {
       const task = guard.run(operation);
-      task.then(() => h.change('B'));
+      task.then(() => h.change('B'), () => {});
       return task;
     }, assertOwnerCurrent: () => guard.assertActive(),
     ownerIsCurrent: () => { try { guard.assertActive(); return true; } catch { return false; } },

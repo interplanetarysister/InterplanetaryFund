@@ -11,7 +11,9 @@ test("original Interplanetary Fund visual identity is retained",()=>{
  assert.match(layout,/MobileBottomNav/);
  assert.match(layout,/BrandLogo/);
  assert.match(css,/styles-ifund-studio\.css/);
- assert.match(css,/Fraunces/);
+ assert.match(css,/Space Grotesk/);
+ const archived=read("../public/fonts/ifund-fonts.css");
+ assert.match(archived,/Fraunces/);
 });
 test("original home and navigation remain in the independent app",()=>{
  const app=read("../src/App.jsx");

@@ -89,32 +89,32 @@ colors:
     discover: "#9DE3FF"
 typography:
   headline-display:
-    fontFamily: "Fraunces, ui-serif, serif"
-    fontSize: 60px
+    fontFamily: "Space Grotesk, Inter, ui-sans-serif, sans-serif"
+    fontSize: 56px
     fontWeight: 700
     lineHeight: 1.05
     letterSpacing: -2px
   headline-lg:
-    fontFamily: "Manrope, Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: 36px
+    fontFamily: "Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: 32px
     fontWeight: 760
     lineHeight: 1.15
     letterSpacing: -1.5px
   headline-md:
-    fontFamily: "Manrope, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 24px
     fontWeight: 710
     lineHeight: 1.25
     letterSpacing: -0.8px
   body-lg:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: 17px
+    fontSize: 16px
     fontWeight: 400
     lineHeight: 1.7
     letterSpacing: 0
   body-md:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: 15px
+    fontSize: 16px
     fontWeight: 400
     lineHeight: 1.6
     letterSpacing: 0
@@ -301,16 +301,16 @@ Use `colors.agent.*` only for the nine agent identity glyphs and per-card accent
 
 ## Typography
 
-Fonts are locally bundled in `apps/web/public/fonts/` with provenance in `asset-sources.json`; no remote font request is required.
+Inter and Space Grotesk are both locally bundled in `apps/web/public/fonts/`, and the Space Grotesk SIL OFL 1.1 license is distributed alongside its upstream font file. No external font service is required. Orbital Display remains blocked until its exact font license and provenance are confirmed. Orbital Display is not loaded, bundled, or distributed until its exact license and provenance are confirmed.
 
-- **Display:** Fraunces for the homepage "What if anything were possible?" headline and other rare editorial brand moments. Keep the display face out of dense forms.
-- **Headings:** Manrope for navigation, dashboard, cards, and section headings. Tight tracking creates a composed, modern tone.
-- **Body and labels:** Inter for paragraphs, helper text, buttons, inputs, and metadata.
+- **Marketing display (license-gated):** Orbital Display is approved in concept ONLY for the marketing hero and major promotional headlines. The exact foundry, web/mobile embedding terms, and usable licensed files remain unverified. Do not bundle, load, or ship the font; Space Grotesk is the safe current fallback.
+- **Headings:** Space Grotesk for page and section headings, with 32px desktop / 28px phone for page headings and 24px desktop / 22px phone for sections.
+- **Body and interface:** Inter for paragraphs, nav/sidebar items, buttons, agent conversations, forms, checkout, withdrawals, analytics, figures, and metadata; 16px body, 14px secondary and 13px captions.
 - **Mono:** system monospace only for technical identifiers or receipts, never for primary copy.
 
-Hierarchy should be established through size, weight, and spacing before color. On small screens the display headline steps down from 60px to roughly 36–40px, body text remains at least 15px, and interactive labels remain at least 13px. Eyebrows use uppercase, wide tracking, and a short rule or dot; they never replace a real heading.
+Hierarchy should be established through size, weight, and spacing before color. On small screens the marketing headline steps down from 56px to 36px, body text remains 16px, and touch targets remain at least 44px. Headings scale 32px/28px and sections 24px/22px. Eyebrows use uppercase, wide tracking, and a short rule or dot; they never replace a real heading.
 
-Avoid more than two font families in one screen (headings + body, with Fraunces as the intentional brand exception). Avoid sentence-case marketing shouts and mixed underline styles.
+Avoid more than two font families in one screen (headings + body, with the licensed Orbital Display as a future, marketing-only brand exception). Avoid sentence-case marketing shouts and mixed underline styles.
 
 ## Layout
 

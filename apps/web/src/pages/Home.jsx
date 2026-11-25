@@ -40,7 +40,7 @@ export default function Home() {
       </header>
       <main className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-5 pb-20 pt-12 text-center sm:px-8 sm:pt-24">
         <p className="mb-6 rounded-full border border-cyan-200/20 bg-cyan-100/5 px-4 py-2 text-xs font-semibold uppercase tracking-[.19em] text-cyan-200">Interplanetary Fund</p>
-        <h1 className="max-w-4xl font-display text-5xl font-semibold leading-[1.07] tracking-tight sm:text-7xl">
+        <h1 className="ifund-marketing-hero max-w-4xl font-semibold tracking-tight">
           What if <span className="brand-gradient-text">anything</span> were possible?
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
