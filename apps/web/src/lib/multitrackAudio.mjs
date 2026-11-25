@@ -10,6 +10,7 @@ export const TRACK_ROLES = Object.freeze(["music", "voice", "effects", "texture"
 export const AUDIO_EFFECT_DEFAULTS = Object.freeze({
   lowGain: 0, midGain: 0, highGain: 0,
   highpass: 20, lowpass: 18000, pan: 0, fadeIn: 0, fadeOut: 0,
+  speechCarveHz: 2800, speechCarveDb: 0, speechCarveQ: 1.42,
 });
 
 const finite = value => typeof value === "number" && Number.isFinite(value);
@@ -23,11 +24,13 @@ export function validateTrackEdit(track, sourceDuration = track?.buffer?.duratio
     track.volume < 0 || track.volume > 2 || track.start + track.trimEnd - track.trimStart > MAX_MIX_SECONDS + 0.001)
     throw new Error("Audio clip timing or level is outside the supported range.");
   const fx = {...AUDIO_EFFECT_DEFAULTS,...(track.effects || {})};
-  if (![fx.lowGain,fx.midGain,fx.highGain,fx.highpass,fx.lowpass,fx.pan,fx.fadeIn,fx.fadeOut].every(finite) ||
+  if (![fx.lowGain,fx.midGain,fx.highGain,fx.highpass,fx.lowpass,fx.pan,fx.fadeIn,fx.fadeOut,fx.speechCarveHz,fx.speechCarveDb,fx.speechCarveQ].every(finite) ||
       [fx.lowGain,fx.midGain,fx.highGain].some(v=>Math.abs(v)>12) ||
       fx.highpass<20 || fx.highpass>8000 || fx.lowpass<300 || fx.lowpass>20000 ||
       fx.lowpass<=fx.highpass || Math.abs(fx.pan)>1 || fx.fadeIn<0 || fx.fadeOut<0 ||
-      fx.fadeIn>track.trimEnd-track.trimStart || fx.fadeOut>track.trimEnd-track.trimStart)
+      fx.fadeIn>track.trimEnd-track.trimStart || fx.fadeOut>track.trimEnd-track.trimStart ||
+      fx.speechCarveHz<1500 || fx.speechCarveHz>4500 || fx.speechCarveDb>0 || fx.speechCarveDb< -12 ||
+      fx.speechCarveQ<0.5 || fx.speechCarveQ>4)
     throw new Error("Audio effect parameters are outside the supported range.");
   return true;
 }
@@ -60,11 +63,15 @@ export function audibleTracks(tracks) {
  * output gain to prevent sudden summing overload. Source nodes are never
  * connected to microphone inputs or the MediaRecorder.
  */
-export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3 } = {}) {
+export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3,
+  duckAttackMs = 32, duckReleaseMs = 180, duckLookaheadMs = 12 } = {}) {
   if (!finite(from) || from < 0 || from > MAX_MIX_SECONDS || !finite(master) || master < 0 || master > 1 ||
       !finite(duckDb) || duckDb < -18 || duckDb > 0 ||
       !finite(threshold) || threshold < -36 || threshold > -6 ||
-      !finite(ratio) || ratio < 1 || ratio > 8)
+      !finite(ratio) || ratio < 1 || ratio > 8 ||
+      ![duckAttackMs,duckReleaseMs,duckLookaheadMs].every(finite) ||
+      duckAttackMs<5 || duckAttackMs>200 || duckReleaseMs<50 || duckReleaseMs>1000 ||
+      duckLookaheadMs<0 || duckLookaheadMs>50)
     throw new Error("Invalid playback position or master volume.");
   mixLength(tracks);
   const masterGain = context.createGain();
@@ -111,14 +118,15 @@ export function scheduleMix(context, tracks, destination = context.destination, 
     if(typeof context.createBiquadFilter==="function"){
       const filters=[
         ["highpass",effects.highpass,0],["lowshelf",220,effects.lowGain],
-        ["peaking",1100,effects.midGain],["highshelf",4200,effects.highGain],
+        ["peaking",1100,effects.midGain],["peaking",effects.speechCarveHz,effects.speechCarveDb],
+        ["highshelf",4200,effects.highGain],
         ["lowpass",effects.lowpass,0],
       ];
       for(const [type,frequency,level] of filters){
         const filter=context.createBiquadFilter();
         filter.type=type;filter.frequency.value=Math.min(frequency,context.sampleRate/2-1);
         if(filter.gain)filter.gain.value=level;
-        if(type==="peaking" && filter.Q)filter.Q.value=0.8;
+        if(type==="peaking" && filter.Q)filter.Q.value=frequency===effects.speechCarveHz ? effects.speechCarveQ : 0.8;
         tail.connect(filter);tail=filter;effectNodes.push(filter);
       }
     }
@@ -134,7 +142,7 @@ export function scheduleMix(context, tracks, destination = context.destination, 
         const activeLevel=Math.pow(10,duckDb/20);
         duck.gain.setValueAtTime(1,startAt);
         for(let offset=0;offset<remaining;offset+=sampleInterval){
-          const timelineTime=from+Math.max(0,track.start-from)+offset;
+          const timelineTime=from+Math.max(0,track.start-from)+offset+duckLookaheadMs/1000;
           const voiceActive=voiceTracks.some(v=>{
             const elapsed=timelineTime-v.start;
             const sourceTime=v.trimStart+elapsed;
@@ -147,7 +155,7 @@ export function scheduleMix(context, tracks, destination = context.destination, 
             for(let i=first;i<endIndex;i+=16){energy+=channel[i]*channel[i];found++;}
             return Math.sqrt(energy/Math.max(1,found))*v.volume>=0.016;
           });
-          duck.gain.setTargetAtTime(voiceActive?activeLevel:1,startAt+offset,voiceActive?0.025:0.12);
+          duck.gain.setTargetAtTime(voiceActive?activeLevel:1,startAt+offset,voiceActive?duckAttackMs/1000:duckReleaseMs/1000);
         }
       }
     }
@@ -201,13 +209,14 @@ export function encodePcmWav(buffer) {
   return new Blob([bytes],{type:"audio/wav"});
 }
 /** OfflineAudioContext is browser-native, with no provider upload or fee. */
-export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3 } = {}) {
+export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8, duckDb = 0, compress = false, threshold = -16, ratio = 3,
+  duckAttackMs = 32, duckReleaseMs = 180, duckLookaheadMs = 12 } = {}) {
   const length = mixLength(tracks);
   if (length <= 0 || length > MAX_MIX_SECONDS || sampleRate !== MIX_SAMPLE_RATE)
     throw new Error("Mix length or sample rate is unavailable.");
   const Offline = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
   if (!Offline) throw new Error("Offline audio rendering is not supported on this device.");
   const context = new Offline(2, Math.ceil(length*sampleRate), sampleRate);
-  scheduleMix(context,tracks,context.destination,{from:0,master,duckDb,compress,threshold,ratio});
+  scheduleMix(context,tracks,context.destination,{from:0,master,duckDb,compress,threshold,ratio,duckAttackMs,duckReleaseMs,duckLookaheadMs});
   return encodePcmWav(await context.startRendering());
 }
