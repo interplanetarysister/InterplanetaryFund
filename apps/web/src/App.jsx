@@ -86,7 +86,7 @@ const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const ManagePermissions = lazy(() => import("./pages/ManagePermissions"));
 const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
-const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
+const PublishingWorkspace = lazy(() => import("./pages/PublishingWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
 const MemberOnboarding = lazy(() => import("./pages/MemberOnboarding"));
 const Devices = lazy(() => import("./pages/Devices"));
@@ -146,7 +146,7 @@ function AppRoutes() {
       <Route path="/agents" element={<AgentsTeam />} />
       <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
       <Route path="/mission" element={<AgentsTeam />} />
-      <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><Navigate to="/communications?tab=artwork" replace /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
@@ -167,7 +167,7 @@ function AppRoutes() {
       <Route path="/preferences" element={<Navigate to="/permissions?section=marketing" replace />} />
       <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
-      <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
+      <Route path="/communications" element={<MemberAccess><PublishingWorkspace /></MemberAccess>} />
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
       <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
