@@ -4,6 +4,7 @@ import { authClient } from "../../api/auth";
 import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
 import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
 import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
+import { AUDIO_MIX_PRESETS, chooseAudioPreset } from "../../lib/mediaPresetCollections.mjs";
 
 const styles = {
   input: "mt-1 min-h-10 w-full rounded-lg border border-input bg-background px-3",
@@ -317,6 +318,13 @@ export default function MultitrackAudioEditor() {
           </label>
           <details className="space-y-3 rounded-xl border p-3">
             <summary className="cursor-pointer text-sm font-semibold">Advanced audio effects: EQ, filters, fades and stereo</summary>
+            <div className="mt-3 flex flex-wrap gap-2" aria-label="Audio mix presets">
+              {Object.entries(AUDIO_MIX_PRESETS).map(([id,preset]) => <button key={id} type="button"
+                className={styles.button} disabled={recordingActive}
+                onClick={() => editTrack(track.id,{effects:chooseAudioPreset(id,track.trimEnd-track.trimStart)})}>
+                {preset.label}
+              </button>)}
+            </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {[
                 ["lowGain","Low shelf EQ (dB)",-12,12,1],["midGain","Mid EQ (dB)",-12,12,1],
