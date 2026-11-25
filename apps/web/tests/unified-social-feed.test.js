@@ -11,7 +11,7 @@ const post = { id: "post-" + id, body: "Watch " + clip,
 
 test("public member video posts and active campaign videos share one chronological feed", () => {
   const entries = unifiedSocialEntries([post], [campaign]);
-  assert.deepEqual(entries.map(item => item.type), ["social-post", "campaign-video"]);
+  assert.deepEqual(entries.map(item => item.type), ["social-post", "campaign-media"]);
   assert.deepEqual(entries.map(item => item.id), [post.id, "campaign-" + id]);
   assert.equal(entries[1].video.provider, "YouTube");
   assert.equal(entries[1].href, "/campaign/" + id);
@@ -35,7 +35,7 @@ test("private, removed, draft and unverified campaigns never enter the public ti
   assert.deepEqual(rows, []);
 });
 
-test("only approved public video providers may become campaign media", () => {
+test("video-only selection rejects unapproved direct-file providers", () => {
   assert.deepEqual(publicCampaignVideoEntries([
     { ...campaign, story: "", cover_image_url: "https://example.com/private.mp4" },
   ]), []);
@@ -51,4 +51,12 @@ test("archived external network posts retain source identity and are not duplica
   assert.equal(rows[0].id, archived.id);
   assert.equal(rows[0].source_platform, "bluesky");
   assert.equal(rows.length, 3);
+});
+
+test("active campaign images join the timeline without manufacturing playable videos", () => {
+  const rows = unifiedSocialEntries([], [{...campaign, story: "", cover_image_url: "https://images.example.org/public/campaign.jpg"}]);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].type, "campaign-media");
+  assert.equal(rows[0].video, null);
+  assert.equal(rows[0].image, "https://images.example.org/public/campaign.jpg");
 });
