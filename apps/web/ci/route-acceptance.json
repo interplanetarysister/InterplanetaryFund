@@ -169,7 +169,7 @@
       "role": "public",
       "component": "AgentsTeam",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs (Sprint 6: tabbed Agents - Analysis & Recommendations)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
@@ -197,9 +197,9 @@
     {
       "route": "/analytics",
       "role": "member",
-      "component": "AnalyticsCenter",
+      "component": "AgentsTeam",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=analytics)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
@@ -307,9 +307,9 @@
     {
       "route": "/communications",
       "role": "member",
-      "component": "CommunicationsWorkspace",
+      "component": "AgentsTeam",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=communications)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
@@ -967,9 +967,9 @@
     {
       "route": "/strategy",
       "role": "member",
-      "component": "CampaignStrategy",
+      "component": "AgentsTeam",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=strategy)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"

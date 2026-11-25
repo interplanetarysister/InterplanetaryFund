@@ -9,7 +9,10 @@ test("Mail and Messaging are separate authenticated routes with the legacy Inbox
  assert.match(app,/path="\/mail" element=\{<MemberAccess><Inbox\s*\/><\/MemberAccess>\}/);
  assert.match(app,/path="\/messaging" element=\{<MemberAccess><Messaging\s*\/><\/MemberAccess>\}/);
  assert.match(app,/path="\/inbox" element=\{<MemberAccess><Inbox\s*\/><\/MemberAccess>\}/);
- assert.match(app,/path="\/communications" element=\{<MemberAccess><CommunicationsWorkspace\s*\/><\/MemberAccess>\}/);
+ // Sprint 6 (2026-11-25): /communications folds into the tabbed Agents page;
+ // the legacy route stays a MemberAccess-guarded redirect, so ECHO outreach
+ // remains a separate destination from Mail and agent Messaging.
+ assert.match(app,/path="\/communications" element=\{<MemberAccess><LegacyAgentsRedirect tab="communications" \/><\/MemberAccess>\}/);
 });
 test("navigation distinguishes Mail, agent Messaging and campaign outreach",()=>{
  const source=read("apps/web/src/components/Layout.jsx");

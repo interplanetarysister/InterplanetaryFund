@@ -25,7 +25,7 @@ const PAGE_TITLES = {
   "/what-if": "What If?", "/missions": "My Missions", "/fund-your-mission": "Fund Your Mission", "/sponsor": "Sponsor with IFund", "/admin/sponsor-inquiries": "Sponsor Inquiries",
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "AI Team", "/messaging": "Messaging", "/mail": "Mail",
+  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "Agents — Analysis & Recommendations", "/messaging": "Messaging", "/mail": "Mail",
   "/inbox": "Mail", "/following": "Following", "/mission": "Mission Control", "/media-studio": "Media Studio", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",

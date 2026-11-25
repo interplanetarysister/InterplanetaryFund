@@ -18,6 +18,10 @@ import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 import AgentOperationsRoom from "@/components/agents/AgentOperationsRoom";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
+import AnalyticsCenter from "./AnalyticsCenter";
+import CampaignStrategy from "./CampaignStrategy";
+import CommunicationsWorkspace from "./CommunicationsWorkspace";
+import { AGENTS_PAGE_TABS, MEMBER_TABS, messagingHref, tabFromParam } from "@/lib/agentsPage.mjs";
 
 const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent => agent.identity);
 /**
@@ -25,17 +29,57 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
  * yet have verified direct advisory chat for the registered specialist
  * identities. Never send messages to Base44 or present a placeholder as an
  * active AI conversation.
+ *
+ * Sprint 6 (2026-11-25): this is the single tabbed Agents — Analysis &
+ * Recommendations page (40-page list, page 28). The existing team directory
+ * and Ask Mission Control live on the Overview tab; Analytics, Strategy and
+ * Communications reuse the existing pages as tab panels, and
+ * Recommendations surfaces the real NEXUS brief plus the detailed checks
+ * in the Strategy and Analytics tabs. Messaging is NOT folded in here: it
+ * stays a dedicated route (/messaging) behind the floating sidebar, linked
+ * from this page with per-agent continue-conversation links.
  */
+// The Analytics, Strategy, Recommendations and Communications panels used
+// to sit behind MemberAccess on their own routes. The Overview stays public
+// (the agent directory is public); a signed-out visitor on one of these tabs
+// gets a sign-in card instead of the panel — the panels themselves still
+// fail closed on their own owner checks, this keeps the route-level gate.
+function AgentsMemberSignIn({ tab }) {
+  return <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Sign in to view this section">
+    <h2 className="text-xl font-semibold">Sign in to view this section</h2>
+    <p className="text-sm text-muted-foreground">Analysis, strategy, recommendations and outreach are private to your account. Sign in to see your own campaigns — nothing here is shared with other accounts.</p>
+    <Link className="ifund-agents-action inline-flex min-h-11 items-center" to={`/login?returnTo=${encodeURIComponent(`/agents?tab=${tab}`)}`}>Sign in</Link>
+  </section>;
+}
+
 export default function AgentsTeam() {
   const navigate=useNavigate();
   const [params,setParams]=useSearchParams();
   const selection=parseAgentFeatureSelection(params.toString());
   const selected=selection.identity;
-  function setSelected(identity){const next=new URLSearchParams();if(identity)next.set("agent",identity);if(selection.campaignId)next.set("campaign",selection.campaignId);setParams(next,{replace:true});}
+  // Tab state lives in the URL (?tab=strategy) so tabs are deep-linkable.
+  // Unknown or missing values fall back to the Overview.
+  const tab=tabFromParam(params.get("tab"));
+  function setTab(next){
+    const nextParams=new URLSearchParams(params);
+    nextParams.set("tab",tabFromParam(next));
+    setParams(nextParams,{replace:true});
+  }
+  function setSelected(identity){const next=new URLSearchParams();if(identity)next.set("agent",identity);if(selection.campaignId)next.set("campaign",selection.campaignId);if(tab!=="overview")next.set("tab",tab);setParams(next,{replace:true});}
   const [showWriting, setShowWriting] = useState(selection.identity === "story");
   const [showService, setShowService] = useState(false);
   const [agentQuestion, setAgentQuestion] = useState("");
   const {user, status: authStatus}=useAuthSession();
+  // Panels that used to sit behind MemberAccess keep their route-level gate.
+  // While the session is resolving, show a loading state so the panel does
+  // not mount and fire owner-scoped reads as anonymous; signed-out visitors
+  // get a sign-in card instead of the panel.
+  function memberTabPanel(tabId, panel) {
+    if (MEMBER_TABS.includes(tab) && authStatus === "loading")
+      return <p role="status" className="text-sm text-muted-foreground">Checking your account…</p>;
+    if (MEMBER_TABS.includes(tab) && !user) return <AgentsMemberSignIn tab={tabId} />;
+    return panel;
+  }
   useEffect(()=>{setShowWriting(selected === "story");setShowService(false);},[selected,selection.campaignId]);
   const [agentMode,setAgentMode]=useState("auto");
   const [agentReply,setAgentReply]=useState(null);
@@ -178,13 +222,25 @@ export default function AgentsTeam() {
       <p className="ifund-agents-kicker">Interplanetary Fund · Mission Control</p>
       <h1 className="ifund-agents-headline">Your mission. <span>Your AI Team.</span></h1>
       <p className="ifund-agents-lede">One place for campaign ideas, strategy, writing, finances, outreach and connections. Select a specialist to ask an advisory question in a panel that stays open as you explore the site.</p>
-      <a href="#ask-mission-control" className="ifund-agents-hero-link">Ask Mission Control <span aria-hidden="true">↗</span></a>
+      <a href="#ask-mission-control" onClick={() => setTab("overview")} className="ifund-agents-hero-link">Ask Mission Control <span aria-hidden="true">↗</span></a>
       <div className="ifund-agents-hero-foot" aria-label="Agent Team capabilities">
         <span className="ifund-agents-chip">Specialist matching included</span>
         <span className="ifund-agents-chip">Account-scoped assistance</span>
         <span className="ifund-agents-chip">You approve external actions</span>
       </div>
     </header>
+    <div role="tablist" aria-label="Agent sections" className="flex flex-wrap gap-2">
+      {AGENTS_PAGE_TABS.map((item) => (
+        <button key={item.id} type="button" role="tab" id={`agents-tab-${item.id}`}
+          aria-selected={tab === item.id} aria-controls={`agents-panel-${item.id}`}
+          className={`ifund-interactive min-h-11 rounded-xl border px-4 py-2 font-semibold ${tab === item.id ? "bg-primary text-primary-foreground" : "bg-card"}`}
+          onClick={() => setTab(item.id)}>
+          {item.label}
+        </button>
+      ))}
+    </div>
+    <p className="text-sm text-muted-foreground">Agent conversations live in <Link className="text-primary underline" to="/messaging">Messaging</Link> — your history stays with your account and every agent on your team can use the shared context. Member mail is separate (<Link className="text-primary underline" to="/mail">Open Mail</Link>); external outreach drafts live in the Communications tab.</p>
+    {tab === "overview" && (<div role="tabpanel" id="agents-panel-overview" aria-labelledby="agents-tab-overview" className="space-y-6">
     {user && <AgentOperationsRoom key={user.id} user={user}/>}
     <section aria-label="Agent specialties" className="space-y-4">
       <div className="ifund-agents-section-heading"><h2>Meet your specialists</h2><p>Choose an agent to ask an advisory question in a side panel while you browse</p></div>
@@ -282,6 +338,7 @@ export default function AgentsTeam() {
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
           <Link className="ifund-agents-action" to={agentToolHref(selected,selection.campaignId)}>Open related tool: {workspace.tool}</Link>}
       </div>}
+      {user && <Link className="ifund-agents-action mt-3 inline-flex min-h-11 items-center" to={messagingHref(selected, selection.campaignId)}>Continue the conversation in Messaging</Link>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
     {user && <EditorialAgentQueue />}
@@ -293,5 +350,36 @@ export default function AgentsTeam() {
       {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
       {user && showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
     </section>
+    </div>)}
+    {tab === "analytics" && (
+      <div role="tabpanel" id="agents-panel-analytics" aria-labelledby="agents-tab-analytics">
+        {memberTabPanel("analytics", <AnalyticsCenter />)}
+      </div>
+    )}
+    {tab === "strategy" && (
+      <div role="tabpanel" id="agents-panel-strategy" aria-labelledby="agents-tab-strategy">
+        {memberTabPanel("strategy", <CampaignStrategy />)}
+      </div>
+    )}
+    {tab === "recommendations" && (
+      <div role="tabpanel" id="agents-panel-recommendations" aria-labelledby="agents-tab-recommendations" className="space-y-5">
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Agent recommendations">
+          <h2 className="text-xl font-semibold">Recommendations</h2>
+          <p className="text-sm text-muted-foreground">Agent analysis and recommendations, built only from your own saved campaigns and verified records. Nothing here is invented: where a capability is not yet verified, this page says so instead of showing a fabricated result.</p>
+          <p className="text-sm text-muted-foreground">Direct specialist advisory chat is not yet verified for the registered specialist identities. The NEXUS brief below is a read-only checklist from your verified campaign records; the detailed checks live in the Strategy and Analytics tabs.</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" className="ifund-interactive min-h-11 rounded-xl border border-border px-4 py-2 font-semibold" onClick={() => setTab("strategy")}>See campaign readiness in Strategy</button>
+            <button type="button" className="ifund-interactive min-h-11 rounded-xl border border-border px-4 py-2 font-semibold" onClick={() => setTab("analytics")}>See AI analysis in Analytics</button>
+            <Link className="ifund-agents-action inline-flex min-h-11 items-center" to="/messaging">Continue in Messaging</Link>
+          </div>
+        </section>
+        {memberTabPanel("recommendations", <NexusBrief />)}
+      </div>
+    )}
+    {tab === "communications" && (
+      <div role="tabpanel" id="agents-panel-communications" aria-labelledby="agents-tab-communications">
+        {memberTabPanel("communications", <CommunicationsWorkspace />)}
+      </div>
+    )}
   </div>;
 }
