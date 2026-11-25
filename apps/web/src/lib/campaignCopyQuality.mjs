@@ -64,7 +64,7 @@ export function freeCopyOutlineOptions({beneficiary,need,cause}={}) {
   const fit=(s,max=150)=>s.length<=max?s:s.slice(0,max-1).trimEnd()+"…";
   const titles=[
     fit(`Help make ${subject} possible`),
-    fit(`Why ${audience} needs our support`),
+    fit(`Why support matters for ${audience}`),
     fit(`A hopeful next step for ${audience}`),
     fit(`Join the effort to support ${subject}`),
     fit(category?`The ${category} mission: ${subject}`:`What your support could make possible`),
