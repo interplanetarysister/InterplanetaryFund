@@ -26,7 +26,14 @@ async function research(agentId){
   return {state:"blocked_provider",error:"Research is disabled or no authorized provider is configured"};
  }
  const [profession,focus]=agents[agentId];
+ const brief=await rpc("ifund_training_research_brief",{p_agent_id:agentId});
+ if(!brief?.research_criteria || !brief?.interpretation_mandate) throw Error("Role-specific research brief unavailable");
  const prompt=`Research current, credible professional best practices for ${profession}. iFund context: ${focus}.
+Role-specific criteria: ${brief.research_criteria}
+Interpretation mandate (AFTER research, during separate independent review): ${brief.interpretation_mandate}
+Cross-platform marketing mandate: ${brief.shared_growth_mandate}
+Identify ethically persuasive ways to help potential users understand true benefits and decide freely whether to join iFund. Ground proposed marketing in validated user needs, honest social proof, transparent comparison, and opt-in communication. Recommend measurable hypotheses for awareness, signup, first campaign, and campaign-supporter engagement. Never fabricate endorsements, scarcity, social consensus, outcomes or imply external-platform partnership without permission.
+Output proposals for review only; a separate reflection period of ${brief.reflection_hours} hours and evaluation are required before any approval.
 Provide exactly 1-3 practical NEW skill proposals for an existing fundraising assistant.
 Each proposal must cite at least two trustworthy primary URLs used in your actual research. NO fictional sources, results, statistics, donation claims, or guaranteed outcomes.
 You are generating review-only proposals, NOT changing production behavior. Never include personal customer data.
@@ -57,7 +64,7 @@ const trainingAgents=Object.keys(agents);
 async function collectedCloudflareResults(){
  const utcNow=new Date();
  const sunday=new Date(utcNow.getTime());
- sunday.setUTCDate(sunday.getUTCDate()-sunday.getUTCDay());
+ sunday.setUTCDate(sunday.getUTCDate()+(7-sunday.getUTCDay())%7);
  const weekKey=sunday.toISOString().slice(0,10);
  return (await Promise.all(trainingAgents.map(async(agentId)=>{
   try{
@@ -104,20 +111,97 @@ Deno.serve(async(req)=>{
   const policy=await rpc("ifund_training_policy",{});
   if(!policy?.enabled)return response({ok:true,state:"training_disabled",job_claimed:false});
   if(body.action==="start"){
+   const cycle=await rpc("ifund_training_optimized_start",{p_source:"supabase_cron"});
    const out=await rpc("ifund_training_start",{p_source:"supabase_cron"});
    return response({ok:true,queued:9,...out});
   }
-  const externallyResearched=await collectedCloudflareResults();
-  for(const ready of externallyResearched){
-   const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId,p_week_key:ready.weekKey});
-   if(!claimed?.job_id)continue;
-   const done=await rpc("ifund_training_finish",{p_job_id:claimed.job_id,
-     p_state:ready.failed?"failed":"completed",p_research:ready.research,
-     p_error:ready.failed?ready.error:null,p_candidates:ready.candidates});
-   return response({ok:true,provider:"cloudflare_workers_ai",job_id:claimed.job_id,
-     agent_id:ready.agentId,state:ready.failed?"failed":"completed",
-     retry_scheduled:done.retry_scheduled===true,run_id:done.run_id??claimed.run_id});
+
+  // Optimized training: nine agent research tracks in parallel, one individual
+  // evaluation per agent, one shared collective review, then nine role-specific plans.
+  // Legacy 18 x 8 peer fanout is archived and is no longer executed.
+
+  // Durable, authenticated transfer of previously completed agent training plans.
+  // Never invoke AI for delivery; retries are idempotent on agent/week key.
+  const planPackets=await Promise.allSettled(Array.from({length:3},
+    ()=>rpc("ifund_training_optimized_plan_claim",{})));
+  const planItems=planPackets.filter(r=>r.status==="fulfilled"&&r.value?.id).map(r=>r.value);
+  await Promise.allSettled(planItems.map(async item=>{
+    let delivered=false,problem=null;
+    try{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
+      let reply;
+      try{
+        reply=await fetch("https://ifund-training-research.interplanetary-fund.workers.dev/plans",{
+          method:"POST",signal:controller.signal,
+          headers:{"content-type":"application/json","x-ifund-training-token":token},
+          body:JSON.stringify({agent_id:item.agent_id,week_key:item.week_key,plan:item.plan})
+        });
+      }finally{clearTimeout(timer)}
+      if(!reply.ok)throw Error("Plan delivery HTTP "+reply.status);
+      const result=await reply.json();
+      delivered=result.ok===true&&result.agent_id===item.agent_id&&result.week_key===item.week_key;
+      if(!delivered)problem="Plan acknowledgment did not match";
+    }catch(err){problem=String(err).slice(0,150)}
+    await rpc("ifund_training_optimized_plan_finish",{
+      p_id:item.id,p_delivered:delivered,p_error:problem});
+  }));
+  const cycleProgress=await rpc("ifund_training_optimized_sync",{});
+  // Do not poll nine research-result URLs before the Sunday research window.
+  const researchReady=typeof cycleProgress?.week_key==="string" &&
+    new Date(cycleProgress.week_key+"T10:00:00Z").getTime()<=Date.now() &&
+    Number(cycleProgress.research_complete)<9;
+  const results=researchReady ? await collectedCloudflareResults() : [];
+  const applied=await Promise.allSettled(results.map(async ready=>{
+    const claimed=await rpc("ifund_training_claim_agent",{p_agent_id:ready.agentId,p_week_key:ready.weekKey});
+    if(!claimed?.job_id)return null;
+    return await rpc("ifund_training_finish",{
+      p_job_id:claimed.job_id,p_state:ready.failed?"failed":"completed",
+      p_research:ready.research,p_error:ready.failed?ready.error:null,p_candidates:ready.candidates});
+  }));
+  await rpc("ifund_training_optimized_sync",{});
+  const task=await rpc("ifund_training_optimized_claim",{});
+  if(task?.stage){
+    const peerUrl="https://ifund-training-peer.interplanetary-fund.workers.dev";
+    try{
+      if(policy.allow_free_cloudflare_peer!==true)return response({ok:true,state:"peer_provider_not_authorized"});
+      const healthResponse=await fetch(peerUrl+"/health");
+      if(!healthResponse.ok)throw Error("Peer provider health failed");
+      const health=await healthResponse.json();
+      if(health.provider_mode!=="free_allocation_capped"||health.ai_binding!==true)
+        throw Error("Peer provider not in capped free mode");
+      if(!(Number(health.free_quota_remaining)>0)){
+        await rpc("ifund_training_optimized_release",{
+          p_cycle_id:task.cycle_id,p_stage:task.stage,p_agent_id:task.agent_id,p_reason:"daily_free_allocation_reached"});
+        return response({ok:true,state:"daily_ai_cap_reached",research_results:applied.length});
+      }
+      const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),65000);
+      let res;
+      try{
+        res=await fetch(peerUrl+"/stage",{
+          method:"POST",signal:controller.signal,
+          headers:{"content-type":"application/json","x-ifund-training-token":token},
+          body:JSON.stringify({
+            stage:task.stage,cycle_id:task.cycle_id,agent_id:task.agent_id,research:task})
+        });
+      }finally{clearTimeout(timer)}
+      if(!res.ok)throw Error("Peer stage status "+res.status);
+      const result=await res.json();
+      if(result.state!=="completed"||result.stage!==task.stage||
+         result.cycle_id!==task.cycle_id||result.agent_id!==task.agent_id)
+        throw Error("Peer model response did not match claimed stage");
+      const saved=await rpc("ifund_training_optimized_finish",{
+        p_cycle_id:task.cycle_id,p_stage:task.stage,
+        p_agent_id:task.agent_id,p_result:result.result});
+      return response({ok:true,state:"optimized_stage_complete",
+        stage:task.stage,agent_id:task.agent_id,saved:saved.saved===true});
+    }catch(err){
+      await rpc("ifund_training_optimized_release",{
+        p_cycle_id:task.cycle_id,p_stage:task.stage,p_agent_id:task.agent_id,p_reason:String(err).slice(0,120)});
+      console.error("Optimized training stage failed",String(err).slice(0,150));
+      return response({ok:true,state:"optimized_stage_deferred",stage:task.stage});
+    }
   }
+  if(applied.length)return response({ok:true,state:"research_synced",responses:applied.length});
   if (policy.allow_paid_requests!==true || !Deno.env.get("OPENAI_API_KEY") || Deno.env.get("IFUND_TRAINING_ENABLE_EXTERNAL_RESEARCH")!=="true") return response({ok:true,state:"awaiting_public_source_research",job_claimed:false});
   const job=await rpc("ifund_training_claim",{});
   if(!job?.job_id)return response({ok:true,job:"none"});
