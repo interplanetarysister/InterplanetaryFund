@@ -89,7 +89,7 @@ function SocialItem({ post, likes, onHidden, user }) {
         {post.profile_id
           ? <Link className="text-primary underline" to={`/u/${post.profile_id}`}>{post.display_name || "IFund member"}</Link>
           : post.display_name || "IFund member"}
-        {SOURCE_LABELS[post.source_platform] && <span className="ml-2 font-normal text-muted-foreground">via {SOURCE_LABELS[post.source_platform]}</span>}
+        {Object.hasOwn(SOURCE_LABELS, post.source_platform || "") && <span className="ml-2 font-normal text-muted-foreground">via {SOURCE_LABELS[post.source_platform]}</span>}
       </p>
       {post.posted_at && <time className="text-xs text-muted-foreground" dateTime={post.posted_at}>{new Date(post.posted_at).toLocaleDateString()}</time>}
     </div>
