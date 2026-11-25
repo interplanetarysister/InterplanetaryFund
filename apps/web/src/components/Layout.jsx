@@ -25,7 +25,7 @@ const PAGE_TITLES = {
   "/what-if": "What If?", "/missions": "My Missions", "/fund-your-mission": "Fund Your Mission", "/sponsor": "Sponsor with IFund", "/admin/sponsor-inquiries": "Sponsor Inquiries",
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "AI Team", "/messaging": "Messaging", "/mail": "Mail",
+  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "Growth Studio", "/agents": "AI Team", "/messaging": "Messaging", "/mail": "Mail",
   "/inbox": "Mail", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
@@ -54,9 +54,7 @@ const navSections = [
     items: [
       { to: "/agents", label: "AI Team", icon: Bot },
       { to: "/messaging", label: "Messaging", icon: MessageSquare },
-      { to: "/mission", label: "Mission Control", icon: Sparkles },
       ...(WHAT_IF_LAUNCHED ? [{ to: "/what-if", label: "What If? Engine", icon: Orbit }] : []),
-      { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
     ],
   },
   {
@@ -78,7 +76,7 @@ const navSections = [
     label: "Campaigns & Giving",
     items: [
       { to: WHAT_IF_LAUNCHED ? "/what-if" : "/create", label: WHAT_IF_LAUNCHED ? "Start a Mission" : "New Campaign", icon: PlusCircle },
-      { to: "/donors", label: "Supporters", icon: Users },
+      { to: "/communications", label: "Growth Studio", icon: Sparkles },
       { to: "/finances", label: "Financial Center", icon: Wallet },
       { to: "/following", label: "Following", icon: Heart },
       { to: "/withdrawals", label: "Withdrawals", icon: Wallet },
@@ -92,7 +90,6 @@ const navSections = [
       { to: "/community", label: "Public Discussions", icon: Users },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
-          { to: "/communications", label: "ECHO Outreach", icon: Sparkles },
       { to: "/mail", label: "Mail", icon: MailOpen },
     ],
   },
