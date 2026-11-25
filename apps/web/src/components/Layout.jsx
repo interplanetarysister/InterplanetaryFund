@@ -69,7 +69,6 @@ const navSections = [
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/fund-your-mission", label: "Fund Your Mission", icon: HeartHandshake },
       { to: "/events", label: "Fundraising Events", icon: CalendarDays },
-      { to: "/shorts", label: "Orbit Shorts", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
       { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/institutions", label: "Opportunities", icon: Building2 },
