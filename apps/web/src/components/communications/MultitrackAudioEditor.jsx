@@ -28,6 +28,9 @@ export default function MultitrackAudioEditor() {
   const [soundFrequency, setSoundFrequency] = useState(440);
   const [masterProfile, setMasterProfile] = useState("none");
   const [duckDb, setDuckDb] = useState(-6);
+  const [duckAttackMs, setDuckAttackMs] = useState(32);
+  const [duckReleaseMs, setDuckReleaseMs] = useState(180);
+  const [duckLookaheadMs, setDuckLookaheadMs] = useState(12);
   const [bypass, setBypass] = useState(false);
   const [compressionEnabled, setCompressionEnabled] = useState(false);
   const [compressionThreshold, setCompressionThreshold] = useState(-16);
@@ -170,7 +173,7 @@ export default function MultitrackAudioEditor() {
     try {
       const context = await ensureAudio();
       stopPlaying();
-      const scheduled = scheduleMix(context,activeMixTracks(),context.destination,{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio});
+      const scheduled = scheduleMix(context,activeMixTracks(),context.destination,{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio,duckAttackMs,duckReleaseMs,duckLookaheadMs});
       playback.current = scheduled;
       setPlaying(true);
       const ms = Math.ceil(mixLength(tracks)*1000)+100;
@@ -302,6 +305,21 @@ export default function MultitrackAudioEditor() {
         </label>
       </div>
       <p className="text-xs text-muted-foreground">Profile target: {MASTERING_PROFILES[masterProfile]?.targetLufs != null ? MASTERING_PROFILES[masterProfile].targetLufs+" LUFS reference (not measured)" : "not selected"}. Automatic ducking uses voice-lane signal levels rather than an AI speech-transcription service. Music gains recover smoothly between voiced segments.</p>
+      <details className="rounded-xl border p-3">
+        <summary className="cursor-pointer text-sm font-semibold">Music ducking attack, release & lookahead</summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {[
+            ["duckAttackMs","Attack",duckAttackMs,setDuckAttackMs,5,200,1],
+            ["duckReleaseMs","Release",duckReleaseMs,setDuckReleaseMs,50,1000,10],
+            ["duckLookaheadMs","Lookahead",duckLookaheadMs,setDuckLookaheadMs,0,50,1],
+          ].map(([id,label,value,setValue,min,max,step])=><label className="text-xs" key={id}>{label}: {value} ms
+            <input className="mt-2 w-full" type="range" min={min} max={max} step={step}
+              value={value} disabled={recordingActive}
+              onChange={e=>{stopPlaying();clearPreview();setValue(Number(e.target.value));}}/>
+          </label>)}
+        </div>
+        <p className="text-xs text-muted-foreground">Uses measured voice-lane signal energy, not semantic AI speech recognition. The 12 ms default anticipates the detected energy window and smooths music gain changes.</p>
+      </details>
       <details className="rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-semibold">Master dynamics compressor</summary>
         <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={compressionEnabled}
@@ -442,6 +460,9 @@ export default function MultitrackAudioEditor() {
                 ["highpass","Low-cut frequency (Hz)",20,8000,10],
                 ["lowpass","High-cut frequency (Hz)",300,20000,100],
                 ["pan","Stereo pan (L/R)",-1,1,0.1],
+                ["speechCarveHz","Speech masking carve frequency (Hz)",1500,4500,100],
+                ["speechCarveDb","Speech masking carve gain (dB)",-12,0,0.2],
+                ["speechCarveQ","Speech carve bandwidth Q",0.5,4,0.1],
                 ["fadeIn","Fade in (s)",0,Math.min(30,track.trimEnd-track.trimStart),0.1],
                 ["fadeOut","Fade out (s)",0,Math.min(30,track.trimEnd-track.trimStart),0.1],
               ].map(([id,label,min,max,step])=><label key={id} className="text-xs">{label}: {track.effects?.[id]??AUDIO_EFFECT_DEFAULTS[id]}
