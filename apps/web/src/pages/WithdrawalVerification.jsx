@@ -237,6 +237,8 @@ function WithdrawalMfaGate({ authUser }) {
   const [state, setState] = useState("loading");
   const [factor, setFactor] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
+  const [copyNotice, setCopyNotice] = useState("");
+  const [qrFailed, setQrFailed] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -279,11 +281,39 @@ function WithdrawalMfaGate({ authUser }) {
         qr: normalizeEnrollmentQr(result.data.totp.qr_code),
         secret: result.data.totp.secret,
       });
-      setCode("");
+      setCode(""); setCopyNotice(""); setQrFailed(false);
       setState("confirm-enrollment");
     } catch (cause) {
       if(ownerIsCurrent())setError(cause.message || "Authenticator setup is unavailable.");
     } finally { if(ownerIsCurrent())setBusy(false); }
+  }
+  async function restartEnrollment() {
+    if (busy || !enrollment?.id) return;
+    setBusy(true); setError("");
+    try {
+      const auth = authClient().auth;
+      const listed = await runForOwner(() => auth.mfa.listFactors());
+      if (listed.error) throw listed.error;
+      const pending = listed.data?.all?.find(item => item.id === enrollment.id);
+      if (pending?.status === "unverified" && pending.factor_type === "totp") {
+        const removed = await runForOwner(() => auth.mfa.unenroll({ factorId: pending.id }));
+        if (removed.error) throw removed.error;
+      }
+      assertOwnerCurrent();
+      setEnrollment(null); setCode(""); setCopyNotice("");
+      await inspect();
+    } catch (cause) {
+      if (ownerIsCurrent()) setError(cause.message || "Unable to restart setup safely.");
+    } finally { if (ownerIsCurrent()) setBusy(false); }
+  }
+  async function copySetupKey() {
+    if (!enrollment?.secret || !ownerIsCurrent()) return;
+    try {
+      await navigator.clipboard.writeText(enrollment.secret);
+      if (ownerIsCurrent()) setCopyNotice("Setup key copied.");
+    } catch {
+      if (ownerIsCurrent()) setCopyNotice("Select and copy the setup key manually.");
+    }
   }
   async function verifyCode(event) {
     event.preventDefault();
@@ -315,10 +345,13 @@ function WithdrawalMfaGate({ authUser }) {
     </button>}
     {state === "confirm-enrollment" && enrollment && <div className="space-y-3">
       <p className="text-sm">In your authenticator app, scan this QR code or add a time-based (TOTP) account using the setup key below. Enable automatic date and time on your device.</p>
-      {typeof enrollment.qr === "string" && enrollment.qr.startsWith("data:image/") &&
-        <img className="h-64 w-64 max-w-full object-contain bg-white p-4 [image-rendering:pixelated]" src={enrollment.qr} alt="Authenticator enrollment QR code"/>}
+      {enrollment.qr && !qrFailed ?
+        <img className="h-64 w-64 max-w-full object-contain bg-white p-4 [image-rendering:pixelated]" src={enrollment.qr} onError={() => setQrFailed(true)} alt="Authenticator enrollment QR code"/> : <p role="status">QR image unavailable. Use the manual setup key below.</p>}
       <p className="text-sm font-semibold">Manual setup key (not the six-digit code)</p>
       <code className="block select-all break-all rounded-lg border p-3 text-sm">{enrollment.secret}</code>
+      <button type="button" disabled={busy} onClick={copySetupKey} className="min-h-11 rounded-lg border px-4">Copy setup key</button>
+      {copyNotice && <p role="status">{copyNotice}</p>}
+      <button type="button" disabled={busy} onClick={restartEnrollment} className="min-h-11 rounded-lg border px-4">Restart incomplete setup</button>
       <p className="text-sm">Keep this key private. Enter the current six-digit code displayed by your authenticator app below.</p>
     </div>}
     {(state === "confirm-enrollment" || state === "challenge") && <form onSubmit={verifyCode} className="space-y-3">
