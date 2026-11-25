@@ -9,6 +9,16 @@ import { createOwnerSessionGuard, observeWithdrawalIdentity } from "@/lib/ownerS
 // account browsing. It is a step-up gate on the first withdrawal journey.
 // This screen never initiates a payout or treats client state as approval.
 
+function normalizeEnrollmentQr(value) {
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (raw.startsWith("<svg")) return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(raw);
+  const prefix = "data:image/svg+xml,";
+  if (raw.startsWith(prefix) && raw.slice(prefix.length).trimStart().startsWith("<"))
+    return prefix + encodeURIComponent(raw.slice(prefix.length));
+  return /^data:image\/(svg\+xml|png)[;,]/.test(raw) ? raw : null;
+}
+
 function usd(cents) {
   return Number.isSafeInteger(Number(cents))
     ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents)/100)
@@ -266,9 +276,10 @@ function WithdrawalMfaGate({ authUser }) {
         throw new Error("Authenticator setup did not return an enrollment.");
       setEnrollment({
         id: result.data.id,
-        qr: result.data.totp.qr_code,
+        qr: normalizeEnrollmentQr(result.data.totp.qr_code),
         secret: result.data.totp.secret,
       });
+      setCode("");
       setState("confirm-enrollment");
     } catch (cause) {
       if(ownerIsCurrent())setError(cause.message || "Authenticator setup is unavailable.");
@@ -285,7 +296,7 @@ function WithdrawalMfaGate({ authUser }) {
       setCode(""); setEnrollment(null);
       setState("verified");
     } catch (cause) {
-      if(ownerIsCurrent())setError(cause.message || "The authenticator code was not accepted.");
+      if(ownerIsCurrent()) { setCode(""); setError((cause.message || "The authenticator code was not accepted.") + " Check automatic device time and use the current code for this enrollment."); }
     } finally { if(ownerIsCurrent())setBusy(false); }
   }
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
@@ -303,10 +314,12 @@ function WithdrawalMfaGate({ authUser }) {
       {busy ? "Preparing…" : "Set up authenticator for first withdrawal"}
     </button>}
     {state === "confirm-enrollment" && enrollment && <div className="space-y-3">
-      <p className="text-sm">Open your authenticator app and scan this code or enter the setup key.</p>
+      <p className="text-sm">In your authenticator app, scan this QR code or add a time-based (TOTP) account using the setup key below. Enable automatic date and time on your device.</p>
       {typeof enrollment.qr === "string" && enrollment.qr.startsWith("data:image/") &&
-        <img className="h-48 w-48 rounded-xl bg-white p-2" src={enrollment.qr} alt="Authenticator enrollment QR code"/>}
-      <code className="block break-all rounded-lg border p-3 text-sm">{enrollment.secret}</code>
+        <img className="h-64 w-64 max-w-full object-contain bg-white p-4 [image-rendering:pixelated]" src={enrollment.qr} alt="Authenticator enrollment QR code"/>}
+      <p className="text-sm font-semibold">Manual setup key (not the six-digit code)</p>
+      <code className="block select-all break-all rounded-lg border p-3 text-sm">{enrollment.secret}</code>
+      <p className="text-sm">Keep this key private. Enter the current six-digit code displayed by your authenticator app below.</p>
     </div>}
     {(state === "confirm-enrollment" || state === "challenge") && <form onSubmit={verifyCode} className="space-y-3">
       <label className="block text-sm font-medium">Six-digit code from your authenticator
