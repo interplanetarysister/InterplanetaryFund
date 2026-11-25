@@ -40,13 +40,23 @@ function fakeServices({ quota = true, verified = true, aiAllowed = true, foreign
   return { fetcher, calls };
 }
 
-test("validated image prompt has four approved styles, capped length, no custom model or actor", () => {
+test("validated image prompts have a unified IFund campaign style and expanded separate media styles", () => {
   const { prompt, style } = validateImageRequest(payload);
   assert.equal(style, "interstellar");
   assert.ok(prompt.length <= 2048);
   assert.match(prompt, /no.*real people/i);
   assert.equal(IMAGE_MODEL, "@cf/black-forest-labs/flux-1-schnell");
+  const campaign = validateImageRequest({...payload,style:"ifund",purpose:"campaign-cover"});
+  assert.equal(campaign.style,"ifund");
+  assert.match(campaign.prompt,/cosmic-geometry story illustration/);
+  assert.match(campaign.prompt,/cyberpunk spectral highlights/);
+  assert.match(campaign.prompt,/graphic-novel composition/);
+  const simulation=validateImageRequest({...payload,style:"hyper-realistic-simulated-event",purpose:"media"});
+  assert.match(simulation.prompt,/fictional photorealistic simulation/i);
+  assert.match(simulation.prompt,/not documentary evidence/i);
   for (const invalid of [
+    {...payload,style:"cyberpunk",purpose:"campaign-cover"},
+    {...payload,style:"hyper-realistic-simulated-event",purpose:"campaign-cover"},
     { ...payload, style: "photorealistic" },
     { ...payload, title: "x" },
     { ...payload, description: "too short" },
@@ -108,7 +118,7 @@ test("page gates access and routes images into existing verified cover storage",
   const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
   const page = readFileSync(new URL("../src/pages/AIImageStudio.jsx", import.meta.url), "utf8");
   const worker = readFileSync(new URL("../../../worker/index.js", import.meta.url), "utf8");
-  assert.ok(app.includes('path="/ai-images" element={<MemberAccess><AIImageStudio'));
+  assert.ok(app.includes('path="/ai-images" element={<MemberAccess><Navigate to="/communications?tab=media&tool=artwork"'));
   assert.ok(worker.includes("routeImageStudio(request, env)"));
   assert.match(page, /uploadCampaignCover\(authClient\(\), file\)/);
   assert.match(page, /paste this link into the cover URL field/i);
