@@ -9,7 +9,6 @@ import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mj
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
-import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 
 const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
@@ -282,7 +281,6 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Discover</Link>
         {user && <Link to="/dashboard" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Dashboard</Link>}
       </nav>
-      {!availability.enabled && !availability.loading && <PremiumOpportunity context="agent" compact />}
       {!availability.enabled && <p role="status" className="mb-2 text-sm text-slate-200">{availability.loading ? "Checking agent access…" : availability.reason}{" "}
         {!user ? <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link> :
           <Link className="underline" to="/permissions?section=ai">Review AI permissions</Link>}
