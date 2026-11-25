@@ -6,7 +6,11 @@ export const MAX_AUDIO_TRACKS = 12;
 export const MAX_MIX_SECONDS = 180;
 export const MIX_SAMPLE_RATE = 44100;
 export const MAX_WAV_BYTES = 38 * 1024 * 1024;
-export const TRACK_ROLES = Object.freeze(["music", "voice", "effects"]);
+export const TRACK_ROLES = Object.freeze(["music", "voice", "effects", "texture"]);
+export const AUDIO_EFFECT_DEFAULTS = Object.freeze({
+  lowGain: 0, midGain: 0, highGain: 0,
+  highpass: 20, lowpass: 18000, pan: 0, fadeIn: 0, fadeOut: 0,
+});
 
 const finite = value => typeof value === "number" && Number.isFinite(value);
 const limit = (n, min, max) => Math.min(max, Math.max(min, n));
@@ -18,6 +22,13 @@ export function validateTrackEdit(track, sourceDuration = track?.duration) {
     track.trimEnd > sourceDuration || track.trimStart >= track.trimEnd ||
     track.volume < 0 || track.volume > 2 || track.start + track.trimEnd - track.trimStart > MAX_MIX_SECONDS + 0.001)
     throw new Error("Audio clip timing or level is outside the supported range.");
+  const fx = {...AUDIO_EFFECT_DEFAULTS,...(track.effects || {})};
+  if (![fx.lowGain,fx.midGain,fx.highGain,fx.highpass,fx.lowpass,fx.pan,fx.fadeIn,fx.fadeOut].every(finite) ||
+      [fx.lowGain,fx.midGain,fx.highGain].some(v=>Math.abs(v)>12) ||
+      fx.highpass<20 || fx.highpass>8000 || fx.lowpass<300 || fx.lowpass>20000 ||
+      fx.lowpass<=fx.highpass || Math.abs(fx.pan)>1 || fx.fadeIn<0 || fx.fadeOut<0 ||
+      fx.fadeIn>track.trimEnd-track.trimStart || fx.fadeOut>track.trimEnd-track.trimStart)
+    throw new Error("Audio effect parameters are outside the supported range.");
   return true;
 }
 export function newAudioTrack({ id, name, role, buffer, start = 0 }) {
@@ -28,8 +39,8 @@ export function newAudioTrack({ id, name, role, buffer, start = 0 }) {
   if (duration <= 0 || !finite(start) || start < 0) throw new Error("Audio starts outside the timeline.");
   const track = { id, name: String(name || role).slice(0, 120), role,
     start, trimStart: 0, trimEnd: duration,
-    volume: role === "music" ? 0.3 : role === "effects" ? 0.55 : 1,
-    muted: false, solo: false, buffer };
+    volume: role === "music" ? 0.3 : role === "texture" ? 0.18 : role === "effects" ? 0.55 : 1,
+    muted: false, solo: false, buffer, effects: {...AUDIO_EFFECT_DEFAULTS} };
   validateTrackEdit(track, buffer.duration);
   return track;
 }
@@ -66,11 +77,47 @@ export function scheduleMix(context, tracks, destination = context.destination, 
     const source = context.createBufferSource();
     source.buffer = track.buffer;
     const gain = context.createGain();
-    gain.gain.value = track.volume;
-    source.connect(gain);
-    gain.connect(masterGain);
-    source.start(context.currentTime + Math.max(0, track.start - from), track.trimStart + skip, remaining);
-    nodes.push({ source, gain });
+    const startAt=context.currentTime + Math.max(0, track.start - from);
+    const effects={...AUDIO_EFFECT_DEFAULTS,...(track.effects || {})};
+    const fadeInRemaining=Math.max(0,effects.fadeIn-skip);
+    const fadeOutStart=Math.max(0,track.trimEnd-track.trimStart-effects.fadeOut-skip);
+    gain.gain.value=track.volume;
+    if(typeof gain.gain.setValueAtTime==="function"){
+      const firstLevel=fadeInRemaining>0?Math.max(0,track.volume*skip/Math.max(effects.fadeIn,0.001)):
+        effects.fadeOut>0 && fadeOutStart===0 ? track.volume*Math.max(0,remaining/effects.fadeOut) : track.volume;
+      gain.gain.setValueAtTime(firstLevel,startAt);
+      if(fadeInRemaining>0)gain.gain.linearRampToValueAtTime(track.volume,startAt+Math.min(remaining,fadeInRemaining));
+      if(effects.fadeOut>0 && fadeOutStart<remaining){
+        const fadeAt=startAt+fadeOutStart;
+        if(fadeOutStart>fadeInRemaining)gain.gain.setValueAtTime(track.volume,fadeAt);
+        gain.gain.linearRampToValueAtTime(0,startAt+remaining);
+      }
+    }
+    let tail=source;
+    const effectNodes=[];
+    if(typeof context.createBiquadFilter==="function"){
+      const filters=[
+        ["highpass",effects.highpass,0],["lowshelf",220,effects.lowGain],
+        ["peaking",1100,effects.midGain],["highshelf",4200,effects.highGain],
+        ["lowpass",effects.lowpass,0],
+      ];
+      for(const [type,frequency,level] of filters){
+        const filter=context.createBiquadFilter();
+        filter.type=type;filter.frequency.value=Math.min(frequency,context.sampleRate/2-1);
+        if(filter.gain)filter.gain.value=level;
+        if(type==="peaking" && filter.Q)filter.Q.value=0.8;
+        tail.connect(filter);tail=filter;effectNodes.push(filter);
+      }
+    }
+    tail.connect(gain);
+    let end=gain;
+    if(typeof context.createStereoPanner==="function"){
+      const panner=context.createStereoPanner();panner.pan.value=effects.pan;
+      end.connect(panner);end=panner;effectNodes.push(panner);
+    }
+    end.connect(masterGain);
+    source.start(startAt,track.trimStart+skip,remaining);
+    nodes.push({ source, gain, effectNodes });
   }
   return {
     stop() {
@@ -78,6 +125,7 @@ export function scheduleMix(context, tracks, destination = context.destination, 
         try { item.source.stop(); } catch { /* finished source */ }
         try { item.source.disconnect(); } catch {}
         try { item.gain.disconnect(); } catch {}
+        for(const node of item.effectNodes)try{node.disconnect();}catch{}
       }
       masterGain.disconnect();
     },
