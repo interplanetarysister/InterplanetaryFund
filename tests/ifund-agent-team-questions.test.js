@@ -108,7 +108,7 @@ test("source wiring exposes account-safe question UI without pretending external
   assert.match(worker,/routeTeamQuestion\(request, env\)/);
   assert.match(app,/askIFundAgent\(authClient\(\)/);
   assert.match(app,/requestRef\.current\.controller\?\.abort\(\)/);
-  assert.match(app,/Free-tier members can ask agents questions/);
+  assert.match(app,/Free-tier members can ask up to five agent questions/);
   assert.match(quota,/pg_advisory_xact_lock/);
   assert.match(quota,/ifund_story_subscription/);
   assert.match(quota,/already_reserved/);
