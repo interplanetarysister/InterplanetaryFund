@@ -14,6 +14,9 @@ const PLATFORM_PROFILES = Object.freeze([
   { id: "youtube-shorts", name: "YouTube Shorts", ratio: 9 / 16, notes: ["Review vertical framing, mobile captions and audio-off comprehensibility.", "Verify current Shorts requirements and any reused music rights in YouTube Studio."], source: "https://support.google.com/youtube/answer/10059070" },
   { id: "instagram-feed", name: "Instagram Feed", ratio: null, notes: ["Preview feed cropping and choose a clear focal subject.", "Use a legible caption and alternative text where supported."], source: "https://www.facebook.com/business/ads-guide/update/video/instagram-feed" },
   { id: "facebook-feed", name: "Facebook Feed", ratio: null, notes: ["Check the exact feed placement's crop before export.", "Keep the explanation and next action understandable without sound."], source: "https://www.facebook.com/business/ads-guide" },
+  { id: "x-feed", name: "X Feed", ratio: 16 / 9, notes: ["Review a landscape 16:9 crop for feed sharing.", "Check platform-specific current upload limits before posting."], source: null },
+  { id: "linkedin-feed", name: "LinkedIn Feed", ratio: 4 / 5, notes: ["Review a professional portrait 4:5 crop with readable facts and context.", "Keep image provenance and campaign claims verifiable."], source: null },
+  { id: "meta-square", name: "Meta Feed Square", ratio: 1, notes: ["Preview square content separately from Reels and landscape feeds.", "Confirm platform overlays and caption placement before publishing."], source: null },
 ]);
 
 function inspectMedia(file, url, setMetadata) {
