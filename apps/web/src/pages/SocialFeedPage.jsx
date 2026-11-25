@@ -10,6 +10,7 @@ import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.j
 import { FEED_PAGE_SIZE, listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
 import CommunityDirectory from "@/components/community/CommunityDirectory";
+import OrbitShorts from "@/pages/OrbitShorts";
 import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
 import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 
@@ -172,15 +173,31 @@ export default function SocialFeedPage({ community = false }) {
     }
   }
 
+  // The video feed is a view of Social, not a separate top-level destination.
+  // Keep the existing /shorts deep link working through its route redirect.
+  if (!community && params.get("tab") === "shorts") return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-5 px-4 py-8">
+    <header><h1 className="font-display text-3xl font-bold">IFund Social Feed</h1>
+      <p className="mt-2 text-muted-foreground">Community posts and campaign videos in one place.</p></header>
+    <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1" >
+      <Link to="/social" className="flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Posts</Link>
+      <Link to="/social?tab=shorts" aria-current="page" className="flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Shorts</Link>
+    </nav>
+    <OrbitShorts />
+  </div>;
+
   return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header>
       <h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social Feed"}</h1>
       <p className="mt-2 text-muted-foreground">Share updates and discover community conversations.</p>
     </header>
+    {!community && <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1">
+      <Link to="/social" aria-current="page" className="flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Posts</Link>
+      <Link to="/social?tab=shorts" className="flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Shorts</Link>
+    </nav>}
     <nav aria-label="Community pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
       <Link to="/social" aria-current={community ? undefined : "page"}>Social Feed</Link>
       <Link to="/community" aria-current={community ? "page" : undefined}>Community</Link>
-      <Link to="/shorts">Orbit Shorts</Link>
+      <Link to="/social?tab=shorts">Orbit Shorts</Link>
       <Link to="/blogs">Stories &amp; Blogs</Link>
       <Link to="/news">IFund Newscaster</Link>
     </nav>
