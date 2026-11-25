@@ -103,7 +103,7 @@ test('actual MFA enrollment consumer never publishes a secret after helper resol
   const end = source.indexOf('\n  async function restartEnrollment(', start);
   assert.ok(start >= 0 && end > start);
   const args = { busy: false, setBusy() {}, setError() {}, setState() {},
-    authClient: () => ({ auth: { mfa: { listFactors: async () => ({ data: { all: [] } }), enroll: async () => ({ data: { id: 'factor-A', totp: { secret: 'A-only secret' } } }) } }),
+    authClient: () => ({ auth: { mfa: { listFactors: async () => ({ data: { all: [] } }), enroll: async () => ({ data: { id: 'factor-A', totp: { secret: 'A-only secret' } } }) } } }),
     runForOwner: operation => {
       const task = guard.run(operation);
       task.then(() => h.change('B'));
