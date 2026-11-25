@@ -100,7 +100,13 @@ export default function MultitrackAudioEditor() {
     return bypass ? tracks.map(track=>({...track,effects:{...AUDIO_EFFECT_DEFAULTS}})) : tracks;
   }
   function setMasteringProfile(id) {
-    if(!MASTERING_PROFILES[id] || recording.current)return;
+    if(recording.current)return;
+    if(id==="none") {
+      stopPlaying();clearPreview();setMasterProfile("none");setDuckDb(0);
+      setNotice("Custom profile selected. Your current lane edits are preserved.");
+      return;
+    }
+    if(!MASTERING_PROFILES[id])return;
     stopPlaying();clearPreview();setIssue("");setNotice("");
     setMasterProfile(id);
     setDuckDb(MASTERING_PROFILES[id].duckDb);
