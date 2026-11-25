@@ -29,23 +29,23 @@ export default function CampaignCard({ campaign }) {
   const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0 && Number.isFinite(Number(campaign.raised_amount)) && campaign.raised_amount !== null && campaign.raised_amount !== undefined && Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && campaign.donor_count !== undefined;
   const pct = hasTotals ? Math.max(0, Math.min(100, (Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100)) : 0;
   return (
-    <Link to={to} className="ifund-interactive-card group bg-white rounded-2xl border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-      <div className="h-40 bg-stone-100 overflow-hidden">
+    <Link to={to} className="ifund-interactive-card group bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="h-40 bg-muted overflow-hidden">
         {isVideo(campaign.cover_image_url) ? <video src={campaign.cover_image_url} muted loop playsInline className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" /> : <Image src={campaign.cover_image_url || FALLBACK_IMAGE} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />}
       </div>
       <div className="p-5">
         <div className="flex items-center justify-between gap-2 mb-1.5"><p className="text-[11px] font-medium uppercase tracking-wider text-primary">{categoryLabels[campaign.category] || "Other"}</p>{campaign.donor_count !== null && campaign.donor_count !== undefined && Number.isFinite(Number(campaign.donor_count)) ? <TrustBadge donorCount={Number(campaign.donor_count)} /> : null}</div>
-        <h3 className="font-display text-lg text-stone-900 leading-snug mb-2 line-clamp-2">{campaign.title || "Untitled draft"}</h3>
+        <h3 className="font-display text-lg text-foreground leading-snug mb-2 line-clamp-2">{campaign.title || "Untitled draft"}</h3>
         {isDraft ? (
-          <p className="text-sm text-stone-600">Private draft · Tap to continue where you left off</p>
+          <p className="text-sm text-muted-foreground">Private draft · Tap to continue where you left off</p>
         ) : isPaused ? (
-          <p className="text-sm text-stone-600">Paused · Hidden from Discover. Tap to manage this campaign.</p>
+          <p className="text-sm text-muted-foreground">Paused · Hidden from Discover. Tap to manage this campaign.</p>
         ) : !hasTotals ? (
-          campaign.summary ? <p className="text-sm text-stone-600 line-clamp-2">{campaign.summary}</p> : null
+          campaign.summary ? <p className="text-sm text-muted-foreground line-clamp-2">{campaign.summary}</p> : null
         ) : (
           <>
             <Progress value={pct} className="h-1.5 mb-2.5" />
-            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()} · {campaign.donor_count || 0} donors</span></p>
+            <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-muted-foreground"> of ${campaign.goal_amount?.toLocaleString()} · {campaign.donor_count || 0} donors</span></p>
           </>
         )}
       </div>

@@ -15,10 +15,10 @@ export default function RecommendedCampaigns({ allCampaigns }) {
 
   return (
     <section className="mb-8">
-      <h2 className="flex items-center gap-2 font-display text-xl text-stone-900 mb-1">
+      <h2 className="flex items-center gap-2 font-display text-xl text-foreground mb-1">
         <TrendingUp className="w-4 h-4 text-primary" /> Trending campaigns
       </h2>
-      <p className="text-xs text-stone-500 mb-4">Causes gaining the most momentum right now.</p>
+      <p className="text-xs text-muted-foreground mb-4">Causes gaining the most momentum right now.</p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {recs.map((c) => <CampaignCard key={c.id} campaign={c} />)}
       </div>

@@ -135,6 +135,14 @@
       "status": "bundled_source_bytes_verified"
     },
     {
+      "path": "fonts/space-grotesk-variable.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf",
+      "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+      "bytes": 136676,
+      "original_path": "fonts/space-grotesk-variable.ttf",
+      "status": "bundled_source_bytes_verified"
+    },
+    {
       "path": "images/base44-archive/19cbf6ba785409de9ac0.png",
       "source": "https://media.base44.com/images/public/6a67a778342a8fe05ee79cba/b8b47ec6a_generated_image.png",
       "sha256": "468ed782bacfa2e70c5ec524dae7d2ecebadf18c5ebce9b1fa849722d4d06d3e",
@@ -187,6 +195,14 @@
       "status": "license_text_preserved_trailing_whitespace_normalized",
       "source_sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
       "source_bytes": 4387
+    },
+    {
+      "path": "fonts/space-grotesk-OFL.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/spacegrotesk/OFL.txt",
+      "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+      "bytes": 4495,
+      "original_path": "fonts/space-grotesk-OFL.txt",
+      "status": "bundled_source_bytes_verified"
     }
   ]
 }

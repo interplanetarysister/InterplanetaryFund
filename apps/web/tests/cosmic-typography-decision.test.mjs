@@ -25,8 +25,18 @@ test("Marketing headlines use optional brand-accent hook; billing remains ordina
   assert.doesNotMatch(subscription,/font-display text-3xl/);
 });
 test("Responsive typography and accessible touch target guidance stays explicit",()=>{
-  assert.match(css,/font-size: clamp\(36px, 5vw, 56px\)/);
-  assert.match(css,/font-size: clamp\(28px, 3vw, 32px\)/);
-  assert.match(css,/font-size: clamp\(22px, 2.5vw, 24px\)/);
+  // Rebase 2026-11-25 (merge of #378's clamp() classes with the Sprint 1
+  // --text-* token source of truth): the .ifund-* classes reference the
+  // tokens, so rendered sizes still match the 2026-11-25 decision table
+  // (hero 56/36, page 32/28, section 24/22) at desktop and mobile.
+  assert.match(css,/\.ifund-marketing-hero\s*\{[^}]*font-size: clamp\(var\(--text-hero-mobile\), 5vw, var\(--text-hero-desktop\)\)/);
+  assert.match(css,/\.ifund-page-heading\s*\{[^}]*font-size: clamp\(var\(--text-page-heading-mobile\), 3vw, var\(--text-page-heading-desktop\)\)/);
+  assert.match(css,/\.ifund-section-heading\s*\{[^}]*font-size: clamp\(var\(--text-section-heading-mobile\), 2\.5vw, var\(--text-section-heading-desktop\)\)/);
+  assert.match(css,/--text-hero-desktop: 56px;/);
+  assert.match(css,/--text-hero-mobile: 36px;/);
+  assert.match(css,/--text-page-heading-desktop: 32px;/);
+  assert.match(css,/--text-page-heading-mobile: 28px;/);
+  assert.match(css,/--text-section-heading-desktop: 24px;/);
+  assert.match(css,/--text-section-heading-mobile: 22px;/);
   assert.match(design,/44px/);
 });
