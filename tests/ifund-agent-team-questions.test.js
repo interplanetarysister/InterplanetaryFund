@@ -108,7 +108,7 @@ test("source wiring exposes account-safe question UI without pretending external
   assert.match(worker,/routeTeamQuestion\(request, env\)/);
   assert.match(app,/askIFundAgent\(authClient\(\)/);
   assert.match(app,/requestRef\.current\.controller\?\.abort\(\)/);
-  assert.match(app,/Direct AI answers require an active provider-backed AI membership/);
+  assert.match(app,/Free-tier members can ask agents questions/);
   assert.match(quota,/pg_advisory_xact_lock/);
   assert.match(quota,/ifund_story_subscription/);
   assert.match(quota,/already_reserved/);
@@ -125,7 +125,8 @@ test("gateway status reports configuration, not a fake specialist answer",async(
   assert.equal(available.status,200);
   const body=await available.json();
   assert.equal(body.configured,true);
-  assert.equal(body.requires_membership,true);
+  assert.equal(body.requires_membership,false);
+  assert.equal(body.requires_verified_account,true);
   assert.equal(body.external_publishing,false);
   const disabled=await routeTeamQuestion(req,{},mockBackend().fetcher);
   assert.equal((await disabled.json()).configured,false);
@@ -137,9 +138,45 @@ test("member UI checks actual entitlement and gateway before calling model",()=>
   assert.match(source,/\/api\/agents\/team\/status/);
   assert.match(source,/gateway\.configured/);
   assert.match(source,/membership\.active/);
+  assert.match(source,/data\.level>=0/);
   assert.match(router,/\/api\/agents\/team\/status/);
 });
 
+test("free-tier member receives a real advisory answer when backend grants five daily questions",async()=>{
+  const backend=mockBackend();
+  const fetcher=async(url,opts)=>{
+    if(url.endsWith("/rpc/ifund_reserve_agent_question"))
+      return Response.json({allowed:true,state:"reserved",remaining:4,limit:5,unlimited:false});
+    return backend.fetcher(url,opts);
+  };
+  const response=await routeTeamQuestion(request("Can the agent help me outline a campaign goal?"),env,fetcher);
+  const data=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(data.questions_remaining_today,4);
+  assert.equal(data.actions_performed,false);
+});
+test("verified admin or paid unlimited reservation is accepted without fake remaining count",async()=>{
+  const backend=mockBackend();
+  const fetcher=async(url,opts)=>{
+    if(url.endsWith("/rpc/ifund_reserve_agent_question"))
+      return Response.json({allowed:true,state:"reserved",remaining:null,limit:null,unlimited:true});
+    return backend.fetcher(url,opts);
+  };
+  const response=await routeTeamQuestion(request("Can you help with a realistic campaign goal?"),env,fetcher);
+  const data=await response.json();
+  assert.equal(response.status,200);
+  assert.equal(data.questions_remaining_today,null);
+});
+test("free-tier access contract is backend enforced and does not bypass consent",()=>{
+  const fs=readFileSync(new URL("../supabase/migrations/20261125184500_ifund_free_tier_agent_chat.sql",import.meta.url),"utf8");
+  const side=readFileSync(new URL("../apps/web/src/components/agents/AgentSidePanel.jsx",import.meta.url),"utf8");
+  assert.match(fs,/when \(v_access->>'level'\)::integer>=1 then 20 else 5 end/);
+  assert.match(fs,/ifund_current_account_is_active/);
+  assert.match(fs,/p_input_sha256/);
+  assert.match(fs,/admin_granted/);
+  assert.match(side,/accountEligible/);
+  assert.doesNotMatch(side,/Direct answers require a verified AI membership/);
+});
 test("failed provider inference releases the pending question reservation",async()=>{
   const backend=mockBackend();
   const failingEnv={...env,AI:{run:async()=>{throw new Error("temporary provider failure");}}};
