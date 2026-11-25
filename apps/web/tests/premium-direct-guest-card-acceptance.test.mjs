@@ -20,7 +20,11 @@ test("One-time readiness requires a verified signed-in member before hosted fiel
   assert.match(once,/authorization:"Bearer "\+token/);
   assert.match(once,/if\(!ready\)return/);
   assert.match(once,/card\.isEligible\(\)/);
-  assert.match(once,/if\(method==="paypal"\)/);
+  // Single-sheet checkout: the PayPal wallet renders alongside the card form
+  // instead of behind a method tab, so there is no method-gated render.
+  assert.match(once,/paypal\.Buttons\(\{/);
+  assert.doesNotMatch(once,/if\(method==="paypal"\)/);
+  assert.doesNotMatch(once,/if\(method==="googlepay"\)return/);
   assert.match(once,/if\(!ready\)return <div/);
   assert.match(once,/disabled aria-disabled="true"/);
   assert.match(once,/if\(activeSubscription\)return <div/);

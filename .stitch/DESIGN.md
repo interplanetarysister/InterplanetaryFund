@@ -6,8 +6,21 @@ description: >
   It captures the current shipped visual language so Stitch can generate new
   screens without replacing components, changing authorization, or touching
   payments. Tokens are normative; prose explains intent and application.
+# Revision 2026-11-25 (Cosmic Humanism 2027, owner decision; rebased onto
+# PR #378/#379 the same day): Stitch Cosmic Geometry is the canonical design
+# system. Dark theme is Midnight Orbit / Orbital Surface with Photon Cyan
+# primary; light primary is Luminous Blue's hue deepened to #335CFF so white
+# button text and text-primary links both reach AA normal (5.10:1) — the exact
+# palette hex #5476FF is 3.88:1 and is reserved for large display use.
+# Typography revised the same day: Orbital Display is a brand accent only
+# (marketing hero + major promotional headlines); Space Grotesk headings;
+# Inter body/UI/financial. Orbital Display license is NOT VERIFIED — no Orbital
+# Display files are bundled; the hero stack falls back to Space Grotesk display
+# weight until the foundry/license is confirmed. Fraunces remains the editorial
+# storytelling face (--font-story), never the display face. Canonical runtime
+# tokens live in apps/web/src/index.css.
 colors:
-  primary: "#2474F5"
+  primary: "#335CFF"
   action: "#1D4ED8"
   secondary: "#4EBFF0"
   tertiary: "#A694F5"
@@ -15,12 +28,25 @@ colors:
   surface: "#F8FAFC"
   onSurface: "#1F2937"
   error: "#EF4444"
+  cosmic-humanism-2027:
+    midnight-orbit: "#080C19"
+    orbital-surface: "#131C30"
+    cosmic-structure: "#23314C"
+    luminous-blue: "#5476FF"
+    photon-cyan: "#72E8F3"
+    nebula-violet: "#A48BFF"
+    living-emerald: "#45D9A8"
+    transformative-teal: "#2F8E92"
+    aurora-pink: "#E77AC4"
+    human-warmth: "#F2C9A5"
+    lunar-ivory: "#F7F3EC"
+    silver-mist: "#A9B8CE"
   light:
     background: "#F8FAFC"
     foreground: "#1F2937"
     card: "#FFFFFF"
     cardForeground: "#1F2937"
-    primary: "#2474F5"
+    primary: "#335CFF"
     primaryForeground: "#FFFFFF"
     secondary: "#F1F4F9"
     secondaryForeground: "#182239"
@@ -28,23 +54,23 @@ colors:
     mutedForeground: "#65738B"
     border: "#E1E7EF"
     input: "#E1E7EF"
-    ring: "#2474F5"
+    ring: "#335CFF"
     destructive: "#EF4444"
     destructiveForeground: "#FAFAFA"
   dark:
-    background: "#0A0D1A"
-    foreground: "#F8FAFC"
-    card: "#1A222E"
-    cardForeground: "#F8FAFC"
-    primary: "#0DA2E7"
-    primaryForeground: "#FFFFFF"
-    secondary: "#253141"
+    background: "#080C19"
+    foreground: "#F7F3EC"
+    card: "#131C30"
+    cardForeground: "#F7F3EC"
+    primary: "#72E8F3"
+    primaryForeground: "#080C19"
+    secondary: "#23314C"
     secondaryForeground: "#F8FAFC"
-    muted: "#253141"
-    mutedForeground: "#B1C0D2"
-    border: "#2C3A4E"
-    input: "#2C3A4E"
-    ring: "#0DA2E7"
+    muted: "#23314C"
+    mutedForeground: "#A9B8CE"
+    border: "#23314C"
+    input: "#23314C"
+    ring: "#72E8F3"
     destructive: "#7F1D1D"
     destructiveForeground: "#FAFAFA"
   studio:
@@ -88,54 +114,93 @@ colors:
     story: "#F5B5D3"
     discover: "#9DE3FF"
 typography:
+  # Revised 2026-11-25 (owner decision, supersedes the Fraunces/Manrope set
+  # in the previous alpha). Retain Cosmic Geometry, including its original
+  # Space Grotesk + Inter pairing; Orbital Display only as an expressive brand
+  # accent. Status: revised recommendation, not yet empirically tested design.
+  # Orbital Display license NOT VERIFIED.
+  hero-headline:
+    fontFamily: "Orbital Display, Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
+    fontSize: 56px
+    fontSizeMobile: 36px
+    fontWeight: 600
+    lineHeight: 1.07
+    letterSpacing: -1px
+    usage: "Marketing hero only — distinctive brand identity"
+  promotional-headline:
+    fontFamily: "Orbital Display, Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
+    usage: "Major promotional headlines only — visual impact"
   headline-display:
     fontFamily: "Space Grotesk, Inter, ui-sans-serif, sans-serif"
     fontSize: 56px
     fontWeight: 700
     lineHeight: 1.05
     letterSpacing: -2px
+    usage: "Marketing display — Space Grotesk fallback while Orbital Display is license-gated"
   headline-lg:
     fontFamily: "Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 32px
-    fontWeight: 760
+    fontSizeMobile: 28px
+    fontWeight: 700
     lineHeight: 1.15
-    letterSpacing: -1.5px
+    letterSpacing: -1px
+    usage: "Page headings"
   headline-md:
     fontFamily: "Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 24px
-    fontWeight: 710
+    fontSizeMobile: 22px
+    fontWeight: 700
     lineHeight: 1.25
     letterSpacing: -0.8px
+    usage: "Section headings"
   body-lg:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 16px
     fontWeight: 400
     lineHeight: 1.7
     letterSpacing: 0
+    usage: "Body text"
   body-md:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: 16px
+    fontSize: 14px
     fontWeight: 400
     lineHeight: 1.6
     letterSpacing: 0
+    usage: "Secondary text"
   body-sm:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 13px
     fontWeight: 400
     lineHeight: 1.55
     letterSpacing: 0
+    usage: "Captions"
   label-md:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 14px
     fontWeight: 700
     lineHeight: 1.3
     letterSpacing: 0
+    usage: "Navigation and buttons"
+  financial:
+    fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
+    fontVariantNumeric: "tabular-nums"
+    usage: "Checkout, withdrawals, analytics, financial figures"
+  conversation:
+    fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
+    usage: "Agent conversations — comfortable extended reading"
+  storytelling:
+    fontFamily: "Fraunces, ui-serif, serif"
+    usage: "Emotional storytelling (editorial serif) — campaign stories and editorial moments; never the display face"
   eyebrow:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: 10px
     fontWeight: 800
     lineHeight: 1.25
     letterSpacing: 2px
+  accessibility:
+    wcag: "2.2 AA"
+    touchTargetMin: 44px
+    mobileWidths: "320–390px"
 rounded:
   none: 0px
   sm: 8px
@@ -310,7 +375,7 @@ Inter and Space Grotesk are both locally bundled in `apps/web/public/fonts/`, an
 
 Hierarchy should be established through size, weight, and spacing before color. On small screens the marketing headline steps down from 56px to 36px, body text remains 16px, and touch targets remain at least 44px. Headings scale 32px/28px and sections 24px/22px. Eyebrows use uppercase, wide tracking, and a short rule or dot; they never replace a real heading.
 
-Avoid more than two font families in one screen (headings + body, with the licensed Orbital Display as a future, marketing-only brand exception). Avoid sentence-case marketing shouts and mixed underline styles.
+Avoid more than two font families in one screen (headings + body, with the licensed Orbital Display as a future, marketing-only brand exception). Fraunces remains the editorial storytelling face (campaign stories, editorial moments), tokenized as --font-story; it is never the display face. The Cosmic Humanism 2027 palette is centralized as --ch-* tokens in apps/web/src/index.css; the dark theme is Midnight Orbit / Orbital Surface with a Photon Cyan primary, and the light primary is Luminous Blue's hue deepened to #335CFF for AA. Avoid sentence-case marketing shouts and mixed underline styles.
 
 ## Layout
 

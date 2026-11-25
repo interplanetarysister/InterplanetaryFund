@@ -8,13 +8,16 @@ const footer = readFileSync(new URL("../src/components/payments/PlatformSupportH
 test("mobile payment sheet keeps verified checkout actions at the bottom",()=>{
   const amount=dialog.indexOf("Choose your donation");
   const fields=dialog.indexOf('aria-label="Credit or debit card checkout"');
-  const actions=dialog.indexOf('aria-label="Payment actions"');
-  const paypal=dialog.indexOf('aria-label="Eligible PayPal payment buttons"');
-  assert.ok(amount>=0&&fields>amount&&actions>fields&&paypal>actions);
-  assert.match(dialog,/sticky bottom-0/);
+  const confirm=dialog.indexOf('aria-label="Confirm card payment"');
+  const googlepay=dialog.indexOf('aria-label="Google Pay checkout"');
+  const paypal=dialog.indexOf('aria-label="PayPal checkout"');
+  assert.ok(amount>=0&&fields>amount&&confirm>fields&&googlepay>confirm&&paypal>googlepay);
+  assert.match(dialog,/aria-label="Eligible PayPal payment buttons"/);
+  assert.doesNotMatch(dialog,/sticky bottom-0/);
+  assert.match(dialog,/relative isolate/);
   assert.match(dialog,/env\(safe-area-inset-bottom\)/);
   assert.match(dialog,/aria-pressed=\{Number\(amount\)===value\}/);
-  assert.ok(dialog.includes("Total you approve in PayPal"));
+  assert.ok(dialog.includes("Total you approve"));
 });
 
 test("payment buttons remain provider controlled with verified capture",()=>{

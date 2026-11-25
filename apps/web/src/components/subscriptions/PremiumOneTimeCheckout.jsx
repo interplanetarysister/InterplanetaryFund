@@ -54,8 +54,10 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   const [readinessRetry,setReadinessRetry]=useState(0);
   const [readinessChecking,setReadinessChecking]=useState(true);
   const [checkoutPhase,setCheckoutPhase]=useState("idle");
+  const [fieldErrors,setFieldErrors]=useState({number:false,expiry:false,cvv:false});
+  const [walletNotice,setWalletNotice]=useState("");
   const [purchaseState,setPurchaseState]=useState("none");
-  const nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const paypalHost=useRef(null),cardSession=useRef(null),intent=useRef(null);
   const submitting=useRef(false);
   const native=isNativeBundle();
@@ -99,9 +101,10 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   },[activeSubscription,native,readinessRetry]);
 
   useEffect(()=>{
-    if(!ready||native||activeSubscription||complete||method==="googlepay")return;
+    if(!ready||native||activeSubscription||complete)return;
     let disposed=false,buttons=null,card=null;
     setSdkReady(false);setCardReady(false);setError("");
+    setFieldErrors({number:false,expiry:false,cvv:false});setWalletNotice("");
     (async()=>{
       try{
         const cfg=await api("/api/payments/config");
@@ -157,17 +160,25 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           }
           finally{if(!disposed)setBusy(false)}
         }
-        // A hidden PayPal button can fail iframe rendering and prevent card
-        // fields from initializing. Render buttons only on the PayPal tab.
-        if(method==="paypal"){
+        // Single-sheet checkout: the PayPal wallet always renders in its own
+        // section below the card form, in a visible host (a hidden PayPal
+        // button can fail iframe rendering). A wallet failure is a non-fatal
+        // notice and must never prevent direct card checkout.
+        try{
           buttons=paypal.Buttons({createOrder:()=>createOrder("paypal"),onApprove,
             onCancel:()=>{if(!disposed)setBusy(false)},
             onError:()=>{if(!disposed){setCheckoutPhase("review");setError(premiumCardErrorMessage({stage:"checkout",hasOrder:Boolean(intent.current?.orderId)}));}},
             style:{layout:"vertical",label:"paypal",shape:"rect"}});
           if(paypalHost.current)await buttons.render(paypalHost.current);
+        }catch{
+          if(!disposed)setWalletNotice("PayPal wallet checkout is unavailable. Direct card checkout above may still be available.");
         }
         if(disposed)return;
-        if(method==="card"&&typeof paypal.CardFields==="function"){
+        // Card readiness is derived from this run's local render results, not
+        // from cardReady state: the state value read here would still be the
+        // previous render's value on the first run.
+        let cardBecameReady=false;
+        if(typeof paypal.CardFields==="function"){
           card=paypal.CardFields({
             createOrder:()=>createOrder("card"),onApprove,
             onError:error=>{if(!disposed){setCheckoutPhase("card-error");setError(current=>current||premiumCardErrorMessage({stage:"card",providerCode:error?.code||error?.name,hasOrder:Boolean(intent.current?.orderId)}));}},
@@ -175,38 +186,43 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           });
           if(card.isEligible()){
             cardSession.current=card;
-            // NameField is optional in PayPal's merchant configurations.
-            // A missing name component must never suppress the three required
-            // hosted inputs or the card submission action.
+            // Only the three required PayPal-hosted card inputs are collected.
+            // Render them independently: one field failure must not kill the
+            // form, and each failed field names its own fallback.
             const hosted=[card.NumberField(),card.ExpiryField(),card.CVVField()];
-            await Promise.all([
-              hosted[0].render(numberHost.current),
-              hosted[1].render(expiryHost.current),
-              hosted[2].render(cvvHost.current)
-            ]);
-            if(typeof card.NameField==="function" && nameHost.current){
-              try{await card.NameField().render(nameHost.current)}catch(_){/* optional */ }
+            const hosts=[numberHost.current,expiryHost.current,cvvHost.current];
+            const renderField=(field,host)=>{
+              try{return field.render(host);}
+              catch(e){return Promise.reject(e);}
+            };
+            const results=await Promise.allSettled(hosted.map((field,index)=>renderField(field,hosts[index])));
+            if(disposed)return;
+            const failed={number:results[0].status==="rejected",
+              expiry:results[1].status==="rejected",cvv:results[2].status==="rejected"};
+            setFieldErrors(failed);
+            if(!results.every(result=>result.status==="rejected")){
+              cardBecameReady=true;
+              setCardReady(true);
             }
-            if(!disposed)setCardReady(true);
           }
         }
         if(!disposed){
-          if(method==="card"&&!cardReady&&(!card||!card.isEligible())){
-            setError("PayPal did not enable direct card entry for this merchant or browser. You can still select PayPal checkout.");
+          if(method==="card"&&!cardBecameReady){
+            setError("PayPal did not enable direct card entry for this merchant or browser. PayPal checkout below remains available.");
           }
           setSdkReady(true);
         }
-      }catch(_){if(!disposed){setCheckoutPhase("initialization-error");setError("Secure card checkout did not initialize. No payment has been started. Refresh the page or choose PayPal.");}}
+      }catch(_){if(!disposed){setCheckoutPhase("initialization-error");setError("Secure card checkout did not initialize. No payment has been started. Refresh the page or use PayPal checkout below.");}}
     })();
     return()=>{
       disposed=true;
       try{buttons?.close?.()}catch(_){}
       cardSession.current=null;
-      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]){
+      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current]){
         try{node?.replaceChildren()}catch(_){}
       }
     };
-  },[ready,method,native,activeSubscription,complete]);
+  },[ready,native,activeSubscription,complete]);
 
   if(native)return <p className="text-xs text-muted-foreground">Purchases in the mobile app require separate store billing approval.</p>;
   if(activeSubscription)return <div className="mt-4 space-y-2">
@@ -219,7 +235,6 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
       No new charge can be started.
     </p>
   </div>;
-  if(method==="googlepay")return <p className="text-sm text-muted-foreground">One-time Google Pay enrollment is not yet verified for Premium. Choose card or PayPal.</p>;
   if(!ready)return <div className="mt-4 space-y-3">
     <button type="button" disabled aria-disabled="true"
       className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
@@ -236,17 +251,22 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
     <p className="mt-1 text-sm">Access through {new Date(complete).toLocaleDateString()}. No future payments are scheduled.</p>
   </div>;
   const field="min-h-11 w-full rounded-lg border border-border bg-background px-2 py-2";
+  // Single-sheet checkout: card first (the default), then Google Pay, then
+  // PayPal — no tab switching is required to pay by card. The method picker
+  // default remains card via initialBillingChoice("card").
   return <div className="mt-4 space-y-3">
-    <p className="text-sm font-semibold">{method==="card"?"Pay by card · $4.99 USD once":"Pay with PayPal · $4.99 USD once"}</p>
+    <p className="text-sm font-semibold">Pay by card · $4.99 USD once</p>
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
-    {method==="card"&&<p className="text-xs text-muted-foreground">Visa, Mastercard, Discover, and American Express may be used when enabled by PayPal for this merchant and card. American Express cards have a four-digit security code. No PayPal account is needed for eligible direct card payments.</p>}
-    {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
-      <label className="block text-xs">Cardholder name (if available)<div className={field} ref={nameHost}/></label>
+    <p className="text-xs text-muted-foreground">Visa, Mastercard, Discover, and American Express may be used when enabled by PayPal for this merchant and card. American Express cards have a four-digit security code. No PayPal account is needed for eligible direct card payments.</p>
+    <section aria-label="Secure one-time card fields" className="space-y-2">
       <label className="block text-xs">Card number<div className={field} ref={numberHost}/></label>
+      {fieldErrors.number&&<p role="alert" className="text-xs text-destructive">Card number field could not load. PayPal checkout below remains available.</p>}
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs">Expiry<div className={field} ref={expiryHost}/></label>
         <label className="text-xs">Security code<div className={field} ref={cvvHost}/></label>
       </div>
+      {fieldErrors.expiry&&<p role="alert" className="text-xs text-destructive">Expiry field could not load. PayPal checkout below remains available.</p>}
+      {fieldErrors.cvv&&<p role="alert" className="text-xs text-destructive">Security code field could not load. PayPal checkout below remains available.</p>}
       <button type="button" disabled={!cardReady||busy||statusChecking||submitting.current||purchaseState==="pending"} onClick={async()=>{
         if(submitting.current||!cardSession.current||intent.current?.orderId)return;
         setError("");setCheckoutPhase("validating");
@@ -275,18 +295,26 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
       </button>
       {!cardReady&&<p role="status" className="text-xs text-muted-foreground">
         {sdkReady
-          ?"Direct card fields are not enabled for this merchant or browser. PayPal controls card eligibility."
+          ?"Direct card fields are not enabled for this merchant or browser. PayPal controls card eligibility. PayPal checkout below remains available."
           :"Secure card form is loading. The payment button will activate only after card fields are available."}
       </p>}
-    </section>}
-    {method==="paypal"&&!sdkReady&&<button type="button" disabled aria-disabled="true"
-      className="min-h-11 w-full rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
-      Continue with PayPal — pay $4.99 once
-    </button>}
-    <div ref={paypalHost} style={{display:method==="paypal"?"block":"none"}} aria-label="One-time PayPal payment" className="min-h-11"/>
-    {method==="paypal"&&!sdkReady&&<p role="status" className="text-xs text-muted-foreground">
-      The secure PayPal payment button is loading. Payment cannot begin until PayPal is available.
-    </p>}
+    </section>
+    <section aria-label="Google Pay checkout" className="space-y-2 rounded-xl border border-border p-3">
+      <p className="text-sm font-semibold">Google Pay</p>
+      <p role="status" className="text-xs text-muted-foreground">Google Pay is not yet verified for one-time Premium purchases. No Google Pay charge can be started here. Use card checkout above or PayPal checkout below.</p>
+    </section>
+    <section aria-label="PayPal checkout" className="space-y-2">
+      <p className="text-sm font-semibold">Or pay with PayPal · $4.99 USD once</p>
+      {!sdkReady&&<button type="button" disabled aria-disabled="true"
+        className="min-h-11 w-full rounded-xl bg-cyan-600 px-3 font-semibold text-white opacity-50">
+        Continue with PayPal — pay $4.99 once
+      </button>}
+      <div ref={paypalHost} aria-label="One-time PayPal payment" className="min-h-11"/>
+      {!sdkReady&&<p role="status" className="text-xs text-muted-foreground">
+        The secure PayPal payment button is loading. Payment cannot begin until PayPal is available.
+      </p>}
+      {walletNotice&&<p role="status" className="text-xs text-muted-foreground">{walletNotice}</p>}
+    </section>
     <p className="flex items-start gap-2 text-xs text-muted-foreground">
       <ShieldCheck className="h-4 w-4 shrink-0"/>Card details are hosted securely by PayPal. A PayPal account is not required when guest card checkout is available. IFund verifies the completed receipt before enabling Premium.
     </p>

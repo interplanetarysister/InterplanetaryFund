@@ -171,6 +171,14 @@ export default function Layout() {
   const hasAiAgents = true;
   const { pathname } = useLocation();
   const title = pageTitle(pathname);
+  // Per-route document title (Sprint 2, 2026-11-25): the homepage keeps the
+  // shared brand title, every other route gets its own distinct title.
+  // Previously every route shared "Interplanetary Fund — What If?".
+  useEffect(() => {
+    document.title = title === "Interplanetary Fund"
+      ? "Interplanetary Fund — What If?"
+      : `${title} — Interplanetary Fund`;
+  }, [title]);
   // Keep each area recognizable beyond the sidebar, including nested pages.
   const PageIcon = navItems.find((item) => item.to === pathname)?.icon
     || publicNavItems.find((item) => item.to === pathname)?.icon

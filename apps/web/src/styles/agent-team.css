@@ -31,7 +31,7 @@
   mask-image:linear-gradient(90deg,transparent 12%,black 100%);
 }
 .ifund-agents-kicker { color:#6ef1e7; font-size:.71rem; font-weight:800; letter-spacing:.22em; text-transform:uppercase; }
-.ifund-agents-headline { font-family:var(--font-heading,'Manrope',sans-serif); font-size:clamp(2rem,4.8vw,3.45rem); font-weight:800; letter-spacing:-.045em; line-height:1.08; margin-top:.75rem; max-width:740px; }
+.ifund-agents-headline { font-family:var(--font-heading,'Space Grotesk',sans-serif); font-size:clamp(2rem,4.8vw,3.45rem); font-weight:800; letter-spacing:-.045em; line-height:1.08; margin-top:.75rem; max-width:740px; }
 .ifund-agents-headline span { color:#88f2eb; }
 .ifund-agents-lede { max-width:640px; color:#c6d5e8; font-size:clamp(.94rem,1.45vw,1.075rem); line-height:1.7; margin-top:1rem; }
 .ifund-agents-hero-foot { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.4rem; }

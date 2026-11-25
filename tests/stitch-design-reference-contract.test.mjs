@@ -52,7 +52,12 @@ test("DESIGN.md follows the official Stitch section order and token schema", () 
     assert.match(frontmatter, new RegExp(`^${tokenGroup.replace(":", "\\:")}`, "m"));
   }
   assert.match(frontmatter, /^version: alpha$/m);
-  assert.match(frontmatter, /^  primary: "#2474F5"$/m);
+  // Revised 2026-11-25 (Cosmic Humanism 2027, owner decision): the light
+  // primary is Luminous Blue's hue deepened to #335CFF so white button text
+  // and text-primary links both reach WCAG AA normal (5.10:1). The exact
+  // palette hex #5476FF is 3.88:1 and is reserved for large display use.
+  // Previously "#2474F5" (4.29:1 — itself below AA normal).
+  assert.match(frontmatter, /^  primary: "#335CFF"$/m);
   assert.match(frontmatter, /^  agent:\n(?:    [a-z]+: "#[0-9A-F]{6}"\n){9}/m);
 
   let cursor = -1;

@@ -27,7 +27,12 @@
     --card-foreground: 215 28% 17%;
     --popover: 0 0% 100%;
     --popover-foreground: 215 28% 17%;
-    --primary: 217 91% 55%;
+    /* Light primary is Luminous Blue's hue deepened to 60% lightness (#335CFF):
+       the exact palette hex #5476FF is 3.88:1 with white text and as text on
+       white — below AA normal (4.5:1) for both button labels and text-primary
+       links. #335CFF is 5.10:1 in both roles. The exact hex stays available
+       as --ch-luminous-blue for large display use. */
+    --primary: 228 100% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 214 40% 96%;
     --secondary-foreground: 222 40% 16%;
@@ -39,60 +44,112 @@
     --destructive-foreground: 0 0% 98%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 217 91% 55%;
-    --chart-1: 217 91% 55%;
-    --chart-2: 189 94% 48%;
-    --chart-3: 262 83% 63%;
-    --chart-4: 199 89% 48%;
-    --chart-5: 226 71% 40%;
+    --ring: 228 100% 60%;
+    --chart-1: 228 100% 60%;
+    --chart-2: 185 84% 70%;
+    --chart-3: 253 100% 77.3%;
+    --chart-4: 160 66% 56.1%;
+    --chart-5: 319 69% 69.2%;
     --radius: 0.875rem;
+    /* ── COSMIC HUMANISM 2027 — canonical palette (owner decision 2026-11-25).
+       Hex tokens are the source of truth; the HSL theme tokens below are derived
+       from them. Light background/card stay neutral (checkout/finance clarity);
+       Lunar Ivory is reserved for warm editorial campaign surfaces. ── */
+    --ch-midnight-orbit: #080C19;
+    --ch-orbital-surface: #131C30;
+    --ch-cosmic-structure: #23314C;
+    --ch-luminous-blue: #5476FF;
+    --ch-photon-cyan: #72E8F3;
+    --ch-nebula-violet: #A48BFF;
+    --ch-living-emerald: #45D9A8;
+    --ch-transformative-teal: #2F8E92;
+    --ch-aurora-pink: #E77AC4;
+    --ch-human-warmth: #F2C9A5;
+    --ch-lunar-ivory: #F7F3EC;
+    --ch-silver-mist: #A9B8CE;
+    /* ── Typography — revised decision 2026-11-25 (supersedes the earlier
+       Space-Grotesk-for-body decision). Cosmic Geometry stays canonical;
+       Orbital Display is an expressive brand accent ONLY for the marketing
+       hero and major promotional headlines. LICENSE NOT VERIFIED: no font
+       literally named "Orbital Display" with a confirmed web/mobile embedding
+       license was found (2026-11-25). NO @font-face for Orbital Display exists
+       in this repo — the hero/promo stacks fall back to Space Grotesk display
+       weight, delivered as the committed TTF (see @font-face above; provenance
+       in apps/web/asset-sources.json). Do NOT bundle or ship Orbital Display
+       files until the exact foundry and license are confirmed. Space Grotesk
+       + Inter are OFL and safe. Fraunces remains the editorial storytelling
+       face (--font-story), never the display face. ── */
+    --font-hero: 'Orbital Display', 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-promo: 'Orbital Display', 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-heading: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-ui: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-financial: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif; /* Orbital Display is blocked until specific embedding license is verified. */
+    --font-story: 'Fraunces', ui-serif, serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sidebar-background: 229 45% 7%;
+    /* Typography sizing — revised decision 2026-11-25. These --text-* tokens
+       are the sizing source of truth; the .ifund-* utility classes below
+       reference them, so rendered sizes match the decision table exactly. */
+    --text-hero-desktop: 56px;
+    --text-hero-mobile: 36px;
+    --text-page-heading-desktop: 32px;
+    --text-page-heading-mobile: 28px;
+    --text-section-heading-desktop: 24px;
+    --text-section-heading-mobile: 22px;
+    --text-body: 16px;
+    --text-secondary: 14px;
+    --text-caption: 13px;
+    --touch-target-min: 44px;
+    --sidebar-background: 226 52% 6.5%;
     --sidebar-foreground: 214 40% 90%;
-    --sidebar-primary: 189 94% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 185 84% 70%;
+    --sidebar-primary-foreground: 226 52% 6.5%;
     --sidebar-accent: 229 40% 14%;
     --sidebar-accent-foreground: 214 40% 96%;
     --sidebar-border: 229 35% 18%;
-    --sidebar-ring: 189 94% 48%;
+    --sidebar-ring: 185 84% 70%;
   }
 
   .dark {
-    --background: 229 45% 7%;
-    --foreground: 210 40% 98%;
-    --card: 215 28% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 215 28% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 28% 20%;
+    /* Dark theme is the canonical cosmic surface: background Midnight Orbit
+       #080C19, card/popover Orbital Surface #131C30, secondary/muted/accent/
+       border Cosmic Structure #23314C, foreground Lunar Ivory #F7F3EC (17.63:1),
+       muted-foreground Silver Mist #A9B8CE (9.69:1 on background, 8.44:1 on card).
+       Primary is Photon Cyan #72E8F3 with Midnight Orbit button text (13.51:1);
+       white text on Photon Cyan is 1.44:1 and must never be used. */
+    --background: 226 52% 6.5%;
+    --foreground: 38 41% 94.7%;
+    --card: 221 43% 13.1%;
+    --card-foreground: 38 41% 94.7%;
+    --popover: 221 43% 13.1%;
+    --popover-foreground: 38 41% 94.7%;
+    --primary: 185 84% 70%;
+    --primary-foreground: 226 52% 6.5%;
+    --secondary: 220 37% 21.8%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 215 28% 20%;
-    --muted-foreground: 213 27% 76%;
-    --accent: 215 28% 20%;
+    --muted: 220 37% 21.8%;
+    --muted-foreground: 216 27% 73.5%;
+    --accent: 220 37% 21.8%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 215 28% 24%;
-    --input: 215 28% 24%;
-    --ring: 199 89% 48%;
-    --chart-1: 199 89% 48%;
-    --chart-2: 187 85% 43%;
-    --chart-3: 174 60% 51%;
-    --chart-4: 210 80% 56%;
-    --chart-5: 215 25% 65%;
-    --sidebar-background: 215 28% 10%;
+    --border: 220 37% 21.8%;
+    --input: 220 37% 21.8%;
+    --ring: 185 84% 70%;
+    --chart-1: 185 84% 70%;
+    --chart-2: 228 100% 66.5%;
+    --chart-3: 253 100% 77.3%;
+    --chart-4: 160 66% 56.1%;
+    --chart-5: 319 69% 69.2%;
+    --sidebar-background: 226 52% 6.5%;
     --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 199 89% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 28% 18%;
+    --sidebar-primary: 185 84% 70%;
+    --sidebar-primary-foreground: 226 52% 6.5%;
+    --sidebar-accent: 220 37% 21.8%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 215 28% 20%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-border: 220 37% 21.8%;
+    --sidebar-ring: 185 84% 70%;
   }
 
   /* ── DARK-MODE TEXT VISIBILITY ──────────────────────────────────────────
@@ -585,8 +642,17 @@
     @apply bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent;
   }
 
+  /* Financial figures and analytics — Inter with tabular numerals, per the
+     revised typography decision 2026-11-25 (checkout, withdrawals, analytics). */
+  .font-financial {
+    font-family: var(--font-financial);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Primary glow uses the current light primary (#335CFF), not the retired
+     #2474F5. Updated in the manual trace of PR #381, 2026-11-25. */
   .glow-primary {
-    box-shadow: 0 0 24px hsl(217 91% 55% / 0.35);
+    box-shadow: 0 0 24px hsl(228 100% 60% / 0.35);
   }
 
   /* Campaign creation is intentionally game-like rather than document-like.
@@ -889,7 +955,10 @@ html:not(.dark) .campaign-quest input[type="date"]::-webkit-calendar-picker-indi
 /* Cosmic Geometry typography decision, 2026-11-25.
    Page/section headings = Space Grotesk; UI/transactional copy = Inter.
    Marketing-only Orbital Display is NOT bundled or loaded pending license.
-   Keep this layer separate from hosted provider payment-field iframes. */
+   Keep this layer separate from hosted provider payment-field iframes.
+   Sizing: the .ifund-* classes below reference the --text-* tokens in :root,
+   so rendered sizes match the 2026-11-25 decision table exactly (hero 56/36,
+   page 32/28, section 24/22, body 16, secondary 14, captions 13). */
 @layer base {
   :where(h1, h2, h3, h4, h5, h6) { font-family: var(--font-heading); }
   :where(body, nav, button, input, textarea, select, label, [role="dialog"], [role="log"], [role="table"], table) { font-family: var(--font-body); }
@@ -897,14 +966,14 @@ html:not(.dark) .campaign-quest input[type="date"]::-webkit-calendar-picker-indi
 }
 @layer components {
   .ifund-marketing-hero {
-    font-family: var(--font-display);
-    font-size: clamp(36px, 5vw, 56px);
+    font-family: var(--font-hero);
+    font-size: clamp(var(--text-hero-mobile), 5vw, var(--text-hero-desktop));
     line-height: 1.08;
     letter-spacing: -.035em;
   }
-  .ifund-page-heading { font-family: var(--font-heading); font-size: clamp(28px, 3vw, 32px); line-height: 1.18; }
-  .ifund-section-heading { font-family: var(--font-heading); font-size: clamp(22px, 2.5vw, 24px); line-height: 1.25; }
-  .ifund-body-copy { font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
-  .ifund-secondary-copy { font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
-  .ifund-caption { font-family: var(--font-body); font-size: 13px; line-height: 1.45; }
+  .ifund-page-heading { font-family: var(--font-heading); font-size: clamp(var(--text-page-heading-mobile), 3vw, var(--text-page-heading-desktop)); line-height: 1.18; }
+  .ifund-section-heading { font-family: var(--font-heading); font-size: clamp(var(--text-section-heading-mobile), 2.5vw, var(--text-section-heading-desktop)); line-height: 1.25; }
+  .ifund-body-copy { font-family: var(--font-body); font-size: var(--text-body); line-height: 1.6; }
+  .ifund-secondary-copy { font-family: var(--font-body); font-size: var(--text-secondary); line-height: 1.5; }
+  .ifund-caption { font-family: var(--font-body); font-size: var(--text-caption); line-height: 1.45; }
 }
