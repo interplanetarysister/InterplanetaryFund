@@ -192,8 +192,8 @@ export default function SocialFeedPage({ community = false }) {
     <header><h1 className="font-display text-3xl font-bold">IFund Social Feed</h1>
       <p className="mt-2 text-muted-foreground">Community posts and campaign videos in one place.</p></header>
     <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1" >
-      <Link to="/social" className="flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Posts</Link>
-      <Link to="/social?tab=shorts" aria-current="page" className="flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Shorts</Link>
+      <Link to="/social" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Posts</Link>
+      <Link to="/social?tab=shorts" aria-current="page" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Shorts</Link>
     </nav>
     <OrbitShorts />
   </div>;
@@ -204,8 +204,8 @@ export default function SocialFeedPage({ community = false }) {
       <p className="mt-2 text-muted-foreground">Share updates and discover community conversations.</p>
     </header>
     {!community && <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1">
-      <Link to="/social" aria-current="page" className="flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Posts</Link>
-      <Link to="/social?tab=shorts" className="flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Shorts</Link>
+      <Link to="/social" aria-current="page" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Posts</Link>
+      <Link to="/social?tab=shorts" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Shorts</Link>
     </nav>}
     <nav aria-label="Community pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
       <Link to="/social" aria-current={community ? undefined : "page"}>Social Feed</Link>
@@ -235,7 +235,7 @@ export default function SocialFeedPage({ community = false }) {
         <div className="flex flex-wrap gap-2">
           <button type="button" disabled={busy || !body.trim()} onClick={shareDraftExternally} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Share to another app</button>
           <button type="button" disabled={busy || !body.trim()} onClick={saveDraft} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Save draft</button>
-          <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
+          <button disabled={busy || !body.trim()} className="ifund-interactive min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
         </div>
       </div>
       <div className="flex flex-wrap gap-3" aria-label="Review draft on another platform">
