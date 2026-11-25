@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
@@ -16,6 +16,7 @@ const TEMPLATES = {
 };
 export default function CommunicationsWorkspace() {
   const [params]=useSearchParams();
+  const location=useLocation();
   const requestedCampaign=params.get("campaign");
   const [state,setState]=useState({phase:"loading",campaigns:[],error:""});
   const [campaignId,setCampaignId]=useState("");
@@ -63,6 +64,11 @@ export default function CommunicationsWorkspace() {
     load();
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
   },[requestedCampaign]);
+  useEffect(()=>{
+    if(state.phase!=="ready"||location.hash!=="#reviewed-delivery")return;
+    const target=document.getElementById("reviewed-delivery");
+    target?.scrollIntoView({behavior:"auto",block:"start"});
+  },[state.phase,location.hash]);
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
     if(!item){setStatus("Select one of your campaigns.");return}
