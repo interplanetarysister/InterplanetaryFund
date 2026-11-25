@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import "@/styles-connected-interactions.css";
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { legacyAuthCallbackUrl } from "./lib/authFlow";
 import PageNotFound from "./lib/PageNotFound";
