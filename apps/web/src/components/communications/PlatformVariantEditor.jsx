@@ -14,6 +14,7 @@ async function renderImageVariant(url, variant) {
   if (!ctx) throw new Error("Canvas rendering is unavailable.");
   const crop = coverCrop(image.naturalWidth, image.naturalHeight, variant.width, variant.height,
     variant.focalX, variant.focalY, variant.scale);
+  ctx.filter = "brightness("+variant.brightness+") contrast("+variant.contrast+") saturate("+variant.saturation+")";
   ctx.drawImage(image, crop.x, crop.y, crop.width, crop.height, 0, 0, canvas.width, canvas.height);
   const blob = await new Promise((resolve, reject) => canvas.toBlob(
     result => result ? resolve(result) : reject(new Error("PNG rendering failed.")), "image/png"));
@@ -27,6 +28,7 @@ function saveBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(url), 120000);
 }
 function percent(number) { return Math.round(number * 100) + "%"; }
+function filters(variant) { return "brightness("+variant.brightness+") contrast("+variant.contrast+") saturate("+variant.saturation+")"; }
 
 export default function PlatformVariantEditor({ file, previewUrl, metadata, destinations, audioWindows = [], visualTransitions = [], caption = "" }) {
   const [edits, setEdits] = useState({});
@@ -75,7 +77,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
           <strong className="block text-sm">{frame.name}</strong>
           <div className="mx-auto max-h-52 overflow-hidden rounded-lg bg-black/90"
             style={{ aspectRatio: String(frame.width) + "/" + String(frame.height), maxWidth: 220 }}>
-            {file.type.startsWith("image/") ? <img src={previewUrl} alt={frame.name + " crop preview"} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:percent(variant.focalX)+" "+percent(variant.focalY),transform:"scale("+variant.scale+")"}}/> :
+            {file.type.startsWith("image/") ? <img src={previewUrl} alt={frame.name + " crop preview"} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:percent(variant.focalX)+" "+percent(variant.focalY),transform:"scale("+variant.scale+")",filter:filters(variant),filter:filters(variant)}}/> :
               file.type.startsWith("video/") ? <video src={previewUrl} muted playsInline preload="metadata" aria-label={frame.name + " silent visual preview"} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:percent(variant.focalX)+" "+percent(variant.focalY),transform:"scale("+variant.scale+")"}}/> :
                 <span className="flex h-full items-center justify-center p-4 text-xs text-white">Audio-only variant</span>}
           </div>
@@ -98,6 +100,39 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
             onChange={event => edit(current.id, {scale:Number(event.target.value)})}/>
         </label>
       </div>
+      <details className="rounded-xl border p-3">
+        <summary className="cursor-pointer text-sm font-semibold">Visual adjustments</summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {[
+            ["brightness","Brightness",0.5,1.5],
+            ["contrast","Contrast",0.5,1.5],
+            ["saturation","Color saturation",0,2],
+          ].map(([id,label,min,max])=><label key={id} className="text-sm">{label}: {current[id].toFixed(2)}×
+            <input type="range" className="mt-2 w-full" min={min} max={max} step="0.05" value={current[id]}
+              onChange={e=>edit(current.id,{[id]:Number(e.target.value)})}/>
+          </label>)}
+        </div>
+      </details>
+      {file.type.startsWith("video/") && <section className="space-y-3 rounded-xl border p-3" aria-label="Selected video preview controls">
+        <h5 className="font-semibold text-sm">Selected video preview settings</h5>
+        <p className="text-xs text-muted-foreground">Change playback speed and source-audio level for this preview. These controls do not transcode the original video.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-xs">Playback speed: {current.videoSpeed.toFixed(2)}×
+            <input type="range" min="0.5" max="2" step="0.05" value={current.videoSpeed}
+              onChange={e=>edit(current.id,{videoSpeed:Number(e.target.value)})} className="mt-2 w-full"/>
+          </label>
+          <label className="text-xs">Original video audio: {Math.round(current.videoVolume*100)}%
+            <input type="range" min="0" max="1" step="0.05" value={current.videoVolume}
+              onChange={e=>edit(current.id,{videoVolume:Number(e.target.value)})} className="mt-2 w-full"/>
+          </label>
+        </div>
+        <div className="mx-auto max-h-[360px] overflow-hidden rounded-xl bg-black" style={{aspectRatio:String(current.width)+"/"+String(current.height),maxWidth:360}}>
+          <video controls playsInline src={previewUrl} aria-label={"Preview "+PLATFORM_FRAMES[current.id].name}
+            onLoadedMetadata={event=>{event.currentTarget.playbackRate=current.videoSpeed;event.currentTarget.volume=current.videoVolume;}}
+            style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:percent(current.focalX)+" "+percent(current.focalY),transform:"scale("+current.scale+")",filter:filters(current)}}
+            key={current.id+"-"+current.videoSpeed+"-"+current.videoVolume}/>
+        </div>
+      </section>}
       {timed && (() => {
         const cue = proposeInterestCue({ duration, platformId: current.id, audioWindows, visualTransitions, preferredTime: current.cueTime });
         return <div className="space-y-3 rounded-xl border p-3" aria-label="Interest peak editing timeline">
@@ -126,7 +161,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
           value={current.caption || caption} onChange={event => edit(current.id,{caption:event.target.value})}/>
       </label>
       <button type="button" className="min-h-10 rounded-lg border px-3 text-sm"
-        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:""})}>
+        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:"",brightness:1,contrast:1,saturation:1,videoSpeed:1,videoVolume:1})}>
         Reset this version to the original
       </button>
     </section>}
