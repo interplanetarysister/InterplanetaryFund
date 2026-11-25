@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { analyzeMediaResponse } from "../../lib/audiencePostReview.mjs";
+import { analyzeAudioSamples } from "../../lib/mediaAudioMetrics.mjs";
 
 const PLATFORM_PROFILES = Object.freeze([
   { id: "ifund", name: "iFund", ratio: null, notes: ["Check campaign-card cropping and make the purpose apparent.", "Avoid exposing an anonymous organizer's face, name or identifying metadata."], source: null },
@@ -37,6 +38,8 @@ export default function PrePostMediaOptimizer() {
   const [captions, setCaptions] = useState(false);
   const [observedSound, setObservedSound] = useState(false);
   const [message, setMessage] = useState("");
+  const [soundMetrics, setSoundMetrics] = useState(null);
+  const [inspectingSound, setInspectingSound] = useState(false);
   const mediaUrl = useRef(null);
   const [previewUrl, setPreviewUrl] = useState("");
   useEffect(() => () => { if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current); }, []);
@@ -47,7 +50,7 @@ export default function PrePostMediaOptimizer() {
   function selectFile(event) {
     const next = event.target.files?.[0] || null;
     if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current);
-    mediaUrl.current = null; setPreviewUrl(""); setFile(null); setMetadata(null); setMessage("");
+    mediaUrl.current = null; setPreviewUrl(""); setFile(null); setMetadata(null); setMessage(""); setSoundMetrics(null);
     if (!next) return;
     if (next.size > 50 * 1024 * 1024 || !/^(video|audio|image)\//.test(next.type)) {
       setMessage("Choose an image, video or audio file of 50 MB or less. It will be inspected locally."); return;
@@ -63,6 +66,20 @@ export default function PrePostMediaOptimizer() {
       img.onerror = () => setMessage("Image dimensions could not be inspected.");
       img.src = url;
     }
+  }
+  async function inspectSound() {
+    if (!file || !file.type.startsWith("audio/") || inspectingSound) return;
+    setInspectingSound(true); setMessage(""); setSoundMetrics(null);
+    let ctx;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) throw new Error("This browser cannot decode audio locally.");
+      ctx = new AudioContextClass();
+      const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+      const channels = Array.from({ length: Math.min(2, buffer.numberOfChannels) }, (_, i) => buffer.getChannelData(i));
+      setSoundMetrics(analyzeAudioSamples(channels, buffer.sampleRate));
+    } catch (e) { setMessage(e.message || "Audio cannot be inspected."); }
+    finally { await ctx?.close?.().catch(() => {}); setInspectingSound(false); }
   }
   function toggle(id) {
     setDestinations(existing => existing.includes(id) ? existing.filter(item => item !== id) : [...existing, id]);
@@ -106,6 +123,14 @@ export default function PrePostMediaOptimizer() {
         </label>)}
       </div>
     </fieldset>
+    {file?.type.startsWith("audio/") && <section className="space-y-3 rounded-xl border p-4" aria-label="Measured audio analysis">
+      <h3 className="font-semibold">Measured audio characteristics</h3>
+      <button type="button" onClick={inspectSound} disabled={inspectingSound} className="ifund-interactive min-h-11 rounded-lg border px-4 font-semibold disabled:opacity-50">{inspectingSound ? "Analyzing locally…" : "Analyze sound locally"}</button>
+      {soundMetrics && <div className="space-y-2 text-sm">
+        <p>Peak level: {soundMetrics.peak.toFixed(3)} · RMS level: {soundMetrics.rms.toFixed(3)} · Quiet segments: {soundMetrics.quietSeconds.toFixed(1)} seconds · Near-clipped sample share: {(soundMetrics.clippedSampleFraction * 100).toFixed(2)}%</p>
+        <p className="text-xs text-muted-foreground">Measured in half-second windows. Review quiet sections and sudden changes against the intended message. No universal sound frequency predicts a response; {soundMetrics.limitations}</p>
+      </div>}
+    </section>}
     <section aria-label="Media psychology analysis" className="space-y-3">
       <h3 className="text-lg font-semibold">Psychology-informed assessment</h3>
       <p className="text-sm text-muted-foreground">Research-informed, uncalibrated estimates of risk and opportunity—not numerical probabilities or verified audience outcomes. Memory and behavior depend on the viewer, content, context and exposure. Frequency or wavelength alone does not reliably predict emotion.</p>
