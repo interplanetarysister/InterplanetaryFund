@@ -609,7 +609,8 @@ export function StoryDraft({
         <>
           {draft.payload?.titles && (
             <fieldset disabled={busy || cancelled} className="space-y-2">
-              <legend className="font-semibold">Choose a title</legend>
+              <legend className="font-semibold">Choose a campaign title</legend>
+              <p className="mb-2 text-xs text-muted-foreground">Compare distinct approaches grounded in your campaign. Keep the version that fits the full story, or edit it yourself.</p>
               {draft.payload.titles.map((text, i) => (
                 <label key={i} className="flex min-h-11 items-start gap-3">
                   <input
@@ -625,7 +626,8 @@ export function StoryDraft({
           )}
           {draft.payload?.summaries && (
             <fieldset disabled={busy || cancelled} className="space-y-2">
-              <legend className="font-semibold">Choose a summary</legend>
+              <legend className="font-semibold">Choose a short description</legend>
+              <p className="mb-2 text-xs text-muted-foreground">Select a truthful, inviting preview that adds meaning beyond the headline without implying guaranteed results.</p>
               {draft.payload.summaries.map((text, i) => (
                 <label key={i} className="flex min-h-11 items-start gap-3">
                   <input
