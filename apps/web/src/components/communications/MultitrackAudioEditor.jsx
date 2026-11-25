@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "../../api/auth";
 import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
-import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
+import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, appendAutomationPoint, MAX_AUTOMATION_POINTS, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
 import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
 import { AUDIO_MIX_PRESETS, chooseAudioPreset, MASTERING_PROFILES, applyMasteringProfile, exportAudioSettings, parseAudioSettings } from "../../lib/mediaPresetCollections.mjs";
 import { BINAURAL_BEAT_PRESETS, CARRIER_TONE_CHOICES, makeBinauralBuffer } from "../../lib/mediaBinauralPresets.mjs";
@@ -176,6 +176,25 @@ export default function MultitrackAudioEditor() {
       setNotice(name+" added on its own lane at a low level. Adjust and preview before publishing.");
     } catch(e){setIssue(e.message||"Unable to generate this sound preset.");}
     finally{setBusy(false);}
+  }
+  function addVolumePoint(id) {
+    const track=tracks.find(item=>item.id===id);
+    if(!track)return;
+    try {
+      editTrack(id,{automation:appendAutomationPoint(track.automation||[],track.trimEnd-track.trimStart)});
+    }catch(error){setIssue(error.message || "Cannot add a volume keyframe.");}
+  }
+  function editVolumePoint(id,index,patch) {
+    const track=tracks.find(item=>item.id===id);
+    if(!track)return;
+    const automation=(track.automation||[]).map((point,i)=>i===index?{...point,...patch}:point)
+      .sort((a,b)=>a.time-b.time);
+    editTrack(id,{automation});
+  }
+  function deleteVolumePoint(id,index) {
+    const track=tracks.find(item=>item.id===id);
+    if(!track)return;
+    editTrack(id,{automation:(track.automation||[]).filter((_,i)=>i!==index)});
   }
   function editEffects(id, effectPatch) {
     const track=tracks.find(item=>item.id===id);
@@ -480,6 +499,28 @@ export default function MultitrackAudioEditor() {
             <input type="range" min="0" max="2" step="0.05" className="mt-2 w-full" value={track.volume}
               disabled={recordingActive} onChange={e=>editTrack(track.id,{volume:Number(e.target.value)})}/>
           </label>
+          <details className="space-y-3 rounded-xl border p-3" aria-label="Volume keyframe timeline">
+            <summary className="cursor-pointer text-sm font-semibold">Timeline volume keyframes ({(track.automation||[]).length})</summary>
+            <p className="mt-2 text-xs text-muted-foreground">Add up to {MAX_AUTOMATION_POINTS} points on this clip. Each point sets an editable gain level; the mixer fades smoothly between points. Existing music ducking still responds separately to recorded speech.</p>
+            <button type="button" className={styles.button} disabled={recordingActive || (track.automation||[]).length>=MAX_AUTOMATION_POINTS}
+              onClick={()=>addVolumePoint(track.id)}>Add volume keyframe</button>
+            {(track.automation||[]).map((point,index)=><div key={index} className="mt-3 grid gap-2 rounded-lg border p-3 sm:grid-cols-[1fr_2fr_auto]">
+              <label className="text-xs">Time within clip (s)
+                <input type="number" min="0" max={track.trimEnd-track.trimStart} step="0.01"
+                  className={styles.input} value={point.time} disabled={recordingActive}
+                  onChange={e=>editVolumePoint(track.id,index,{time:Number(e.target.value)})}/>
+              </label>
+              <label className="text-xs">Relative gain · {Math.round(point.gain*100)}%
+                <input type="range" min="0" max="2" step="0.05" className="mt-2 w-full"
+                  value={point.gain} disabled={recordingActive}
+                  onChange={e=>editVolumePoint(track.id,index,{gain:Number(e.target.value)})}/>
+              </label>
+              <button type="button" className={styles.button} disabled={recordingActive}
+                onClick={()=>deleteVolumePoint(track.id,index)}>Remove point</button>
+            </div>)}
+            {(track.automation||[]).length>0 && <button type="button" className={styles.button} disabled={recordingActive}
+              onClick={()=>editTrack(track.id,{automation:[]})}>Reset keyframes</button>}
+          </details>
           <details className="space-y-3 rounded-xl border p-3">
             <summary className="cursor-pointer text-sm font-semibold">Advanced audio effects: EQ, filters, fades and stereo</summary>
             <div className="mt-3 flex flex-wrap gap-2" aria-label="Audio mix presets">
