@@ -14,7 +14,7 @@ const TEMPLATES = {
   thanks: "Thank you for supporting our fundraiser. Your generosity and encouragement matter to our community.",
   volunteer: "We're looking for volunteers who may be able to help with this campaign. Please check the campaign details and contact us through an approved channel.",
 };
-export default function CommunicationsWorkspace() {
+export default function CommunicationsWorkspace({ embedded = false, focusReview = false }) {
   const [params]=useSearchParams();
   const location=useLocation();
   const requestedCampaign=params.get("campaign");
@@ -65,10 +65,11 @@ export default function CommunicationsWorkspace() {
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
   },[requestedCampaign]);
   useEffect(()=>{
-    if(state.phase!=="ready"||location.hash!=="#reviewed-delivery")return;
+    if(state.phase!=="ready" && !focusReview)return;
+    if(!focusReview && location.hash!=="#reviewed-delivery")return;
     const target=document.getElementById("reviewed-delivery");
     target?.scrollIntoView({behavior:"auto",block:"start"});
-  },[state.phase,location.hash]);
+  },[state.phase,location.hash,focusReview]);
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
     if(!item){setStatus("Select one of your campaigns.");return}
@@ -88,7 +89,7 @@ export default function CommunicationsWorkspace() {
     }
   }
   return <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-8">
-    <PublishingWorkflowNav current="draft" campaignId={campaignId}/>
+    {!embedded && <PublishingWorkflowNav current="draft" campaignId={campaignId}/>}
     <header>
       <h1 className="text-3xl font-bold">ECHO · Communications workspace</h1>
       <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message using your own campaign. This local template does not call an AI model or send email, direct messages, or social posts. The ECHO service below separately supports saved drafts, AI-assisted writing where authorized, and reviewed in-app updates.</p>
