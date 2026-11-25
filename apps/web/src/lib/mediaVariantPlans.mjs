@@ -63,6 +63,9 @@ export function createPlatformVariants(ids, existing = {}) {
       saturation: Math.max(0,Math.min(2,base.saturation == null ? 1 : Number(base.saturation))),
       videoSpeed: Math.max(0.5,Math.min(2,Number(base.videoSpeed)||1)),
       videoVolume: Math.max(0,Math.min(1,base.videoVolume == null ? 1 : Number(base.videoVolume))),
+      trimStart: Math.max(0,Number(base.trimStart)||0),
+      trimEnd: Math.max(0,Number(base.trimEnd)||0),
+      showSafeZone: base.showSafeZone===true,
       source: "original",
     };
   });
