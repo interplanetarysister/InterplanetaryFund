@@ -4,7 +4,7 @@ import { authClient } from "../../api/auth";
 import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
 import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
 import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
-import { AUDIO_MIX_PRESETS, chooseAudioPreset, MASTERING_PROFILES, applyMasteringProfile } from "../../lib/mediaPresetCollections.mjs";
+import { AUDIO_MIX_PRESETS, chooseAudioPreset, MASTERING_PROFILES, applyMasteringProfile, exportAudioSettings, parseAudioSettings } from "../../lib/mediaPresetCollections.mjs";
 import { BINAURAL_BEAT_PRESETS, CARRIER_TONE_CHOICES, makeBinauralBuffer } from "../../lib/mediaBinauralPresets.mjs";
 import AudioTrackWaveform from "./AudioTrackWaveform";
 
@@ -105,6 +105,33 @@ export default function MultitrackAudioEditor() {
   }
   function activeMixTracks() {
     return bypass ? tracks.map(track=>({...track,effects:{...AUDIO_EFFECT_DEFAULTS}})) : tracks;
+  }
+  function downloadDSPSettings() {
+    setIssue("");
+    try {
+      const contents=exportAudioSettings({tracks,masterProfile,duckDb,duckAttackMs,duckReleaseMs,
+        duckLookaheadMs,compressionEnabled,compressionThreshold,compressionRatio});
+      const blob=new Blob([contents],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a");link.href=url;link.download="ifund-audio-preset.json";link.click();
+      setTimeout(()=>URL.revokeObjectURL(url),120000);
+      setNotice("Audio DSP preset saved as settings-only JSON. Sound files are not included.");
+    } catch(e) { setIssue(e.message || "Unable to save audio settings."); }
+  }
+  async function importDSPSettings(event) {
+    const file=event.target.files?.[0];event.target.value="";
+    if(!file)return;
+    if(file.size>12000) {setIssue("The preset file exceeds 12 KB.");return;}
+    try {
+      const {settings,tracks:next}=parseAudioSettings(await file.text(),tracks);
+      stopPlaying();clearPreview();setIssue("");
+      setTracks(next);setMasterProfile(settings.masterProfile);setDuckDb(settings.duckDb);
+      setDuckAttackMs(settings.duckAttackMs);setDuckReleaseMs(settings.duckReleaseMs);
+      setDuckLookaheadMs(settings.duckLookaheadMs);
+      setCompressionEnabled(settings.compressionEnabled);setCompressionThreshold(settings.compressionThreshold);
+      setCompressionRatio(settings.compressionRatio);
+      setNotice("DSP preset imported. It changed only matching editable audio lane settings; no media was uploaded or published.");
+    }catch(e){setIssue(e.message || "Audio preset import was rejected.");}
   }
   function setMasteringProfile(id) {
     if(recording.current)return;
@@ -303,6 +330,13 @@ export default function MultitrackAudioEditor() {
             <option value={-12}>-12 dB · strong</option>
             <option value={-18}>-18 dB · voice priority</option>
           </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={downloadDSPSettings} className={styles.button} disabled={recordingActive}>Export DSP preset (.json)</button>
+        <label className="text-xs font-semibold">Import a saved iFund DSP preset
+          <input type="file" accept="application/json,.json" className="mt-1 block text-xs"
+            onChange={importDSPSettings} disabled={recordingActive}/>
         </label>
       </div>
       <p className="text-xs text-muted-foreground">Profile target: {MASTERING_PROFILES[masterProfile]?.targetLufs != null ? MASTERING_PROFILES[masterProfile].targetLufs+" LUFS reference (not measured)" : "not selected"}. Automatic ducking uses voice-lane signal levels rather than an AI speech-transcription service. Music gains recover smoothly between voiced segments.</p>
