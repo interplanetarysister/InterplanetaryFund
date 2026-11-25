@@ -119,6 +119,7 @@ export async function renderLocalVideoVariant({
     if (!stream.getVideoTracks().length)throw Error("Video track capture is unavailable.");
     const AudioContextClass=globalThis.AudioContext||globalThis.webkitAudioContext;
     const mustPreserveAudio=(variant.videoVolume??1)>0||Boolean(overlay);
+    if(!mustPreserveAudio)video.muted=true;
     if(mustPreserveAudio){
       if(!AudioContextClass)throw Error("Audio routing is unavailable; set original audio volume to zero to export muted video.");
       ctxAudio=new AudioContextClass();
