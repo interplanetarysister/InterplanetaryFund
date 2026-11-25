@@ -44,7 +44,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const [error,setError]=useState("");
   const [eligible,setEligible]=useState(null);
   const [complete,setComplete]=useState(false);
-  const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const paypalHost=useRef(null), numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
   const nativeCheckoutUnavailable = isNativeBundle();
@@ -143,7 +143,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           onCancel:()=>{if(!cancelled)setStatus("ready");},
           style:{layout:"vertical",shape:"rect",label:"paypal"},
         });
-        if(paypalHost.current)await buttons.render(paypalHost.current);
+        if(paypalHost.current)void Promise.resolve().then(()=>buttons.render(paypalHost.current)).catch(()=>{if(!cancelled)setError("PayPal wallet checkout is unavailable. Direct card checkout may still be available.");});
         if(typeof paypal.CardFields==="function"){
           const card=paypal.CardFields({
             createOrder:()=>begin("card"),onApprove,
@@ -153,7 +153,6 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           if(card.isEligible()){
             cardSession.current=card;
             await Promise.all([
-              card.NameField().render(nameHost.current),
               card.NumberField().render(numberHost.current),
               card.ExpiryField().render(expiryHost.current),
               card.CVVField().render(cvvHost.current),
@@ -168,7 +167,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       cancelled=true;
       try{buttons?.close?.();}catch(_){}
       cardSession.current=null;
-      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
+      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current]) {
         try{node?.replaceChildren();}catch(_){}
       }
     };
@@ -245,9 +244,9 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             <div className="flex justify-between gap-4"><dt>Campaign donation</dt><dd className="font-semibold tabular-nums">{"$"+(gift/100).toFixed(2)}</dd></div>
             <div className="flex justify-between gap-4"><dt>Optional IFund platform support</dt><dd className="font-semibold tabular-nums">{"$"+(tip/100).toFixed(2)}</dd></div>
             <div className="flex justify-between gap-4"><dt>PayPal processing surcharge</dt><dd className="font-semibold tabular-nums">$0.00</dd></div>
-            <div className="flex justify-between gap-4 border-t border-[#c9d9f1] pt-3 text-base font-extrabold text-[#003087]"><dt>Total you approve in PayPal</dt><dd className="tabular-nums">{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</dd></div>
+            <div className="flex justify-between gap-4 border-t border-[#c9d9f1] pt-3 text-base font-extrabold text-[#003087]"><dt>Total you approve</dt><dd className="tabular-nums">{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</dd></div>
           </dl>
-          <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
+          <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. Review the total here before approving your payment.</p>
         </section>}
         {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
           sandboxMode&&gift>10000?<p role="alert" className="text-xs text-amber-700">Sandbox test payments are limited to $100. Choose a smaller amount.</p>:
@@ -256,20 +255,19 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">Secure card checkout supports eligible Visa, Mastercard, Discover, and American Express cards when enabled by PayPal for this merchant. American Express uses a four-digit security code. No PayPal account is required for eligible direct card payments.</p>
-              <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label>
                 <label className="block text-xs">Security code<div ref={cvvHost} className={field}/></label>
               </div>
             </section>
-            {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. PayPal may offer guest card checkout.</p>}
+            {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. Choose PayPal wallet checkout only if you prefer that separate payment method.</p>}
             <section aria-label="Payment actions" className="sticky bottom-0 z-10 -mx-5 -mb-5 space-y-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:-mx-6 sm:px-6">
-              <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Pay securely with PayPal</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
+              <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Confirm your payment securely</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
-                {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
+                {status==="capturing"?"Verifying donation…":"Confirm card payment"}
               </button>}
               {!sandboxMode&&<GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
                 enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>}
