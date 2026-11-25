@@ -72,6 +72,11 @@ test('light primary is the Luminous Blue hue deepened to AA, not the raw palette
   assert.ok(contrast('FFFFFF', '335CFF') >= AA, 'white on light primary');
   assert.ok(contrast('335CFF', 'FFFFFF') >= AA, 'light primary as text on white');
   assert.ok(contrast('FFFFFF', '5476FF') < AA, 'guard: raw Luminous Blue must stay below AA so this stays intentional');
+  // Manual trace of PR #381 (2026-11-25): the retired light primary
+  // #2474F5 (217 91% 55%) survived in .glow-primary's box-shadow. No
+  // occurrence of the retired value may remain in the theme layer.
+  assert.doesNotMatch(indexCss, /217 91% 55%/, 'retired #2474F5 must not remain in index.css');
+  assert.match(indexCss, /\.glow-primary \{\s*box-shadow: 0 0 24px hsl\(228 100% 60% \/ 0\.35\);/);
 });
 
 test('palette pairs meet WCAG 2.2 AA normal-text contrast', () => {

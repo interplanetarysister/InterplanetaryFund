@@ -649,8 +649,10 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Primary glow uses the current light primary (#335CFF), not the retired
+     #2474F5. Updated in the manual trace of PR #381, 2026-11-25. */
   .glow-primary {
-    box-shadow: 0 0 24px hsl(217 91% 55% / 0.35);
+    box-shadow: 0 0 24px hsl(228 100% 60% / 0.35);
   }
 
   /* Campaign creation is intentionally game-like rather than document-like.
