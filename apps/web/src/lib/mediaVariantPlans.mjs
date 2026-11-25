@@ -1,3 +1,5 @@
+import { chooseVisualCue } from "./mediaVisualMetrics.mjs";
+
 /**
  * Editing recipes never overwrite an uploaded file. Suggested cue windows are
  * storyboarding hypotheses, not validated engagement maxima or probability
@@ -15,7 +17,7 @@ export const PLATFORM_FRAMES = Object.freeze({
 
 export const clampUnit = n => Math.max(0, Math.min(1, Number.isFinite(Number(n)) ? Number(n) : 0));
 
-export function proposeInterestCue({ duration, platformId, audioWindows = [], preferredTime = null } = {}) {
+export function proposeInterestCue({ duration, platformId, audioWindows = [], visualTransitions = [], preferredTime = null } = {}) {
   const seconds = Number(duration);
   const frame = PLATFORM_FRAMES[platformId];
   if (!frame) throw new Error("Unknown platform");
@@ -30,13 +32,15 @@ export function proposeInterestCue({ duration, platformId, audioWindows = [], pr
   const candidates = audioWindows
     .filter(w => Number.isFinite(w?.from) && Number.isFinite(w?.rms) && w.from >= start && w.from <= end)
     .sort((x, y) => Math.abs(x.from - target) - Math.abs(y.from - target));
-  const anchor = inRange ? preferred : (candidates.length ? candidates[0].from : target);
+  const visual = chooseVisualCue(visualTransitions, start, end, target);
+  const measuredVisualCue = visual && visual.change >= 0.15 ? visual : null;
+  const anchor = inRange ? preferred : measuredVisualCue ? measuredVisualCue.at : (candidates.length ? candidates[0].from : target);
   return {
     suggestedAt: Number(anchor.toFixed(1)),
     windowStart: start,
     windowEnd: end,
     duration: seconds,
-    basis: inRange ? "creator-selected timing" : candidates.length ? "nearest measured audio window within a storyboard interval" : "editable storyboard interval",
+    basis: inRange ? "creator-selected timing" : measuredVisualCue ? "measured visual frame transition near storyboard cue window" : candidates.length ? "nearest measured audio window within a storyboard interval" : "editable storyboard interval",
     validatedOptimum: false,
     note: "Place a meaningful reveal, turning point or interest peak here only if it fits the story. Timing is a planning hypothesis—not a proven platform-specific attention optimum.",
   };
