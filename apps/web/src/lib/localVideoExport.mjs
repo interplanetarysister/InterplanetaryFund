@@ -86,7 +86,7 @@ export async function renderLocalVideoVariant({
     ctx.drawImage(video,crop.x,crop.y,crop.width,crop.height,0,0,width,height);
   };
   const stop=()=>{
-    if(stopping)return;
+    if(stopping && mediaRecorder?.state!=="recording")return;
     stopping=true;
     clearInterval(interval);clearTimeout(timeout);
     try{video.pause();overlay?.pause();}catch{}
@@ -108,6 +108,7 @@ export async function renderLocalVideoVariant({
         overlay.currentTime=clip.from;await seek;
       }
     }
+    if(signal?.aborted)throw Error("Video export cancelled.");
     paint();
     stream=canvas.captureStream(OUTPUT_FPS);
     if (!stream.getVideoTracks().length)throw Error("Video track capture is unavailable.");
@@ -130,6 +131,7 @@ export async function renderLocalVideoVariant({
       for (const track of dest.stream.getAudioTracks())stream.addTrack(track);
       if(ctxAudio.state==="suspended")await ctxAudio.resume();
     }
+    if(signal?.aborted)throw Error("Video export cancelled.");
     mediaRecorder=new MediaRecorder(stream,{
       mimeType:format.mime,videoBitsPerSecond:3_500_000,audioBitsPerSecond:128_000,
     });
@@ -141,6 +143,9 @@ export async function renderLocalVideoVariant({
         else resolve();
       };
     });
+    // A failed play() call may reject before we await completion.
+    completion.catch(()=>{});
+    if(signal?.aborted)throw Error("Video export cancelled.");
     mediaRecorder.start(250);
     // Real-time browser encoder: a hidden/background tab may be throttled.
     interval=setInterval(()=>{
