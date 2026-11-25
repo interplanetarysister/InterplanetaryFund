@@ -69,4 +69,9 @@ test("persistent chat panel exposes a real skill call and a plainly advisory rec
  assert.match(c,/runIFundSpecialistSkill/);
  assert.match(c,/Run specialist review skill/);
  assert.match(c,/Local advisory checklist only/);
+ const full=readFileSync(new URL("../src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
+ assert.match(full,/runIFundSpecialistSkill/);
+ assert.match(full,/runReplySkill/);
+ assert.match(full,/Run specialist review skill/);
+ assert.match(full,/No publishing, applications, payments or external communications were performed/);
 });
