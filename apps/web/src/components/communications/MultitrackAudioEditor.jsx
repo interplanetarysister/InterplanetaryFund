@@ -26,7 +26,7 @@ export default function MultitrackAudioEditor() {
   const [soundPreset, setSoundPreset] = useState("pink");
   const [soundSeconds, setSoundSeconds] = useState(30);
   const [soundFrequency, setSoundFrequency] = useState(440);
-  const [masterProfile, setMasterProfile] = useState("reels");
+  const [masterProfile, setMasterProfile] = useState("none");
   const [duckDb, setDuckDb] = useState(-6);
   const [bypass, setBypass] = useState(false);
   const [binauralCarrier, setBinauralCarrier] = useState(528);
@@ -269,6 +269,36 @@ export default function MultitrackAudioEditor() {
       <h2 className="text-xl font-semibold">Multitrack audio editor</h2>
       <p className="text-sm text-muted-foreground">Layer music, recorded speech, and sound effects on separate lanes. Edit each clip's position, trim, level, mute, and solo independently. Originals remain unchanged; processing and recordings stay on your device.</p>
     </header>
+    <section className="space-y-3 rounded-xl border p-4" aria-label="Seven audio mastering profiles">
+      <h3 className="font-semibold">Studio mastering profiles</h3>
+      <p className="text-sm text-muted-foreground">Use a Stitch reference profile as a starting EQ and ducking configuration. Review your own clips and refine each lane independently. These are local DSP presets, not AI mastering or verified LUFS compliance.</p>
+      <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+        <label className="text-sm font-semibold">Preset
+          <select className={styles.input} value={masterProfile} onChange={e=>setMasteringProfile(e.target.value)}
+            disabled={recordingActive}>
+            <option value="none">Custom / no active preset</option>
+            {Object.entries(MASTERING_PROFILES).map(([id,profile])=>
+              <option key={id} value={id}>{profile.category} — {profile.label}</option>)}
+          </select>
+        </label>
+        <label className="text-sm font-semibold">Voice-triggered music ducking
+          <select className={styles.input} value={duckDb} disabled={recordingActive}
+            onChange={e=>{stopPlaying();clearPreview();setDuckDb(Number(e.target.value));}}>
+            <option value={0}>Off</option>
+            <option value={-3}>-3 dB · subtle</option>
+            <option value={-6}>-6 dB · standard</option>
+            <option value={-12}>-12 dB · strong</option>
+            <option value={-18}>-18 dB · voice priority</option>
+          </select>
+        </label>
+      </div>
+      <p className="text-xs text-muted-foreground">Profile target: {MASTERING_PROFILES[masterProfile]?.targetLufs != null ? MASTERING_PROFILES[masterProfile].targetLufs+" LUFS reference (not measured)" : "not selected"}. Automatic ducking uses voice-lane signal levels rather than an AI speech-transcription service. Music gains recover smoothly between voiced segments.</p>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={bypass} disabled={recordingActive}
+          onChange={e=>{stopPlaying();clearPreview();setBypass(e.target.checked);}} />
+        A/B bypass: preview and export original track EQ without DSP effects or ducking
+      </label>
+    </section>
     <section className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_2fr]">
       <label className="text-sm font-semibold">Add files to lane
         <select className={styles.input} value={role} onChange={e => setRole(e.target.value)} disabled={recordingActive}>
