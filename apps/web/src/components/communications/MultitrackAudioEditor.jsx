@@ -333,6 +333,31 @@ export default function MultitrackAudioEditor() {
       <button type="button" onClick={addSynthesizedSound} disabled={busy || recordingActive || tracks.length>=MAX_AUDIO_TRACKS}
         className={styles.button}>Add preset to a new audio lane</button>
     </section>
+    <details className="space-y-3 rounded-xl border p-4" aria-label="Advanced stereo frequency textures">
+      <summary className="cursor-pointer text-sm font-semibold">Advanced: stereo binaural tones + pink-noise masking</summary>
+      <p className="mt-3 text-sm text-muted-foreground">An optional stereo effect drawn from the Stitch audio reference. Each ear receives a slightly different tone. Requires headphones for the difference to be heard as intended. Descriptions such as theta and alpha classify rate ranges, not proven effects on consciousness, memory or fundraising.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <label className="text-sm">Carrier frequency (Hz)
+          <input type="number" min="40" max="4000" step="1" value={binauralCarrier} disabled={recordingActive}
+            onChange={e=>setBinauralCarrier(Number(e.target.value))} className={styles.input}/>
+          <span className="mt-1 flex flex-wrap gap-2">{CARRIER_TONE_CHOICES.map(hz=>
+            <button key={hz} type="button" className="rounded-lg border px-2 py-1 text-xs" onClick={()=>setBinauralCarrier(hz)} disabled={recordingActive}>{hz}</button>)}</span>
+        </label>
+        <label className="text-sm">Ear-to-ear beat difference (Hz)
+          <select className={styles.input} value={String(binauralDelta)} disabled={recordingActive}
+            onChange={e=>setBinauralDelta(Number(e.target.value))}>
+            {BINAURAL_BEAT_PRESETS.map(p=><option key={p.id} value={String(p.deltaHz)}>{p.label} · {p.deltaHz} Hz</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Pink-noise blend · {Math.round(pinkRatio*100)}%
+          <input type="range" min="0" max="1" step="0.05" value={pinkRatio} disabled={recordingActive}
+            onChange={e=>setPinkRatio(Number(e.target.value))} className="mt-2 w-full"/>
+        </label>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">Stereo: left {binauralCarrier} Hz · right {Number(binauralCarrier)+Number(binauralDelta)} Hz. Playback is user-initiated and quiet by default. The 432/528/639/741/852 Hz options are audio frequencies, not evidence of special physiological benefits.</p>
+      <button type="button" className={styles.button} disabled={busy || recordingActive || tracks.length>=MAX_AUDIO_TRACKS}
+        onClick={addBinauralLayer}>Add stereo texture as editable lane</button>
+    </details>
     <section className="space-y-3 rounded-xl border p-4" aria-label="Microphone recording">
       <h3 className="font-semibold">Record narration or an effect</h3>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={playBacking}
