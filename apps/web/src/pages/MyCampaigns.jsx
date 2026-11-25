@@ -92,7 +92,7 @@ export default function MyCampaigns() {
 
   if (phase === "loading") {
     return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <p role="status" className="flex items-center gap-2 text-muted-foreground">
+      <p role="status" className="ifund-feedback-loading flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading your campaigns…
       </p>
     </main>;
