@@ -21,7 +21,7 @@ test("media optimization is a subtab rather than a separate route or observed au
   const audience = read("src/components/communications/AudienceReviewBench.jsx");
   assert.match(media, /\["optimization", "Pre-post Optimization"\]/);
   assert.match(media, /<PrePostMediaOptimizer/);
-  assert.match(media, /<AudioClipEditor/);
+  assert.match(media, /<MultitrackAudioEditor/);
   assert.match(optimizer, /Media psychology analysis/);
   assert.match(optimizer, /Platform-specific optimization/);
   assert.match(optimizer, /PLATFORM_PROFILES/);
