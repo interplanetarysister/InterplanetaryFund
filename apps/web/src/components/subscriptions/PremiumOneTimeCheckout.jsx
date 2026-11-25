@@ -213,6 +213,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   return <div className="mt-4 space-y-3">
     <p className="text-sm font-semibold">Pay by card · $4.99 USD once</p>
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
+    {method==="card"&&<p className="text-xs text-muted-foreground">Visa, Mastercard, Discover, and American Express may be used when enabled by PayPal for this merchant and card. American Express cards have a four-digit security code. No PayPal account is needed for eligible direct card payments.</p>}
     {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
       <label className="block text-xs">Cardholder name<div className={field} ref={nameHost}/></label>
       <label className="block text-xs">Card number<div className={field} ref={numberHost}/></label>
