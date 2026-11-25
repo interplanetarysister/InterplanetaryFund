@@ -21,5 +21,5 @@ test("invalid audio measurements fail closed", () => {
   assert.throws(() => analyzeAudioSamples([], 1000), /Valid decoded audio/);
   assert.throws(() => analyzeAudioSamples([new Float32Array(3), new Float32Array(2)], 1000), /matching/);
   assert.throws(() => analyzeAudioSamples([new Float32Array(3)], 0), /Valid decoded audio/);
-  assert.throws(() => analyzeAudioSamples([Float32Array.from([0, Number.NaN])], 1000), /invalid values/);
+  assert.throws(() => analyzeAudioSamples([Float32Array.from([0, Number.NaN])], 250), /invalid values/);
 });
