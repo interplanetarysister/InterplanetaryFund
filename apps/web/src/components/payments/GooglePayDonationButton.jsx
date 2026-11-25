@@ -20,7 +20,7 @@ function loadGooglePay() {
 }
 
 export default function GooglePayDonationButton({
-  campaignId, amountCents, enabled, begin, capture,
+  campaignId, platformSupport = false, amountCents, enabled, begin, capture,
 }) {
   const host = useRef(null);
   const current = useRef({ begin, capture });
@@ -33,7 +33,9 @@ export default function GooglePayDonationButton({
     const container = host.current;
     setReady(false);
     setError("");
-    if (!enabled || !campaignId || !Number.isSafeInteger(amountCents) || amountCents < 100)
+    // Platform support has no campaign: never require or fabricate a
+    // campaignId for it. Campaign donations still require one.
+    if (!enabled || (!campaignId && !platformSupport) || !Number.isSafeInteger(amountCents) || amountCents < 100)
       return undefined;
     (async () => {
       try {
@@ -98,7 +100,9 @@ export default function GooglePayDonationButton({
                 currencyCode: "USD",
                 totalPriceStatus: "FINAL",
                 totalPrice: (amountCents / 100).toFixed(2),
-                totalPriceLabel: "Interplanetary Fund donation",
+                totalPriceLabel: platformSupport
+                  ? "Interplanetary Fund platform support"
+                  : "Interplanetary Fund donation",
               },
               callbackIntents: ["PAYMENT_AUTHORIZATION"],
             }).catch(() => {
@@ -119,7 +123,7 @@ export default function GooglePayDonationButton({
       cancelled = true;
       container?.replaceChildren();
     };
-  }, [campaignId, amountCents, enabled]);
+  }, [campaignId, platformSupport, amountCents, enabled]);
 
   return <div className={ready ? "space-y-2" : "hidden"}>
     <div ref={host} aria-label="Secure Google Pay donation button"

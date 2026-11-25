@@ -2,11 +2,15 @@ import React, { useState } from "react";
 import { ArrowUpRight, HeartHandshake, LockKeyhole, ShieldCheck, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
+import PlatformSupportDonationDialog from "./PlatformSupportDonationDialog";
 
-// Platform-only, provider-hosted checkout. Never imply this hosted link is
-// a verified campaign capture, supports an amount preset, or creates an IFund receipt.
+// Platform-only support. The embedded checkout is the primary path; the
+// provider-hosted PayPal page remains as the fallback. Never imply this
+// payment is a verified campaign capture, supports an amount preset, or
+// creates a campaign receipt.
 export default function PayPalDonateButton({ label = "Support Interplanetary Fund" }) {
   const [open, setOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   return <>
     <button type="button" onClick={() => setOpen(true)}
       className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e4af22] bg-[#FFC439] px-5 py-3 text-sm font-extrabold text-[#003087] shadow-[0_6px_20px_rgba(0,48,135,.16)] transition hover:bg-[#f5bb27] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003087] focus-visible:ring-offset-2">
@@ -36,7 +40,7 @@ export default function PayPalDonateButton({ label = "Support Interplanetary Fun
                 <dt>Recipient</dt><dd className="text-right font-semibold">Interplanetary Fund platform</dd>
               </div>
               <div className="flex items-start justify-between gap-4 border-t border-[#dce6f5] pt-3">
-                <dt>Your contribution</dt><dd className="text-right font-semibold">Choose and review on PayPal</dd>
+                <dt>Your contribution</dt><dd className="text-right font-semibold">Choose and review on PayPal, or choose an amount in secure checkout</dd>
               </div>
               <div className="flex items-start justify-between gap-4">
                 <dt>Processing charges</dt><dd className="text-right font-semibold">No IFund checkout surcharge</dd>
@@ -44,10 +48,15 @@ export default function PayPalDonateButton({ label = "Support Interplanetary Fun
             </dl>
           </section>
           <p className="text-xs leading-relaxed text-slate-600">
-            This provider-hosted payment is separate from the tracked campaign donation
-            ledger. The amount and payment options are controlled by PayPal; do not
-            expect this payment to appear in campaign receipts or fundraising totals.
+            Embedded checkout records a verified platform-support receipt. The
+            hosted PayPal option is separate from the tracked campaign donation
+            ledger — do not expect this payment to appear in campaign receipts or fundraising totals.
           </p>
+          <button type="button"
+            onClick={() => { setOpen(false); setCheckoutOpen(true); }}
+            className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#003087] px-5 py-3 font-extrabold text-white shadow-sm transition hover:bg-[#002466] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003087]">
+            Continue to secure checkout
+          </button>
           <a href={IFUND_PLATFORM_SUPPORT_PAYMENT_LINK} target="_blank" rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#FFC439] px-5 py-3 font-extrabold text-[#003087] shadow-sm transition hover:bg-[#f5ba24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003087]">
@@ -65,5 +74,6 @@ export default function PayPalDonateButton({ label = "Support Interplanetary Fun
         </div>
       </DialogContent>
     </Dialog>
+    <PlatformSupportDonationDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
   </>;
 }

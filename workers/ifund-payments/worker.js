@@ -10,6 +10,11 @@ const SUBSCRIPTION_ID = /^I-[A-Z0-9]{10,30}$/;
 const PAYPAL_PLAN_ID = /^P-[A-Z0-9]{20,32}$/;
 const PAYPAL_EVENT_ID = /^WH-[A-Z0-9-]{8,90}$/;
 const BASIC_MONTHLY_PLAN = Object.freeze({tier:"basic",interval:"monthly",amount_cents:499,plan_id:"P-8RG59105D5286480MNMBOKJA"});
+// Standalone platform support: one PayPal purchase unit, never a campaign
+// gift. Amount bounds match the campaign gift bounds (min $1.00).
+const PLATFORM_SUPPORT_REFERENCE_ID="ifund-platform-support";
+const PLATFORM_SUPPORT_MIN_CENTS=100;
+const PLATFORM_SUPPORT_MAX_CENTS=100000000;
 const PAYOUT_SCOPE = "https://uri.paypal.com/payments/payouts";
 const PAYOUT_EVENTS = new Set([
   "PAYMENT.PAYOUTSBATCH.DENIED","PAYMENT.PAYOUTSBATCH.PROCESSING","PAYMENT.PAYOUTSBATCH.SUCCESS",
@@ -582,6 +587,8 @@ async function webhook(req,env) {
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
     if(!ORDER_ID.test(orderId||""))return asError("webhook_order_unresolved",409);
+    const platform=await platformSupportWebhook(env,orderId,payload);
+    if(platform)return platform;
     const claim=await signLedger(env,"get",{paypal_order_id:orderId});
     if(claim.intent.environment!=="live")return asError("unexpected_payment_environment",409);
     // Reject invalid capture references before any ledger mutation.
@@ -701,6 +708,116 @@ async function captureOrder(req,env) {
     catch(_) {return asError("capture_unverified_check_paypal_before_retry",502);}
   }
   return asJson(await finalize(env,p.order_id,intent));
+}
+// Standalone platform-support donations. Never a campaign gift: no campaign
+// ID is accepted, stored, or attributed, and no row ever enters campaign
+// donations, campaign totals, or owner withdrawals. The 7% withdrawal fee
+// never applies: there is no withdrawal of platform support.
+async function verifyPlatformSupportCapture(env,orderId,intent) {
+  const order=await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(orderId));
+  const receipt=captureFromOrder(order);
+  if(order.status!=="COMPLETED"||!receipt||receipt.capture.status!=="COMPLETED") throw new Error("paypal_capture_unconfirmed");
+  const amount=receipt.capture.amount;
+  if(receipt.unit.custom_id!==intent.custom_id
+    || receipt.unit.reference_id!==PLATFORM_SUPPORT_REFERENCE_ID
+    || amount?.currency_code!=="USD"
+    || !/^\d+(?:\.\d{1,2})?$/.test(String(amount.value||""))
+    || cents(amount.value)!==intent.amount_cents
+    || !ORDER_ID.test(receipt.capture.id)) throw new Error("paypal_receipt_mismatch");
+  const merchant=receipt.unit.payee?.merchant_id||receipt.capture.payee?.merchant_id||null;
+  return {order_id:orderId,capture_id:receipt.capture.id,cents:intent.amount_cents,
+    merchant_id:typeof merchant==="string"?merchant:null,
+    captured_at:receipt.capture.create_time||null};
+}
+async function finalizePlatformSupport(env,reference,intent) {
+  const proof=await verifyPlatformSupportCapture(env,reference,intent);
+  const applied=await signLedger(env,"platform_support_finalize",{
+    support_id:intent.support_id,paypal_order_id:proof.order_id,paypal_capture_id:proof.capture_id,
+    merchant_id:proof.merchant_id,captured_at:proof.captured_at,custom_id:intent.custom_id,
+  });
+  return {ok:true,status:"captured",support_id:applied.support_id||intent.support_id,order_id:reference,capture_id:proof.capture_id};
+}
+async function platformSupportWebhook(env,orderId,payload) {
+  let claim;
+  try{claim=await signLedger(env,"platform_support_lookup",{paypal_order_id:orderId})}
+  catch(_){return null}
+  const intent=claim.intent;
+  if(!intent||intent.environment!=="live")return null;
+  // Reject invalid capture references before any ledger mutation.
+  if(!ORDER_ID.test(payload.id||"")||!ORDER_ID.test(payload.resource?.id||""))
+    return asError("webhook_capture_reference_mismatch",409);
+  const proof=await verifyPlatformSupportCapture(env,orderId,intent);
+  if(payload.resource.id!==proof.capture_id)
+    return asError("webhook_capture_reference_mismatch",409);
+  const completed=await finalizePlatformSupport(env,orderId,intent);
+  await signLedger(env,"platform_support_event",{paypal_event_id:payload.id,paypal_order_id:orderId,
+    paypal_capture_id:completed.capture_id,event_type:"PAYMENT.CAPTURE.COMPLETED"});
+  return asJson({ok:true,recorded:true,support_id:completed.support_id});
+}
+async function createPlatformSupportOrder(req,env) {
+  const input=await readBody(req);
+  // A campaign ID is never valid here. Reject it outright instead of
+  // ignoring it: silently dropping an attribution field could misroute a gift.
+  if(input.campaign_id!==undefined)return asError("invalid_platform_support_request");
+  const amount=input.amount_cents,channel=input.payment_channel||"paypal";
+  if(!INTENT.test(input.request_key||"")
+   ||!["paypal","card","googlepay","applepay","venmo"].includes(channel)
+   ||!Number.isSafeInteger(amount)||amount<PLATFORM_SUPPORT_MIN_CENTS||amount>PLATFORM_SUPPORT_MAX_CENTS)
+    return asError("invalid_platform_support_request");
+  // Carry a browser session only to the trusted signed-ledger broker. Never
+  // trust a donor UUID supplied by checkout and never persist the bearer token.
+  const authHeader=req.headers.get("authorization");
+  if(authHeader && !/^Bearer [A-Za-z0-9._-]{40,8192}$/.test(authHeader))
+    return asError("invalid_donor_session",401);
+  const donorToken=authHeader?authHeader.slice(7):null;
+  if(input.checkout_token!==undefined &&
+     (typeof input.checkout_token!=="string"||!/^[a-f0-9]{64}$/.test(input.checkout_token)))
+    return asError("invalid_checkout_token");
+  const checkoutToken=input.checkout_token||
+    (crypto.randomUUID().replace(/-/g,"")+crypto.randomUUID().replace(/-/g,""));
+  const tokenHash=await hash(checkoutToken);
+  const claim=await signLedger(env,"platform_support_begin",{request_key:input.request_key,
+    amount_cents:amount,total_cents:amount,
+    payment_channel:channel,environment:"live",checkout_token_hash:tokenHash,
+    donor_access_token:donorToken});
+  // A completed bind is authoritative. Never create another PayPal order
+  // after an HTTP timeout or retry with the same request key.
+  if(claim.order_id){
+    if(!ORDER_ID.test(claim.order_id)||!["created","approved","captured"].includes(claim.status))
+      return asError("checkout_requires_reconciliation",409);
+    return asJson({ok:true,id:claim.order_id,checkout_token:checkoutToken,
+      support_id:claim.support_id,amount_cents:amount,currency:"USD",environment:"live"});
+  }
+  const order=await paypal(env,"/v2/checkout/orders","POST",{
+    intent:"CAPTURE",
+    purchase_units:[{reference_id:PLATFORM_SUPPORT_REFERENCE_ID,custom_id:claim.custom_id,
+      description:"Interplanetary Fund · platform support",
+      amount:{currency_code:"USD",value:usd(amount)},
+      items:[{name:"IFund platform support",quantity:"1",category:"DONATION",
+        unit_amount:{currency_code:"USD",value:usd(amount)}}]}],
+  },input.request_key);
+  if(!ORDER_ID.test(order.id||""))return asError("invalid_provider_order",502);
+  await signLedger(env,"platform_support_bind",{support_id:claim.support_id,paypal_order_id:order.id});
+  return asJson({ok:true,id:order.id,checkout_token:checkoutToken,
+    support_id:claim.support_id,amount_cents:amount,currency:"USD",environment:"live"});
+}
+async function capturePlatformSupportOrder(req,env) {
+  const p=await readBody(req);
+  if(!ORDER_ID.test(p.order_id||"")||typeof p.checkout_token!=="string"
+    ||!/^[a-f0-9]{64}$/.test(p.checkout_token))return asError("invalid_platform_support_capture");
+  const claim=await signLedger(env,"platform_support_get",{paypal_order_id:p.order_id});
+  const intent=claim.intent;
+  if(intent.environment!=="live"||intent.checkout_token_hash!==await hash(p.checkout_token))
+    return asError("checkout_not_authorized",403);
+  if(!["created","approved","captured"].includes(intent.status))return asError("checkout_requires_reconciliation",409);
+  if(intent.status==="captured")return asJson(await finalizePlatformSupport(env,p.order_id,intent));
+  try { await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(p.order_id)+"/capture","POST",{},("capture-"+p.order_id).slice(0,108)); }
+  catch(error) {
+    // An earlier capture may have succeeded despite a timeout; look up provider evidence.
+    try {return asJson(await finalizePlatformSupport(env,p.order_id,intent));}
+    catch(_) {return asError("capture_unverified_check_paypal_before_retry",502);}
+  }
+  return asJson(await finalizePlatformSupport(env,p.order_id,intent));
 }
 // An optional one-time Premium purchase uses Orders v2, like campaign card
 // donations, but never enters donation totals or recurring subscription intents.
@@ -999,6 +1116,20 @@ export default {
       try{const response=await capturePremiumOneTime(request,env);
         for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
       }catch(error){const response=premiumCheckoutFailure(error,"capture");for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+    }
+    if(path==="/api/payments/platform-support/create-order"&&request.method==="POST"){
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{const response=await createPlatformSupportOrder(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"platform_support_start_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/platform-support/capture-order"&&request.method==="POST"){
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{const response=await capturePlatformSupportOrder(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"platform_support_capture_failed_check_receipt_before_retry"},502,cors)}
     }
     if(path==="/api/payments/subscriptions/provider-readiness"&&request.method==="GET"){
       if(env.IFUND_PAYPAL_MODE!=="live")

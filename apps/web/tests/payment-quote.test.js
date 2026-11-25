@@ -31,7 +31,7 @@ test("checkout UI shows processing charges before provider approval", () => {
   const src=readFileSync(new URL("../src/components/payments/CampaignDonationDialog.jsx",import.meta.url),"utf8");
   assert.match(src, /paymentQuoteCents\(gift, tip\)/);
   assert.match(src, /PayPal processing surcharge/);
-  assert.match(src, /Total you approve in PayPal/);
+  assert.match(src, /Total you approve/);
   assert.match(src, /IFund covers payment processing costs/);
   assert.match(src, /7% IFund platform fee is deducted from the organizer/);
   assert.match(src, /data\.amount_cents!==paymentQuoteCents\(gift,tip,channel\)\?\.totalCents/);
