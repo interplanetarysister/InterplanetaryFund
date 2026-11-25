@@ -11,7 +11,7 @@ function safePublicImage(raw) {
   if (typeof raw !== "string" || raw.length > 2048) return null;
   try {
     const u = new URL(raw);
-    return u.protocol === "https:" && !u.username && !u.password ? u.href : null;
+    return u.protocol === "https:" && !u.username && !u.password && !/\\.(?:mp4|webm|ogg)$/i.test(u.pathname) ? u.href : null;
   } catch { return null; }
 }
 
