@@ -21,9 +21,15 @@ test("subscription card fields use their own PayPal SDK instance",()=>{
  assert.doesNotMatch(checkout,/if\(window\.paypal\?\.Buttons/);
  assert.match(checkout,/components=buttons,card-fields/);
 });
-test("optional cardholder-name component cannot block required card fields",()=>{
- assert.match(checkout,/typeof card\.NameField==="function"/);
- assert.match(checkout,/catch\(_\)\{\/\* optional \*\/ \}/);
+test("both embedded checkouts require only three hosted card fields",()=>{
+ const donation=readFileSync(new URL("../src/components/payments/CampaignDonationDialog.jsx",import.meta.url),"utf8");
+ for(const source of [checkout,donation]){
+   assert.match(source,/card\.NumberField\(\)/);
+   assert.match(source,/card\.ExpiryField\(\)/);
+   assert.match(source,/card\.CVVField\(\)/);
+   assert.doesNotMatch(source,/NameField\(|nameHost/);
+   assert.match(source,/cardSession\.current\.submit\(\)/);
+ }
 });
 test("subscription card availability has an explicit retry and charge remains verified",()=>{
  assert.match(checkout,/Retry secure card checkout/);
