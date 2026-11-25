@@ -609,7 +609,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // Keep the accessible warning mounted if cleanup fails; navigating away
       // immediately would discard the only visible notice of retained data.
       if (!browserCleanupFailed) {
-        if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
+        if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`, { state: { justPublished: true } });
         else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
       }
       return true;
@@ -623,8 +623,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const stepIcons = [Target, BookOpen, Rocket];
   const stepNames=["Your idea","Your story","Ready to share"];
   const fld="mt-2 w-full min-h-12 rounded-2xl border border-white/20 bg-slate-950/60 px-4 py-3 text-base text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
-  const btn="min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
-  const primary="min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
+  const btn="ifund-interactive min-h-12 rounded-xl border border-white/25 px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50";
+  const primary="ifund-interactive min-h-12 rounded-xl bg-cyan-300 px-5 font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-50";
   const next=(target)=>{
     if(step===0&&target===1&&!form.story.trim()&&draftDetails.trim()){
       setForm(previous=>previous.story.trim()?previous:{...previous,story:draftDetails.trim(),summary:previous.summary||draftDetails.trim().slice(0,SUMMARY_MAX)});
