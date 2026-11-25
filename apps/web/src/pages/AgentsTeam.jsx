@@ -8,6 +8,7 @@ import StoryAgent from "./StoryAgent";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
 import { askIFundAgent } from "@/lib/agentQuestions";
+import { runIFundSpecialistSkill } from "@/lib/agentSpecialistSkills.mjs";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
@@ -41,6 +42,8 @@ export default function AgentsTeam() {
   const [agentReply,setAgentReply]=useState(null);
   const [questionError,setQuestionError]=useState("");
   const [questionBusy,setQuestionBusy]=useState(false);
+  const [skillBusy,setSkillBusy]=useState(false);
+  const skillRef=useRef(null);
   const [gateway,setGateway]=useState({status:"loading",configured:false});
   const [membership,setMembership]=useState({status:"loading",active:false,ownerId:null});
   const [aiPermission,setAiPermission]=useState({status:"loading",allowed:false,ownerId:null});
@@ -82,6 +85,8 @@ export default function AgentsTeam() {
     const changed=event=>{
       if(event.detail?.ownerId !== user?.id)return;
       requestRef.current.controller?.abort();
+      skillRef.current?.abort();
+      setSkillBusy(false);
       setQuestionBusy(false);
       setConsentRevision(n=>n+1);
     };
@@ -118,10 +123,13 @@ export default function AgentsTeam() {
   useEffect(()=>{
     requestRef.current.generation++;
     requestRef.current.controller?.abort();
+    skillRef.current?.abort();
+    setSkillBusy(false);
     setAgentReply(null);setQuestionError("");setQuestionBusy(false);
     return ()=>{
       requestRef.current.generation++;
       requestRef.current.controller?.abort();
+      skillRef.current?.abort();
     };
   },[user?.id]);
   async function submitAgentQuestion(event) {
@@ -133,6 +141,8 @@ export default function AgentsTeam() {
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
     requestRef.current.controller?.abort();
+    skillRef.current?.abort();
+    setSkillBusy(false);
     const controller=new AbortController();
     const generation=++requestRef.current.generation;
     requestRef.current.controller=controller;
@@ -153,6 +163,30 @@ export default function AgentsTeam() {
       if(generation===requestRef.current.generation) setQuestionBusy(false);
     }
   }
+  async function runReplySkill(){
+    if(!agentReply||!user?.id||questionBusy||skillBusy||!membershipActive||!aiPermissionGranted)return;
+    skillRef.current?.abort();
+    const controller=new AbortController();
+    const generation=requestRef.current.generation;
+    const reply=agentReply;
+    skillRef.current=controller;
+    setSkillBusy(true);setQuestionError("");
+    try{
+      const result=await runIFundSpecialistSkill(authClient(),{
+        question:reply.question,agent:reply.agent,ownerId:user.id,signal:controller.signal
+      });
+      if(!controller.signal.aborted&&generation===requestRef.current.generation){
+        setAgentReply(current=>current?.agent===reply.agent&&current?.question===reply.question
+          ?{...current,skillResult:result}:current);
+      }
+    }catch(cause){
+      if(!controller.signal.aborted&&generation===requestRef.current.generation)
+        setQuestionError(cause?.message||"The specialist review skill is unavailable.");
+    }finally{
+      if(skillRef.current===controller){skillRef.current=null;setSkillBusy(false);}
+    }
+  }
+
   async function reviewAnswerInCampaign(){
     if(!agentReply||!user?.id)return;
     setQuestionError("");
@@ -254,7 +288,20 @@ export default function AgentsTeam() {
         <p className="text-xs text-muted-foreground">Your question: {agentReply.question}</p>
         <AgentConsultationTrail consultations={agentReply.consultations}/>
         <p className="ifund-agents-reply-body text-sm">{agentReply.answer}</p>
-        <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" disabled={skillBusy||questionBusy} onClick={()=>void runReplySkill()}
+            className="ifund-agents-action disabled:opacity-50">
+            {skillBusy?"Running specialist skill…":"Run specialist review skill"}
+          </button>
+          <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
+        </div>
+        {agentReply.skillResult && <div className="rounded-xl border border-border p-4">
+          <h4 className="font-semibold">Specialist checklist: {agentReply.skillResult.skill.replaceAll("_"," ")}</h4>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {agentReply.skillResult.checklist.map((item,i)=><li key={i}>{item}</li>)}
+          </ul>
+          <p className="mt-2 text-xs text-muted-foreground">Local advisory guidance only. No publishing, applications, payments or external communications were performed.</p>
+        </div>}
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
       <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
