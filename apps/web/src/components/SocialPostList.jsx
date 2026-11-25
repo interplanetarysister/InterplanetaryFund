@@ -83,7 +83,7 @@ function SocialItem({ post, likes, onHidden, user }) {
     finally { setWorking(false); }
   }
 
-  return <article id={`post-${post.id}`} className="ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
+  return <article id={`post-${post.id}`} className="ifund-interactive-card ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
       <p className="min-w-0 break-words font-semibold">
         {post.profile_id
@@ -101,9 +101,9 @@ function SocialItem({ post, likes, onHidden, user }) {
       className="max-h-96 w-full rounded-xl object-contain" />}
     {externalUrl && <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
-      {likeId && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
-      {discussionId && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
-      <button type="button" className="inline-flex min-h-11 items-center gap-2 text-primary" onClick={() => sharePost(post)}><Share2 size={17} /> Share</button>
+      {likeId && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="ifund-interactive inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
+      {discussionId && <button type="button" onClick={showReplies} className="ifund-interactive inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
+      <button type="button" className="ifund-interactive inline-flex min-h-11 items-center gap-2 text-primary" onClick={() => sharePost(post)}><Share2 size={17} /> Share</button>
       {post.profile_id && <Link className="inline-flex min-h-11 items-center text-primary underline" to={`/u/${post.profile_id}`}>View member</Link>}
       {(id || post.id?.startsWith("archive-")) && user && <button type="button" onClick={() => setReportOpen(v => !v)} className="ml-auto inline-flex min-h-11 items-center gap-1 text-muted-foreground"><Flag size={16} /> Report</button>}
     </div>
@@ -130,7 +130,7 @@ function SocialItem({ post, likes, onHidden, user }) {
 }
 
 function PublicCampaignVideoCard({ item }) {
-  return <article className="ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
+  return <article className="ifund-interactive-card ifund-social-card space-y-3 rounded-2xl border border-border bg-card p-5">
     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
       <span className="font-semibold">Public campaign</span>
       {item.posted_at && <time className="text-xs text-muted-foreground" dateTime={item.posted_at}>{new Date(item.posted_at).toLocaleDateString()}</time>}
