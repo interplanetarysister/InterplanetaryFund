@@ -37,6 +37,7 @@ const PAGE_TITLES = {
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
   if (pathname.startsWith("/missions/")) return "Private Mission";
+  if (pathname.startsWith("/workspace/campaign/")) return "Campaign Workspace";
   if (pathname.startsWith("/campaign/")) return "Campaign";
   if (pathname.startsWith("/campaigns/")) return "Edit Campaign";
   if (pathname.startsWith("/u/")) return "Member Profile";
@@ -361,7 +362,7 @@ export default function Layout() {
         </AnimatePresence>
         <QuickActions user={user} />
         <BackToTop />
-        {!pathname.startsWith("/campaign/") && !pathname.startsWith("/campaigns/") && <PlatformSupportHostedButton />}
+        {!pathname.startsWith("/campaign/") && !pathname.startsWith("/campaigns/") && !pathname.startsWith("/workspace/campaign/") && <PlatformSupportHostedButton />}
         <div><LegalFooter /></div>
       </main>
     </div>

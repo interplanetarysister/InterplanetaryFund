@@ -41,10 +41,10 @@ test("globe remains centered on North America until the user chooses to rotate",
 
 test("Atlas placement link deep-links to the campaign location fieldset",()=>{
   const atlas=read("../src/pages/Atlas.jsx");
-  const edit=read("../src/pages/EditCampaign.jsx");
+  const workspace=read("../src/pages/CampaignWorkspace.jsx");
   const fields=read("../src/components/atlas/CampaignLocationFields.jsx");
   assert.match(atlas,/edit#campaign-atlas-location/);
-  assert.match(edit,/campaign-atlas-location/);
+  assert.match(workspace,/campaign-atlas-location/);
   assert.match(fields,/id="campaign-atlas-location"/);
   assert.match(fields,/tabIndex=\{-1\}/);
 });

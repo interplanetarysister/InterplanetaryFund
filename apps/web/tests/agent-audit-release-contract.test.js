@@ -5,7 +5,7 @@ const read = path => readFileSync(new URL(path, import.meta.url),"utf8");
 
 test("publication editors expose stable field focus targets",() => {
   const gate=read("../src/components/campaigns/PrepublicationGate.jsx");
-  for(const page of ["CreateCampaign.jsx","EditCampaign.jsx"]) {
+  for(const page of ["CreateCampaign.jsx","CampaignWorkspace.jsx"]) {
     const src=read("../src/pages/"+page);
     for(const id of ["campaign-title","campaign-summary","campaign-story"])
       assert.match(src,new RegExp('id="'+id+'"'));

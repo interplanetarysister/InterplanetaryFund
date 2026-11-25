@@ -285,6 +285,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/workspace/campaign/:id",
+      "role": "member",
+      "component": "CampaignWorkspace",
+      "source_status": "not_verified",
+      "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/App.jsx; apps/web/tests/sprint-4-campaign-workspace.test.mjs",
+      "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/communications",
       "role": "member",
       "component": "CommunicationsWorkspace",

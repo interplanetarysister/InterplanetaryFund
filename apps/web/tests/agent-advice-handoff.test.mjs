@@ -38,7 +38,7 @@ test("only verified account UI, explicit click, and normal save can apply advice
  const team=readFileSync(new URL("../src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
  const review=readFileSync(new URL("../src/components/agents/AgentAdviceReview.jsx",import.meta.url),"utf8");
  const create=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
- const edit=readFileSync(new URL("../src/pages/EditCampaign.jsx",import.meta.url),"utf8");
+ const workspace=readFileSync(new URL("../src/pages/CampaignWorkspace.jsx",import.meta.url),"utf8");
  assert.match(team,/onClick=\{reviewAnswerInCampaign\}/);
  assert.match(team,/verified\.email_confirmed_at/);
  assert.match(review,/current\.data\?\.user\?\.id!==ownerId/);
@@ -47,5 +47,5 @@ test("only verified account UI, explicit click, and normal save can apply advice
  assert.match(review,/await onApply\(combined\)/);
  assert.doesNotMatch(review,/saveOwnerCampaign|publishCampaign|setCampaignStatus/);
  assert.match(create,/AgentAdviceReview[^>]+onApply=\{text => change\("story",text\)\}/);
- assert.match(edit,/AgentAdviceReview[^>]+onApply=\{text =>/);
+ assert.match(workspace,/AgentAdviceReview[^>]+onApply=\{text =>/);
 });

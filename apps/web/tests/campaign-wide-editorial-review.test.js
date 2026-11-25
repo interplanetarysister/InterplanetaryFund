@@ -59,7 +59,7 @@ test("duplicate removal never silently changes cross-field content or deletes th
 
 test("agent submission validates saved owner campaign and batches all findings",()=>{
  const ui=source("../src/components/campaigns/PrepublicationGate.jsx");
- const editor=source("../src/pages/EditCampaign.jsx");
+ const editor=source("../src/pages/CampaignWorkspace.jsx");
  const create=source("../src/pages/CreateCampaign.jsx");
  assert.match(ui,/select\("title,summary,story"\)/);
  assert.match(ui,/Save your current campaign edits before sending improvements/);
