@@ -9,7 +9,7 @@ import "@/styles-publishing-workflow.css";
 export const PUBLISHING_WORKFLOW = Object.freeze([
   { id: "agents", title: "AI Team", href: "/agents" },
   { id: "draft", title: "Messages", href: "/communications" },
-  { id: "creative", title: "Artwork", href: "/ai-images" },
+  { id: "creative", title: "Artwork", href: "/media-studio?tab=generator" },
   { id: "review", title: "Review & approvals", href: "/communications#reviewed-delivery" },
   { id: "connections", title: "Connections", href: "/connections" },
 ]);
