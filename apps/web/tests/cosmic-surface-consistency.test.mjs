@@ -26,8 +26,11 @@ test("private Mission and campaign editor surfaces use the shared cosmic panel",
 });
 
 test("standalone legal pages use the public cosmic background", () => {
-  assert.match(terms, /className="ifund-public min-h-screen/);
-  assert.match(privacy, /className="ifund-public min-h-screen/);
+  // Sprint 3 (2026-11-25): the ifund-legal modifier keeps the public cosmic
+  // background (soft washes + side rails) while confining the sacred-geometry
+  // lines off the body-text column.
+  assert.match(terms, /className="ifund-public ifund-legal min-h-screen/);
+  assert.match(privacy, /className="ifund-public ifund-legal min-h-screen/);
 });
 
 test("template handoff remains visible and does not change creator safeguards", () => {

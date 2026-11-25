@@ -13,14 +13,21 @@ test("new public homepage keeps sign in prominent and the prompt launches the or
   assert.match(home, /Your idea stays private until you choose to publish/);
   assert.match(app, /<Route path="\/our-story" element=\{<OurStory \/>\}/);
 });
-test("the original homepage remains preserved as a distinct Our Story page", () => {
+test("Our Story is a standalone story page, not a preserved copy of the old homepage", () => {
   const story=read("../src/pages/OurStory.jsx");
   const home=read("../src/pages/Home.jsx");
   const footer=read("../src/components/LegalFooter.jsx");
   assert.match(story, /Who is Interplanetary Fund/);
   assert.match(story, /The problem we're solving/);
   assert.match(story, /Turning What if into What happens next/);
-  assert.match(story, /CampaignCategoryGrid/);
+  // Sprint 3 (2026-11-25): the story is the page. The old homepage's prompt
+  // composer, category grid, featured campaigns and how-it-works are gone,
+  // and the story is no longer hidden behind a "Read more" expander — so
+  // /our-story no longer renders as a second homepage. The story copy, hero
+  // artwork and platform-support block are preserved, not the homepage.
+  assert.doesNotMatch(story, /PromptComposer|CampaignCategoryGrid|CampaignCard|listActiveCampaigns|expanded/);
+  assert.match(story, /Why we built Interplanetary Fund/);
+  assert.match(story, /useDocumentTitle\("Our Story"\)/);
   assert.match(footer, /to="\/our-story"/);
   assert.doesNotMatch(home, /const STORY = \[/);
 });

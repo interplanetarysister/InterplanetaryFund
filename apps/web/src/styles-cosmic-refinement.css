@@ -20,6 +20,34 @@
   animation: ifund-symmetric-drift 22s ease-in-out infinite alternate;
   background-repeat: no-repeat !important;
 }
+/* Sprint 3 (2026-11-25): legal pages keep the geometry OFF the body-text
+   column. The full-size cosmic-symmetry mandala (up to 700px, positioned
+   right -140px top -110px) crossed the centered max-w-3xl text column on
+   Terms/Privacy. Legal pages keep only the soft radial washes; the line
+   geometry survives as two narrow vertical strips pinned to the viewport
+   edges — a side rail, never under text — and only where the viewport is
+   wide enough for real side space (the 768px column leaves 166px per side
+   at 1100px, so a 96px rail fits with room to spare). */
+.ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-public.ifund-legal {
+  background-image:
+    radial-gradient(ellipse 40rem 35rem at 5% 12%, rgb(63 205 230 / .09), transparent 74%),
+    radial-gradient(ellipse 40rem 35rem at 95% 89%, rgb(124 84 226 / .10), transparent 74%) !important;
+  background-size: auto, auto !important;
+  background-position: center, center !important;
+  animation: none !important;
+}
+@media (min-width: 1100px) {
+  .ifund-global-companion-shell:not(.ifund-preserve-earth) .ifund-public.ifund-legal {
+    background-image:
+      url("/cosmic-symmetry.svg"),
+      url("/cosmic-symmetry.svg"),
+      radial-gradient(ellipse 40rem 35rem at 5% 12%, rgb(63 205 230 / .09), transparent 74%),
+      radial-gradient(ellipse 40rem 35rem at 95% 89%, rgb(124 84 226 / .10), transparent 74%) !important;
+    background-size: 96px auto, 96px auto, auto, auto !important;
+    background-position: left top, right top, center, center !important;
+    background-repeat: repeat-y, repeat-y, no-repeat, no-repeat !important;
+  }
+}
 .ifund-global-companion-shell .ifund-sacred-social::before {
   opacity: .30;
   background:
@@ -106,6 +134,7 @@
 }
 @media print {
  .ifund-global-companion-shell .ifund-shell [data-page-scroll],
- .ifund-global-companion-shell .ifund-public:not(.ifund-auth) {background-image:none !important;}
+ .ifund-global-companion-shell .ifund-public:not(.ifund-auth),
+ .ifund-global-companion-shell .ifund-public.ifund-legal {background-image:none !important;}
  .ifund-eclipse-moment::before,.ifund-sacred-social::before {display:none;}
 }

@@ -1,10 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import LegalFooter from "@/components/LegalFooter";
+import useDocumentTitle from "@/hooks/useDocumentTitle";
 import { TERMS_SECTIONS, TERMS_VERSION, LEGAL_EFFECTIVE_DATE, LEGAL_CONTACT } from "@/lib/legalPolicy";
 
 export default function Terms() {
-  return <main className="ifund-public min-h-screen bg-background text-foreground px-4 py-8 sm:py-12">
+  // Sprint 3: standalone legal page — own title (Layout's title effect does
+  // not run outside <Layout />) and ifund-legal confines the sacred geometry
+  // to side rails, off the body-text column.
+  useDocumentTitle("Terms of Service");
+  return <main className="ifund-public ifund-legal min-h-screen bg-background text-foreground px-4 py-8 sm:py-12">
     <article className="mx-auto max-w-3xl space-y-6">
       <Link to="/" className="text-sm font-semibold text-primary underline">Interplanetary Fund home</Link>
       <h1 className="text-3xl font-bold">Terms of Service</h1>
