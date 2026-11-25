@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MessageSquare, MessagesSquare } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import AgentOperationsRoom from "@/components/agents/AgentOperationsRoom";
+import { agentFromParam } from "@/lib/agentsPage.mjs";
 
 const AGENT_ORDER = ["nexus","story","polaris","orbit","echo","pulse","forge","link","discover"];
 
@@ -15,6 +16,18 @@ const AGENT_ORDER = ["nexus","story","polaris","orbit","echo","pulse","forge","l
 export default function Messaging() {
   const {user,status} = useAuthSession();
   const [active,setActive] = useState(null);
+  // Sprint 6 (2026-11-25): per-agent "continue conversation" links arrive
+  // as /messaging?agent=echo&campaign=<uuid>. The agent is validated, the
+  // side conversation opens for that agent, and the campaign stays in the
+  // URL so context is not lost when navigating back to the Agents page.
+  const [params] = useSearchParams();
+  const requestedAgent = agentFromParam(params.get("agent"));
+  const requestedCampaign = params.get("campaign");
+  useEffect(() => {
+    if (!requestedAgent) return;
+    setActive(requestedAgent);
+    window.dispatchEvent(new CustomEvent("ifund-open-agent", { detail: { agent: requestedAgent } }));
+  }, [requestedAgent]);
   useEffect(() => {
     const onOpen = event => setActive(event.detail?.agent || "nexus");
     window.addEventListener("ifund-open-agent",onOpen);
@@ -73,7 +86,7 @@ export default function Messaging() {
       </section>}
     <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
       <MessageSquare className="size-4 text-cyan-400"/>
-      <Link to="/agents" className="inline-flex min-h-11 items-center text-sm font-medium text-cyan-500 underline">Explore agent tools and specialties</Link>
+      <Link to={active ? `/agents?agent=${encodeURIComponent(active)}${requestedCampaign ? `&campaign=${encodeURIComponent(requestedCampaign)}` : ""}` : "/agents"} className="inline-flex min-h-11 items-center text-sm font-medium text-cyan-500 underline">Explore agent tools and specialties</Link>
     </div>
   </main>;
 }

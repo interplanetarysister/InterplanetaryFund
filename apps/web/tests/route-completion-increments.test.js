@@ -37,7 +37,9 @@ test("member analytics is discoverable without exposing administrator links", ()
   assert.match(explore || "", /to: "\/analytics", label: "Command Center"/);
   assert.doesNotMatch(administration || "", /to: "\/analytics"/);
   assert.match(layout, /navSections\.filter\(section => isAdmin \|\| isSuperAdmin \|\| section\.label !== "Administration"\)/);
-  assert.ok(route("/analytics")?.includes("<MemberAccess><AnalyticsCenter"),
+  // Sprint 6 (2026-11-25): /analytics folds into the tabbed Agents page;
+  // the legacy route stays a MemberAccess-guarded redirect, not an admin route.
+  assert.ok(route("/analytics")?.includes('<MemberAccess><LegacyAgentsRedirect tab="analytics"'),
     "member analytics must remain account-protected rather than administrator-only");
 });
 
@@ -52,7 +54,7 @@ test("working aliases keep public agent identity and private financial boundarie
   assert.match(team, /\{user && showWriting &&/, "private writing remains member-scoped");
   assert.match(team, /\{user && selected === "nexus"/, "owner briefing remains member-scoped");
   assert.ok(route("/donors")?.includes("<MemberAccess><CampaignEngagement"));
-  assert.ok(route("/analytics")?.includes("<MemberAccess><AnalyticsCenter"));
+  assert.ok(route("/analytics")?.includes('<MemberAccess><LegacyAgentsRedirect tab="analytics"'));
   assert.ok(route("/connect")?.includes('to="/connections"'));
   assert.ok(route("/activate")?.includes('to="/login"'));
   assert.match(page("AnalyticsCenter"), /FinanceDashboard/, "analytics must reuse verified finance views");

@@ -21,6 +21,8 @@ test("Strategy workspace gives safe, non-autonomous editing guidance", () => {
   assert.match(ui, /checks met/);
   assert.match(ui, /Cover check verifies only that a reference exists/);
   assert.match(ui, /\/campaigns\/"/);
-  assert.match(app, /path="\/strategy" element=\{<MemberAccess><CampaignStrategy \/><\/MemberAccess>\}/);
+  // Sprint 6 (2026-11-25): /strategy folds into the tabbed Agents page;
+  // the legacy route stays a MemberAccess-guarded redirect to the Strategy tab.
+  assert.match(app, /path="\/strategy" element=\{<MemberAccess><LegacyAgentsRedirect tab="strategy" \/><\/MemberAccess>\}/);
   assert.equal(AGENT_WORKSPACES.find(x=>x.service==="strategy_agent")?.path,"/strategy");
 });

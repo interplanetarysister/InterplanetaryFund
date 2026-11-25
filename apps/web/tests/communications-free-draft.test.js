@@ -21,7 +21,9 @@ test("only active campaign URLs are put in manual draft messages",()=>{
   assert.match(ui,/const item=state\.campaigns\.find\(c=>c\.id===campaignId\)/);
 });
 test("communications replace the placeholder route without lifting account controls",()=>{
-  assert.match(app,/path="\/communications" element=\{<MemberAccess><CommunicationsWorkspace \/><\/MemberAccess>\}/);
+  // Sprint 6 (2026-11-25): /communications folds into the tabbed Agents page;
+  // the legacy route stays a MemberAccess-guarded redirect to the Communications tab.
+  assert.match(app,/path="\/communications" element=\{<MemberAccess><LegacyAgentsRedirect tab="communications" \/><\/MemberAccess>\}/);
   assert.ok(!app.includes('"/communications", "/mission"'));
   assert.equal(identity?.path,"/communications");
 });

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import "@/styles-connected-interactions.css";
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { legacyAuthCallbackUrl } from "./lib/authFlow";
+import { agentsRedirectSearch } from "./lib/agentsPage.mjs";
 import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import GlobalAgentCompanion from "./components/agents/GlobalAgentCompanion";
@@ -86,13 +87,10 @@ const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const ManagePermissions = lazy(() => import("./pages/ManagePermissions"));
-const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
-const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
 const MemberOnboarding = lazy(() => import("./pages/MemberOnboarding"));
 const Devices = lazy(() => import("./pages/Devices"));
 const OperationsHub = lazy(() => import("./pages/OperationsHub"));
-const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
@@ -105,6 +103,16 @@ const STANDALONE_COMING_SOON = [];
 const LAYOUT_COMING_SOON = [];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
+
+// Sprint 6 (2026-11-25): the legacy /analytics, /strategy and
+// /communications routes fold into the single tabbed Agents page (40-page
+// list, page 28). The redirect preserves any campaign query parameter and
+// the #hash (for example /communications#reviewed-delivery), and stays
+// behind MemberAccess exactly as the old routes were.
+function LegacyAgentsRedirect({ tab }) {
+  const { search, hash } = useLocation();
+  return <Navigate to={{ pathname: "/agents", search: agentsRedirectSearch(tab, search), hash }} replace />;
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -152,7 +160,7 @@ function AppRoutes() {
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
-      <Route path="/analytics" element={<MemberAccess><AnalyticsCenter /></MemberAccess>} />
+      <Route path="/analytics" element={<MemberAccess><LegacyAgentsRedirect tab="analytics" /></MemberAccess>} />
       <Route path="/donors" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
       <Route path="/connect" element={<Navigate to="/connections" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
@@ -168,8 +176,8 @@ function AppRoutes() {
       <Route path="/engagement" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
       <Route path="/preferences" element={<Navigate to="/permissions?section=marketing" replace />} />
       <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
-      <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
-      <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
+      <Route path="/strategy" element={<MemberAccess><LegacyAgentsRedirect tab="strategy" /></MemberAccess>} />
+      <Route path="/communications" element={<MemberAccess><LegacyAgentsRedirect tab="communications" /></MemberAccess>} />
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
       <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
