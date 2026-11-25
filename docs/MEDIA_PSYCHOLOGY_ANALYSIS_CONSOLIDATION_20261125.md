@@ -2,7 +2,7 @@
 Updated: 2026-11-25. Status: implementation contract / research-backed direction, not a trained prediction model.
 
 ## Product placement
-This belongs in the existing **Growth Studio** (`/communications?tab=audience`), not a new top-level page. Media creation and editing live at `/communications?tab=media`. The existing campaign Command Center (`/analytics`) retains observed engagement and verified analytics; `/agents` retains specialist discussions and coaching. Preserve legacy routes, campaign ownership, existing provider-limited AI images, approvals, consent, and media uploads.
+This belongs in **Growth Studio → Media → Pre-post Optimization** (`/communications?tab=media&tool=optimization`), not a new top-level page. Media editing and artwork live in adjacent Media subtabs; `/communications?tab=audience` is reserved for actual reviewer feedback and observed engagement. The existing campaign Command Center (`/analytics`) retains observed engagement and verified analytics; `/agents` retains specialist discussions and coaching. Preserve legacy routes, campaign ownership, existing provider-limited AI images, approvals, consent, and media uploads.
 
 ## The media review the user intends
 Media reviews must reason about **probability of recall/memorability**, **initial attention**, **continued attention**, **desire to engage**, **trust/empathy**, **CTA conversion inclination**, and **media fatigue/overstimulation**, with audience and destination conditions made explicit. Provide actionable edit suggestions tied to specific timestamps or media segments, not arbitrary generic writing tips. Optimize for the campaign's actual audience and purpose, not maximum clicks at the expense of accuracy and dignity.
