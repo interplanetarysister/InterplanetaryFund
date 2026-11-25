@@ -54,3 +54,17 @@ export default function CampaignLaunchSuccess({ onClose }) {
     </section>
   </div>;
 }
+
+/** A distinct progress state: never asserts publication succeeded. */
+export function CampaignLaunchProgress() {
+  return <div className="ifund-launch-backdrop" role="status" aria-live="polite" aria-label="Publishing campaign">
+    <div className="ifund-launch-panel" aria-busy="true">
+      <div className="ifund-launch-orbit" aria-hidden="true">
+        <Rocket className="ifund-launch-rocket" size={74} strokeWidth={1.6}/>
+      </div>
+      <p className="ifund-launch-eyebrow">Launch in progress</p>
+      <h2 className="font-display text-2xl font-bold">Publishing your campaign…</h2>
+      <p className="mt-3 text-sm leading-6 text-slate-200">Confirming your campaign with iFund. Keep this page open until the result appears.</p>
+    </div>
+  </div>;
+}
