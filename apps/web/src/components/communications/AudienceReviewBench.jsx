@@ -1,13 +1,12 @@
 import { useState } from "react";
 import CampaignEngagement from "../../pages/CampaignEngagement";
-import { evaluatePostDraft, summarizeAudienceFeedback } from "../../lib/audiencePostReview.mjs";
+import { summarizeAudienceFeedback } from "../../lib/audiencePostReview.mjs";
 
 export default function AudienceReviewBench() {
   const [draft, setDraft] = useState("");
   const [rating, setRating] = useState("3");
   const [notes, setNotes] = useState("");
   const [responses, setResponses] = useState([]);
-  const assessment = evaluatePostDraft(draft);
   const summary = summarizeAudienceFeedback(responses.map(row => row.rating));
   function addResponse(event) {
     event.preventDefault();
@@ -26,11 +25,6 @@ export default function AudienceReviewBench() {
         <textarea rows={5} value={draft} maxLength={4000} onChange={e => {setDraft(e.target.value); setResponses([]);}}
           className="mt-2 w-full rounded-xl border border-input bg-background p-3" placeholder="Paste a message you're considering publishing…" />
       </label>
-      {assessment.score !== null && <section aria-label="Editorial checklist" className="space-y-3 rounded-xl border p-4">
-        <p className="font-semibold">Editorial checklist: {assessment.score}/100</p>
-        <p className="text-xs text-muted-foreground">This is a transparent, equal-weight content checklist—not an AI audience prediction, verified audience rating, donation forecast, or scientific effectiveness score. Edit the post and retest with real readers.</p>
-        <ul className="space-y-2 text-sm">{assessment.items.map(item => <li key={item.label}>{item.pass ? "✓ " : "Needs review: "}{item.label}</li>)}</ul>
-      </section>}
       <form onSubmit={addResponse} className="space-y-3 rounded-xl border p-4">
         <h3 className="font-semibold">Record an actual reviewer's response</h3>
         <p className="text-sm text-muted-foreground">Ask the reviewer whether the message is understandable, trustworthy and worth sharing, without prompting a particular answer. Only enter feedback they actually gave.</p>
