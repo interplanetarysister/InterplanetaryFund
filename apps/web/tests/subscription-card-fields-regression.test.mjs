@@ -8,6 +8,7 @@ const creator=readFileSync(new URL("../src/pages/WhatIfStart.jsx",import.meta.ur
 test("direct card entry is the default one-time checkout for Premium",()=>{
  assert.match(chooser,/initialBillingChoice\("card"\)/);
  assert.match(chooser,/<PremiumOneTimeCheckout key=\{choice\.method\}/);
+ assert.match(chooser,/Enter my card number instead/);
  assert.match(checkout,/aria-label="Secure one-time card fields"/);
  assert.match(checkout,/card\.NumberField\(\)/);
  assert.match(checkout,/card\.ExpiryField\(\)/);
