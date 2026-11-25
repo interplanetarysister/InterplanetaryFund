@@ -8,7 +8,8 @@ export const SETUP_COLUMNS="campaign_id,owner_id,draft_step,end_date,location,lo
 const text=(value,max)=>typeof value==="string"?value.slice(0,max):"";
 export function campaignSetupPayload(form={},draftStep=0){
   const brief=form.writing_brief||form.ai_profile?.writing_brief||{};
-  const imageStyle=["interstellar","futuristic","cyberpunk","comic"].includes(form.ai_profile?.image_style)?form.ai_profile.image_style:"interstellar";
+  // Old campaign drafts retain their own story and caption, but all new cover art uses one IFund brand style.
+  const imageStyle="ifund";
   const profile={tone:text(form.ai_profile?.tone,200),never_change:text(form.ai_profile?.never_change,2000),image_style:imageStyle,image_caption:text(form.ai_profile?.image_caption,100),
     writing_brief:{wizard_version:2,writingPath:text(brief.writingPath,40),details:text(brief.details,1500),beneficiary:text(brief.beneficiary,100),need:text(brief.need,100),support_type:supportNeed(brief.support_type).id}};
   if(new TextEncoder().encode(JSON.stringify(profile)).length>7900)throw Error("Your writing preferences are too long. Shorten the instructions before saving.");
