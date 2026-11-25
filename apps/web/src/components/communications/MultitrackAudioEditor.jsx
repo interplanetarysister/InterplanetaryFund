@@ -184,7 +184,7 @@ export default function MultitrackAudioEditor() {
     if (!tracks.length || busy) return;
     setIssue(""); setNotice(""); setBusy(true);
     try {
-      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio});
+      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio,duckAttackMs,duckReleaseMs,duckLookaheadMs});
       clearPreview();
       previewObject.current = URL.createObjectURL(blob);
       setPreviewUrl(previewObject.current);
@@ -199,7 +199,7 @@ export default function MultitrackAudioEditor() {
       const client = authClient();
       const before = await client.auth.getUser();
       if (before.error || !before.data?.user?.id) throw new Error("Sign in before preparing media versions.");
-      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb});
+      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio,duckAttackMs,duckReleaseMs,duckLookaheadMs});
       const after = await client.auth.getUser();
       if (after.error || after.data?.user?.id !== before.data.user.id)
         throw new Error("Your account changed while preparing audio.");
@@ -256,7 +256,7 @@ export default function MultitrackAudioEditor() {
       recording.current = current;
       recorder.start(200);
       if (playBacking && tracks.length) {
-        try { current.backing = scheduleMix(context, activeMixTracks(), context.destination, { master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio }); }
+        try { current.backing = scheduleMix(context, activeMixTracks(), context.destination, { master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio,duckAttackMs,duckReleaseMs,duckLookaheadMs }); }
         catch (e) { setNotice("Recording started, but backing playback was unavailable."); }
       }
       current.limit = setTimeout(() => {
