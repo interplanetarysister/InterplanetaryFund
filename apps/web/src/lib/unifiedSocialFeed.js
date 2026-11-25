@@ -7,19 +7,33 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * The input must come from the existing active, RLS-visible campaign query.
  * Never infer public visibility from a draft, a link, or a private media asset.
  */
-export function publicCampaignVideoEntries(campaigns = []) {
+function safePublicImage(raw) {
+  if (typeof raw !== "string" || raw.length > 2048) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" && !u.username && !u.password ? u.href : null;
+  } catch { return null; }
+}
+
+export function publicCampaignMediaEntries(campaigns = []) {
   if (!Array.isArray(campaigns)) throw new Error("Invalid public campaign video response.");
   return campaigns.filter(c => c && UUID.test(c.id) && c.status === "active" && c.preview_only !== true)
     .map(c => {
       const video = videoFromUrl(c.cover_image_url) || videoFromText(c.story) || videoFromText(c.summary);
-      if (!video) return null;
+      const image = video ? null : safePublicImage(c.cover_image_url);
+      if (!video && !image) return null;
       const date = typeof c.created_at === "string" && Number.isFinite(Date.parse(c.created_at))
         ? c.created_at : null;
-      return { id: "campaign-" + c.id, type: "campaign-video", posted_at: date,
+      return { id: "campaign-" + c.id, type: "campaign-media", posted_at: date,
         title: String(c.title || "Campaign video").slice(0, 200),
         description: String(c.summary || "").slice(0, 500),
-        video, href: "/campaign/" + encodeURIComponent(c.id) };
+        video, image, href: "/campaign/" + encodeURIComponent(c.id) };
     }).filter(Boolean);
+}
+
+// Keep the video-only selector usable for consumers that must not show images.
+export function publicCampaignVideoEntries(campaigns = []) {
+  return publicCampaignMediaEntries(campaigns).filter(item => Boolean(item.video));
 }
 
 /** Stable chronological combination; duplicate campaign entries are suppressed. */
@@ -33,7 +47,7 @@ export function unifiedSocialEntries(posts = [], campaigns = []) {
     seen.add(post.id);
     entries.push({ ...post, type: "social-post" });
   }
-  for (const campaign of publicCampaignVideoEntries(campaigns)) {
+  for (const campaign of publicCampaignMediaEntries(campaigns)) {
     if (seen.has(campaign.id)) continue;
     seen.add(campaign.id);
     entries.push(campaign);
