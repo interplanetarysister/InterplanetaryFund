@@ -15,7 +15,6 @@ export const AUDIO_EFFECT_DEFAULTS = Object.freeze({
 });
 
 const finite = value => typeof value === "number" && Number.isFinite(value);
-const limit = (n, min, max) => Math.min(max, Math.max(min, n));
 export function validateTrackEdit(track, sourceDuration = track?.buffer?.duration ?? track?.duration) {
   if (!track || !TRACK_ROLES.includes(track.role)) throw new Error("Unsupported audio lane.");
   if (![track.start, track.trimStart, track.trimEnd, track.volume, sourceDuration].every(finite))
