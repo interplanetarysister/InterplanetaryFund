@@ -197,12 +197,12 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         const gateway = await status.json().catch(() => null);
         const verified = identityResponse.data?.user;
         const permitted = !preferences.error && canAskAgentWithSavedPermission({ user: verified, ownerId: owner, preferences: preferences.data });
-        const subscribed = !subscription.error && subscription.data?.active === true && Number.isInteger(subscription.data.level) && subscription.data.level >= 1;
+        const accountEligible = !subscription.error && typeof subscription.data?.tier === "string" && Number.isInteger(subscription.data.level) && subscription.data.level >= 0;
         if (controller.signal.aborted) return;
         setAvailability({
-          loading: false, enabled: status.ok && gateway?.configured === true && subscribed && permitted && verified?.id === owner,
+          loading: false, enabled: status.ok && gateway?.configured === true && accountEligible && permitted && verified?.id === owner,
           reason: !status.ok || gateway?.configured !== true ? "Direct agent answers are unavailable on this deployment." :
-            !subscribed ? "Direct answers require a verified AI membership." :
+            !accountEligible ? "Your account access could not be verified." :
             !permitted ? "Enable private AI assistance in your permissions to ask an agent." : "",
         });
       } catch {
@@ -282,10 +282,10 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Discover</Link>
         {user && <Link to="/dashboard" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Dashboard</Link>}
       </nav>
-      {!availability.enabled && <PremiumOpportunity context="agent" compact />}
+      {!availability.enabled && !availability.loading && <PremiumOpportunity context="agent" compact />}
       {!availability.enabled && <p role="status" className="mb-2 text-sm text-slate-200">{availability.loading ? "Checking agent access…" : availability.reason}{" "}
         {!user ? <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link> :
-          <Link className="underline" to="/subscriptions">Agent plans and permissions</Link>}
+          <Link className="underline" to="/permissions?section=ai">Review AI permissions</Link>}
       </p>}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <button type="button" aria-label={listening ? "Stop dictation" : "Dictate a message"} aria-pressed={listening}
