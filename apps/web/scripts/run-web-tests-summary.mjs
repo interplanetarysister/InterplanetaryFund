@@ -1,6 +1,6 @@
 // Run the complete existing web test suite while preserving actionable build diagnostics.
 // Cloudflare Pages truncates verbose per-test output; never hide a failed test.
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -9,7 +9,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const local = readdirSync(path.join(root, "tests"))
   .filter(name => /\.test\.m?js$/.test(name))
   .sort().map(name => "tests/" + name);
-const files = [...local, "../../tests/paypal-sandbox-handler.test.js",
+// Run timing-sensitive security assertions in a dedicated mandatory process.
+// The suite cannot pass if these assertions fail.
+const isolated = "tests/session-microtask-boundaries.test.js";
+const isolatedRun = spawnSync(process.execPath, ["--test", "--test-reporter=spec", isolated], {
+  cwd: root, env: process.env, encoding: "utf8", maxBuffer: 2 * 1024 * 1024
+});
+console.log("Session-boundary security test:", isolatedRun.status === 0 ? "PASS" : "FAIL");
+if (isolatedRun.status !== 0 || isolatedRun.error || isolatedRun.signal) {
+  console.error("Session-boundary diagnostics:\n" + (isolatedRun.stdout || "").slice(-12000) + "\n" + (isolatedRun.stderr || "").slice(-6000));
+  process.exit(1);
+}
+const files = [...local.filter(name => name !== isolated), "../../tests/paypal-sandbox-handler.test.js",
   "../../tests/paypal-sandbox-security.test.js",
   "../../tests/agent-browser-policy.test.mjs",
   "../../tests/browser-tooling-install.test.mjs",
