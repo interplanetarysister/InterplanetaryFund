@@ -29,3 +29,34 @@ test('service discovery rejects malformed entitlement receipts rather than adver
   assert.equal(response.status,503);
  }
 });
+
+test('existing Pages agent service bindings forward all specialist and authorized practice endpoints',async()=>{
+ const cases=[
+  ['/api/agents/team/status','IFUND_AGENT_SERVICE','GET'],
+  ['/api/agents/team/question','IFUND_AGENT_SERVICE','POST'],
+  ['/api/agents/team/practice','IFUND_AGENT_SERVICE','POST'],
+  ['/api/agents/team/research','IFUND_AGENT_SERVICE','POST'],
+  ['/api/agents/strategy/workspace','IFUND_STRATEGY_AGENT','GET'],
+  ['/api/agents/growth/brief','IFUND_GROWTH_AGENT','POST'],
+  ['/api/agents/connections/methods','IFUND_CONNECTIONS_AGENT','GET'],
+ ];
+ for(const [path,binding,method] of cases){
+  let calls=0;
+  const env={[binding]:{fetch:async request=>{
+   calls++;
+   assert.equal(new URL(request.url).pathname,path);
+   assert.equal(request.method,method);
+   assert.equal(request.headers.get('authorization'),'Bearer testing.jwt');
+   assert.equal(request.headers.get('x-ifund-debug'),null);
+   if(method==='POST')assert.deepEqual(await request.json(),{test:'binding_only'});
+   return Response.json({source:binding,ok:true});
+  }}};
+  const response=await worker.fetch(new Request('https://ifund.test'+path,{
+   method,headers:{authorization:'Bearer testing.jwt',...(method==='POST'?{'content-type':'application/json'}:{})},
+   ...(method==='POST'?{body:JSON.stringify({test:'binding_only'})}:{})
+  }),env);
+  assert.equal(response.status,200,path);
+  assert.equal(calls,1,path);
+  assert.equal((await response.json()).source,binding);
+ }
+});
