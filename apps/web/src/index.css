@@ -1,3 +1,4 @@
+@import "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap";
 @import "../public/fonts/ifund-fonts.css";
 
 @import "./styles-ifund-studio.css";
@@ -36,9 +37,9 @@
     --chart-4: 199 89% 48%;
     --chart-5: 226 71% 40%;
     --radius: 0.875rem;
-    --font-heading: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Fraunces', ui-serif, serif;
+    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif; /* Orbital Display is blocked until specific embedding license is verified. */
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --sidebar-background: 229 45% 7%;
     --sidebar-foreground: 214 40% 90%;
@@ -875,3 +876,26 @@ html:not(.dark) .campaign-quest input[type="date"]::-webkit-calendar-picker-indi
 .ifund-chart-card .ifund-chart-values strong{text-align:right;font-variant-numeric:tabular-nums;color:#102238;}
 .ifund-chart-card p.text-muted-foreground,.ifund-chart-card ul.text-muted-foreground{color:#546377;}
 @media (prefers-color-scheme:dark){.dark .ifund-chart-card{border-color:#405a74}}
+
+/* Cosmic Geometry typography decision, 2026-11-25.
+   Page/section headings = Space Grotesk; UI/transactional copy = Inter.
+   Marketing-only Orbital Display is NOT bundled or loaded pending license.
+   Keep this layer separate from hosted provider payment-field iframes. */
+@layer base {
+  :where(h1, h2, h3, h4, h5, h6) { font-family: var(--font-heading); }
+  :where(body, nav, button, input, textarea, select, label, [role="dialog"], [role="log"], [role="table"], table) { font-family: var(--font-body); }
+  :where(input, textarea, select) { font-size: max(16px, 1em); }
+}
+@layer components {
+  .ifund-marketing-hero {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -.035em;
+  }
+  .ifund-page-heading { font-family: var(--font-heading); font-size: clamp(28px, 3vw, 32px); line-height: 1.18; }
+  .ifund-section-heading { font-family: var(--font-heading); font-size: clamp(22px, 2.5vw, 24px); line-height: 1.25; }
+  .ifund-body-copy { font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+  .ifund-secondary-copy { font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+  .ifund-caption { font-family: var(--font-body); font-size: 13px; line-height: 1.45; }
+}
