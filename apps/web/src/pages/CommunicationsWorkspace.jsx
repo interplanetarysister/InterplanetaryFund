@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
+import PublishingWorkflowNav from "@/components/communications/PublishingWorkflowNav";
 import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
 import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWorkspace";
 import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
@@ -81,12 +82,13 @@ export default function CommunicationsWorkspace() {
     }
   }
   return <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-8">
+    <PublishingWorkflowNav current="draft" campaignId={campaignId}/>
     <header>
       <h1 className="text-3xl font-bold">ECHO · Communications workspace</h1>
       <p className="mt-2 text-sm text-muted-foreground">Prepare a free, editable campaign message using your own campaign. This local template does not call an AI model or send email, direct messages, or social posts. The ECHO service below separately supports saved drafts, AI-assisted writing where authorized, and reviewed in-app updates.</p>
     </header>
-    {state.phase==="loading"&&<p role="status">Loading your campaigns…</p>}
-    {state.phase==="error"&&<p role="alert" className="rounded-xl border border-red-500/50 p-4">{state.error}</p>}
+    {state.phase==="loading"&&<p role="status" className="ifund-feedback-loading">Loading your campaigns…</p>}
+    {state.phase==="error"&&<p role="alert" className="ifund-feedback-error">{state.error}</p>}
     {state.phase==="ready"&&<section className="space-y-4 rounded-xl border border-border bg-card p-5">
       <label className="block text-sm font-semibold">Your campaign
         <select className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background p-2"
@@ -103,7 +105,7 @@ export default function CommunicationsWorkspace() {
         </select>
       </label>
       <button type="button" onClick={prepare} disabled={!campaignId}
-        className="min-h-11 rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white disabled:opacity-50">Prepare local draft</button>
+        className="ifund-interactive min-h-11 rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white disabled:opacity-50">Prepare local draft</button>
       <label className="block text-sm font-semibold">Review and edit
         <textarea className="mt-2 min-h-48 w-full rounded-lg border border-border bg-background p-3" maxLength={4000}
           value={message} onChange={e=>setMessage(e.target.value)} />
@@ -113,12 +115,16 @@ export default function CommunicationsWorkspace() {
         setStatus("Reference inserted into this editable draft only. Review its accuracy and confirm any intended outreach separately.");
       }} />
       <EchoSavedTemplates message={message} onApply={setMessage}/>
+      <section id="reviewed-delivery" className="ifund-workflow-section space-y-2" aria-label="Review and approve messaging">
+        <h2 className="text-lg font-semibold">Review & approvals</h2>
+        <p className="text-sm text-muted-foreground">Check recipients, platform permissions, and final wording before any supported in-app delivery. No external posting happens just by opening this section.</p>
       <EchoApprovedMessaging campaignId={campaignId}
         campaignStatus={state.campaigns.find(item=>item.id===campaignId)?.status||""}
         message={message}/>
+      </section>
       <button type="button" onClick={copy} disabled={!message.trim()}
-        className="min-h-11 rounded-lg border border-border px-4 py-2 font-semibold disabled:opacity-50">Copy for manual sharing</button>
-      {status&&<p role="status" className="text-sm text-muted-foreground">{status}</p>}
+        className="ifund-interactive min-h-11 rounded-lg border border-border px-4 py-2 font-semibold disabled:opacity-50">Copy for manual sharing</button>
+      {status&&<p role="status" className="ifund-workflow-feedback ifund-feedback-success">{status}</p>}
       <p className="text-xs text-muted-foreground">A template is not a verified fact. Only share an active public campaign, avoid unapproved contact lists, and confirm you have permission to message each recipient.</p>
       <Link className="text-sm underline" to="/preferences">Review your own optional outreach preferences</Link>
     </section>}
