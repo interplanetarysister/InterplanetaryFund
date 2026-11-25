@@ -258,7 +258,10 @@ export function encodePcmWav(buffer) {
   const arrays = Array.from({length:channels},(_,i)=>buffer.getChannelData(i));
   let p = 44;
   for(let i=0;i<length;i++) for(let ch=0;ch<channels;ch++){
-    const v = limit(arrays[ch][i] || 0,-1,1);
+    const v = arrays[ch][i];
+    if (!Number.isFinite(v)) throw new Error("Rendered audio contains invalid samples.");
+    if (v < -1 || v > 1)
+      throw new Error("Rendered audio is clipping. Lower track or master volume, or enable compression before saving.");
     out.setInt16(p,Math.round(v < 0 ? v*32768 : v*32767),true);
     p+=2;
   }
