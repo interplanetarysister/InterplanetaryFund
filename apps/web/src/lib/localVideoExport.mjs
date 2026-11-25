@@ -97,6 +97,11 @@ export async function renderLocalVideoVariant({
   try{
     if(video.readyState<1)await eventOrTimeout(video,"loadedmetadata",signal);
     const clip=videoExportWindow(video.duration,variant.trimStart||0,variant.trimEnd||0);
+    const speed=Number(variant.videoSpeed??1);
+    if(!Number.isFinite(speed)||speed<0.5||speed>2||clip.duration/speed>MAX_EXPORT_SECONDS)
+      throw Error("The rendered video would exceed 60 seconds; shorten the selection or increase playback speed.");
+    video.playbackRate=speed;
+    if(overlay)overlay.playbackRate=speed;
     if(clip.from>0){
       const seek=eventOrTimeout(video,"seeked",signal);
       video.currentTime=clip.from;await seek;
@@ -155,7 +160,7 @@ export async function renderLocalVideoVariant({
       onProgress(Math.round(100*elapsed/clip.duration));
       if(video.ended||video.currentTime>=clip.to-0.04)stop();
     },Math.round(1000/OUTPUT_FPS));
-    timeout=setTimeout(stop,Math.ceil((clip.duration+8)*1000));
+    timeout=setTimeout(stop,Math.ceil((clip.duration/speed+8)*1000));
     await video.play();
     if(overlay && overlay.duration>clip.from)await overlay.play();
     await completion;
@@ -164,7 +169,7 @@ export async function renderLocalVideoVariant({
     if(blob.size<1024 || blob.size>MAX_OUTPUT_BYTES)
       throw Error("Encoded video is empty or exceeds the local file limit.");
     onProgress(100);
-    return {blob,format:format.extension,width,height,duration:clip.duration,
+    return {blob,format:format.extension,width,height,duration:clip.duration/speed,
       caveat:"Browser-recorded video; check actual playback, synchronization and each destination's upload requirements before posting."};
   } finally {
     signal?.removeEventListener("abort",cancel);
