@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import LegalFooter from "@/components/LegalFooter";
+import useDocumentTitle from "@/hooks/useDocumentTitle";
 import { LEGAL_CONTACT, LEGAL_EFFECTIVE_DATE } from "@/lib/legalPolicy";
 
 // Separate notice for Washington consumer health data. Do not use this
@@ -23,8 +24,13 @@ const sections = [
   ]}
 ];
 export default function HealthPrivacy() {
+  // Sprint 3: standalone legal page — own title (Layout's title effect does
+  // not run outside <Layout />) and ifund-legal confines the sacred geometry
+  // to side rails, off the body-text column. This page had no ifund-public
+  // class, so it also gains the shared legal-page background treatment.
+  useDocumentTitle("Health Privacy");
   return (
-    <main className="min-h-screen bg-background px-4 py-8 text-foreground sm:py-12">
+    <main className="ifund-public ifund-legal min-h-screen bg-background px-4 py-8 text-foreground sm:py-12">
       <article className="mx-auto max-w-3xl space-y-6">
         <Link to="/" className="text-sm font-semibold text-primary underline">Interplanetary Fund home</Link>
         <h1 className="text-3xl font-bold">Consumer Health Data Privacy Notice</h1>

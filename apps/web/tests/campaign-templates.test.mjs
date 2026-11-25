@@ -100,10 +100,15 @@ test("the homepage and dashboard use the shared prompt and real campaign data", 
     assert.match(page, /PromptComposer/);
     assert.match(page, /min-h-12|ifund-tap|min-h-\[44px\]/);
   }
-  const story = source("../src/pages/OurStory.jsx");
-  assert.match(story, /listActiveCampaigns/);
-  assert.match(story, /CampaignCategoryGrid/);
-  assert.match(story, /CampaignCard/);
+  // Sprint 3 (2026-11-25): Our Story no longer duplicates the homepage's
+  // campaign browsing — real campaign data renders on Discover, and the
+  // category grid lives on the campaign templates page. The story page
+  // keeps the story copy, hero artwork and platform-support block.
+  const discover = source("../src/pages/Discover.jsx");
+  assert.match(discover, /listActiveCampaigns/);
+  assert.match(discover, /CampaignCard/);
+  const templates = source("../src/pages/CampaignTemplates.jsx");
+  assert.match(templates, /CampaignCategoryGrid/);
   assert.match(home, /to="\/our-story"/);
   assert.match(dashboard, /AGENT_WORKSPACES\.map/);
   assert.match(dashboard, /AgentIdentityIcon/);

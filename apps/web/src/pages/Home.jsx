@@ -8,8 +8,8 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import QuickActions from "@/components/QuickActions";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
-// Public entry is deliberately focused. The archived original homepage lives at
-// /our-story, while the established three-step creator remains at /create.
+// Public entry is deliberately focused. The full story lives at /our-story
+// as a standalone page, while the established three-step creator remains at /create.
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuthSession();
