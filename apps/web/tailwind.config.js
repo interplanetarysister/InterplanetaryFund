@@ -66,7 +66,17 @@ export default {
   		fontFamily: {
   			heading: ['var(--font-heading)'],
   			body: ['var(--font-body)'],
+  			/* Hero/promo use the Orbital Display stack; the face itself is
+  			   license-unverified, so these resolve to Space Grotesk until
+  			   the foundry/license is confirmed. See src/index.css. */
+  			hero: ['var(--font-hero)'],
+  			promo: ['var(--font-promo)'],
+  			ui: ['var(--font-ui)'],
+  			financial: ['var(--font-financial)'],
   			display: ['var(--font-display)'],
+  			/* Fraunces remains the editorial storytelling face, tokenized
+  			   for storytelling surfaces only — never the display face. */
+  			story: ['var(--font-story)'],
   			mono: ['var(--font-mono)']
   		},
   		keyframes: {

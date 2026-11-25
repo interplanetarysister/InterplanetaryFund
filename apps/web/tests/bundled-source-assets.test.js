@@ -7,7 +7,9 @@ const read = path => readFileSync(new URL(path, root));
 const manifest = JSON.parse(read('asset-sources.json'));
 
 test('every authorized bundled artwork/font matches its recorded source bytes and SHA256', () => {
-  assert.equal(manifest.assets.length, 22);
+  // 24 entries: the 22 recorded at #379 plus the Space Grotesk variable TTF
+  // and its OFL text, committed by #378 and provenanced here (rebase 2026-11-25).
+  assert.equal(manifest.assets.length, 24);
   const paths = new Set();
   for (const asset of manifest.assets) {
     assert.equal(paths.has(asset.path), false, asset.path);paths.add(asset.path);
