@@ -301,7 +301,7 @@ Use `colors.agent.*` only for the nine agent identity glyphs and per-card accent
 
 ## Typography
 
-Inter remains locally bundled. Space Grotesk is an open-licensed Google Fonts family loaded via a hosted stylesheet pending local-asset packaging; verify external font availability and CSP on the deployed site. Orbital Display is not loaded, bundled, or distributed until its exact license and provenance are confirmed.
+Inter and Space Grotesk are both locally bundled in `apps/web/public/fonts/`, and the Space Grotesk SIL OFL 1.1 license is distributed alongside its upstream font file. No external font service is required. Orbital Display remains blocked until its exact font license and provenance are confirmed. Orbital Display is not loaded, bundled, or distributed until its exact license and provenance are confirmed.
 
 - **Marketing display (license-gated):** Orbital Display is approved in concept ONLY for the marketing hero and major promotional headlines. The exact foundry, web/mobile embedding terms, and usable licensed files remain unverified. Do not bundle, load, or ship the font; Space Grotesk is the safe current fallback.
 - **Headings:** Space Grotesk for page and section headings, with 32px desktop / 28px phone for page headings and 24px desktop / 22px phone for sections.
