@@ -146,7 +146,7 @@ function AppRoutes() {
       <Route path="/agents" element={<AgentsTeam />} />
       <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
       <Route path="/mission" element={<AgentsTeam />} />
-      <Route path="/ai-images" element={<MemberAccess><Navigate to="/communications?tab=artwork" replace /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><Navigate to="/communications?tab=media&tool=artwork" replace /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
