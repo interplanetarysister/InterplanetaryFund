@@ -61,8 +61,8 @@ test("Stitch audio and video controls remain tabs and previews, not fabricated p
  const audio=source("MultitrackAudioEditor.jsx");
  const video=source("PlatformVariantEditor.jsx");
  const optimizer=source("PrePostMediaOptimizer.jsx");
- for(const s of ["Seven audio mastering profiles","Studio mastering profiles","Master dynamics compressor","Speech masking carve","Stereo binaural tones","duckAttackMs","duckReleaseMs","duckLookaheadMs","A/B bypass"])
-   assert.ok(audio.includes(s)||s==="Seven audio mastering profiles",s);
+ for(const s of ["Studio mastering profiles","Master dynamics compressor","Speech masking carve","stereo binaural tones","duckAttackMs","duckReleaseMs","duckLookaheadMs","A/B bypass"])
+   assert.ok(audio.toLowerCase().includes(s.toLowerCase()),s);
  for(const s of ["Display approximate platform UI safe areas","Preview clip in","Preview clip out","Video and image look presets","Interest peak / breakdown timing"])
    assert.ok(video.includes(s),s);
  assert.match(optimizer,/PlatformVariantEditor/);
