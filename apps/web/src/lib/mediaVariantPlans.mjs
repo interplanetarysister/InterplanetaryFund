@@ -13,6 +13,9 @@ export const PLATFORM_FRAMES = Object.freeze({
   "youtube-shorts": { name: "YouTube Shorts", width: 1080, height: 1920, placement: "Vertical short-form", cueWindow: [0.22, 0.55] },
   "instagram-feed": { name: "Instagram Feed", width: 1080, height: 1350, placement: "Portrait feed", cueWindow: [0.32, 0.67] },
   "facebook-feed": { name: "Facebook Feed", width: 1200, height: 630, placement: "Landscape feed", cueWindow: [0.3, 0.65] },
+  "x-feed": { name: "X Feed", width: 1920, height: 1080, placement: "Landscape feed", cueWindow: [0.3, 0.65] },
+  "linkedin-feed": { name: "LinkedIn Feed", width: 1080, height: 1350, placement: "Portrait feed", cueWindow: [0.32, 0.67] },
+  "meta-square": { name: "Meta Feed Square", width: 1080, height: 1080, placement: "Square feed", cueWindow: [0.3, 0.65] },
 });
 
 export const clampUnit = n => Math.max(0, Math.min(1, Number.isFinite(Number(n)) ? Number(n) : 0));
