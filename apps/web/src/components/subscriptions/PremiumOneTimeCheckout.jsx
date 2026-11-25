@@ -55,7 +55,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
   const [readinessChecking,setReadinessChecking]=useState(true);
   const [checkoutPhase,setCheckoutPhase]=useState("idle");
   const [purchaseState,setPurchaseState]=useState("none");
-  const nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
+  const numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const paypalHost=useRef(null),cardSession=useRef(null),intent=useRef(null);
   const submitting=useRef(false);
   const native=isNativeBundle();
@@ -175,18 +175,13 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
           });
           if(card.isEligible()){
             cardSession.current=card;
-            // NameField is optional in PayPal's merchant configurations.
-            // A missing name component must never suppress the three required
-            // hosted inputs or the card submission action.
+            // Only the three required PayPal-hosted card inputs are collected.
             const hosted=[card.NumberField(),card.ExpiryField(),card.CVVField()];
             await Promise.all([
               hosted[0].render(numberHost.current),
               hosted[1].render(expiryHost.current),
               hosted[2].render(cvvHost.current)
             ]);
-            if(typeof card.NameField==="function" && nameHost.current){
-              try{await card.NameField().render(nameHost.current)}catch(_){/* optional */ }
-            }
             if(!disposed)setCardReady(true);
           }
         }
@@ -202,7 +197,7 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
       disposed=true;
       try{buttons?.close?.()}catch(_){}
       cardSession.current=null;
-      for(const node of [paypalHost.current,nameHost.current,numberHost.current,expiryHost.current,cvvHost.current]){
+      for(const node of [paypalHost.current,numberHost.current,expiryHost.current,cvvHost.current]){
         try{node?.replaceChildren()}catch(_){}
       }
     };
@@ -241,7 +236,6 @@ export default function PremiumOneTimeCheckout({method,activeSubscription=false}
     <p className="text-xs text-muted-foreground">One month of access, no automatic renewal. You may buy another month manually after it expires.</p>
     {method==="card"&&<p className="text-xs text-muted-foreground">Visa, Mastercard, Discover, and American Express may be used when enabled by PayPal for this merchant and card. American Express cards have a four-digit security code. No PayPal account is needed for eligible direct card payments.</p>}
     {method==="card"&&<section aria-label="Secure one-time card fields" className="space-y-2">
-      <label className="block text-xs">Cardholder name (if available)<div className={field} ref={nameHost}/></label>
       <label className="block text-xs">Card number<div className={field} ref={numberHost}/></label>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs">Expiry<div className={field} ref={expiryHost}/></label>
