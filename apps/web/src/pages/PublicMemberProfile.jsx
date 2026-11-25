@@ -73,16 +73,16 @@ export default function PublicMemberProfile() {
       </div>
       {profile.bio && <p className="whitespace-pre-wrap break-words">{profile.bio}</p>}
       {user && user.id !== id && <div className="flex flex-wrap gap-2">
-        {friend === "none" && <button disabled={friendBusy} onClick={() => changeFriend("request")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Add friend</button>}
+        {friend === "none" && <button disabled={friendBusy} onClick={() => changeFriend("request")} className="ifund-interactive rounded-xl bg-primary px-4 py-3 text-primary-foreground">Add friend</button>}
         {friend === "sent" && <><span className="self-center text-sm text-muted-foreground">Friend request sent</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Cancel request</button></>}
-        {friend === "received" && <><button disabled={friendBusy} onClick={() => changeFriend("accept")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Accept friend request</button><button disabled={friendBusy} onClick={() => changeFriend("decline")} className="rounded-xl border px-4 py-3">Decline</button></>}
+        {friend === "received" && <><button disabled={friendBusy} onClick={() => changeFriend("accept")} className="ifund-interactive rounded-xl bg-primary px-4 py-3 text-primary-foreground">Accept friend request</button><button disabled={friendBusy} onClick={() => changeFriend("decline")} className="rounded-xl border px-4 py-3">Decline</button></>}
         {friend === "friends" && <><span className="self-center text-sm">Friends</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Remove friend</button></>}
       </div>}
       {friendError && <p role="alert" className="text-sm text-destructive">{friendError}</p>}
     </header>
     {profile.campaigns.length > 0 && <section aria-labelledby="featured-campaigns" className="space-y-3">
       <h2 id="featured-campaigns" className="text-xl font-semibold">Featured campaigns</h2>
-      {profile.campaigns.map(campaign => <Link to={`/campaign/${campaign.id}`} key={campaign.id} className="block rounded-2xl border border-border bg-card p-5 hover:border-primary">
+      {profile.campaigns.map(campaign => <Link to={`/campaign/${campaign.id}`} key={campaign.id} className="ifund-interactive-card block rounded-2xl border border-border bg-card p-5 hover:border-primary">
         <h3 className="font-semibold text-primary">{campaign.title}</h3>
         <p className="mt-2 line-clamp-3">{campaign.summary}</p>
       </Link>)}
