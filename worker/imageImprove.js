@@ -66,7 +66,9 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
 
     const form = new FormData();
     form.append('prompt',
-      ('Create an illustrated enhancement using input_image_0 as the reference. ' +
+      ((style === 'hyper-realistic-simulated-event'
+        ? 'Create a visibly synthetic, clearly fictional event reconstruction using input_image_0 as the permitted visual reference. Do not present it as a real photograph or verified incident. '
+        : 'Create an illustrated enhancement using input_image_0 as the reference. ') +
       'Preserve the meaningful content, do not imply a manufactured event or actual beneficiary photograph. ' +
       'Remove existing text or logos rather than inventing them. ' + prompt).slice(0,2048));
     form.append('input_image_0', new Blob([jpeg], {type: 'image/jpeg'}), 'reference.jpg');
