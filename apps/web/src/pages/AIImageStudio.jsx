@@ -22,7 +22,7 @@ const button = "ifund-interactive min-h-11 rounded-xl border border-border px-4 
  * Preview and upload are two separately verified actions. No image is attached
  * to a campaign merely because it was generated or saved in object storage.
  */
-export default function AIImageStudio() {
+export default function AIImageStudio({ embedded = false }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("interstellar");
@@ -151,7 +151,7 @@ export default function AIImageStudio() {
   }
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
-    <PublishingWorkflowNav current="creative"/>
+    {!embedded && <PublishingWorkflowNav current="creative"/>}
     <header className="space-y-2">
       <p className="text-xs font-semibold uppercase tracking-widest text-cyan-600">IFund Campaign Studio</p>
       <h1 className="text-3xl font-bold">AI Image Studio</h1>
