@@ -65,7 +65,7 @@ export default function CommunicationsWorkspace({ embedded = false, focusReview 
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
   },[requestedCampaign]);
   useEffect(()=>{
-    if(state.phase!=="ready" && !focusReview)return;
+    if(state.phase!=="ready")return;
     if(!focusReview && location.hash!=="#reviewed-delivery")return;
     const target=document.getElementById("reviewed-delivery");
     target?.scrollIntoView({behavior:"auto",block:"start"});
