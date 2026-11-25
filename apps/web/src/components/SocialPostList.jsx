@@ -35,7 +35,8 @@ function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
   const externalUrl = safeExternalUrl(post.external_url);
   const mediaUrl = safeExternalUrl(post.media_url);
-  const video = videoFromUrl(post.media_url) || videoFromText(post.body) || videoFromUrl(post.external_url);
+  const mediaVideo = videoFromUrl(post.media_url);
+  const video = mediaVideo || videoFromText(post.body) || videoFromUrl(post.external_url);
   const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
   const discussionId = likeId;
   const [liked, setLiked] = useState(likes?.liked || false);
@@ -94,7 +95,7 @@ function SocialItem({ post, likes, onHidden, user }) {
     {video && <div className="mx-auto max-w-sm overflow-hidden rounded-xl" aria-label="Video shared with this post">
       <ShortsVideo item={{ id: post.id, title: post.body?.slice(0, 160) || "Public video", video }} />
     </div>}
-    {mediaUrl && !video && <Image src={mediaUrl} alt="Image shared with this post" loading="lazy"
+    {mediaUrl && !mediaVideo && <Image src={mediaUrl} alt="Image shared with this post" loading="lazy"
       className="max-h-96 w-full rounded-xl object-contain" />}
     {externalUrl && <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
