@@ -1,4 +1,4 @@
-import { AUDIO_EFFECT_DEFAULTS } from "./multitrackAudio.mjs";
+import { AUDIO_EFFECT_DEFAULTS, validateTrackEdit } from "./multitrackAudio.mjs";
 /** Non-destructive editing presets. Names describe sound or appearance, not verified engagement results. */
 export const AUDIO_MIX_PRESETS=Object.freeze({
   neutral:{ label:"Neutral", effects:{lowGain:0,midGain:0,highGain:0,highpass:20,lowpass:18000,pan:0,fadeIn:0,fadeOut:0}},
@@ -97,6 +97,7 @@ export function parseAudioSettings(json, tracks=[]) {
     if(!Number.isFinite(track.buffer?.duration))throw Error("Audio source is unavailable.");
     if(!Object.keys(effects).every(key=>Number.isFinite(effects[key])))
       throw Error("Invalid audio effects.");
+    validateTrackEdit(next,track.buffer.duration);
     return next;
   });
   return {settings:{
