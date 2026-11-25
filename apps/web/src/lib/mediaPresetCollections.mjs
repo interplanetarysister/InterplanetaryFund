@@ -50,3 +50,59 @@ export function applyMasteringProfile(tracks,profileId) {
     return {...track,effects:chooseAudioPreset(preset,track.trimEnd-track.trimStart)};
   });
 }
+
+/** User-downloadable audio settings only; no embedded track audio or source labels. */
+export function exportAudioSettings({tracks=[],masterProfile="none",duckDb=0,duckAttackMs=32,duckReleaseMs=180,
+  duckLookaheadMs=12,compressionEnabled=false,compressionThreshold=-16,compressionRatio=3}={}) {
+  if (!Array.isArray(tracks) || tracks.length>12 || !Number.isFinite(duckDb) || duckDb< -18 || duckDb>0 ||
+    ![duckAttackMs,duckReleaseMs,duckLookaheadMs,compressionThreshold,compressionRatio].every(Number.isFinite) ||
+    duckAttackMs<5 || duckAttackMs>200 || duckReleaseMs<50 || duckReleaseMs>1000 ||
+    duckLookaheadMs<0 || duckLookaheadMs>50 || compressionThreshold< -36 || compressionThreshold> -6 ||
+    compressionRatio<1 || compressionRatio>8)
+    throw Error("Audio preset settings are invalid.");
+  const roles={};
+  for(const track of tracks){
+    const list=roles[track.role]||[];
+    if(list.length>12)throw Error("Too many lane settings.");
+    list.push({volume:track.volume,effects:{...AUDIO_EFFECT_DEFAULTS,...track.effects}});
+    roles[track.role]=list;
+  }
+  return JSON.stringify({
+    schema:"ifund-audio-dsp-v1",masterProfile,duckDb,duckAttackMs,duckReleaseMs,
+    duckLookaheadMs,compressionEnabled,compressionThreshold,compressionRatio,roles,
+    note:"Settings only: no audio data, rights, actual loudness measurements or provider authorizations.",
+  },null,2);
+}
+export function parseAudioSettings(json, tracks=[]) {
+  if(typeof json!=="string"||json.length>12000)throw Error("Audio preset file is too large.");
+  let data;
+  try{data=JSON.parse(json);}catch{throw Error("Audio preset JSON could not be read.");}
+  if(data?.schema!=="ifund-audio-dsp-v1" || !data.roles || typeof data.roles!=="object" ||
+    !Array.isArray(tracks)) throw Error("This is not a supported iFund audio preset.");
+  const canonical=exportAudioSettings({...data,tracks:[]});
+  if(!canonical)throw Error("Audio preset validation failed.");
+  const roleCounts={};
+  const restored=tracks.map(track=>{
+    const i=roleCounts[track.role]||0;roleCounts[track.role]=i+1;
+    const stored=data.roles[track.role]?.[i];
+    if(!stored)return track;
+    if(typeof stored!=="object"||!Number.isFinite(stored.volume) ||
+      stored.volume<0||stored.volume>2 || !stored.effects || typeof stored.effects!=="object")
+      throw Error("Invalid lane settings.");
+    const effects={...AUDIO_EFFECT_DEFAULTS,...stored.effects};
+    if(Object.keys(effects).some(k=>!Object.hasOwn(AUDIO_EFFECT_DEFAULTS,k)))
+      throw Error("Unknown audio effect.");
+    const next={...track,volume:stored.volume,effects};
+    // Validate track timing and effects together; invalid snapshots fail closed.
+    if(!Number.isFinite(track.buffer?.duration))throw Error("Audio source is unavailable.");
+    if(!Object.keys(effects).every(key=>Number.isFinite(effects[key])))
+      throw Error("Invalid audio effects.");
+    return next;
+  });
+  return {settings:{
+    masterProfile:typeof data.masterProfile==="string"&&MASTERING_PROFILES[data.masterProfile] ? data.masterProfile:"none",
+    duckDb:data.duckDb,duckAttackMs:data.duckAttackMs,duckReleaseMs:data.duckReleaseMs,
+    duckLookaheadMs:data.duckLookaheadMs,compressionEnabled:data.compressionEnabled===true,
+    compressionThreshold:data.compressionThreshold,compressionRatio:data.compressionRatio,
+  },tracks:restored};
+}
