@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { coverCrop, createPlatformVariants, PLATFORM_FRAMES, proposeInterestCue } from "../../lib/mediaVariantPlans.mjs";
 import { packageMediaVariants } from "../../lib/mediaVariantZip.mjs";
 import { VIDEO_LOOK_PRESETS, chooseVideoLook } from "../../lib/mediaPresetCollections.mjs";
+import { renderLocalVideoVariant, videoExportAvailability, videoExportDimensions } from "../../lib/localVideoExport.mjs";
 
 const boundedTime = (number, duration) => Math.max(0, Math.min(duration, Number.isFinite(Number(number)) ? Number(number) : 0));
 
@@ -31,21 +32,55 @@ function saveBlob(blob, name) {
 function percent(number) { return Math.round(number * 100) + "%"; }
 function filters(variant) { return "brightness("+variant.brightness+") contrast("+variant.contrast+") saturate("+variant.saturation+")"; }
 
-export default function PlatformVariantEditor({ file, previewUrl, metadata, destinations, audioWindows = [], visualTransitions = [], caption = "" }) {
+export default function PlatformVariantEditor({ file, previewUrl, metadata, destinations, audioWindows = [], visualTransitions = [], caption = "", layeredAudioUrl = null }) {
   const [edits, setEdits] = useState({});
   const [selected, setSelected] = useState("");
   const [exporting, setExporting] = useState(false);
   const [issue, setIssue] = useState("");
+  const renderAbort = useRef(null);
+  const renderedUrl = useRef(null);
+  const [videoRendering,setVideoRendering] = useState(false);
+  const [videoProgress,setVideoProgress] = useState(0);
+  const [videoOutput,setVideoOutput] = useState(null);
   const variants = useMemo(() => createPlatformVariants(destinations, edits), [destinations, edits]);
   const duration = Number(metadata?.duration);
   const timed = Number.isFinite(duration) && duration > 0 && (file?.type.startsWith("video/") || file?.type.startsWith("audio/"));
   const current = variants.find(v => v.id === selected) || variants[0] || null;
+  function clearVideoOutput() {
+    if(renderedUrl.current)URL.revokeObjectURL(renderedUrl.current);
+    renderedUrl.current=null;
+    setVideoOutput(null);
+  }
   useEffect(() => {
     setSelected("");
     setEdits({});
     setIssue("");
+    renderAbort.current?.abort();
+    if(renderedUrl.current)URL.revokeObjectURL(renderedUrl.current);
+    renderedUrl.current=null;setVideoOutput(null);
+    return ()=>{
+      renderAbort.current?.abort();
+      if(renderedUrl.current)URL.revokeObjectURL(renderedUrl.current);
+      renderedUrl.current=null;
+    };
   }, [previewUrl]);
+  async function renderSelectedVideo() {
+    if (!file?.type.startsWith("video/") || !previewUrl || !current || videoRendering)return;
+    const abort=new AbortController();renderAbort.current=abort;
+    setVideoRendering(true);setVideoProgress(0);setIssue("");clearVideoOutput();
+    try {
+      const result=await renderLocalVideoVariant({
+        sourceUrl:previewUrl,variant:current,layeredAudioUrl,signal:abort.signal,
+        onProgress:value=>setVideoProgress(value),
+      });
+      if(abort.signal.aborted)return;
+      renderedUrl.current=URL.createObjectURL(result.blob);
+      setVideoOutput({...result,url:renderedUrl.current,platform:current.id});
+    }catch(error){if(!abort.signal.aborted)setIssue(error.message||"Video could not be rendered locally.");}
+    finally{if(renderAbort.current===abort){renderAbort.current=null;setVideoRendering(false);}}
+  }
   function edit(id, patch) {
+    if(!videoRendering)clearVideoOutput();
     setEdits(currentEdits => ({ ...currentEdits, [id]: { ...currentEdits[id], ...patch } }));
   }
   async function exportImages() {
@@ -71,7 +106,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
       {variants.map(variant => {
         const frame = PLATFORM_FRAMES[variant.id];
         const cue = timed ? proposeInterestCue({ duration, platformId: variant.id, audioWindows, visualTransitions, preferredTime: variant.cueTime }) : null;
-        return <button type="button" key={variant.id} onClick={() => setSelected(variant.id)}
+        return <button type="button" key={variant.id} onClick={() => {if(!videoRendering){clearVideoOutput();setSelected(variant.id);}}}
           aria-pressed={current?.id === variant.id}
           className={"min-w-0 space-y-2 rounded-xl border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " +
             (current?.id === variant.id ? "border-cyan-500 bg-cyan-500/10" : "border-border")}>
@@ -134,6 +169,10 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
               onChange={e=>edit(current.id,{videoVolume:Number(e.target.value)})} className="mt-2 w-full"/>
           </label>
         </div>
+        {layeredAudioUrl && <label className="block text-xs">Imported layered-audio volume: {Math.round(current.layeredVolume*100)}%
+          <input type="range" min="0" max="1" step="0.05" value={current.layeredVolume}
+            onChange={e=>edit(current.id,{layeredVolume:Number(e.target.value)})} className="mt-2 w-full"/>
+        </label>}
         {timed && <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs">Preview clip in (seconds)
             <input type="number" min="0" max={Math.max(0,duration-0.1)} step="0.1" className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3"
@@ -189,7 +228,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
           value={current.caption || caption} onChange={event => edit(current.id,{caption:event.target.value})}/>
       </label>
       <button type="button" className="min-h-10 rounded-lg border px-3 text-sm"
-        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:"",brightness:1,contrast:1,saturation:1,videoSpeed:1,videoVolume:1,trimStart:0,trimEnd:0,showSafeZone:false})}>
+        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:"",brightness:1,contrast:1,saturation:1,videoSpeed:1,videoVolume:1,layeredVolume:1,trimStart:0,trimEnd:0,showSafeZone:false})}>
         Reset this version to the original
       </button>
     </section>}
@@ -197,8 +236,30 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
       onClick={exportImages} className="min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">
       {exporting ? "Rendering platform images…" : "Render and download all image versions (ZIP)"}
     </button>}
-    {(file.type.startsWith("video/") || file.type.startsWith("audio/")) && <p className="text-sm text-muted-foreground">
-      Video and audio versions currently support side-by-side storyboarding, crop previews, platform-specific cue editing and text variants. File transcoding and audio-synchronized multi-platform exports require a validated encoding pipeline; preview is not represented as a finished rendered video.
+    {file.type.startsWith("video/") && current && <section className="space-y-3 rounded-xl border p-4" aria-label="Selected platform video export">
+      <h4 className="font-semibold">Render selected platform video</h4>
+      <p className="text-sm text-muted-foreground">Record the selected crop, color adjustments, playback speed, and original or layered audio into an actual local video file. Up to 60 seconds of finished video; output format and resolution depend on this browser. This is not a certified platform-ready upload.</p>
+      <p className="text-xs text-muted-foreground">{videoExportAvailability()
+        ? "Available encoder: "+videoExportAvailability().mime+" · output up to "+videoExportDimensions(current).width+" × "+videoExportDimensions(current).height
+        : "No compatible video recorder detected. Rendering is disabled on this browser."}</p>
+      <button type="button" disabled={videoRendering||!videoExportAvailability()} onClick={renderSelectedVideo}
+        className="ifund-interactive min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">
+        {videoRendering?"Rendering locally… "+videoProgress+"%":"Render this version"}
+      </button>
+      {videoRendering && <button type="button" className="min-h-11 rounded-lg border px-4"
+        onClick={()=>renderAbort.current?.abort()}>Cancel video rendering</button>}
+      {videoOutput && <div className="space-y-2">
+        <video controls playsInline src={videoOutput.url} className="max-h-[380px] w-full rounded-xl bg-black" aria-label="Rendered platform video output"/>
+        <p className="text-sm">{PLATFORM_FRAMES[videoOutput.platform].name} · {videoOutput.width} × {videoOutput.height} · {videoOutput.duration.toFixed(1)}s · .{videoOutput.format}</p>
+        <a className="ifund-interactive inline-flex min-h-11 items-center rounded-lg border px-4 font-semibold"
+          download={"ifund-"+videoOutput.platform+"-rendered."+videoOutput.format} href={videoOutput.url}>
+          Save rendered video
+        </a>
+        <p className="text-xs text-muted-foreground">{videoOutput.caveat} Text is a separate draft and is not burned into the exported frames.</p>
+      </div>}
+    </section>}
+    {file.type.startsWith("audio/") && <p className="text-sm text-muted-foreground">
+      Platform-specific audio-only drafts support editable cue timing; use the multitrack Audio Editor to render and save the mixed WAV file.
     </p>}
     {issue && <p role="alert" className="text-sm text-red-500">{issue}</p>}
   </section>;
