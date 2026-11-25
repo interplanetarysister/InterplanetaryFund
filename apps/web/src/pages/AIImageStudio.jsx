@@ -10,6 +10,7 @@ import { overlayExactArtworkCaption, validateArtworkCaption } from "@/lib/exactA
 import { stageMediaForOptimization } from "@/lib/mediaDraftHandoff.mjs";
 
 const STYLES = [
+  ["ifund", "IFund signature"],
   ["interstellar", "Interstellar"],
   ["futuristic", "Futuristic"],
   ["cyberpunk", "Cyberpunk"],
