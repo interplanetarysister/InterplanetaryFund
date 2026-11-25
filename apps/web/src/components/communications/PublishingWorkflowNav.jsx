@@ -9,17 +9,17 @@ import "@/styles-publishing-workflow.css";
 export const PUBLISHING_WORKFLOW = Object.freeze([
   { id: "agents", title: "AI Team", href: "/agents" },
   { id: "draft", title: "Messages", href: "/communications" },
-  { id: "creative", title: "Artwork", href: "/communications?tab=media&tool=artwork" },
-  { id: "review", title: "Review & approvals", href: "/communications?tab=review" },
+  { id: "creative", title: "Artwork", href: "/ai-images" },
+  { id: "review", title: "Review & approvals", href: "/communications#reviewed-delivery" },
   { id: "connections", title: "Connections", href: "/connections" },
 ]);
 
 export default function PublishingWorkflowNav({ current, campaignId }) {
   const location = useLocation();
-  const activeId = location.pathname === "/communications" && (new URLSearchParams(location.search).get("tab") === "review" || location.hash === "#reviewed-delivery") ? "review" : current;
+  const activeId = location.pathname === "/communications" && location.hash === "#reviewed-delivery" ? "review" : current;
   const urlFor = item => {
     if (!campaignId || !["draft", "review"].includes(item.id)) return item.href;
-    const suffix = item.id === "review" ? "&tab=review" : "";
+    const suffix = item.id === "review" ? "#reviewed-delivery" : "";
     return "/communications?campaign=" + encodeURIComponent(campaignId) + suffix;
   };
   return <nav aria-label="Campaign creation and publishing workflow"
