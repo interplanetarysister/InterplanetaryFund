@@ -60,8 +60,9 @@ export function audibleTracks(tracks) {
  * output gain to prevent sudden summing overload. Source nodes are never
  * connected to microphone inputs or the MediaRecorder.
  */
-export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8 } = {}) {
-  if (!finite(from) || from < 0 || from > MAX_MIX_SECONDS || !finite(master) || master < 0 || master > 1)
+export function scheduleMix(context, tracks, destination = context.destination, { from = 0, master = 0.8, duckDb = 0 } = {}) {
+  if (!finite(from) || from < 0 || from > MAX_MIX_SECONDS || !finite(master) || master < 0 || master > 1 ||
+      !finite(duckDb) || duckDb < -18 || duckDb > 0)
     throw new Error("Invalid playback position or master volume.");
   mixLength(tracks);
   const masterGain = context.createGain();
@@ -111,6 +112,33 @@ export function scheduleMix(context, tracks, destination = context.destination, 
     }
     tail.connect(gain);
     let end=gain;
+    if(track.role==="music" && duckDb<0 && typeof context.createGain==="function"){
+      const duck=context.createGain();
+      duck.gain.value=1;
+      end.connect(duck);end=duck;effectNodes.push(duck);
+      const voiceTracks=audibleTracks(tracks).filter(v=>v.role==="voice" && v.id!==track.id);
+      if(voiceTracks.length && typeof duck.gain.setTargetAtTime==="function"){
+        const sampleInterval=0.1;
+        const activeLevel=Math.pow(10,duckDb/20);
+        duck.gain.setValueAtTime(1,startAt);
+        for(let offset=0;offset<remaining;offset+=sampleInterval){
+          const timelineTime=from+Math.max(0,track.start-from)+offset;
+          const voiceActive=voiceTracks.some(v=>{
+            const elapsed=timelineTime-v.start;
+            const sourceTime=v.trimStart+elapsed;
+            if(elapsed<0 || sourceTime<v.trimStart || sourceTime>=v.trimEnd || !v.buffer?.getChannelData)return false;
+            const channel=v.buffer.getChannelData(0);
+            const first=Math.floor(sourceTime*v.buffer.sampleRate);
+            if(first>=channel.length)return false;
+            const endIndex=Math.min(channel.length,first+512);
+            let energy=0,found=0;
+            for(let i=first;i<endIndex;i+=16){energy+=channel[i]*channel[i];found++;}
+            return Math.sqrt(energy/Math.max(1,found))*v.volume>=0.016;
+          });
+          duck.gain.setTargetAtTime(voiceActive?activeLevel:1,startAt+offset,voiceActive?0.025:0.12);
+        }
+      }
+    }
     if(typeof context.createStereoPanner==="function"){
       const panner=context.createStereoPanner();panner.pan.value=effects.pan;
       end.connect(panner);end=panner;effectNodes.push(panner);
@@ -160,13 +188,13 @@ export function encodePcmWav(buffer) {
   return new Blob([bytes],{type:"audio/wav"});
 }
 /** OfflineAudioContext is browser-native, with no provider upload or fee. */
-export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8 } = {}) {
+export async function renderMix(tracks, { sampleRate = MIX_SAMPLE_RATE, master = 0.8, duckDb = 0 } = {}) {
   const length = mixLength(tracks);
   if (length <= 0 || length > MAX_MIX_SECONDS || sampleRate !== MIX_SAMPLE_RATE)
     throw new Error("Mix length or sample rate is unavailable.");
   const Offline = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
   if (!Offline) throw new Error("Offline audio rendering is not supported on this device.");
   const context = new Offline(2, Math.ceil(length*sampleRate), sampleRate);
-  scheduleMix(context,tracks,context.destination,{from:0,master});
+  scheduleMix(context,tracks,context.destination,{from:0,master,duckDb});
   return encodePcmWav(await context.startRendering());
 }
