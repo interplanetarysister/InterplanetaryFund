@@ -226,7 +226,8 @@ export default function SocialFeedPage({ community = false }) {
         <p>Your saved draft was preserved. Add this campaign to your post when you’re ready.</p>
         <button type="button" className="mt-2 min-h-11 text-primary underline disabled:opacity-50" disabled={body.trim().length + 2 + shareSuggestion.length > MAX_POST_LENGTH} onClick={() => setBody(current => `${current.trim()}\n\n${shareSuggestion}`)}>Add campaign reference to draft</button>
       </div>}
-      <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
+      <label htmlFor="ifund-post" className="font-semibold">Share a post or video</label>
+      <p className="text-xs text-muted-foreground">Paste a public YouTube or Vimeo video link into your post. After publishing, supported videos appear in both the main timeline and Shorts. Media from connected external accounts is not imported without permission.</p>
       <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body}
         onChange={e => setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" />
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -256,7 +257,7 @@ export default function SocialFeedPage({ community = false }) {
     {notice && <p role="status">{notice}</p>}
     <section aria-labelledby="recent-posts" className="space-y-4">
       <h2 id="recent-posts" className="text-xl font-semibold">{community ? "Recent updates" : "Public timeline"}</h2>
-      {!community && <p className="text-sm text-muted-foreground">Public IFund and member updates, supported video posts, and active campaign videos together. External network content appears only when publicly available through an approved IFund source.</p>}
+      {!community && <p className="text-sm text-muted-foreground">Public IFund and member posts, images, campaign updates, and supported videos together. External network content appears only when publicly available through an approved IFund source.</p>}
       {!community && campaignFeedError && <p role="status" className="text-sm text-muted-foreground">Campaign videos could not be loaded. Community posts are still available.</p>}
       <SocialPostList posts={timeline} onHidden={postId => setPosts(current => current.filter(post => post.id !== postId))} />
       {loading && <p role="status">Loading updates…</p>}
