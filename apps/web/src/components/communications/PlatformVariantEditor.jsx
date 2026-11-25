@@ -80,7 +80,8 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
     finally{if(renderAbort.current===abort){renderAbort.current=null;setVideoRendering(false);}}
   }
   function edit(id, patch) {
-    if(!videoRendering)clearVideoOutput();
+    if(videoRendering)return;
+    clearVideoOutput();
     setEdits(currentEdits => ({ ...currentEdits, [id]: { ...currentEdits[id], ...patch } }));
   }
   async function exportImages() {
