@@ -1,10 +1,19 @@
-@import "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap";
 @import "../public/fonts/ifund-fonts.css";
 
 @import "./styles-ifund-studio.css";
 @import "./styles-studio.css";
 @import "./styles-cosmic-refinement.css";
 @import "./styles/premium-surface.css";
+
+/* Space Grotesk is locally bundled under SIL OFL 1.1 (see font license).
+   No remote font provider or unlicensed Orbital Display font is requested. */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/space-grotesk-variable.ttf') format('truetype');
+}
 
 @tailwind base;
 @tailwind components;
