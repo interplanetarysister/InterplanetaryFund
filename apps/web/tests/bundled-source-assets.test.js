@@ -39,6 +39,9 @@ test('all CSS font references resolve locally and retain the three redistributio
   const index = read('src/index.css').toString();
   assert.match(index, /@import "\.\.\/public\/fonts\/ifund-fonts\.css"/);
   assert.doesNotMatch(index, /fonts\.googleapis\.com|fonts\.gstatic\.com/);
+  assert.match(index, /space-grotesk-variable\.ttf/);
+  assert.ok(existsSync(new URL('public/fonts/space-grotesk-variable.ttf',root)));
+  assert.match(read('public/fonts/space-grotesk-OFL.txt').toString(), /SIL Open Font License|SIL OPEN FONT LICENSE/i);
 });
 test('archived homepage in Our Story retains exact bundled hero and PayPal artwork', () => {
   const home = read('src/pages/OurStory.jsx').toString();
