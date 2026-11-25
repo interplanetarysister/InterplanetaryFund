@@ -3,6 +3,7 @@
  * source buffers. No media is sent to the server.
  */
 export const MAX_AUDIO_TRACKS = 12;
+export const MAX_AUTOMATION_POINTS = 16;
 export const MAX_MIX_SECONDS = 180;
 export const MIX_SAMPLE_RATE = 44100;
 export const MAX_WAV_BYTES = 38 * 1024 * 1024;
@@ -32,7 +33,45 @@ export function validateTrackEdit(track, sourceDuration = track?.buffer?.duratio
       fx.speechCarveHz<1500 || fx.speechCarveHz>4500 || fx.speechCarveDb>0 || fx.speechCarveDb< -12 ||
       fx.speechCarveQ<0.5 || fx.speechCarveQ>4)
     throw new Error("Audio effect parameters are outside the supported range.");
+  const points = track.automation ?? [];
+  if (!Array.isArray(points) || points.length > MAX_AUTOMATION_POINTS)
+    throw new Error("Audio volume automation is invalid.");
+  let previous = -1;
+  const clipDuration = track.trimEnd - track.trimStart;
+  for (const point of points) {
+    if (!point || !finite(point.time) || !finite(point.gain) ||
+      point.time < 0 || point.time > clipDuration + 0.00001 ||
+      point.time <= previous || point.gain < 0 || point.gain > 2)
+      throw new Error("Audio volume automation is outside the supported range.");
+    previous = point.time;
+  }
   return true;
+}
+export function automationGainAt(points = [], position = 0) {
+  if (!points.length) return 1;
+  if (position <= points[0].time) return points[0].gain;
+  for (let i=1;i<points.length;i++){
+    if (position <= points[i].time) {
+      const before=points[i-1],after=points[i];
+      const part=(position-before.time)/(after.time-before.time);
+      return before.gain+(after.gain-before.gain)*part;
+    }
+  }
+  return points[points.length-1].gain;
+}
+export function appendAutomationPoint(points = [], duration) {
+  if (!finite(duration) || duration <= 0 || duration > MAX_MIX_SECONDS ||
+    !Array.isArray(points) || points.length >= MAX_AUTOMATION_POINTS)
+    throw Error("Audio automation limit reached.");
+  const existing = new Set(points.map(p => p.time.toFixed(3)));
+  const step = duration / (MAX_AUTOMATION_POINTS + 1);
+  let time = null;
+  for (let i=1; i<=MAX_AUTOMATION_POINTS+1; i++){
+    const candidate = Number(Math.min(duration,step*i).toFixed(3));
+    if (!existing.has(candidate.toFixed(3))) { time = candidate; break; }
+  }
+  if (time === null) throw Error("No free automation position.");
+  return [...points,{time,gain:1}].sort((a,b)=>a.time-b.time);
 }
 export function newAudioTrack({ id, name, role, buffer, start = 0 }) {
   if (!id || !buffer || !finite(buffer.duration) || buffer.duration <= 0)
@@ -43,7 +82,7 @@ export function newAudioTrack({ id, name, role, buffer, start = 0 }) {
   const track = { id, name: String(name || role).slice(0, 120), role,
     start, trimStart: 0, trimEnd: duration,
     volume: role === "music" ? 0.3 : role === "texture" ? 0.18 : role === "effects" ? 0.55 : 1,
-    muted: false, solo: false, buffer, effects: {...AUDIO_EFFECT_DEFAULTS} };
+    muted: false, solo: false, buffer, effects: {...AUDIO_EFFECT_DEFAULTS}, automation: [] };
   validateTrackEdit(track, buffer.duration);
   return track;
 }
@@ -132,6 +171,23 @@ export function scheduleMix(context, tracks, destination = context.destination, 
     }
     tail.connect(gain);
     let end=gain;
+    if (track.automation?.length && typeof context.createGain === "function") {
+      const automationNode=context.createGain();
+      const automation=track.automation;
+      const envelope=automationNode.gain;
+      const initial=automationGainAt(automation,skip);
+      envelope.value=initial;
+      if (typeof envelope.setValueAtTime==="function") {
+        envelope.setValueAtTime(initial,startAt);
+        for(const point of automation){
+          if(point.time>skip && point.time<=skip+remaining && typeof envelope.linearRampToValueAtTime==="function")
+            envelope.linearRampToValueAtTime(point.gain,startAt+point.time-skip);
+        }
+      }
+      end.connect(automationNode);
+      end=automationNode;
+      effectNodes.push(automationNode);
+    }
     if(track.role==="music" && duckDb<0 && typeof context.createGain==="function"){
       const duck=context.createGain();
       duck.gain.value=1;
