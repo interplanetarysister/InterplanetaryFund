@@ -271,7 +271,24 @@ function WithdrawalMfaGate({ authUser }) {
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const result = await runForOwner(() => authClient().auth.mfa.enroll({ factorType: "totp" }));
+      const auth = authClient().auth;
+      const listed = await runForOwner(() => auth.mfa.listFactors());
+      if (listed.error) throw listed.error;
+      if (!Array.isArray(listed.data?.all)) throw new Error("Unable to inspect existing authenticators.");
+      const verified = listed.data.all.find(item => item.factor_type === "totp" && item.status === "verified");
+      if (verified) {
+        setFactor(verified); setState("challenge"); return;
+      }
+      // Starting a new setup explicitly replaces abandoned, unverified TOTP enrollments.
+      // Never remove a verified factor or a different factor type.
+      for (const pending of listed.data.all.filter(item => item.factor_type === "totp" && item.status === "unverified")) {
+        const removed = await runForOwner(() => auth.mfa.unenroll({ factorId: pending.id }));
+        if (removed.error && removed.error.code !== "mfa_factor_not_found") throw removed.error;
+      }
+      const result = await runForOwner(() => auth.mfa.enroll({
+        factorType: "totp", issuer: "Interplanetary Fund",
+        friendlyName: "IFund withdrawals " + crypto.randomUUID(),
+      }));
       assertOwnerCurrent();
       if (result.error) throw result.error;
       if (!result.data?.id || !result.data?.totp?.secret)
