@@ -71,7 +71,7 @@ export default function AgentsTeam() {
         const {data:identity}=await client.auth.getUser();
         if(!active||identity?.user?.id!==owner)return;
         setMembership({status:error?"unavailable":"ready",ownerId:owner,
-          active:!error&&data?.active===true&&Number.isInteger(data?.level)&&data.level>=1});
+          active:!error&&typeof data?.tier==="string"&&Number.isInteger(data?.level)&&data.level>=0});
       }).catch(()=>{if(active)setMembership({status:"unavailable",active:false,ownerId:owner});});
     } catch {
       if(active)setMembership({status:"unavailable",active:false,ownerId:owner});
@@ -128,7 +128,7 @@ export default function AgentsTeam() {
     event.preventDefault();
     if(questionBusy || agentQuestion.trim().length<8) return;
     if(!gateway.configured){setQuestionError("Direct AI questions are not yet enabled here. Use the available specialist tools.");return;}
-    if(!membershipActive){setQuestionError("An active verified AI membership is needed for direct agent answers.");return;}
+    if(!membershipActive){setQuestionError("Your account access could not be verified. Sign in with your verified email and try again.");return;}
     if(!aiPermissionGranted){setQuestionError("Enable campaign drafting or private AI assistance under My Profile → Manage iFund Permissions → AI assistance before asking a specialist.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
@@ -233,9 +233,9 @@ export default function AgentsTeam() {
         {authStatus!=="loading" && !user && <p className="text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to ask an agent.</p>}
         {gateway.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking agent service availability…</p>}
         {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Direct AI answers are not enabled on this deployment. You can still choose specialist tools below.</p>}
-        {gateway.configured&&membership.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI membership…</p>}
-        {gateway.configured&&membership.status==="ready"&&!membershipActive&&<p role="status" className="text-sm">Free specialist matching is available. <Link to="/subscriptions" className="text-primary underline">See verified AI plans</Link> for direct answers.</p>}
-        {gateway.configured&&membership.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI membership could not be verified. No paid question was sent.</p>}
+        {gateway.configured&&membership.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your agent access…</p>}
+        {gateway.configured&&membership.status==="ready"&&!membershipActive&&<p role="status" className="text-sm">Agent access could not be verified. Confirm your account and try again.</p>}
+        {gateway.configured&&membership.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your account access could not be verified. No question was sent.</p>}
         {gateway.configured&&membershipActive&&aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your saved AI permissions…</p>}
         {gateway.configured&&membershipActive&&aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI permission could not be verified. No question was sent.</p>}
         {gateway.configured&&membershipActive&&aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Direct AI questions are disabled in your saved permissions. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> and save to use the agent team.</p>}
@@ -257,8 +257,8 @@ export default function AgentsTeam() {
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
-      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
+      <p className="mt-3 text-xs text-muted-foreground">Free-tier members can ask agents questions, subject to a daily allowance. You need a verified account, available AI service capacity, and saved private AI-assistance permission. Paid plans may offer different allowances. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
+      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">Compare optional plans</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
     {selection.invalidCampaign&&<p role="alert">The campaign link is invalid. Choose a saved campaign in the workspace.</p>}
@@ -288,7 +288,7 @@ export default function AgentsTeam() {
     {user && <TeamConversationHistory />}
     <section className="ifund-agents-writing">
       <h2 className="text-lg font-semibold">Campaign writing studio</h2>
-      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission.</p>
+      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Free-tier members can also ask specialists with saved AI permission, subject to daily limits.</p>
       <button type="button" disabled={!user} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
       {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
       {user && showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
