@@ -62,6 +62,14 @@ test("WAV bytes contain valid RIFF and stereo/channel payload sizes", async () =
   assert.equal(data.getUint32(24,true),1000);
 });
 
+test("WAV export rejects clipping and non-finite sample data rather than silently hard-limiting",()=>{
+  for(const invalid of [1.01,-1.01,Number.NaN,Number.POSITIVE_INFINITY]){
+    const signal={sampleRate:44100,length:2,numberOfChannels:1,
+      getChannelData:()=>Float32Array.from([0.1,invalid])};
+    assert.throws(()=>encodePcmWav(signal),/clipping|invalid samples/);
+  }
+});
+
 test("audio interface keeps stacked tracks and microphone option in the same Media workspace", () => {
   const c=readFileSync(new URL("../src/components/communications/MultitrackAudioEditor.jsx",import.meta.url),"utf8");
   const nav=readFileSync(new URL("../src/components/communications/CreatorMediaTools.jsx",import.meta.url),"utf8");
