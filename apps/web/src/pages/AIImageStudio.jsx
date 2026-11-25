@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
 import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
@@ -7,6 +7,7 @@ import PublishingWorkflowNav from "@/components/communications/PublishingWorkflo
 import TrialCreationBalance from "@/components/subscriptions/TrialCreationBalance";
 import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 import { overlayExactArtworkCaption, validateArtworkCaption } from "@/lib/exactArtworkCaption.mjs";
+import { stageMediaForOptimization } from "@/lib/mediaDraftHandoff.mjs";
 
 const STYLES = [
   ["interstellar", "Interstellar"],
@@ -23,6 +24,7 @@ const button = "ifund-interactive min-h-11 rounded-xl border border-border px-4 
  * to a campaign merely because it was generated or saved in object storage.
  */
 export default function AIImageStudio({ embedded = false }) {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("interstellar");
@@ -130,6 +132,15 @@ export default function AIImageStudio({ embedded = false }) {
     }
   }
 
+  async function openPlatformOptimizer() {
+    if (!file || busy) return;
+    try {
+      const { data, error } = await authClient().auth.getUser();
+      if (error || !data?.user?.id) throw new Error("Sign in to optimize this illustration.");
+      stageMediaForOptimization(file, data.user.id);
+      navigate("/communications?tab=media&tool=optimization");
+    } catch (cause) { setError(cause.message || "Unable to prepare image optimization."); }
+  }
   async function save() {
     if (operationLock.current || busy || !file) return;
     operationLock.current = true;
@@ -234,6 +245,7 @@ export default function AIImageStudio({ embedded = false }) {
           {busy === "upload" ? "Saving image…" : savedUrl ? "Image saved" : "Save to IFund cover storage"}
         </button>
         <a href={imageUrl} download={artworkKind === "improved" ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg"} className={button}>Download JPEG</a>
+        <button type="button" className={button} disabled={Boolean(busy)} onClick={openPlatformOptimizer}>Make platform versions</button>
       </div>
       {savedUrl && <div className="space-y-3">
         <label className="block text-sm font-medium">Saved public cover link
