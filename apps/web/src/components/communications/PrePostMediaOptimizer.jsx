@@ -4,6 +4,7 @@ import { analyzeAudioSamples } from "../../lib/mediaAudioMetrics.mjs";
 import PlatformVariantEditor from "./PlatformVariantEditor";
 import { authClient } from "../../api/auth";
 import { consumeMediaForOptimization } from "../../lib/mediaDraftHandoff.mjs";
+import { sampleLocalVideoFrames } from "../../lib/videoTimelineSampling.mjs";
 
 const PLATFORM_PROFILES = Object.freeze([
   { id: "ifund", name: "iFund", ratio: null, notes: ["Check campaign-card cropping and make the purpose apparent.", "Avoid exposing an anonymous organizer's face, name or identifying metadata."], source: null },
@@ -43,16 +44,20 @@ export default function PrePostMediaOptimizer() {
   const [message, setMessage] = useState("");
   const [soundMetrics, setSoundMetrics] = useState(null);
   const [inspectingSound, setInspectingSound] = useState(false);
+  const [visualMetrics, setVisualMetrics] = useState(null);
+  const [inspectingVideo, setInspectingVideo] = useState(false);
+  const visualAbort = useRef(null);
   const mediaUrl = useRef(null);
   const [previewUrl, setPreviewUrl] = useState("");
-  useEffect(() => () => { if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current); }, []);
+  useEffect(() => () => { visualAbort.current?.abort(); if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current); }, []);
   useEffect(() => {
     if (!file || !previewUrl) return undefined;
     return inspectMedia(file, previewUrl, setMetadata);
   }, [file, previewUrl]);
   function loadFile(next) {
+    visualAbort.current?.abort();
     if (mediaUrl.current) URL.revokeObjectURL(mediaUrl.current);
-    mediaUrl.current = null; setPreviewUrl(""); setFile(null); setMetadata(null); setMessage(""); setSoundMetrics(null);
+    mediaUrl.current = null; setPreviewUrl(""); setFile(null); setMetadata(null); setMessage(""); setSoundMetrics(null); setVisualMetrics(null); setInspectingVideo(false);
     if (!next) return;
     if (next.size > 50 * 1024 * 1024 || !/^(video|audio|image)\//.test(next.type)) {
       setMessage("Choose an image, video or audio file of 50 MB or less. It will be inspected locally."); return;
@@ -79,6 +84,20 @@ export default function PrePostMediaOptimizer() {
     }).catch(() => {});
     return () => { active = false; };
   }, []);
+  async function inspectVideo() {
+    if (!file?.type.startsWith("video/") || !previewUrl || inspectingVideo) return;
+    const abort = new AbortController();
+    visualAbort.current?.abort(); visualAbort.current = abort;
+    setInspectingVideo(true); setMessage(""); setVisualMetrics(null);
+    try {
+      const result = await sampleLocalVideoFrames(previewUrl, {signal: abort.signal});
+      if (!abort.signal.aborted) setVisualMetrics(result);
+    } catch (cause) {
+      if (!abort.signal.aborted) setMessage(cause.message || "Video frames could not be inspected.");
+    } finally {
+      if (visualAbort.current === abort) { visualAbort.current = null; setInspectingVideo(false); }
+    }
+  }
   async function inspectSound() {
     if (!file || !file.type.startsWith("audio/") || inspectingSound) return;
     setInspectingSound(true); setMessage(""); setSoundMetrics(null);
@@ -135,6 +154,14 @@ export default function PrePostMediaOptimizer() {
         </label>)}
       </div>
     </fieldset>
+    {file?.type.startsWith("video/") && <section className="space-y-2 rounded-xl border p-4" aria-label="Measured video timing">
+      <h3 className="font-semibold">Measured video transitions</h3>
+      <button type="button" disabled={inspectingVideo} onClick={inspectVideo}
+        className="ifund-interactive min-h-11 rounded-lg border px-4 font-semibold disabled:opacity-50">
+        {inspectingVideo ? "Inspecting video frames locally…" : "Analyze visual timeline locally"}
+      </button>
+      {visualMetrics && <p role="status" className="text-sm">Analyzed {visualMetrics.sampledFrames} sampled frames. Detected {visualMetrics.transitions.filter(t => t.change >= 0.15).length} stronger visual transitions. {visualMetrics.caveat}</p>}
+    </section>}
     {file?.type.startsWith("audio/") && <section className="space-y-3 rounded-xl border p-4" aria-label="Measured audio analysis">
       <h3 className="font-semibold">Measured audio characteristics</h3>
       <button type="button" onClick={inspectSound} disabled={inspectingSound} className="ifund-interactive min-h-11 rounded-lg border px-4 font-semibold disabled:opacity-50">{inspectingSound ? "Analyzing locally…" : "Analyze sound locally"}</button>
@@ -143,7 +170,7 @@ export default function PrePostMediaOptimizer() {
         <p className="text-xs text-muted-foreground">Measured in half-second windows. Review quiet sections and sudden changes against the intended message. No universal sound frequency predicts a response; {soundMetrics.limitations}</p>
       </div>}
     </section>}
-    <PlatformVariantEditor file={file} previewUrl={previewUrl} metadata={metadata} destinations={destinations} audioWindows={soundMetrics?.windows || []} caption={postText} />
+    <PlatformVariantEditor file={file} previewUrl={previewUrl} metadata={metadata} destinations={destinations} audioWindows={soundMetrics?.windows || []} visualTransitions={visualMetrics?.transitions || []} caption={postText} />
     <section aria-label="Media psychology analysis" className="space-y-3">
       <h3 className="text-lg font-semibold">Psychology-informed assessment</h3>
       <p className="text-sm text-muted-foreground">Research-informed, uncalibrated estimates of risk and opportunity—not numerical probabilities or verified audience outcomes. Memory and behavior depend on the viewer, content, context and exposure. Frequency or wavelength alone does not reliably predict emotion.</p>
