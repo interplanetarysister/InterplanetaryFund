@@ -169,7 +169,7 @@ export default function PrePostMediaOptimizer() {
       <h3 className="font-semibold">Imported layered audio mix</h3>
       <audio ref={layeredAudioRef} src={layeredAudioUrl} controls className="w-full" aria-label="Layered voice music and sound effect mix"/>
       {file?.type.startsWith("video/") && <button type="button" onClick={playVideoWithLayeredAudio} className="ifund-interactive min-h-11 rounded-lg border px-4 font-semibold">Preview video with layered audio</button>}
-      <p className="text-xs text-muted-foreground">Local preview only: the audio and video remain separate source files. Exporting an audio-mixed video requires a verified video encoding/muxing workflow. Use headphones for spoken review where useful.</p>
+      <p className="text-xs text-muted-foreground">The original sources stay separate. For supported browsers, the selected platform preview can also be rendered as a local video file with this layered mix. Check the saved file’s audio synchronization and destination codec requirements before publishing.</p>
     </section>}
     {metadata && <p role="status" className="text-xs text-muted-foreground">Measured file metadata: {metadata.width && metadata.height ? metadata.width + " × " + metadata.height + " pixels" : "No image dimensions"}{metadata.duration != null ? " · " + metadata.duration.toFixed(1) + " seconds" : ""}. Scene boundaries and speech timing have not been measured; any interest-peak markers are editable planning suggestions, not validated optimums.</p>}
     <label className="block text-sm font-medium">Caption, spoken script or transcript
@@ -206,7 +206,7 @@ export default function PrePostMediaOptimizer() {
         <p className="text-xs text-muted-foreground">Measured in half-second windows. Review quiet sections and sudden changes against the intended message. No universal sound frequency predicts a response; {soundMetrics.limitations}</p>
       </div>}
     </section>}
-    <PlatformVariantEditor file={file} previewUrl={previewUrl} metadata={metadata} destinations={destinations} audioWindows={soundMetrics?.windows || []} visualTransitions={visualMetrics?.transitions || []} caption={postText} />
+    <PlatformVariantEditor file={file} previewUrl={previewUrl} metadata={metadata} destinations={destinations} audioWindows={soundMetrics?.windows || []} visualTransitions={visualMetrics?.transitions || []} caption={postText} layeredAudioUrl={layeredAudioUrl} />
     <section aria-label="Media psychology analysis" className="space-y-3">
       <h3 className="text-lg font-semibold">Psychology-informed assessment</h3>
       <p className="text-sm text-muted-foreground">Research-informed, uncalibrated estimates of risk and opportunity—not numerical probabilities or verified audience outcomes. Memory and behavior depend on the viewer, content, context and exposure. Frequency or wavelength alone does not reliably predict emotion.</p>
