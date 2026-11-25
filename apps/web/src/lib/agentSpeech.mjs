@@ -32,7 +32,7 @@ export function makeRecognition({onText,onError,onEnd,browser=typeof window==="u
     }
     onText?.({final:final.trim(),interim:interim.trim()});
   };
-  recognition.onerror=event=>onError?.(event.error==="not-allowed"?"Microphone permission was denied. You can still type.":"Speech recognition is unavailable. Please type instead.");
+  recognition.onerror=event=>onError?.(["not-allowed","service-not-allowed"].includes(event.error)?"Allow microphone access in your browser’s site permissions, then click the microphone again. You can still type.":"Speech recognition is unavailable. Please type instead.");
   recognition.onend=()=>onEnd?.();
   return recognition;
 }
