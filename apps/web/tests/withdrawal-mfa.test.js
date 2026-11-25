@@ -39,7 +39,9 @@ test("withdrawal step up challenges, verifies, and requires AAL2", async()=>{
 });
 test("withdrawal screen is MFA-protected and fail-closed until payout readiness",()=>{
  const s=readFileSync(new URL("../src/pages/WithdrawalVerification.jsx",import.meta.url),"utf8");
- assert.match(s,/mfa\.enroll\(\{ factorType: "totp" \}\)/);
+ assert.match(s,/mfa\.enroll\(\{\s*factorType: "totp", issuer: "Interplanetary Fund",\s*friendlyName:/);
+ assert.match(s,/item\.factor_type === "totp" && item\.status === "unverified"/);
+ assert.match(s,/item\.factor_type === "totp" && item\.status === "verified"/);
  assert.match(s,/confirmWithdrawalFactor/);
  assert.match(s,/only requested when you begin your/);
  assert.match(s,/ifund_owner_payout_readiness/);
