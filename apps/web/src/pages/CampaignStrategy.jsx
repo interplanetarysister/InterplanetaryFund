@@ -62,14 +62,14 @@ export default function CampaignStrategy() {
       </p>
     </header>
     <CampaignBudgetPlanner />
-    {state.status === "loading" && <p role="status">Checking your owned campaign drafts…</p>}
+    {state.status === "loading" && <p role="status" className="ifund-feedback-loading">Checking your owned campaign drafts…</p>}
     {state.status === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
-      <p>{state.error}</p><button className="mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
+      <p>{state.error}</p><button className="ifund-interactive mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
     </section>}
     {state.status === "ready" && (state.items.length === 0
       ? <section className="space-y-3 rounded-xl border border-border p-5">
         <p>You do not have an owned campaign to review yet.</p>
-        <Link to="/create" className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 font-semibold text-white">Start a campaign</Link>
+        <Link to="/create" className="ifund-interactive inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 font-semibold text-white">Start a campaign</Link>
       </section>
       : <div className="grid gap-4 sm:grid-cols-2">{state.items.map(item => {
         const passed = CHECKS.filter(([key]) => item[key] === true).length;
