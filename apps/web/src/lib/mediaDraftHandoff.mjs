@@ -14,3 +14,18 @@ export function consumeMediaForOptimization(ownerId) {
   return draft.file;
 }
 export function clearMediaOptimizationDraft() { pending = null; }
+
+let audioPending = null;
+export function stageAudioForMediaOptimization(blob, ownerId) {
+  if (!(blob instanceof Blob) || !ownerId || blob.size <= 0 ||
+    blob.size > 38 * 1024 * 1024 || !blob.type.startsWith("audio/"))
+    throw new Error("A valid owner-scoped audio mix is required.");
+  audioPending = { blob, ownerId, expiresAt: Date.now() + 10 * 60 * 1000 };
+}
+export function consumeAudioForMediaOptimization(ownerId) {
+  const saved = audioPending;
+  audioPending = null;
+  if (!saved || !ownerId || saved.ownerId !== ownerId || Date.now() > saved.expiresAt) return null;
+  return saved.blob;
+}
+export function clearAudioOptimizationDraft() { audioPending = null; }
