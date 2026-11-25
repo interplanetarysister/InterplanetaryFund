@@ -23,7 +23,7 @@ export default function CampaignVoiceInput({ value, onChange, disabled = false }
         const spoken = Array.from(event.results).map(result => result[0]?.transcript || "").join(" ").trim();
         if (spoken) onChange([latestValue.current.trim(),spoken].filter(Boolean).join(" ").slice(0,1500));
       };
-      item.onerror = () => setMessage("Voice input stopped. You can continue typing.");
+      item.onerror = event => { setListening(false); setMessage(["not-allowed","service-not-allowed"].includes(event.error) ? "Allow microphone access in your browser’s site permissions, then click the microphone again." : "Voice input stopped. You can continue typing."); };
       item.onend = () => { setListening(false); recognition.current = null; };
       item.start(); setListening(true); setMessage("Listening… say what you want to make possible.");
     } catch { setListening(false); setMessage("Microphone access is unavailable. You can type instead."); }
