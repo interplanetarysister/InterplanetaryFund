@@ -1,3 +1,4 @@
+import { AUDIO_EFFECT_DEFAULTS } from "./multitrackAudio.mjs";
 /** Non-destructive editing presets. Names describe sound or appearance, not verified engagement results. */
 export const AUDIO_MIX_PRESETS=Object.freeze({
   neutral:{ label:"Neutral", effects:{lowGain:0,midGain:0,highGain:0,highpass:20,lowpass:18000,pan:0,fadeIn:0,fadeOut:0}},
@@ -9,8 +10,9 @@ export const AUDIO_MIX_PRESETS=Object.freeze({
 export function chooseAudioPreset(name, duration) {
   const preset=AUDIO_MIX_PRESETS[name];
   if(!preset || !Number.isFinite(duration) || duration<=0)throw Error("Unknown preset or invalid audio clip length.");
-  return Object.fromEntries(Object.entries(preset.effects).map(([key,value])=>
-    [key,key==="fadeIn" || key==="fadeOut"?Math.min(value,duration):value]));
+  return {...AUDIO_EFFECT_DEFAULTS,...Object.fromEntries(Object.entries(preset.effects).map(([key,value])=>
+    [key,key==="fadeIn" || key==="fadeOut"?Math.min(value,duration):value])),
+    ...(name==="soft" ? {speechCarveDb:-3.2} : {})};
 }
 export const VIDEO_LOOK_PRESETS=Object.freeze({
   natural:{label:"Natural",brightness:1,contrast:1,saturation:1},
