@@ -98,7 +98,8 @@ export default function AIImageStudio({ embedded = false }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: title.trim(), description: description.trim(), style, purpose: "media",
+          title: title.trim(), description: description.trim(), style,
+          ...(!improve ? { purpose: "media" } : {}),
           ...(improve ? { reference_jpeg: reference.reference_jpeg, confirmed_rights: true } : {}),
         }),
       });
