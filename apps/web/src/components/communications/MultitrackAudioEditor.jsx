@@ -38,7 +38,9 @@ export default function MultitrackAudioEditor() {
     previewObject.current = null;
     setPreviewUrl("");
   }
-  useEffect(() => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
     mounted.current = false;
     playback.current?.stop();
     if (recording.current) {
@@ -49,6 +51,7 @@ export default function MultitrackAudioEditor() {
     }
     if (previewObject.current) URL.revokeObjectURL(previewObject.current);
     audio.current?.close?.().catch(() => {});
+    };
   }, []);
   async function ensureAudio() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -150,6 +153,7 @@ export default function MultitrackAudioEditor() {
       stream = await navigator.mediaDevices.getUserMedia({audio:{
         echoCancellation: true, noiseSuppression: true, autoGainControl: false,
       }});
+      if (!mounted.current) { stream.getTracks().forEach(track => track.stop()); return; }
       const mime = ["audio/webm;codecs=opus","audio/mp4","audio/webm","audio/ogg"]
         .find(type => MediaRecorder.isTypeSupported(type));
       const recorder = new MediaRecorder(stream,mime?{mimeType:mime}:{});
