@@ -4,7 +4,8 @@ import { authClient } from "../../api/auth";
 import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
 import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
 import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
-import { AUDIO_MIX_PRESETS, chooseAudioPreset } from "../../lib/mediaPresetCollections.mjs";
+import { AUDIO_MIX_PRESETS, chooseAudioPreset, MASTERING_PROFILES, applyMasteringProfile } from "../../lib/mediaPresetCollections.mjs";
+import { BINAURAL_BEAT_PRESETS, CARRIER_TONE_CHOICES, makeBinauralBuffer } from "../../lib/mediaBinauralPresets.mjs";
 
 const styles = {
   input: "mt-1 min-h-10 w-full rounded-lg border border-input bg-background px-3",
@@ -25,6 +26,12 @@ export default function MultitrackAudioEditor() {
   const [soundPreset, setSoundPreset] = useState("pink");
   const [soundSeconds, setSoundSeconds] = useState(30);
   const [soundFrequency, setSoundFrequency] = useState(440);
+  const [masterProfile, setMasterProfile] = useState("reels");
+  const [duckDb, setDuckDb] = useState(-6);
+  const [bypass, setBypass] = useState(false);
+  const [binauralCarrier, setBinauralCarrier] = useState(528);
+  const [binauralDelta, setBinauralDelta] = useState(6);
+  const [pinkRatio, setPinkRatio] = useState(0.35);
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [recordingActive, setRecordingActive] = useState(false);
@@ -89,6 +96,29 @@ export default function MultitrackAudioEditor() {
     } catch (e) { setIssue(e.message || "Unable to load audio."); }
     finally { setBusy(false); }
   }
+  function activeMixTracks() {
+    return bypass ? tracks.map(track=>({...track,effects:{...AUDIO_EFFECT_DEFAULTS}})) : tracks;
+  }
+  function setMasteringProfile(id) {
+    if(!MASTERING_PROFILES[id] || recording.current)return;
+    stopPlaying();clearPreview();setIssue("");setNotice("");
+    setMasterProfile(id);
+    setDuckDb(MASTERING_PROFILES[id].duckDb);
+    setTracks(existing=>applyMasteringProfile(existing,id));
+    setNotice("Editing profile applied to existing tracks. Loudness targets are references, not measured LUFS. Audition the mix.");
+  }
+  async function addBinauralLayer() {
+    if(busy || recording.current || tracks.length>=MAX_AUDIO_TRACKS)return;
+    setBusy(true);setIssue("");setNotice("");
+    try {
+      const context=await ensureAudio();
+      const buffer=makeBinauralBuffer(context,{seconds:Number(soundSeconds),carrierHz:Number(binauralCarrier),deltaHz:Number(binauralDelta),pinkRatio:Number(pinkRatio)});
+      const track=newAudioTrack({id:crypto.randomUUID(),name:"Stereo "+binauralCarrier+"Hz + "+binauralDelta+"Hz difference",role:"texture",buffer});
+      stopPlaying();clearPreview();setTracks(existing=>[...existing,track]);
+      setNotice("Stereo acoustic texture added. Use headphones to hear separate ear channels; no physiological effect is promised.");
+    } catch(e){setIssue(e.message||"Binaural texture could not be generated.");}
+    finally{setBusy(false);}
+  }
   async function addSynthesizedSound() {
     if (busy || recording.current || tracks.length >= MAX_AUDIO_TRACKS) {
       setIssue("Remove a track before adding a sound texture."); return;
@@ -131,7 +161,7 @@ export default function MultitrackAudioEditor() {
     try {
       const context = await ensureAudio();
       stopPlaying();
-      const scheduled = scheduleMix(context,tracks,context.destination,{master});
+      const scheduled = scheduleMix(context,activeMixTracks(),context.destination,{master,duckDb:bypass?0:duckDb});
       playback.current = scheduled;
       setPlaying(true);
       const ms = Math.ceil(mixLength(tracks)*1000)+100;
@@ -142,7 +172,7 @@ export default function MultitrackAudioEditor() {
     if (!tracks.length || busy) return;
     setIssue(""); setNotice(""); setBusy(true);
     try {
-      const blob = await renderMix(tracks,{master});
+      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb});
       clearPreview();
       previewObject.current = URL.createObjectURL(blob);
       setPreviewUrl(previewObject.current);
@@ -157,7 +187,7 @@ export default function MultitrackAudioEditor() {
       const client = authClient();
       const before = await client.auth.getUser();
       if (before.error || !before.data?.user?.id) throw new Error("Sign in before preparing media versions.");
-      const blob = await renderMix(tracks,{master});
+      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb});
       const after = await client.auth.getUser();
       if (after.error || after.data?.user?.id !== before.data.user.id)
         throw new Error("Your account changed while preparing audio.");
@@ -214,7 +244,7 @@ export default function MultitrackAudioEditor() {
       recording.current = current;
       recorder.start(200);
       if (playBacking && tracks.length) {
-        try { current.backing = scheduleMix(context, tracks, context.destination, { master }); }
+        try { current.backing = scheduleMix(context, activeMixTracks(), context.destination, { master,duckDb:bypass?0:duckDb }); }
         catch (e) { setNotice("Recording started, but backing playback was unavailable."); }
       }
       current.limit = setTimeout(() => {
