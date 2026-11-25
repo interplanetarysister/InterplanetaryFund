@@ -134,9 +134,10 @@ function PublicCampaignVideoCard({ item }) {
     </div>
     <h2 className="text-xl font-semibold">{item.title}</h2>
     {item.description && <p className="break-words text-sm text-muted-foreground">{item.description}</p>}
-    <div className="mx-auto max-w-sm overflow-hidden rounded-xl">
+    {item.video && <div className="mx-auto max-w-sm overflow-hidden rounded-xl">
       <ShortsVideo item={{ id: item.id, title: item.title, video: item.video }} />
-    </div>
+    </div>}
+    {item.image && <Image src={item.image} alt={`Cover image for ${item.title}`} loading="lazy" className="max-h-96 w-full rounded-xl object-contain" />}
     <Link to={item.href} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">
       View campaign
     </Link>
@@ -148,10 +149,10 @@ export default function SocialPostList({ posts, onHidden }) {
   const [likes, setLikes] = useState({});
   useEffect(() => {
     let active = true;
-    getPostLikes(posts.filter(post => post.type !== "campaign-video")).then(data => { if (active) setLikes(data); }).catch(() => { if (active) setLikes({}); });
+    getPostLikes(posts.filter(post => post.type !== "campaign-media")).then(data => { if (active) setLikes(data); }).catch(() => { if (active) setLikes({}); });
     return () => { active = false; };
   }, [posts]);
-  return posts.map(post => post.type === "campaign-video"
+  return posts.map(post => post.type === "campaign-media"
     ? <PublicCampaignVideoCard key={post.id} item={post} />
     : <SocialItem key={post.id} post={post} user={user} likes={likes[nativePostId(post) || post.id]} onHidden={onHidden} />);
 }
