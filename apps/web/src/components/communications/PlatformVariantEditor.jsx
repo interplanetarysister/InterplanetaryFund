@@ -28,7 +28,7 @@ function saveBlob(blob, name) {
 }
 function percent(number) { return Math.round(number * 100) + "%"; }
 
-export default function PlatformVariantEditor({ file, previewUrl, metadata, destinations, audioWindows = [], caption = "" }) {
+export default function PlatformVariantEditor({ file, previewUrl, metadata, destinations, audioWindows = [], visualTransitions = [], caption = "" }) {
   const [edits, setEdits] = useState({});
   const [selected, setSelected] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -67,7 +67,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
       {variants.map(variant => {
         const frame = PLATFORM_FRAMES[variant.id];
-        const cue = timed ? proposeInterestCue({ duration, platformId: variant.id, audioWindows, preferredTime: variant.cueTime }) : null;
+        const cue = timed ? proposeInterestCue({ duration, platformId: variant.id, audioWindows, visualTransitions, preferredTime: variant.cueTime }) : null;
         return <button type="button" key={variant.id} onClick={() => setSelected(variant.id)}
           aria-pressed={current?.id === variant.id}
           className={"min-w-0 space-y-2 rounded-xl border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " +
@@ -99,7 +99,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
         </label>
       </div>
       {timed && (() => {
-        const cue = proposeInterestCue({ duration, platformId: current.id, audioWindows, preferredTime: current.cueTime });
+        const cue = proposeInterestCue({ duration, platformId: current.id, audioWindows, visualTransitions, preferredTime: current.cueTime });
         return <div className="space-y-3 rounded-xl border p-3" aria-label="Interest peak editing timeline">
           <div className="flex items-baseline justify-between gap-2">
             <h5 className="font-semibold text-sm">Interest peak / breakdown timing</h5>
