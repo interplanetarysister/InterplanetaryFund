@@ -17,7 +17,7 @@ function loadPayPal(clientId, sandbox=false) {
   sdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId)
-      + (sandbox?"&components=buttons":"&components=buttons,card-fields,googlepay")
+      + (sandbox?"&components=buttons,card-fields":"&components=buttons,card-fields,googlepay")
       + "&currency=USD&intent=capture";
     script.async = true;
     script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("Secure checkout is unavailable."));
@@ -44,6 +44,10 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const [error,setError]=useState("");
   const [eligible,setEligible]=useState(null);
   const [complete,setComplete]=useState(false);
+  const [fieldErrors,setFieldErrors]=useState({number:false,expiry:false,cvv:false});
+  const [walletNotice,setWalletNotice]=useState("");
+  const [sdkFailed,setSdkFailed]=useState(false);
+  const [loadAttempt,setLoadAttempt]=useState(0);
   const paypalHost=useRef(null), numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
@@ -124,8 +128,10 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     // native store build. The website checkout remains unchanged.
     if(nativeCheckoutUnavailable)return;
     if(!open||!valid||!campaign?.id||campaign.status!=="active"||campaign.preview_only)return;
-    let cancelled=false,buttons=null;
+    let cancelled=false,buttons=null,sdkLoaded=false;
     setError("");setStatus("loading");setEligible(null);
+    setFieldErrors({number:false,expiry:false,cvv:false});
+    setWalletNotice("");setSdkFailed(false);
     (async()=>{
       try{
         const config=await api(sandboxMode?"/api/paypal/sandbox/config":"/api/payments/config");
@@ -133,6 +139,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         if(config.environment!==mode||!config.client_id)
           throw new Error((sandboxMode?"Sandbox test":"Live")+" checkout is unavailable. No payment was started.");
         const paypal=await loadPayPal(config.client_id,sandboxMode);
+        sdkLoaded=true;
         if(cancelled)return;
         const onApprove=async data=>{
           try{await capture(data);}catch(e){if(!cancelled){setError(e.message);setStatus("error");}}
@@ -143,7 +150,14 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           onCancel:()=>{if(!cancelled)setStatus("ready");},
           style:{layout:"vertical",shape:"rect",label:"paypal"},
         });
-        if(paypalHost.current)void Promise.resolve().then(()=>buttons.render(paypalHost.current)).catch(()=>{if(!cancelled)setError("PayPal wallet checkout is unavailable. Direct card checkout may still be available.");});
+        // Wallet rendering is decoupled from card checkout: a wallet failure
+        // is a non-fatal notice, never an error that hides the card form.
+        // Guard the deferred render so a dialog closed first never renders
+        // PayPal buttons into a detached node.
+        if(paypalHost.current)void Promise.resolve().then(()=>{
+          if(cancelled||!paypalHost.current?.isConnected)return;
+          return buttons.render(paypalHost.current);
+        }).catch(()=>{if(!cancelled)setWalletNotice("PayPal wallet checkout is unavailable. Direct card checkout may still be available.");});
         if(typeof paypal.CardFields==="function"){
           const card=paypal.CardFields({
             createOrder:()=>begin("card"),onApprove,
@@ -152,16 +166,27 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           });
           if(card.isEligible()){
             cardSession.current=card;
-            await Promise.all([
-              card.NumberField().render(numberHost.current),
-              card.ExpiryField().render(expiryHost.current),
-              card.CVVField().render(cvvHost.current),
+            // Render the three hosted fields independently: one field
+            // failure must not kill the form. Each failed field names its
+            // own fallback below; the form stays usable when any field loads.
+            const renderField=(field,host)=>{
+              try{return field.render(host);}
+              catch(e){return Promise.reject(e);}
+            };
+            const results=await Promise.allSettled([
+              renderField(card.NumberField(),numberHost.current),
+              renderField(card.ExpiryField(),expiryHost.current),
+              renderField(card.CVVField(),cvvHost.current),
             ]);
-            if(!cancelled)setEligible(true);
+            if(cancelled)return;
+            const failed={number:results[0].status==="rejected",
+              expiry:results[1].status==="rejected",cvv:results[2].status==="rejected"};
+            setFieldErrors(failed);
+            setEligible(!results.every(result=>result.status==="rejected"));
           }else if(!cancelled)setEligible(false);
         }else if(!cancelled)setEligible(false);
         if(!cancelled)setStatus("ready");
-      }catch(e){if(!cancelled){setError(e.message||"Secure checkout is unavailable.");setStatus("error");}}
+      }catch(e){if(!cancelled){setError(e.message||"Secure checkout is unavailable.");setStatus("error");if(!sdkLoaded)setSdkFailed(true);}}
     })();
     return ()=>{
       cancelled=true;
@@ -171,7 +196,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         try{node?.replaceChildren();}catch(_){}
       }
     };
-  },[nativeCheckoutUnavailable,open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid,sandboxMode,mode]);
+  },[nativeCheckoutUnavailable,open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid,sandboxMode,mode,loadAttempt]);
   // Native payment eligibility remains provider- and store-policy gated.
   // Preserve access to financial history while preventing an unusable PayPal
   // iframe or a misleading payment success state inside the native shell.
@@ -252,31 +277,47 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           sandboxMode&&gift>10000?<p role="alert" className="text-xs text-amber-700">Sandbox test payments are limited to $100. Choose a smaller amount.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
+            {sdkFailed?<div role="alert" className="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+              <p className="text-sm font-bold text-red-800">Secure checkout could not load.</p>
+              <p className="text-xs leading-relaxed text-red-700">{error||"Secure checkout is unavailable."} No payment was started. The card form is hidden until checkout loads — check your connection and retry.</p>
+              <button type="button" onClick={()=>{setSdkFailed(false);setLoadAttempt(n=>n+1);}} className="min-h-11 rounded-xl bg-[#003087] px-4 py-2 text-sm font-semibold text-white">Retry secure checkout</button>
+            </div>:<>
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">Secure card checkout supports eligible Visa, Mastercard, Discover, and American Express cards when enabled by PayPal for this merchant. American Express uses a four-digit security code. No PayPal account is required for eligible direct card payments.</p>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
+              {fieldErrors.number&&<p role="alert" className="text-xs text-red-700">Card number field could not load. PayPal checkout below remains available.</p>}
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label>
                 <label className="block text-xs">Security code<div ref={cvvHost} className={field}/></label>
               </div>
+              {fieldErrors.expiry&&<p role="alert" className="text-xs text-red-700">Expiration field could not load. PayPal checkout below remains available.</p>}
+              {fieldErrors.cvv&&<p role="alert" className="text-xs text-red-700">Security code field could not load. PayPal checkout below remains available.</p>}
             </section>
             {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. Choose PayPal wallet checkout only if you prefer that separate payment method.</p>}
-            <section aria-label="Payment actions" className="relative isolate space-y-3 border-t border-slate-200 bg-white pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <section aria-label="Confirm card payment" className="space-y-3 border-t border-slate-200 bg-white pt-4">
               <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Confirm your payment securely</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
                 {status==="capturing"?"Verifying donation…":"Confirm card payment"}
               </button>}
-              {!sandboxMode&&<GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
-                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>}
-              <div className="relative isolate mt-4 space-y-2 border-t border-slate-200 pt-4"><p className="text-center text-xs font-semibold text-slate-600">Or pay with PayPal</p><div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="relative min-h-[44px] w-full"/></div>
+            </section>
+            {!sandboxMode&&<section aria-label="Google Pay checkout" className="space-y-2 border-t border-slate-200 bg-white pt-4">
+              <p className="text-center text-xs font-semibold text-slate-600">Or pay with Google Pay</p>
+              <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
+                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
+            </section>}
+            <section aria-label="PayPal checkout" className="relative isolate space-y-3 border-t border-slate-200 bg-white pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <p className="text-center text-xs font-semibold text-slate-600">Or pay with PayPal</p>
+              <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="relative min-h-[44px] w-full"/>
+              {walletNotice&&<p role="status" className="text-xs text-slate-500">{walletNotice}</p>}
               <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#003087]"/> Checkout and card fields securely provided by PayPal. Your payment details are never stored by IFund.</p>
             </section>
+            </>}
           </>}
         {status==="capturing"&&<p role="status">Verifying PayPal capture and saving your donation… Please keep checkout open.</p>}
-        {error&&<p role="alert" className="text-xs text-red-700">{error}</p>}
+        {error&&!sdkFailed&&<p role="alert" className="text-xs text-red-700">{error}</p>}
       </div>}
     </DialogContent>
   </Dialog>;

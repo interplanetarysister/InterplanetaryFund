@@ -95,7 +95,9 @@ test("mismatched signed capture never finalizes a donation",async()=>{
   const h=await makeHarness(event,{intent,providerOrder:order});
   const response=await h.response();
   assert.equal(response.status,409);
-  assert.deepEqual(h.ledger.map(e=>e.op),["get"]);
+  // The webhook routes platform-support orders first via a read-only
+  // platform_support_lookup, then falls through to the campaign path.
+  assert.deepEqual(h.ledger.map(e=>e.op),["platform_support_lookup","get"]);
 });
 test("verified completed-capture webhook creates a separate idempotent event receipt",async()=>{
   const campaign="a48d705e-2118-4464-b97d-605e116d91d2";
@@ -111,8 +113,10 @@ test("verified completed-capture webhook creates a separate idempotent event rec
   const h=await makeHarness(event,{intent,providerOrder:order});
   const response=await h.response();
   assert.equal(response.status,200);
-  assert.deepEqual(h.ledger.map(e=>e.op),["get","finalize","event"]);
-  assert.equal(h.ledger[2].data.paypal_event_id,eventId);
+  // See above: platform_support_lookup is the read-only routing read that
+  // precedes the campaign get/finalize/event sequence.
+  assert.deepEqual(h.ledger.map(e=>e.op),["platform_support_lookup","get","finalize","event"]);
+  assert.equal(h.ledger[3].data.paypal_event_id,eventId);
 });
 
 test("disabled live payment mode refuses provider capture before ledger or PayPal calls",async()=>{
