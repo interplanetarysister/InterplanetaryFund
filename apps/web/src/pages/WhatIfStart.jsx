@@ -86,7 +86,7 @@ export default function WhatIfStart(){
    <section className="relative overflow-hidden rounded-[2rem] border border-cyan-500/20 bg-slate-950 px-5 py-10 text-white shadow-2xl sm:px-12 sm:py-16" style={{backgroundImage:"radial-gradient(ellipse at 16% 5%,rgba(23,204,226,.19),transparent 43%),radial-gradient(ellipse at 88% 78%,rgba(178,82,226,.19),transparent 46%),repeating-linear-gradient(110deg,transparent,transparent 74px,rgba(170,210,255,.025) 75px,transparent 76px)"}}>
      <div className="relative mx-auto max-w-3xl space-y-6">
        <div className="flex items-center gap-3 text-xs uppercase tracking-[.24em] text-cyan-200"><Orbit size={22} aria-hidden="true"/> Interplanetary Fund</div>
-       <h1 className="font-display text-5xl font-semibold tracking-tight sm:text-7xl">What if<span className="text-cyan-300">?</span></h1>
+       <h1 className="ifund-marketing-hero font-semibold tracking-tight">What if<span className="text-cyan-300">?</span></h1>
        <p className="max-w-xl text-lg leading-relaxed text-slate-200 sm:text-xl">Every dream, challenge, and possibility deserves a place to begin. Tell us what you want to make possible.</p>
        <form onSubmit={e=>{e.preventDefault();void explore();}} className="space-y-4 rounded-3xl border border-white/15 bg-white/[.07] p-4 backdrop-blur-sm sm:p-5">
          <label htmlFor="what-if-prompt" className="block text-sm font-medium text-white">Your idea, in your own words</label>
