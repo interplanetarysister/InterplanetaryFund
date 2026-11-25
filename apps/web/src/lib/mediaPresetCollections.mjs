@@ -24,3 +24,27 @@ export function chooseVideoLook(name) {
   if(!preset)throw Error("Unknown video appearance preset.");
   return {brightness:preset.brightness,contrast:preset.contrast,saturation:preset.saturation};
 }
+
+/**
+ * The seven reference profiles from Stitch's Audio & Voice Studio.
+ * LUFS numbers are editable targets only. No BS.1770 integrated loudness
+ * measurement, true-peak limiter, AI stem separation or neural mastering is
+ * claimed by choosing a profile.
+ */
+export const MASTERING_PROFILES=Object.freeze({
+  podcast: {label:"Warm Podcast Host",category:"Podcast & Interviews",targetLufs:-16,voice:"voice",music:"soft",effects:"neutral",duckDb:-5},
+  interview: {label:"Two-Host Dialogue / Interview",category:"Podcast & Interviews",targetLufs:-16,voice:"voice",music:"soft",effects:"neutral",duckDb:-6},
+  bass: {label:"Bass Boost & Punchy Beat",category:"Music & Beats",targetLufs:-14,voice:"neutral",music:"warm",effects:"crisp",duckDb:-3},
+  lofi: {label:"Acoustic & Lo-Fi Chill",category:"Music & Beats",targetLufs:-15,voice:"warm",music:"soft",effects:"soft",duckDb:-3},
+  cinematic: {label:"Cinematic Narrative & Storytelling",category:"Voiceover / Audio Drama",targetLufs:-18,voice:"warm",music:"soft",effects:"crisp",duckDb:-8},
+  radio: {label:"Radio Drama & Multi-Cast Voice",category:"Voiceover / Audio Drama",targetLufs:-16,voice:"voice",music:"soft",effects:"crisp",duckDb:-6},
+  reels: {label:"Crystal Clear Voice (TikTok & Reels)",category:"Social Video & Reels",targetLufs:-14,voice:"voice",music:"soft",effects:"crisp",duckDb:-6},
+});
+export function applyMasteringProfile(tracks,profileId) {
+  const profile=MASTERING_PROFILES[profileId];
+  if(!profile)throw Error("Unknown mastering profile.");
+  return tracks.map(track=>{
+    const preset=track.role==="voice"?profile.voice:track.role==="music"?profile.music:track.role==="effects"?profile.effects:"neutral";
+    return {...track,effects:chooseAudioPreset(preset,track.trimEnd-track.trimStart)};
+  });
+}
