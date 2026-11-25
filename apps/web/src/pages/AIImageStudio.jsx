@@ -146,7 +146,7 @@ export default function AIImageStudio({ embedded = false }) {
     } catch (cause) { setError(cause.message || "Unable to prepare image optimization."); }
   }
   async function save() {
-    if (operationLock.current || busy || !file) return;
+    if (operationLock.current || busy || !file || style === "hyper-realistic-simulated-event") return;
     operationLock.current = true;
     setBusy("upload"); setError(""); setMessage("");
     try {
@@ -244,11 +244,12 @@ export default function AIImageStudio({ embedded = false }) {
     {imageUrl && <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
       <h2 className="text-xl font-semibold">Review {artworkKind === "improved" ? "improved" : "generated"} illustration</h2>
       <img src={imageUrl} alt={"AI illustration for " + title} className="max-h-[550px] w-full rounded-xl object-contain" />
+      {style === "hyper-realistic-simulated-event" && <p role="status" className="rounded-xl border border-amber-500/40 p-3 text-sm font-semibold">AI-simulated event · fictional reconstruction, not an actual photograph. Keep this disclosure with the media wherever it is shared.</p>}
       <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={save} className={button} disabled={Boolean(busy) || Boolean(savedUrl)}>
+        {style !== "hyper-realistic-simulated-event" && <button type="button" onClick={save} className={button} disabled={Boolean(busy) || Boolean(savedUrl)}>
           {busy === "upload" ? "Saving image…" : savedUrl ? "Image saved" : "Save to IFund cover storage"}
-        </button>
-        <a href={imageUrl} download={artworkKind === "improved" ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg"} className={button}>Download JPEG</a>
+        </button>}
+        <a href={imageUrl} download={style === "hyper-realistic-simulated-event" ? "ifund-ai-simulated-event.jpg" : artworkKind === "improved" ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg"} className={button}>Download JPEG</a>
         <button type="button" className={button} disabled={Boolean(busy)} onClick={openPlatformOptimizer}>Make platform versions</button>
       </div>
       {savedUrl && <div className="space-y-3">
