@@ -58,7 +58,7 @@ test("preview and render use the same filter and fade signal path",()=>{
  track.effects={...AUDIO_EFFECT_DEFAULTS,fadeIn:0.5,fadeOut:0.5,pan:-0.5,highGain:6};
  const instance=scheduleMix(ctx,[track],ctx.destination,{master:0.5});
  assert.equal(instance.nodes.length,1);
- assert.equal(calls.filter(x=>x[0]==="filter").length,5);
+ assert.equal(calls.filter(x=>x[0]==="filter").length,6);
  assert.ok(calls.some(x=>x[0]==="gainRamp"));
  assert.ok(calls.some(x=>x[0]==="source"));
  instance.stop();
