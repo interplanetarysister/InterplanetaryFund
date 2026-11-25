@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/api/auth";
 import { isNativeBundle } from "@/lib/nativeApi";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
-import { Check, Loader2, ShieldCheck } from "lucide-react";
+import { Check, Loader2, ShieldCheck, RefreshCw } from "lucide-react";
 import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
 import PremiumBillingChoices from "@/components/subscriptions/PremiumBillingChoices";
 
@@ -30,6 +30,8 @@ export default function Subscriptions(){
   const [status,setStatus]=useState(null);
   const [statusLoad,setStatusLoad]=useState("loading");
   const [providerVerified,setProviderVerified]=useState(false);
+  const [adminEntitlement,setAdminEntitlement]=useState(false);
+  const [refreshing,setRefreshing]=useState(false);
   const [oneTimePurchase,setOneTimePurchase]=useState(null);
   const [busy,setBusy]=useState("");
   const [error,setError]=useState("");
@@ -40,15 +42,19 @@ export default function Subscriptions(){
     Number.isFinite(Date.parse(oneTimePurchase?.valid_until||""))&&
     Date.parse(oneTimePurchase.valid_until)>Date.now();
 
-  const refresh=useCallback(async()=>{
+  const refresh=useCallback(async({ manual = false }={})=>{
+    if(manual){setRefreshing(true);setNotice("");setError("");}
     // Plans are public; an unavailable private status endpoint must not hide
     // the catalog or falsely imply that a user has no paid subscription.
     setStatusLoad("loading");
-    const [catalog,current,oneTime]=await Promise.allSettled([
+    try {
+    const [catalog,current,oneTime,entitlement]=await Promise.allSettled([
       call("/api/payments/subscriptions/plans"),
       call("/api/payments/subscriptions/status",{auth:true}),
-      call("/api/payments/premium-one-time/status",{auth:true})
+      call("/api/payments/premium-one-time/status",{auth:true}),
+      authClient().rpc("ifund_story_subscription")
     ]);
+    setAdminEntitlement(entitlement.status==="fulfilled" && !entitlement.value.error && entitlement.value.data?.admin_granted===true);
     if(catalog.status==="fulfilled" && Array.isArray(catalog.value.plans)) {
       setPlans(catalog.value.plans);
     } else {
@@ -65,6 +71,8 @@ export default function Subscriptions(){
       setProviderVerified(false);
       setStatusLoad("unavailable");
     }
+    if(manual)setNotice("Subscription and access status checked. Provider verification details are shown below.");
+    } finally {if(manual)setRefreshing(false);}
   },[]);
 
   useEffect(()=>{refresh().catch(e=>setError(e.message));},[refresh]);
@@ -119,10 +127,19 @@ export default function Subscriptions(){
   }
 
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
-    <header>
-      <h1 className="font-display text-3xl font-bold">Plans & subscriptions</h1>
-      <p className="mt-2 text-muted-foreground">Choose monthly automatic renewal or pay once for a month of Premium. Every payment is verified before paid access begins.</p>
+    <header className="flex flex-wrap items-start justify-between gap-3">
+      <div><h1 className="font-display text-3xl font-bold">Plans & subscriptions</h1>
+      <p className="mt-2 text-muted-foreground">Choose monthly automatic renewal or pay once for a month of Premium. Every payment is verified before paid access begins.</p></div>
+      <button type="button" disabled={refreshing || busy!==""} onClick={()=>refresh({manual:true}).catch(e=>setError(e.message))}
+        className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold disabled:opacity-50">
+        <RefreshCw size={17} className={refreshing?"animate-spin":""} aria-hidden="true"/>
+        {refreshing?"Refreshing…":"Refresh subscription"}
+      </button>
     </header>
+    {adminEntitlement && <section role="status" className="rounded-2xl border border-cyan-400/35 bg-cyan-400/10 p-4 text-sm">
+      <strong>Administrator access · Enterprise tier</strong>
+      <p className="mt-1">Your verified administrator account receives the highest feature tier with no per-account AI generation or agent question quota. Shared provider availability, abuse controls, and permissions still apply. No subscription purchase is required for this access.</p>
+    </section>}
 
     {native&&<p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
       New paid subscriptions are unavailable in the iPhone and Android apps while mobile billing rules are reviewed. Existing status and cancellation remain available.
