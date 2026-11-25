@@ -27,13 +27,14 @@ const words = value => String(value || "").normalize("NFKC").toLocaleLowerCase("
   .match(/[\p{L}\p{N}]+/gu) || [];
 const tokenSet = value => new Set(words(value).filter(w => w.length > 2));
 function nearSame(a,b) {
+  const normalized = value => words(value).join(" ");
+  if (normalized(a)===normalized(b)) return true;
   const left=tokenSet(a),right=tokenSet(b);
-  if (!left.size||!right.size) return true;
+  if (!left.size||!right.size) return false;
   const common=[...left].filter(x=>right.has(x)).length;
   const union=new Set([...left,...right]).size;
   const min=Math.min(left.size,right.size);
   const max=Math.max(left.size,right.size);
-  if (left.size===right.size && common===left.size) return true;
   // Subset paraphrases with one extra word are still redundant; two-word
   // slogans share too little evidence to judge on word overlap alone.
   return min>=4 && (common/union>=.70 || (common/min>=.85 && common/max>=.70));
