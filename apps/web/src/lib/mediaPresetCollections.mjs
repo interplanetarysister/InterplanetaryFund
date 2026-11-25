@@ -64,7 +64,8 @@ export function exportAudioSettings({tracks=[],masterProfile="none",duckDb=0,duc
   for(const track of tracks){
     const list=roles[track.role]||[];
     if(list.length>12)throw Error("Too many lane settings.");
-    list.push({volume:track.volume,effects:{...AUDIO_EFFECT_DEFAULTS,...track.effects}});
+    list.push({volume:track.volume,effects:{...AUDIO_EFFECT_DEFAULTS,...track.effects},
+      automation:(track.automation||[]).map(({time,gain})=>({time,gain}))});
     roles[track.role]=list;
   }
   return JSON.stringify({
@@ -92,7 +93,8 @@ export function parseAudioSettings(json, tracks=[]) {
     const effects={...AUDIO_EFFECT_DEFAULTS,...stored.effects};
     if(Object.keys(effects).some(k=>!Object.hasOwn(AUDIO_EFFECT_DEFAULTS,k)))
       throw Error("Unknown audio effect.");
-    const next={...track,volume:stored.volume,effects};
+    const next={...track,volume:stored.volume,effects,
+      automation:stored.automation === undefined ? (track.automation||[]) : stored.automation};
     // Validate track timing and effects together; invalid snapshots fail closed.
     if(!Number.isFinite(track.buffer?.duration))throw Error("Audio source is unavailable.");
     if(!Object.keys(effects).every(key=>Number.isFinite(effects[key])))
