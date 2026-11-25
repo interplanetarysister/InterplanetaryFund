@@ -24,7 +24,7 @@ export default function Discover() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
-  const shortsLink = <Link to="/shorts" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Clapperboard className="h-4 w-4" aria-hidden="true" /> Orbit Shorts</Link>;
+  const shortsLink = <Link to="/social?tab=shorts" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Clapperboard className="h-4 w-4" aria-hidden="true" /> Orbit Shorts</Link>;
   const helpLink = (
     <Link to="/help" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500" aria-label="Open Help Center">
       <LifeBuoy className="h-4 w-4 shrink-0" aria-hidden="true" /> Help Center
