@@ -31,7 +31,7 @@ test("security headers are set without white-screening the app", () => {
   assert.match(headers, /X-Content-Type-Options:\s*nosniff/);
   assert.match(headers, /Strict-Transport-Security:\s*max-age=\d+/);
   assert.match(headers, /Referrer-Policy:/);
-  assert.match(headers, /Permissions-Policy:/);
+  assert.match(headers, /Permissions-Policy:\s*geolocation=\(self\), microphone=\(self\), camera=\(\)/);
   // Baseline CSP that cannot break the app: no object, no <base> hijack, and
   // same-origin framing by default.
   assert.match(headers, /object-src 'none'/);
