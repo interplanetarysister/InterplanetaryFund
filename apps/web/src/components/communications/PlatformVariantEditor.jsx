@@ -119,6 +119,8 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
           </label>)}
         </div>
       </details>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={current.showSafeZone}
+        onChange={e=>edit(current.id,{showSafeZone:e.target.checked})}/>Display approximate platform UI safe areas</label>
       {file.type.startsWith("video/") && <section className="space-y-3 rounded-xl border p-3" aria-label="Selected video preview controls">
         <h5 className="font-semibold text-sm">Selected video preview settings</h5>
         <p className="text-xs text-muted-foreground">Change playback speed and source-audio level for this preview. These controls do not transcode the original video.</p>
@@ -132,12 +134,32 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
               onChange={e=>edit(current.id,{videoVolume:Number(e.target.value)})} className="mt-2 w-full"/>
           </label>
         </div>
-        <div className="mx-auto max-h-[360px] overflow-hidden rounded-xl bg-black" style={{aspectRatio:String(current.width)+"/"+String(current.height),maxWidth:360}}>
+        {timed && <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-xs">Preview clip in (seconds)
+            <input type="number" min="0" max={Math.max(0,duration-0.1)} step="0.1" className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3"
+              value={current.trimStart} onChange={e=>edit(current.id,{trimStart:Math.max(0,Math.min(duration-0.1,Number(e.target.value)||0))})}/>
+          </label>
+          <label className="text-xs">Preview clip out (seconds; 0 = end)
+            <input type="number" min="0" max={duration} step="0.1" className="mt-1 min-h-10 w-full rounded-lg border bg-background px-3"
+              value={current.trimEnd} onChange={e=>edit(current.id,{trimEnd:Math.max(0,Math.min(duration,Number(e.target.value)||0))})}/>
+          </label>
+        </div>}
+        <div className="relative mx-auto max-h-[360px] overflow-hidden rounded-xl bg-black" style={{aspectRatio:String(current.width)+"/"+String(current.height),maxWidth:360}}>
           <video controls playsInline src={previewUrl} aria-label={"Preview "+PLATFORM_FRAMES[current.id].name}
-            onLoadedMetadata={event=>{event.currentTarget.playbackRate=current.videoSpeed;event.currentTarget.volume=current.videoVolume;}}
+            onLoadedMetadata={event=>{event.currentTarget.playbackRate=current.videoSpeed;event.currentTarget.volume=current.videoVolume;event.currentTarget.currentTime=Math.min(current.trimStart,Math.max(0,duration-0.1));}}
+            onPlay={event=>{if(event.currentTarget.currentTime<current.trimStart)event.currentTarget.currentTime=current.trimStart;}}
+            onTimeUpdate={event=>{if(current.trimEnd>current.trimStart&&event.currentTarget.currentTime>=current.trimEnd)event.currentTarget.pause();}}
             style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:percent(current.focalX)+" "+percent(current.focalY),transform:"scale("+current.scale+")",filter:filters(current)}}
-            key={current.id+"-"+current.videoSpeed+"-"+current.videoVolume}/>
+            key={current.id+"-"+current.videoSpeed+"-"+current.videoVolume+"-"+current.trimStart+"-"+current.trimEnd}/>
+          {current.showSafeZone && <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-x-0 top-0 h-[14%] bg-amber-500/20"/>
+            <div className="absolute inset-x-0 bottom-0 h-[25%] bg-amber-500/20"/>
+            <div className="absolute inset-y-0 left-0 w-[6%] bg-amber-500/20"/>
+            <div className="absolute inset-y-0 right-0 w-[6%] bg-amber-500/20"/>
+            <div className="absolute inset-[14%_6%_25%_6%] border border-dashed border-cyan-300/80"/>
+          </div>}
         </div>
+        <p className="text-xs text-muted-foreground">Preview-only clip boundaries and safe-zone overlay; no video has been transcoded or checked against a live platform upload validator. The shaded inset is an approximate editing guide, not certified placement acceptance.</p>
       </section>}
       {timed && (() => {
         const cue = proposeInterestCue({ duration, platformId: current.id, audioWindows, visualTransitions, preferredTime: current.cueTime });
@@ -167,7 +189,7 @@ export default function PlatformVariantEditor({ file, previewUrl, metadata, dest
           value={current.caption || caption} onChange={event => edit(current.id,{caption:event.target.value})}/>
       </label>
       <button type="button" className="min-h-10 rounded-lg border px-3 text-sm"
-        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:"",brightness:1,contrast:1,saturation:1,videoSpeed:1,videoVolume:1})}>
+        onClick={() => edit(current.id,{focalX:0.5,focalY:0.5,scale:1,cueTime:null,caption:"",brightness:1,contrast:1,saturation:1,videoSpeed:1,videoVolume:1,trimStart:0,trimEnd:0,showSafeZone:false})}>
         Reset this version to the original
       </button>
     </section>}
