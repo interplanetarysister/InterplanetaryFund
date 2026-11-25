@@ -5,6 +5,7 @@ import { X, Send, ExternalLink, Mic, MicOff, Volume2, VolumeX } from "lucide-rea
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
 import { askIFundAgent } from "@/lib/agentQuestions";
+import { runIFundSpecialistSkill } from "@/lib/agentSpecialistSkills.mjs";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
@@ -21,6 +22,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   const [availability, setAvailability] = useState({ loading: true, enabled: false, reason: "" });
   const [consentRevision, setConsentRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [skillBusy, setSkillBusy] = useState(false);
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -155,6 +157,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
       stopAudio();
       setVoiceEnabled(false);
       setMessages([]);
+      setSkillBusy(false);
       setQuestion("");
       setError("");
     }
@@ -172,6 +175,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
       stopListening();
       stopAudio();
       setAvailability({loading:true,enabled:false,reason:""});
+      setSkillBusy(false);
       setConsentRevision(value => value + 1);
     };
     window.addEventListener("ifund-ai-consent-changed",refresh);
@@ -219,7 +223,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
       setVoiceError("For your security, do not speak passwords or account codes. Use the secure sign-in form.");
       setQuestion("");return;
     }
-    if (!availability.enabled || busy || text.length < 8 || text.length > 2000 || !user?.id) return;
+    if (!availability.enabled || busy || skillBusy || text.length < 8 || text.length > 2000 || !user?.id) return;
     stopListening();
     stopAudio();
     setQuestion("");
@@ -232,13 +236,32 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
     try {
       const response = await askIFundAgent(authClient(), { question: text, agent: identity, ownerId: user.id, signal: controller.signal });
       if (!controller.signal.aborted) {
-        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer, consultations:response.consultations }]);
+        setMessages(items => [...items, { agent: response.agent, kind: "answer", question:text, text: response.answer, consultations:response.consultations }]);
         if (voiceEnabled && speakAgent(response.answer, response.agent, {onEnd: () => setSpeaking(false)})) setSpeaking(true);
       }
     } catch (cause) {
       if (!controller.signal.aborted) setError(cause?.message || "The agent could not answer.");
     } finally {
       if (active.current === controller) { active.current = null; setBusy(false); }
+    }
+  }
+
+  async function runSkillForMessage(message,index) {
+    if(!availability.enabled||busy||skillBusy||!user?.id||
+      message?.kind!=="answer"||!message.question)return;
+    const controller=new AbortController();
+    active.current?.abort();active.current=controller;
+    setError("");setSkillBusy(true);
+    try{
+      const result=await runIFundSpecialistSkill(authClient(),{
+        question:message.question,agent:message.agent,ownerId:user.id,signal:controller.signal
+      });
+      if(!controller.signal.aborted)
+        setMessages(items=>items.map((entry,i)=>i===index?{...entry,skillResult:result}:entry));
+    }catch(cause){
+      if(!controller.signal.aborted)setError(cause?.message||"The specialist skill is unavailable.");
+    }finally{
+      if(active.current===controller){active.current=null;setSkillBusy(false);}
     }
   }
 
@@ -270,7 +293,20 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         </div>}
         {message.kind==="answer" && <AgentConsultationTrail consultations={message.consultations}/>}
         <p className="whitespace-pre-wrap break-words">{message.text}</p>
+        {message.kind==="answer"&&message.question&&availability.enabled&&
+          <button type="button" disabled={busy||skillBusy} onClick={()=>void runSkillForMessage(message,index)}
+            className="ifund-agent-panel-tool mt-2 min-h-11 rounded-lg border border-slate-600 px-3 text-sm text-cyan-200 disabled:opacity-40">
+            {skillBusy?"Running specialist skill…":"Run specialist review skill"}
+          </button>}
+        {message.skillResult && <div className="mt-2 rounded-lg border border-slate-700 p-3 text-sm">
+          <strong>Specialist checklist · {message.skillResult.skill.replaceAll("_"," ")}</strong>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {message.skillResult.checklist.map((item,i)=><li key={i}>{item}</li>)}
+          </ul>
+          <p className="mt-2 text-xs text-slate-400">Local advisory checklist only; no account change, external posting, payment, or application was performed.</p>
+        </div>}
       </div>)}
+      {skillBusy && <p role="status" className="text-sm text-slate-400">Running authenticated advisory skill…</p>}
       {busy && <p role="status" className="text-sm text-slate-400">Checking your question…</p>}
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
       {voiceError && <p role="alert" className="text-sm text-amber-300">{voiceError}</p>}
@@ -289,7 +325,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
       </p>}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <button type="button" aria-label={listening ? "Stop dictation" : "Dictate a message"} aria-pressed={listening}
-          disabled={busy} onClick={toggleDictation}
+          disabled={busy || skillBusy} onClick={toggleDictation}
           className="ifund-agent-panel-tool inline-flex min-h-11 items-center gap-1 rounded-lg border border-slate-600 px-3 py-2 text-sm text-white disabled:opacity-40">
           {listening ? <MicOff size={16}/> : <Mic size={16}/>}
           {listening ? "Stop listening" : "Speak"}
@@ -314,7 +350,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         <textarea id="ifund-side-agent-question" rows={2} maxLength={2000}
           value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask your agent…"
           className="min-w-0 flex-1 resize-none rounded-xl border border-slate-600 bg-slate-950 p-3 text-sm text-white placeholder:text-slate-400"/>
-        <button type="submit" aria-label="Send agent question" disabled={!availability.enabled || busy || question.trim().length < 8}
+        <button type="submit" aria-label="Send agent question" disabled={!availability.enabled || busy || skillBusy || question.trim().length < 8}
           className="ifund-agent-panel-send inline-flex min-h-11 min-w-11 items-center justify-center self-end rounded-xl bg-cyan-600 p-3 text-white disabled:opacity-40"><Send size={18}/></button>
       </form>
       <Link to={"/agents?agent=" + encodeURIComponent(identity)} className="ifund-agent-panel-tool mt-2 inline-flex min-h-11 items-center gap-1 text-sm text-cyan-300">Open full workspace <ExternalLink size={12}/></Link>
