@@ -100,10 +100,10 @@ test('actual MFA enrollment consumer never publishes a secret after helper resol
   let exposed = null;
   const source = readFileSync(new URL('../src/pages/WithdrawalVerification.jsx', import.meta.url), 'utf8');
   const start = source.indexOf('  async function beginEnrollment() {');
-  const end = source.indexOf('\n  async function verifyCode(', start);
+  const end = source.indexOf('\n  async function restartEnrollment(', start);
   assert.ok(start >= 0 && end > start);
   const args = { busy: false, setBusy() {}, setError() {}, setState() {},
-    authClient: () => ({ auth: { mfa: { enroll: async () => ({ data: { id: 'factor-A', totp: { secret: 'A-only secret' } } }) } } }),
+    authClient: () => ({ auth: { mfa: { listFactors: async () => ({ data: { all: [] } }), enroll: async () => ({ data: { id: 'factor-A', totp: { secret: 'A-only secret' } } }) } } }),
     runForOwner: operation => {
       const task = guard.run(operation);
       task.then(() => h.change('B'));
