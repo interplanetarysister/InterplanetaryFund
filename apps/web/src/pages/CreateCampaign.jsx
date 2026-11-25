@@ -27,6 +27,7 @@ import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 import TrialCreationBalance from "@/components/subscriptions/TrialCreationBalance";
 import { SUPPORT_NEEDS, supportNeed } from "@/lib/supportNeeds.mjs";
 import { Target, BookOpen, Rocket } from "lucide-react";
+import { CampaignLaunchProgress } from "@/components/campaigns/CampaignLaunchSuccess";
 
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
@@ -632,6 +633,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     void advanceWizard(target);
   };
   return <main className="mx-auto w-full max-w-3xl px-3 py-4 pb-28 sm:px-6 sm:py-8" aria-label="Campaign creator">
+    {busy === "active" && <CampaignLaunchProgress />}
     <section className={"relative mx-auto w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-300/25 bg-slate-950 text-white shadow-2xl "+(step===2?"ifund-eclipse-moment":"")}
       style={{backgroundImage:step===2?undefined:"radial-gradient(ellipse at 16% 5%,rgba(23,204,226,.19),transparent 43%),radial-gradient(ellipse at 88% 78%,rgba(178,82,226,.19),transparent 46%),repeating-linear-gradient(110deg,transparent,transparent 74px,rgba(170,210,255,.025) 75px,transparent 76px)"}}>
       <div className="relative space-y-5 px-5 py-6 sm:px-10 sm:py-10">
