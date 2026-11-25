@@ -136,7 +136,7 @@ function AppRoutes() {
     <Route path="/oauth/consent" element={<LegacyAuthorizationNotice />} />
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
-      <Route path="/shorts" element={<OrbitShorts />} />
+      <Route path="/shorts" element={<Navigate to="/social?tab=shorts" replace />} />
       <Route path="/globe" element={<Atlas />} />
       <Route path="/institutions" element={<Institutions />} />
       <Route path="/fund-your-mission" element={<FundYourMission />} />
