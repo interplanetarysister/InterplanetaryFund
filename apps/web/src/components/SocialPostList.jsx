@@ -9,6 +9,8 @@ import { videoFromText, videoFromUrl } from "@/lib/videoLinks.js";
 import { getPostLikes, likePost, nativePostId, reportPost, readReplies, replyToPost } from "@/lib/socialCommunity";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
+const SOURCE_LABELS = Object.freeze({ bluesky: "Bluesky", facebook: "Facebook", instagram: "Instagram", tiktok: "TikTok", twitter: "X", x: "X", youtube: "YouTube", reddit: "Reddit", linkedin: "LinkedIn" });
+
 function safeExternalUrl(raw) {
   if (typeof raw !== "string" || raw.length > 2048) return null;
   try {
@@ -87,7 +89,7 @@ function SocialItem({ post, likes, onHidden, user }) {
         {post.profile_id
           ? <Link className="text-primary underline" to={`/u/${post.profile_id}`}>{post.display_name || "IFund member"}</Link>
           : post.display_name || "IFund member"}
-        {post.source_platform === "bluesky" && <span className="ml-2 font-normal text-muted-foreground">via Bluesky</span>}
+        {SOURCE_LABELS[post.source_platform] && <span className="ml-2 font-normal text-muted-foreground">via {SOURCE_LABELS[post.source_platform]}</span>}
       </p>
       {post.posted_at && <time className="text-xs text-muted-foreground" dateTime={post.posted_at}>{new Date(post.posted_at).toLocaleDateString()}</time>}
     </div>
