@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { authClient } from "../../api/auth";
+import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
 import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit } from "../../lib/multitrackAudio.mjs";
 
 const styles = {
@@ -9,6 +12,7 @@ const roleNames = { music: "Background music", voice: "Voice / narration", effec
 const acceptedAudio = /\.(mp3|m4a|aac|wav|ogg|flac|webm)$/i;
 
 export default function MultitrackAudioEditor() {
+  const navigate = useNavigate();
   const audio = useRef(null);
   const playback = useRef(null);
   const recording = useRef(null);
@@ -114,6 +118,22 @@ export default function MultitrackAudioEditor() {
       setNotice("Mixed WAV rendered locally. Review the preview before saving.");
     } catch (e) { setIssue(e.message || "Audio rendering failed."); }
     finally { setBusy(false); }
+  }
+  async function useMixForMedia() {
+    if (!tracks.length || busy || recording.current) return;
+    setBusy(true); setIssue(""); setNotice("");
+    try {
+      const client = authClient();
+      const before = await client.auth.getUser();
+      if (before.error || !before.data?.user?.id) throw new Error("Sign in before preparing media versions.");
+      const blob = await renderMix(tracks,{master});
+      const after = await client.auth.getUser();
+      if (after.error || after.data?.user?.id !== before.data.user.id)
+        throw new Error("Your account changed while preparing audio.");
+      stageAudioForMediaOptimization(blob,before.data.user.id);
+      navigate("/communications?tab=media&tool=optimization");
+    } catch (e) { if (mounted.current) setIssue(e.message || "Unable to prepare the audio mix."); }
+    finally { if (mounted.current) setBusy(false); }
   }
   async function beginRecording() {
     if (busy || recording.current || tracks.length >= MAX_AUDIO_TRACKS) {
@@ -264,6 +284,7 @@ export default function MultitrackAudioEditor() {
           {busy ? "Processing…" : "Render mixed WAV"}
         </button>
       </div>
+      {tracks.length > 0 && <button type="button" disabled={busy || recordingActive} onClick={useMixForMedia} className={styles.button}>Use layered audio in media optimization</button>}
       {previewUrl && <div className="space-y-2">
         <audio src={previewUrl} controls className="w-full" aria-label="Layered mix preview"/>
         <a href={previewUrl} download="ifund-layered-audio.wav" className={styles.button+" inline-flex items-center"}>Download mixed WAV</a>
