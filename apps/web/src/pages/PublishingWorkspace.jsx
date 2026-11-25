@@ -2,12 +2,12 @@ import { lazy, Suspense } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 const CommunicationsWorkspace = lazy(() => import("./CommunicationsWorkspace"));
-const AIImageStudio = lazy(() => import("./AIImageStudio"));
-const CampaignEngagement = lazy(() => import("./CampaignEngagement"));
+const CreatorMediaTools = lazy(() => import("../components/communications/CreatorMediaTools"));
+const AudienceReviewBench = lazy(() => import("../components/communications/AudienceReviewBench"));
 
 const TABS = [
   { id: "messages", label: "Messages" },
-  { id: "artwork", label: "Artwork" },
+  { id: "media", label: "Media" },
   { id: "audience", label: "Audience & testing" },
   { id: "review", label: "Review & approvals" },
 ];
@@ -49,9 +49,9 @@ export default function PublishingWorkspace() {
     <Suspense fallback={<p role="status">Loading your workspace…</p>}>
       {(active === "messages" || active === "review")
         ? <CommunicationsWorkspace embedded focusReview={active === "review"} />
-        : active === "artwork"
-          ? <AIImageStudio embedded />
-          : <CampaignEngagement />}
+        : active === "media"
+          ? <CreatorMediaTools />
+          : <AudienceReviewBench />}
     </Suspense>
   </div>;
 }
