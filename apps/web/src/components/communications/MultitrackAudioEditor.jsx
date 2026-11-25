@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "../../api/auth";
 import { stageAudioForMediaOptimization } from "../../lib/mediaDraftHandoff.mjs";
-import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit } from "../../lib/multitrackAudio.mjs";
+import { MAX_AUDIO_TRACKS, MAX_MIX_SECONDS, newAudioTrack, mixLength, renderMix, scheduleMix, validateTrackEdit, AUDIO_EFFECT_DEFAULTS } from "../../lib/multitrackAudio.mjs";
+import { SOUND_PRESETS, makeSoundPresetBuffer } from "../../lib/mediaNoisePresets.mjs";
 
 const styles = {
   input: "mt-1 min-h-10 w-full rounded-lg border border-input bg-background px-3",
   button: "ifund-interactive min-h-11 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-40",
 };
-const roleNames = { music: "Background music", voice: "Voice / narration", effects: "Sound effects" };
+const roleNames = { music: "Background music", voice: "Voice / narration", effects: "Sound effects", texture: "Noise & tone textures" };
 const acceptedAudio = /\.(mp3|m4a|aac|wav|ogg|flac|webm)$/i;
 
 export default function MultitrackAudioEditor() {
@@ -20,6 +21,9 @@ export default function MultitrackAudioEditor() {
   const mounted = useRef(true);
   const [tracks, setTracks] = useState([]);
   const [role, setRole] = useState("music");
+  const [soundPreset, setSoundPreset] = useState("pink");
+  const [soundSeconds, setSoundSeconds] = useState(30);
+  const [soundFrequency, setSoundFrequency] = useState(440);
   const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [recordingActive, setRecordingActive] = useState(false);
@@ -83,6 +87,29 @@ export default function MultitrackAudioEditor() {
       setNotice(incoming.length + " track(s) added to " + roleNames[role] + ".");
     } catch (e) { setIssue(e.message || "Unable to load audio."); }
     finally { setBusy(false); }
+  }
+  async function addSynthesizedSound() {
+    if (busy || recording.current || tracks.length >= MAX_AUDIO_TRACKS) {
+      setIssue("Remove a track before adding a sound texture."); return;
+    }
+    setBusy(true); setIssue(""); setNotice("");
+    try {
+      const context = await ensureAudio();
+      const buffer=makeSoundPresetBuffer(context,{
+        preset:soundPreset, seconds:Number(soundSeconds), frequency:Number(soundFrequency),
+      });
+      const name=SOUND_PRESETS.find(item=>item.id===soundPreset)?.label||"Noise texture";
+      const track=newAudioTrack({id:crypto.randomUUID(),name,role:"texture",buffer});
+      stopPlaying();clearPreview();
+      setTracks(existing=>[...existing,track]);
+      setNotice(name+" added on its own lane at a low level. Adjust and preview before publishing.");
+    } catch(e){setIssue(e.message||"Unable to generate this sound preset.");}
+    finally{setBusy(false);}
+  }
+  function editEffects(id, effectPatch) {
+    const track=tracks.find(item=>item.id===id);
+    if(!track)return;
+    editTrack(id,{effects:{...AUDIO_EFFECT_DEFAULTS,...track.effects,...effectPatch}});
   }
   function editTrack(id, patch) {
     stopPlaying(); clearPreview(); setIssue(""); setNotice("");
@@ -222,6 +249,29 @@ export default function MultitrackAudioEditor() {
           disabled={busy || recordingActive} onChange={addFiles}/>
       </label>
     </section>
+    <section className="space-y-3 rounded-xl border p-4" aria-label="Sound and frequency presets">
+      <h3 className="font-semibold">Sound textures & frequency presets</h3>
+      <p className="text-sm text-muted-foreground">Generate pink, white, or brown noise, or an adjustable sine tone. Pink noise is a broad frequency spectrum with more low-frequency power, not one fixed Hz. These effects have no proven universal memory or engagement benefit.</p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <label className="text-sm">Texture
+          <select className={styles.input} value={soundPreset} onChange={e=>setSoundPreset(e.target.value)} disabled={recordingActive}>
+            {SOUND_PRESETS.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Duration (seconds)
+          <input type="number" min="1" max={MAX_MIX_SECONDS} step="1" value={soundSeconds}
+            onChange={e=>setSoundSeconds(Number(e.target.value))} className={styles.input} disabled={recordingActive}/>
+        </label>
+        <label className="text-sm">Tone frequency (Hz)
+          <input type="number" min="40" max="4000" step="1" value={soundFrequency}
+            onChange={e=>setSoundFrequency(Number(e.target.value))} className={styles.input}
+            disabled={recordingActive || soundPreset!=="tone"} />
+        </label>
+      </div>
+      <p className="text-xs text-muted-foreground">{SOUND_PRESETS.find(p=>p.id===soundPreset)?.description}. Generated textures start quietly (-12 dBFS peak internally, with an additional low lane volume). Playback volume and frequencies are editable after insertion.</p>
+      <button type="button" onClick={addSynthesizedSound} disabled={busy || recordingActive || tracks.length>=MAX_AUDIO_TRACKS}
+        className={styles.button}>Add preset to a new audio lane</button>
+    </section>
     <section className="space-y-3 rounded-xl border p-4" aria-label="Microphone recording">
       <h3 className="font-semibold">Record narration or an effect</h3>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={playBacking}
@@ -239,7 +289,7 @@ export default function MultitrackAudioEditor() {
     <div className="space-y-3">
       <h3 className="font-semibold">Audio lanes ({tracks.length}/{MAX_AUDIO_TRACKS})</h3>
       {tracks.length===0 && <p className="text-sm text-muted-foreground">Add music, narration, effects, or record a voice to begin.</p>}
-      {["music","voice","effects"].map(lane => <section key={lane} className="space-y-3 rounded-xl border p-3" aria-label={roleNames[lane]}>
+      {["music","voice","effects","texture"].map(lane => <section key={lane} className="space-y-3 rounded-xl border p-3" aria-label={roleNames[lane]}>
         <h4 className="text-sm font-semibold">{roleNames[lane]}</h4>
         {tracks.filter(track => track.role===lane).length === 0 && <p className="text-xs text-muted-foreground">No clips on this lane yet.</p>}
         {tracks.filter(track=>track.role===lane).map(track => <article key={track.id} className="space-y-3 rounded-lg border border-border bg-background p-3">
@@ -265,6 +315,26 @@ export default function MultitrackAudioEditor() {
             <input type="range" min="0" max="2" step="0.05" className="mt-2 w-full" value={track.volume}
               disabled={recordingActive} onChange={e=>editTrack(track.id,{volume:Number(e.target.value)})}/>
           </label>
+          <details className="space-y-3 rounded-xl border p-3">
+            <summary className="cursor-pointer text-sm font-semibold">Advanced audio effects: EQ, filters, fades and stereo</summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {[
+                ["lowGain","Low shelf EQ (dB)",-12,12,1],["midGain","Mid EQ (dB)",-12,12,1],
+                ["highGain","High shelf EQ (dB)",-12,12,1],
+                ["highpass","Low-cut frequency (Hz)",20,8000,10],
+                ["lowpass","High-cut frequency (Hz)",300,20000,100],
+                ["pan","Stereo pan (L/R)",-1,1,0.1],
+                ["fadeIn","Fade in (s)",0,Math.min(30,track.trimEnd-track.trimStart),0.1],
+                ["fadeOut","Fade out (s)",0,Math.min(30,track.trimEnd-track.trimStart),0.1],
+              ].map(([id,label,min,max,step])=><label key={id} className="text-xs">{label}: {track.effects?.[id]??AUDIO_EFFECT_DEFAULTS[id]}
+                <input type="range" className="mt-2 w-full" min={min} max={max} step={step}
+                  disabled={recordingActive} value={track.effects?.[id]??AUDIO_EFFECT_DEFAULTS[id]}
+                  onChange={e=>editEffects(track.id,{[id]:Number(e.target.value)})}/>
+              </label>)}
+            </div>
+            <button type="button" className={styles.button} disabled={recordingActive}
+              onClick={()=>editTrack(track.id,{effects:{...AUDIO_EFFECT_DEFAULTS}})}>Reset effects</button>
+          </details>
           <div className="flex flex-wrap gap-4 text-xs">
             <label className="flex items-center gap-2"><input type="checkbox" checked={track.muted} disabled={recordingActive}
               onChange={e=>editTrack(track.id,{muted:e.target.checked})}/>Mute</label>
