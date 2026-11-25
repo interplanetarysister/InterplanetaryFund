@@ -29,6 +29,9 @@ export default function MultitrackAudioEditor() {
   const [masterProfile, setMasterProfile] = useState("none");
   const [duckDb, setDuckDb] = useState(-6);
   const [bypass, setBypass] = useState(false);
+  const [compressionEnabled, setCompressionEnabled] = useState(false);
+  const [compressionThreshold, setCompressionThreshold] = useState(-16);
+  const [compressionRatio, setCompressionRatio] = useState(3);
   const [binauralCarrier, setBinauralCarrier] = useState(528);
   const [binauralDelta, setBinauralDelta] = useState(6);
   const [pinkRatio, setPinkRatio] = useState(0.35);
@@ -167,7 +170,7 @@ export default function MultitrackAudioEditor() {
     try {
       const context = await ensureAudio();
       stopPlaying();
-      const scheduled = scheduleMix(context,activeMixTracks(),context.destination,{master,duckDb:bypass?0:duckDb});
+      const scheduled = scheduleMix(context,activeMixTracks(),context.destination,{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio});
       playback.current = scheduled;
       setPlaying(true);
       const ms = Math.ceil(mixLength(tracks)*1000)+100;
@@ -178,7 +181,7 @@ export default function MultitrackAudioEditor() {
     if (!tracks.length || busy) return;
     setIssue(""); setNotice(""); setBusy(true);
     try {
-      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb});
+      const blob = await renderMix(activeMixTracks(),{master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio});
       clearPreview();
       previewObject.current = URL.createObjectURL(blob);
       setPreviewUrl(previewObject.current);
@@ -250,7 +253,7 @@ export default function MultitrackAudioEditor() {
       recording.current = current;
       recorder.start(200);
       if (playBacking && tracks.length) {
-        try { current.backing = scheduleMix(context, activeMixTracks(), context.destination, { master,duckDb:bypass?0:duckDb }); }
+        try { current.backing = scheduleMix(context, activeMixTracks(), context.destination, { master,duckDb:bypass?0:duckDb,compress:!bypass&&compressionEnabled,threshold:compressionThreshold,ratio:compressionRatio }); }
         catch (e) { setNotice("Recording started, but backing playback was unavailable."); }
       }
       current.limit = setTimeout(() => {
@@ -299,6 +302,22 @@ export default function MultitrackAudioEditor() {
         </label>
       </div>
       <p className="text-xs text-muted-foreground">Profile target: {MASTERING_PROFILES[masterProfile]?.targetLufs != null ? MASTERING_PROFILES[masterProfile].targetLufs+" LUFS reference (not measured)" : "not selected"}. Automatic ducking uses voice-lane signal levels rather than an AI speech-transcription service. Music gains recover smoothly between voiced segments.</p>
+      <details className="rounded-xl border p-3">
+        <summary className="cursor-pointer text-sm font-semibold">Master dynamics compressor</summary>
+        <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={compressionEnabled}
+          onChange={e=>{stopPlaying();clearPreview();setCompressionEnabled(e.target.checked);}} disabled={recordingActive}/>Enable browser-native compression</label>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="text-sm">Threshold · {compressionThreshold} dBFS
+            <input type="range" min="-36" max="-6" step="1" value={compressionThreshold} disabled={recordingActive}
+              onChange={e=>{stopPlaying();clearPreview();setCompressionThreshold(Number(e.target.value));}} className="mt-2 w-full"/>
+          </label>
+          <label className="text-sm">Ratio · {compressionRatio}:1
+            <input type="range" min="1" max="8" step="0.5" value={compressionRatio} disabled={recordingActive}
+              onChange={e=>{stopPlaying();clearPreview();setCompressionRatio(Number(e.target.value));}} className="mt-2 w-full"/>
+          </label>
+        </div>
+        <p className="text-xs text-muted-foreground">Compression moderates dynamic range but is not a calibrated true-peak limiter or -14 LUFS loudness guarantee. Review final playback for distortion.</p>
+      </details>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={bypass} disabled={recordingActive}
           onChange={e=>{stopPlaying();clearPreview();setBypass(e.target.checked);}} />
