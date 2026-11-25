@@ -105,3 +105,36 @@ test("provider enrollment failure never exposes or accepts an authenticator", as
   assert.equal(h.view.state, null);
   assert.match(h.view.error, /Provider declined/);
 });
+
+test("restart clears the abandoned secret and fails closed if factor inspection fails", async () => {
+  const current = readFileSync(new URL("../src/pages/WithdrawalVerification.jsx", import.meta.url), "utf8");
+  const restartStart = current.indexOf("  async function restartEnrollment() {");
+  const restartEnd = current.indexOf("\n  async function copySetupKey(", restartStart);
+  assert.ok(restartStart >= 0 && restartEnd > restartStart);
+  const events = [];
+  const view = { state: "confirm-enrollment", enrollment: { id: "old-one", secret: "old-private-seed" }, error: "" };
+  const args = {
+    busy: false, enrollment: view.enrollment,
+    authClient: () => ({ auth: { mfa: {
+      listFactors: async () => ({ data: { all: [{ id: "old-one", status: "unverified", factor_type: "totp" }] } }),
+      unenroll: async ({ factorId }) => { events.push(["unenroll", factorId]); return { error: null }; },
+    } } }),
+    runForOwner: fn => fn(),
+    assertOwnerCurrent() {},
+    ownerIsCurrent: () => true,
+    setBusy() {},
+    setError: value => { view.error = value; },
+    setState: value => { view.state = value; },
+    setEnrollment: value => { view.enrollment = value; },
+    setCode() {},
+    setCopyNotice() {},
+    setQrFailed() {},
+    inspect: async () => { throw new Error("MFA inspection unavailable"); },
+  };
+  const restart = new Function(...Object.keys(args), current.slice(restartStart, restartEnd) + ";return restartEnrollment;")(...Object.values(args));
+  await restart();
+  assert.deepEqual(events, [["unenroll", "old-one"]]);
+  assert.equal(view.enrollment, null);
+  assert.equal(view.state, "error");
+  assert.match(view.error, /MFA inspection unavailable/);
+});
