@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import "@/styles-publishing-workflow.css";
 
 /**
  * A single connected workflow for agents, campaign messaging, artwork,
@@ -15,6 +16,7 @@ export const PUBLISHING_WORKFLOW = Object.freeze([
 
 export default function PublishingWorkflowNav({ current, campaignId }) {
   const location = useLocation();
+  const activeId = location.pathname === "/communications" && location.hash === "#reviewed-delivery" ? "review" : current;
   const urlFor = item => {
     if (!campaignId || !["draft", "review"].includes(item.id)) return item.href;
     const suffix = item.id === "review" ? "#reviewed-delivery" : "";
@@ -25,7 +27,7 @@ export default function PublishingWorkflowNav({ current, campaignId }) {
     <p className="ifund-workflow-heading">Your campaign toolkit</p>
     <div className="ifund-workflow-items">
       {PUBLISHING_WORKFLOW.map(item => {
-        const active = item.id === current;
+        const active = item.id === activeId;
         return <Link key={item.id} to={urlFor(item)}
           aria-current={active ? "page" : undefined}
           className={"ifund-workflow-link ifund-interactive"+(active ? " is-current" : "")}>
