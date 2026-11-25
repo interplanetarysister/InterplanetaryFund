@@ -317,10 +317,14 @@ function WithdrawalMfaGate({ authUser }) {
         if (removed.error) throw removed.error;
       }
       assertOwnerCurrent();
-      setEnrollment(null); setCode(""); setCopyNotice("");
+      setEnrollment(null); setCode(""); setCopyNotice(""); setQrFailed(false);
+      setState("loading");
       await inspect();
     } catch (cause) {
-      if (ownerIsCurrent()) setError(cause.message || "Unable to restart setup safely.");
+      if (ownerIsCurrent()) {
+        setState("error");
+        setError(cause.message || "Unable to restart setup safely.");
+      }
     } finally { if (ownerIsCurrent()) setBusy(false); }
   }
   async function copySetupKey() {
