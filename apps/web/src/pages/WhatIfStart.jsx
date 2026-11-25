@@ -100,10 +100,10 @@ export default function WhatIfStart(){
          </label>
          <p className="text-xs text-slate-300">Money is only one kind of support. New Missions are private and do not need a fundraising goal.</p>
          <div className="flex flex-wrap items-center gap-3">
-           <button type="submit" disabled={!prompt.trim()||!!busy} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
+           <button type="submit" disabled={!prompt.trim()||!!busy} className="ifund-interactive inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50">
              <Compass size={19} aria-hidden="true"/> {busy==="explore"?"Exploring…":"Explore possibilities"}
            </button>
-           <button type="button" onClick={save} disabled={!prompt.trim()||!!busy||session.status==="loading"} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/25 px-5 py-3 font-semibold text-white transition hover:bg-white/10 disabled:opacity-50">
+           <button type="button" onClick={save} disabled={!prompt.trim()||!!busy||session.status==="loading"} className="ifund-interactive inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/25 px-5 py-3 font-semibold text-white transition hover:bg-white/10 disabled:opacity-50">
              <LockKeyhole size={18} aria-hidden="true"/> {busy==="save"?"Saving…":"Save private Mission"}
            </button>
          </div>
@@ -120,13 +120,13 @@ export default function WhatIfStart(){
          <p className="text-sm text-slate-200">{preview.understood}</p>
          <div className="grid gap-3 sm:grid-cols-3">{preview.pathways.map(p=><article key={p.kind} className="rounded-xl border border-white/15 p-3"><h3 className="text-sm font-semibold">{p.title}</h3><p className="mt-2 text-xs leading-relaxed text-slate-300">{p.next_step}</p></article>)}</div>
          <p className="text-xs text-slate-300">This is an unresearched planning preview. No sponsor, aid program, donation, or external action has been verified.</p>
-         <button type="button" onClick={save} disabled={!!busy} className="min-h-11 rounded-xl bg-cyan-400 px-5 font-semibold text-slate-950">Save private Mission <ArrowRight className="ml-1 inline" size={17}/></button>
+         <button type="button" onClick={save} disabled={!!busy} className="ifund-interactive min-h-11 rounded-xl bg-cyan-400 px-5 font-semibold text-slate-950">Save private Mission <ArrowRight className="ml-1 inline" size={17}/></button>
        </section>}
      </div>
    </section>
    <section aria-label="Example ideas" className="space-y-4">
      <h2 className="text-lg font-semibold">Not sure where to begin?</h2>
-     <div className="grid gap-3 md:grid-cols-3">{EXAMPLES.map(example=><button key={example} type="button" onClick={()=>update(example)} className="min-h-24 rounded-2xl border border-border bg-card p-5 text-left text-sm leading-relaxed shadow-sm transition hover:border-cyan-400/60 focus-visible:ring-2 focus-visible:ring-cyan-500">{example}</button>)}</div>
+     <div className="grid gap-3 md:grid-cols-3">{EXAMPLES.map(example=><button key={example} type="button" onClick={()=>update(example)} className="ifund-interactive-card min-h-24 rounded-2xl border border-border bg-card p-5 text-left text-sm leading-relaxed shadow-sm transition hover:border-cyan-400/60 focus-visible:ring-2 focus-visible:ring-cyan-500">{example}</button>)}</div>
    </section>
    <div className="flex flex-wrap items-center gap-5 text-sm">
      <Link className="inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline" to="/missions">My private Missions <ArrowRight size={16}/></Link>

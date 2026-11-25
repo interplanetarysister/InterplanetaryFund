@@ -92,7 +92,7 @@ export default function MyCampaigns() {
 
   if (phase === "loading") {
     return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <p role="status" className="flex items-center gap-2 text-muted-foreground">
+      <p role="status" className="ifund-feedback-loading flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading your campaigns…
       </p>
     </main>;
@@ -114,7 +114,7 @@ export default function MyCampaigns() {
           Save a private draft, publish it to Discover, or pause it at any time. {donationsEnabled ? "Published, active campaigns can receive verified PayPal donations." : "Live donation checkout is temporarily unavailable."}
         </p>
       </div>
-      <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
+      <Link to="/create" className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
         <PlusCircle className="h-4 w-4" aria-hidden="true" /> New campaign
       </Link>
     </header>
@@ -144,7 +144,7 @@ export default function MyCampaigns() {
         <h2 className="text-xl font-semibold">No campaigns yet</h2>
         <p className="mt-2 text-muted-foreground">Start with a draft. You can publish when your story is ready.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
+          <Link to="/create" className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
             <PlusCircle className="h-4 w-4" aria-hidden="true" /> Create a campaign
           </Link>
           <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-5 font-semibold">
@@ -191,7 +191,7 @@ export default function MyCampaigns() {
                   <button type="button" disabled={busy || !readiness.ready}
                     onClick={() => changeStatus(campaign, "active")}
                     title={readiness.ready ? "Publish to Discover" : readiness.missing[0]}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
+                    className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
                     <PlayCircle className="h-4 w-4" aria-hidden="true" /> {busy ? "Publishing…" : "Publish"}
                   </button>
                 )}
@@ -203,7 +203,7 @@ export default function MyCampaigns() {
                 )}
                 {campaign.status === "paused" && (
                   <button type="button" disabled={busy} onClick={() => changeStatus(campaign, "active")}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
+                    className="ifund-interactive inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
                     <PlayCircle className="h-4 w-4" aria-hidden="true" /> {busy ? "Resuming…" : "Resume"}
                   </button>
                 )}

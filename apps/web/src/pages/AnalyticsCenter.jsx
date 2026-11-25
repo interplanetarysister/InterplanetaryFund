@@ -47,7 +47,7 @@ export default function AnalyticsCenter() {
           setView(tabs[next][0]);
           tabRefs.current[next]?.focus();
         }}
-        className={"min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " + (view===id ? "border-cyan-500 bg-cyan-500/10" : "border-border")}>
+        className={"ifund-interactive min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " + (view===id ? "border-cyan-500 bg-cyan-500/10" : "border-border")}>
         {label}
       </button>)}
     </div>
