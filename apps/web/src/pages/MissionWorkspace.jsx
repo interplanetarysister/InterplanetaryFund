@@ -228,6 +228,7 @@ export default function MissionWorkspace(){
        {!resourceError&&resources.length===0&&<p className="text-sm text-muted-foreground">No reviewed source links are currently listed. Your Mission can continue without them.</p>}
        {resources.slice(0,5).map(item=><article key={item.id} className="rounded-xl border border-border p-3">
          <p className="text-xs text-muted-foreground">{item.tags.includes(mission.goal_type)?"Related topic · ":"General resource · "}Source link checked · Eligibility not checked</p>
+         <p className="text-xs text-muted-foreground">{item.deadline_at?`Deadline: ${new Date(item.deadline_at).toISOString().replace("T"," ").slice(0,16)} UTC`:item.deadline_date?`Deadline date: ${item.deadline_date} (provider timezone unconfirmed)`:"Deadline unknown; verify with the official provider."}</p>
          <h4 className="mt-1 text-sm font-semibold">{item.title}</h4>
          <p className="mt-1 text-xs text-muted-foreground">{item.official_provider} · {item.geography}</p>
          <div className="mt-2 flex flex-wrap items-center gap-3">
