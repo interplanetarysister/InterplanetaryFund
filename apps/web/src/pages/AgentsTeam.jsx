@@ -266,7 +266,6 @@ export default function AgentsTeam() {
         </div>}
         {authStatus!=="loading" && !user && <p className="text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to ask an agent.</p>}
         {gateway.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking agent service availability…</p>}
-        {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Direct AI answers are not enabled on this deployment. You can still choose specialist tools below.</p>}
         {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Agent status could not be checked. You can still submit; the service will report any delivery error.</p>}
         {aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI permissions…</p>}
         {aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">AI permission check unavailable; retry once your session is verified.</p>}
@@ -289,8 +288,8 @@ export default function AgentsTeam() {
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and either saved campaign-drafting or future private AI assistance permission. Changing a preference takes effect for new questions and never authorizes outside posting.</p>
-      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
+      <p className="mt-3 text-xs text-muted-foreground">Agent chat is available to verified members, including free accounts, with saved AI assistance permission and available service capacity. Replies are advisory; changing a preference never authorizes outside posting or financial actions.</p>
+      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">Optional premium features</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
     {selection.invalidCampaign&&<p role="alert">The campaign link is invalid. Choose a saved campaign in the workspace.</p>}
