@@ -13,7 +13,7 @@ create table if not exists public.ifund_public_cover_objects (
  created_at timestamptz not null default now(),
  deleted_at timestamptz,
  constraint ifund_public_cover_object_key_check check
-  (object_key ~ '^campaigns/public/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.(png|jpg|webp|gif|avif)$')
+  (object_key ~ '^campaigns/public/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(png|jpg|webp|gif|avif)$')
 );
 create index if not exists ifund_public_cover_active_owner
  on public.ifund_public_cover_objects(owner_id,created_at desc)
