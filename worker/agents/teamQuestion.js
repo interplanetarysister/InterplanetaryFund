@@ -11,6 +11,7 @@ import { recommendAgent, TRAINING_ROLES, FRONT_DESK_BACKENDS, isFrontDeskAgent, 
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages, frontDeskSynthesisMessages } from "./teamOrchestration.js";
 import { buildDispatch, dispatchEventKey } from "./chiefOfStaffDispatch.js";
+import { detectRefineKnowledgeIntent, buildGoalKnowledgePlan, refineEventKey } from "./goalKnowledge.js";
 import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
 import { routeAgentPracticeTask } from "./teamPracticeTask.mjs";
 import { runSpecialistPractice } from "./agentPracticalSkills.mjs";
@@ -155,6 +156,13 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const dispatch=input.selected==="nexus"
       ? buildDispatch({question:input.question,requestId:input.requestId})
       : null;
+    // "Refine Knowledge About Your Goal": any agent the member asks can
+    // prepare the research plan — knowledge is never limited to one agent.
+    // The plan is recorded in shared team context so the whole team works
+    // from the same refined knowledge.
+    const goalKnowledge=detectRefineKnowledgeIntent(input.question)
+      ? buildGoalKnowledgePlan({question:input.question,origin:"chat"})
+      : null;
     const hashData=JSON.stringify({question:input.question,agent:input.selected});
     const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(hashData));
     const sha=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
@@ -196,6 +204,17 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
             speaker:"agent",fetcher});
           dispatch.context_saved=true;
         } catch { /* prepared locally; the launch button still carries the brief */ }
+      }
+    }
+    if (goalKnowledge) {
+      goalKnowledge.context_saved=false;
+      if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+        try {
+          await appendTeamContext({env,jwt:api.jwt,eventKey:refineEventKey(input.requestId),
+            agentId:input.selected,content:JSON.stringify({goal_knowledge_refinement:goalKnowledge}),
+            speaker:"agent",fetcher});
+          goalKnowledge.context_saved=true;
+        } catch { /* prepared locally; the card still carries the plan */ }
       }
     }
     // Read *only* previously evaluated and verified super-admin-approved skills
@@ -278,6 +297,16 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
         instruction:"Tell the member plainly, in one sentence, that you have prepared this request for the named specialist and what the launch button under your reply does. Do not claim the specialist's work is done, and do not repeat the whole brief back."
       })});
     }
+    if (goalKnowledge) {
+      messages.push({role:"user",content:JSON.stringify({
+        goal_knowledge_refinement_prepared:{
+          label:goalKnowledge.label,category:goalKnowledge.category,
+          knowledge_areas:goalKnowledge.knowledge_areas,
+          estimated_minutes:goalKnowledge.estimated_minutes,
+          context_saved:goalKnowledge.context_saved===true},
+        instruction:"Tell the member plainly, in one or two sentences, that you have prepared a 'Refine Knowledge About Your Goal' research plan for their kind of goal, that it gives the team a couple of minutes to research the fastest and easiest paths and the best practices for that category, and that the whole team will work from what it finds. Do not claim the research is already done or invent findings."
+      })});
+    }
     // Member-facing answer: 0.35 produced flat, repetitive replies that
     // restated the question. 0.6 keeps facts steady while allowing natural,
     // personable wording; internal consultation summaries above stay low.
@@ -293,6 +322,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     quotaCompleted = true;
     return noStore(200,{...answer,consultations,advisory_skill:practice.skill,
       ...(dispatch ? {dispatch} : {}),
+      ...(goalKnowledge ? {goal_knowledge:goalKnowledge} : {}),
       context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:frontAgentForSpecialist(input.recommendation.target),
       coordination_needed:input.recommendation.requiresCoordination,

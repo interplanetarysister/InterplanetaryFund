@@ -143,3 +143,61 @@ test("NEXUS dispatch prepares explicit single-domain action requests only", asyn
   assert.notEqual(key, replyEventKey(UID));
   assert.equal(dispatchEventKey(UID), key);
 });
+
+test("Refine Knowledge About Your Goal prepares a full, unlimited research plan", async () => {
+  const { detectRefineKnowledgeIntent, buildGoalKnowledgePlan, detectGoalCategory,
+    refineEventKey, anonymizeForCategoryPlaybook, GOAL_KNOWLEDGE_AREAS } =
+    await import("../worker/agents/goalKnowledge.js");
+  const { dispatchEventKey } = await import("../worker/agents/chiefOfStaffDispatch.js");
+  const { replyEventKey } = await import("../worker/agents/teamContext.js");
+  // Explicit refine/deep-research asks, and research about a goal, trigger it.
+  assert.equal(detectRefineKnowledgeIntent("Please deep research my goal before we publish"), true);
+  assert.equal(detectRefineKnowledgeIntent("Refine knowledge about your goal for my fundraiser"), true);
+  assert.equal(detectRefineKnowledgeIntent("Can you research my campaign plan?"), true);
+  // Ordinary questions do not.
+  assert.equal(detectRefineKnowledgeIntent("How do I write a campaign story?"), false);
+  assert.equal(detectRefineKnowledgeIntent("What is a good budget for a bake sale?"), false);
+  // Category detection is broad, and an unknown goal still gets a full plan.
+  assert.equal(detectGoalCategory("Help with surgery bills for my dad"), "medical");
+  assert.equal(detectGoalCategory("Raise money for the animal rescue"), "animals");
+  const plan = buildGoalKnowledgePlan({ question: "Deep research my goal: surgery bills", origin: "chat" });
+  assert.equal(plan.kind, "goal_knowledge_refinement");
+  assert.equal(plan.label, "Refine Knowledge About Your Goal");
+  assert.equal(plan.status, "prepared");
+  assert.equal(plan.category, "medical");
+  // No knowledge area is withheld: the plan covers every area, the full
+  // practice source set, and is shared with the whole team.
+  assert.deepEqual(plan.knowledge_areas, [...GOAL_KNOWLEDGE_AREAS]);
+  assert.deepEqual(plan.practice_source_ids, ["ethics", "transparency", "planning", "outreach"]);
+  assert.equal(plan.shared_with_team, true);
+  assert.ok(plan.research_questions.length >= 8);
+  assert.ok(plan.research_questions.some(q => /fastest/i.test(q)));
+  assert.ok(plan.research_questions.some(q => /easiest/i.test(q)));
+  // Honesty + privacy contract.
+  assert.equal(plan.research_completed, false);
+  assert.equal(plan.actions_performed, false);
+  assert.equal(plan.private_user_data_sent_externally, false);
+  assert.equal(plan.save_to_private_space, true);
+  assert.equal(plan.brief_expires_after_days, 90);
+  assert.equal(plan.cross_campaign_learning.anonymized_only, true);
+  assert.equal(plan.cross_campaign_learning.requires_super_admin_approval, true);
+  assert.equal(plan.cross_campaign_learning.training_promoted, false);
+  const general = buildGoalKnowledgePlan({ question: "Research my plan for something new" });
+  assert.equal(general.category, "general");
+  assert.deepEqual(general.knowledge_areas, [...GOAL_KNOWLEDGE_AREAS]);
+  // Refine idempotency key is distinct from message, reply and dispatch keys.
+  const key = refineEventKey(UID);
+  assert.match(key, /^[0-9a-f-]{36}$/i);
+  assert.notEqual(key, UID);
+  assert.notEqual(key, replyEventKey(UID));
+  assert.notEqual(key, dispatchEventKey(UID));
+  assert.equal(refineEventKey(UID), key);
+  // Cross-campaign learning strips personal data and stays unpromoted.
+  const candidate = anonymizeForCategoryPlaybook({ category: "medical",
+    findings: "Email jane@example.com or see https://example.com/x, goal was $5,000, call 555-123-4567. Short updates with proof worked." });
+  assert.equal(candidate.personal_data_removed, true);
+  assert.equal(candidate.training_promoted, false);
+  assert.equal(candidate.requires_super_admin_approval, true);
+  assert.doesNotMatch(candidate.findings, /jane@example\.com|example\.com|\$5,000|555-123-4567/);
+  assert.match(candidate.findings, /Short updates with proof worked/);
+});
