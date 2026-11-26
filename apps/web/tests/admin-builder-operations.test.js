@@ -7,7 +7,9 @@ const studio=read("../src/pages/AdminStudio.jsx");
 const app=read("../src/App.jsx");
 const sql=read("../../../supabase/migrations/20261113_ifund_super_admin_operational_snapshot.sql");
 test("private Admin Builder diagnostics require verified super-admin authority",()=>{
- assert.match(app,/path="\/admin\/studio" element=\{<MemberAccess><SuperAdminAccess><AdminStudio \/><\/SuperAdminAccess><\/MemberAccess>\}/);
+ // Sprint 8 (2026-11-25): /admin/studio folds into the Admin Console as the
+ // Studio tab; the route stays a super-admin-guarded redirect.
+ assert.match(app,/path="\/admin\/studio" element=\{<MemberAccess><SuperAdminAccess><Navigate to="\/admin\?tab=studio" replace \/><\/SuperAdminAccess><\/MemberAccess>\}/);
  assert.match(sql,/ifund_current_user_is_verified_super_admin\(\)/);
  assert.match(sql,/revoke all on function public\.ifund_super_admin_operational_snapshot\(\) from public, anon/);
  assert.match(ui,/rpc\("ifund_super_admin_operational_snapshot"\)/);

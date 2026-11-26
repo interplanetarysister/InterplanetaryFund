@@ -32,7 +32,7 @@ export default function Contact() {
         <h2 className="font-display text-2xl">Send a message</h2>
         <p className="mt-3 text-sm text-muted-foreground">Signed-in members can now submit and track support tickets in iFund. Public inquiries can still use email; the website does not silently send or store email messages.</p>
         <a href={`mailto:${CONTACT_EMAIL}`} className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white hover:bg-cyan-700">Open email application</a>
-        <Link to="/support" className="mt-3 ml-0 sm:ml-3 inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-3 font-semibold">Open support ticket</Link>
+        <Link to="/help?tab=tickets" className="mt-3 ml-0 sm:ml-3 inline-flex min-h-11 items-center rounded-xl border border-border px-5 py-3 font-semibold">Open support ticket</Link>
       </section>
     </main>
     <LegalFooter />

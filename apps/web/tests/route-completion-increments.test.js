@@ -7,12 +7,16 @@ const page = name => readFileSync(new URL("../src/pages/" + name + ".jsx", impor
 const route = path => app.split("\n").find(line => line.includes('path="' + path + '"'));
 
 test("member onboarding and device controls require account verification", () => {
-  for (const [path, component] of [["/onboarding", "MemberOnboarding"], ["/devices", "Devices"]]) {
-    const entry = route(path);
-    assert.ok(entry?.includes("<MemberAccess>") && entry.includes("<" + component),
-      path + " must be protected by verified account access");
-    assert.doesNotMatch(entry, /ComingSoon/);
-  }
+  const onboarding = route("/onboarding");
+  assert.ok(onboarding?.includes("<MemberAccess>") && onboarding.includes("<MemberOnboarding"),
+    "/onboarding must be protected by verified account access");
+  assert.doesNotMatch(onboarding, /ComingSoon/);
+  // Sprint 8 (2026-11-25): /devices folds into the Settings page as a
+  // section; the route stays a MemberAccess-guarded redirect.
+  const devices = route("/devices");
+  assert.ok(devices?.includes("<MemberAccess>") && devices.includes('to="/permissions?section=devices"'),
+    "/devices must be protected by verified account access");
+  assert.doesNotMatch(devices, /ComingSoon/);
   assert.match(page("MemberOnboarding"), /saveMyProfile\(/, "onboarding must save via existing owner-scoped RPC");
   assert.match(page("Devices"), /signOut\(\{ scope \}\)/, "session controls must call Supabase Auth");
   assert.doesNotMatch(page("Devices"), /auth\.admin\./, "a public browser may never list admin user sessions");
@@ -44,16 +48,23 @@ test("member analytics is discoverable without exposing administrator links", ()
 });
 
 test("working aliases keep public agent identity and private financial boundaries", () => {
-  for (const path of ["/mission", "/agents"]) {
-    assert.ok(route(path)?.includes("<AgentsTeam />"), path + " must expose the read-only agent directory");
-    assert.doesNotMatch(route(path) || "", /MemberAccess/, "public agent identities do not require registration");
-  }
+  assert.ok(route("/agents")?.includes("<AgentsTeam />"), "/agents must expose the read-only agent directory");
+  assert.doesNotMatch(route("/agents") || "", /MemberAccess/, "public agent identities do not require registration");
+  // Sprint 8 (2026-11-25): /mission was an Agents alias; it now redirects to
+  // the tabbed Agents page and stays public.
+  assert.ok(route("/mission")?.includes('to="/agents"'), "/mission must redirect to the Agents page");
+  assert.doesNotMatch(route("/mission") || "", /MemberAccess/, "public agent identities do not require registration");
   const team = page("AgentsTeam");
   assert.match(team, /\{user && <EditorialAgentQueue \/>/, "member editorial queue stays protected");
   assert.match(team, /\{user && <TeamConversationHistory \/>/, "private team history stays protected");
   assert.match(team, /\{user && showWriting &&/, "private writing remains member-scoped");
   assert.match(team, /\{user && selected === "nexus"/, "owner briefing remains member-scoped");
-  assert.ok(route("/donors")?.includes("<MemberAccess><CampaignEngagement"));
+  // Sprint 8 (2026-11-25): /donors folds into /engagement, which keeps
+  // rendering the engagement surface behind MemberAccess.
+  assert.ok(route("/donors")?.includes('<MemberAccess><Navigate to="/engagement"'),
+    "/donors must stay member-guarded and redirect to the engagement route");
+  assert.ok(route("/engagement")?.includes("<MemberAccess><CampaignEngagement"),
+    "/engagement must keep rendering the engagement surface");
   assert.ok(route("/analytics")?.includes('<MemberAccess><LegacyAgentsRedirect tab="analytics"'));
   assert.ok(route("/connect")?.includes('to="/connections"'));
   assert.ok(route("/activate")?.includes('to="/login"'));
@@ -64,7 +75,9 @@ test("working aliases keep public agent identity and private financial boundarie
 
 test("planet reporting is restricted to administrators and counts verified public campaigns", () => {
   const entry = route("/admin/sustainability");
-  assert.ok(entry?.includes("<MemberAccess><AdminAccess><AdminSustainability"),
+  // Sprint 8 (2026-11-25): /admin/sustainability folds into the Admin Console
+  // as the Sustainability tab; the route stays an admin-guarded redirect.
+  assert.ok(entry?.includes('<MemberAccess><AdminAccess><Navigate to="/admin?tab=sustainability"'),
     "environment reporting must use verified administrator access");
   const source = page("AdminSustainability");
   assert.match(source, /row\.category === "environment"/);

@@ -36,7 +36,9 @@ test("support table is only exposed through authenticated, scoped RPCs", () => {
 });
 
 test("support UI is accessible to members and disallows unauthenticated inline changes", () => {
-  assert.match(app, /path="\/support" element=\{<MemberAccess><SupportTickets \/><\/MemberAccess>\}/);
+  // Sprint 8 (2026-11-25): /support folds into Help Center as the Support
+  // tickets tab; the route stays a MemberAccess-guarded redirect.
+  assert.match(app, /path="\/support" element=\{<MemberAccess><Navigate to="\/help\?tab=tickets" replace \/><\/MemberAccess>\}/);
   assert.match(page, /rpc\("ifund_create_support_ticket"/);
   assert.match(page, /rpc\("ifund_my_support_tickets"/);
   assert.match(page, /rpc\("ifund_super_admin_support_queue"/);

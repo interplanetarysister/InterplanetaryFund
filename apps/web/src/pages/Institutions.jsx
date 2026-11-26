@@ -4,6 +4,8 @@ import { ArrowUpRight, BriefcaseBusiness, Globe2, HeartHandshake, Search, Shield
 import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { listActiveCampaigns } from "@/api/publicData";
 import { authClient } from "@/api/auth";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import { matchOpportunity } from "@/lib/opportunityMatch";
 import OpportunityEligibilityReview from "@/components/agents/OpportunityEligibilityReview";
 import PulseApplicationPreparation from "@/components/agents/PulseApplicationPreparation";
@@ -14,6 +16,31 @@ const KINDS = [
   {id:"business",label:"Business opportunities"},
   {id:"volunteer",label:"Volunteer"},
 ];
+
+// Sprint 8 (2026-11-25), Decision 6: the Hackathon Tracker folds into this
+// page as a tab and the page is renamed Grants & Opportunities. The demo and
+// its tracker keep their own routes (/hackathon, /hackathon/tracker); this
+// page only links to them and never fetches or renders tracker data.
+export const GRANTS_PAGE_TABS = Object.freeze([
+  { id: "opportunities", label: "Opportunities" },
+  { id: "hackathon", label: "Hackathon" },
+]);
+
+// Tab state lives in the URL (?tab=hackathon) so tabs are deep-linkable.
+// Unknown or missing values fall back to Opportunities.
+export function grantsTabFromParam(value) {
+  const found = GRANTS_PAGE_TABS.find((tab) => tab.id === String(value || "").toLowerCase());
+  return found ? found.id : "opportunities";
+}
+
+// Build the ?tab= search string for a tab switch, preserving every other
+// query parameter the visitor arrived with (for example ?campaign=).
+export function grantsTabSearch(currentSearch, nextTab) {
+  const next = new URLSearchParams(typeof currentSearch === "string" ? currentSearch : "");
+  next.set("tab", grantsTabFromParam(nextTab));
+  const text = next.toString();
+  return text ? `?${text}` : "?tab=opportunities";
+}
 function text(value) { return String(value ?? "").trim(); }
 function ranking(source,campaign) {
   return matchOpportunity({cause_tags:String(source.causes_supported||"").split(",").map(t=>t.trim())},campaign).score;
@@ -86,8 +113,18 @@ function OpportunityCard({opportunity,campaign,watched,onWatch,watchBusy,watchSt
 }
 
 export default function Institutions() {
-  const [params]=useSearchParams();
+  const [params,setParams]=useSearchParams();
+  const tab=grantsTabFromParam(params.get("tab"));
+  function setTab(next){
+    const nextParams=new URLSearchParams(params);
+    nextParams.set("tab",grantsTabFromParam(next));
+    setParams(nextParams,{replace:true});
+  }
   const requestedCampaign=params.get("campaign");
+  const {user}=useAuthSession();
+  // Client-side hint only: the tracker route itself still enforces
+  // super-admin access. Hiding the link is never the gate.
+  const isSuperAdmin=useSuperAdminAccess(user)==="super-admin";
   const {id}=useParams();
   const [sources,setSources]=useState([]);
   const [opportunities,setOpportunities]=useState([]);
@@ -213,10 +250,21 @@ export default function Institutions() {
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-3">
       <p className="flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-5 w-5"/> Worldwide opportunity research</p>
-      <h1 className="text-3xl font-extrabold sm:text-4xl">Institutions, grants, business & volunteers</h1>
+      <h1 className="text-3xl font-extrabold sm:text-4xl">Grants & Opportunities</h1>
       <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Connect campaign needs with independent funding, procurement, and volunteer directories. Sources below are real external organizations. IFund has not verified eligibility for individual opportunities and is not affiliated with these directories.</p>
       <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-cyan-700 underline dark:text-cyan-300">Browse campaigns</Link>
     </header>
+    <div role="tablist" aria-label="Grants and opportunities sections" className="flex flex-wrap gap-2">
+      {GRANTS_PAGE_TABS.map((item) => (
+        <button key={item.id} type="button" role="tab" id={`grants-tab-${item.id}`}
+          aria-selected={tab === item.id} aria-controls={`grants-panel-${item.id}`}
+          className={`min-h-11 rounded-xl border px-4 py-2 font-semibold ${tab === item.id ? "border-cyan-600 bg-cyan-600 text-white" : "border-border bg-card"}`}
+          onClick={() => setTab(item.id)}>
+          {item.label}
+        </button>
+      ))}
+    </div>
+    {tab === "opportunities" && (<div role="tabpanel" id="grants-panel-opportunities" aria-labelledby="grants-tab-opportunities" className="space-y-6">
     <section className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4">
       <div className="flex gap-2"><Sparkles className="h-5 w-5 shrink-0 text-cyan-600"/><div>
         <strong>Agent-guided campaign matching</strong>
@@ -253,5 +301,20 @@ export default function Institutions() {
       <div className="grid gap-4 md:grid-cols-2">{visible.map(s=><SourceCard key={s.id} source={s} campaign={selected}/>)}</div>}
     </>}
     <p className="flex items-start gap-2 rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0"/> Private donor information, draft campaign content and precise organizer locations are not used. Do not submit applications or contact providers without the campaign owner's permission. IFund is a research and matching interface, not the issuer of these programs.</p>
+    </div>)}
+    {tab === "hackathon" && (<div role="tabpanel" id="grants-panel-hackathon" aria-labelledby="grants-tab-hackathon" className="space-y-6">
+      <section className="space-y-3 rounded-2xl border border-cyan-500/30 bg-card p-5" aria-label="PayPal AI Hackathon 2026 demo">
+        <p className="text-xs font-semibold uppercase tracking-[.22em] text-cyan-700 dark:text-cyan-300">PayPal AI Hackathon · 2026</p>
+        <h2 className="text-2xl font-bold">The PayPal AI Hackathon 2026 demo</h2>
+        <p className="text-sm leading-6 text-muted-foreground">One guided experience connects campaign discovery, AI story planning, social promotion, PayPal sandbox checkout, financial reporting and the AI agent ecosystem.</p>
+        <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm font-semibold">Sandbox only — no real money is collected. The demo uses fictional campaigns and separate demo accounts, receipts and ledger records; it never credits production IFund fundraising.</p>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/hackathon" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-bold text-white hover:bg-cyan-700">Open the guided demo <ArrowUpRight className="h-4 w-4"/></Link>
+          <a href="https://ifund-hackathon-demo.interplanetary-fund.workers.dev/hackathon" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 py-2 font-semibold">Open the complete independent judge walkthrough — sandbox only <ArrowUpRight className="h-4 w-4"/></a>
+        </div>
+        {isSuperAdmin && <Link to="/hackathon/tracker" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-500/40 px-4 py-2 font-semibold text-cyan-700 dark:text-cyan-300">Organizer demo tracker <ArrowUpRight className="h-4 w-4"/></Link>}
+        <p className="text-xs text-muted-foreground">The guided demo and its organizer tracker keep their own pages — this tab is only a summary and a link. No tracker data is loaded or shown here.</p>
+      </section>
+    </div>)}
   </main>;
 }

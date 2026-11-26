@@ -12,7 +12,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/",
@@ -22,7 +25,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 1,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/our-story",
@@ -32,7 +38,10 @@
       "source_evidence": "apps/web/src/pages/OurStory.jsx; apps/web/src/App.jsx; apps/web/src/components/LegalFooter.jsx",
       "behavior_evidence": "apps/web/tests/home-story-experience.test.mjs checks story preservation, guest route and homepage entry; deployed browser acceptance pending",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 5,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/about",
@@ -42,7 +51,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 6,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/activate",
@@ -52,7 +64,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 15,
+      "disposition": "folded",
+      "redirect_target": "/login"
     },
     {
       "route": "/admin",
@@ -62,7 +77,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+qa"
+      "owner": "frontend+qa",
+      "page_40": 40,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/admin/*",
@@ -72,7 +90,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/admin/audit",
@@ -82,7 +103,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+database"
+      "owner": "frontend+database",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=audit"
     },
     {
       "route": "/admin/deletions",
@@ -92,7 +116,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "admin+privacy+qa"
+      "owner": "admin+privacy+qa",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=deletions"
     },
     {
       "route": "/admin/finance",
@@ -102,7 +129,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 27,
+      "disposition": "folded",
+      "redirect_target": "/finances#platform-finance"
     },
     {
       "route": "/admin/help",
@@ -112,7 +142,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+database"
+      "owner": "frontend+database",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=help"
     },
     {
       "route": "/admin/integrations",
@@ -122,7 +155,10 @@
       "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; apps/web/src/App.jsx",
       "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics. No provider grants claimed.",
       "backend_evidence": "apps/web/src/hooks/useAdminAccess.js; apps/web/src/components/auth/AdminAccess.jsx; worker/oauth.js; supabase/migrations/20261103120000_ifund_studio_super_admin.sql gate the status surface. No OAuth provider success or secret exposure certified.",
-      "owner": "connections"
+      "owner": "connections",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=integrations"
     },
     {
       "route": "/admin/social-moderation",
@@ -132,7 +168,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=social-moderation"
     },
     {
       "route": "/admin/sponsor-inquiries",
@@ -142,7 +181,10 @@
       "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/AdminSponsorInquiries.jsx; apps/web/src/components/auth/SuperAdminAccess.jsx",
       "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs asserts super-admin guard and sponsor inquiry source contracts. No live acceptance.",
       "backend_evidence": "supabase/migrations/20261103120000_ifund_studio_super_admin.sql verifies super-admin claims; supabase/migrations/20261103090000_ifund_studio.sql defines the protected admin surface.",
-      "owner": "admin+backend"
+      "owner": "admin+backend",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=sponsor-inquiries"
     },
     {
       "route": "/admin/studio",
@@ -152,7 +194,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=studio"
     },
     {
       "route": "/admin/sustainability",
@@ -162,7 +207,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+data"
+      "owner": "frontend+data",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=sustainability"
     },
     {
       "route": "/agents",
@@ -172,7 +220,10 @@
       "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs (Sprint 6: tabbed Agents - Analysis & Recommendations)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/ai-images",
@@ -182,7 +233,10 @@
       "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/MediaStudio.jsx; apps/web/tests/sprint-5-media-studio.test.mjs",
       "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 23,
+      "disposition": "folded",
+      "redirect_target": "/media-studio?tab=generator"
     },
     {
       "route": "/media-studio",
@@ -192,7 +246,10 @@
       "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx; apps/web/tests/sprint-5-media-studio.test.mjs",
       "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 23,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/analytics",
@@ -202,7 +259,10 @@
       "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=analytics)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "folded",
+      "redirect_target": "/agents?tab=analytics"
     },
     {
       "route": "/atlas",
@@ -212,7 +272,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 2,
+      "disposition": "folded",
+      "redirect_target": "/discover?tab=globe"
     },
     {
       "route": "/auth/callback",
@@ -222,7 +285,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/auth/mobile-callback",
@@ -232,7 +298,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/blog",
@@ -242,7 +311,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "folded",
+      "redirect_target": "/social"
     },
     {
       "route": "/blogs",
@@ -252,7 +324,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "folded",
+      "redirect_target": "/social?tab=stories"
     },
     {
       "route": "/blogs/:id",
@@ -262,7 +337,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/campaign/:id",
@@ -272,7 +350,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 3,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/campaigns",
@@ -282,7 +363,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 20,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/campaigns/:id/edit",
@@ -292,7 +376,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 19,
+      "disposition": "folded",
+      "redirect_target": "/workspace/campaign/:id"
     },
     {
       "route": "/workspace/campaign/:id",
@@ -302,7 +389,10 @@
       "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/App.jsx; apps/web/tests/sprint-4-campaign-workspace.test.mjs",
       "behavior_evidence": "local web suite + production build; signed-in browser acceptance pending (no test credentials)",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 19,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/communications",
@@ -312,7 +402,10 @@
       "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=communications)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "folded",
+      "redirect_target": "/agents?tab=communications"
     },
     {
       "route": "/community",
@@ -322,7 +415,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 25,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/community/:id",
@@ -332,7 +428,10 @@
       "source_evidence": "apps/web/src/pages/CommunityDetail.jsx; src/api/communityGroups.js; src/components/community/CommunityDirectory.jsx; route registered in src/App.jsx, grouped directory on /community",
       "behavior_evidence": "apps/web/tests/community-groups-contract.test.js: four passing source/negative-boundary tests on 2026-11-13; no claim of authenticated browser acceptance",
       "backend_evidence": "Applied Supabase migrations ifund_member_communities_verified_membership and ifund_community_verified_email_gate to project ssibsfmtodgximseeqsv; verified RLS enabled, anon SELECT-only groups, no anon membership access or INSERT grants. Authenticated creation/join requires verified email, active profile and v4 legal acceptance.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 25,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/connect",
@@ -342,7 +441,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 30,
+      "disposition": "folded",
+      "redirect_target": "/connections"
     },
     {
       "route": "/connections",
@@ -352,7 +454,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 30,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/contact",
@@ -362,7 +467,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 10,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/create",
@@ -372,7 +480,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 4,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/dashboard",
@@ -382,7 +493,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 18,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/delete-account",
@@ -392,7 +506,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+privacy"
+      "owner": "frontend+privacy",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/devices",
@@ -402,7 +519,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 34,
+      "disposition": "folded",
+      "redirect_target": "/permissions?section=devices"
     },
     {
       "route": "/discover",
@@ -412,7 +532,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 2,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/donors",
@@ -422,7 +545,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 19,
+      "disposition": "folded",
+      "redirect_target": "/engagement"
     },
     {
       "route": "/donate",
@@ -432,7 +558,10 @@
       "source_evidence": "apps/web/src/pages/Donate.jsx; apps/web/src/App.jsx (Sprint 7: standalone Donate/Checkout page, 40-page list page 31; reuses CampaignDonationDialog + PlatformSupportDonationDialog; no new payment engine)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 31,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/download",
@@ -442,7 +571,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 9,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/embed/campaign/:id",
@@ -452,7 +584,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/engagement",
@@ -462,7 +597,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 19,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/events",
@@ -472,7 +610,10 @@
       "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx; supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
       "behavior_evidence": "apps/web/tests/events.test.js; production Cloudflare Pages deployment 303f9036-ab76-4c03-9176-40f7ee07d0f1 for commit c6d0118886139a3d1ec4d90172f300e125c93001 completed successfully on 2026-11-18: 167 web test files, 866 tests passed, 0 failed; Vite production build and Pages Functions bundle succeeded. Browser/device sign-in and live member actions were not independently exercised in this run.",
       "backend_evidence": "Production Supabase migration version 20261118194006 (ifund_fundraising_events_and_external_activity_20261118) is recorded as applied. Verified ifund_events, ifund_event_items and ifund_event_registrations exist with RLS enabled and 11 owner/public/member-scoped policies. Anonymous reads are limited to public event/item columns; attendee registrations remain member-private. Organizer checkout is outbound only and reported purchases are not IFund donations, receipts or ledger entries.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 26,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/events/:id",
@@ -482,7 +623,10 @@
       "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx; supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
       "behavior_evidence": "apps/web/tests/events.test.js; production Cloudflare Pages deployment 303f9036-ab76-4c03-9176-40f7ee07d0f1 for commit c6d0118886139a3d1ec4d90172f300e125c93001 completed successfully on 2026-11-18: 167 web test files, 866 tests passed, 0 failed; Vite production build and Pages Functions bundle succeeded. Browser/device sign-in and live member actions were not independently exercised in this run.",
       "backend_evidence": "Production Supabase migration version 20261118194006 (ifund_fundraising_events_and_external_activity_20261118) is recorded as applied. Verified ifund_events, ifund_event_items and ifund_event_registrations exist with RLS enabled and 11 owner/public/member-scoped policies. Anonymous reads are limited to public event/item columns; attendee registrations remain member-private. Organizer checkout is outbound only and reported purchases are not IFund donations, receipts or ledger entries.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 26,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/finances",
@@ -492,7 +636,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 27,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/following",
@@ -502,7 +649,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 21,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/forgot-password",
@@ -512,7 +662,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 17,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/founding-members",
@@ -522,7 +675,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 16,
+      "disposition": "folded",
+      "redirect_target": "/register"
     },
     {
       "route": "/fund-your-mission",
@@ -532,7 +688,10 @@
       "source_evidence": "apps/web/src/pages/FundYourMission.jsx; apps/web/src/lib/scoutCatalog.mjs; apps/web/src/App.jsx",
       "behavior_evidence": "apps/web/tests/fund-your-mission.test.mjs validates route, separate earning states and non-partner research",
       "backend_evidence": "Existing read-only /api/public/opportunity-sources; independent hosted member and provider acceptance still pending. No sponsor payments or reward enrollment enabled.",
-      "owner": "frontend+opportunity"
+      "owner": "frontend+opportunity",
+      "page_40": 29,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/fundraising-hub",
@@ -542,7 +701,10 @@
       "source_evidence": "apps/web/src/pages/ExternalFundingHub.jsx; apps/web/src/api/externalFundingHub.js; apps/web/src/lib/externalFundingHub.mjs; apps/web/tests/external-funding-hub.test.mjs",
       "behavior_evidence": "apps/web/tests/external-funding-hub.test.mjs; apps/web/tests/external-funding-atomic-link.test.mjs; apps/web/tests/fund-your-mission.test.mjs verify member guard, canonical external campaign URLs, source attribution and source ledger isolation. No provider/OAuth/real-user acceptance established.",
       "backend_evidence": "supabase/migrations/20261119223500_ifund_external_fundraising_hub.sql (requires applied RLS and live verification)",
-      "owner": "frontend+backend+qa"
+      "owner": "frontend+backend+qa",
+      "page_40": 38,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/fundraising-partners",
@@ -552,7 +714,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 7,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/fundraising-tips",
@@ -562,7 +727,10 @@
       "source_evidence": "apps/web/src/pages/FundraisingTips.jsx; apps/web/src/App.jsx public /fundraising-tips lazy route; apps/web/src/components/Layout.jsx public navigation; apps/web/tests/fundraising-tips-route.test.mjs (2/2 executed source contracts)",
       "behavior_evidence": "apps/web/tests/fundraising-tips-route.test.mjs; apps/web/tests/plain-language-copy-batch.test.mjs assert the public route, guide content and no unfinished Live link. Historical Cloudflare preview 000bc1e1-34f0-4a5d-9f89-69ae7ff49263 and production 1cdd3f35-ca01-4c1d-9d85-9aee1bf5eb51 are prior evidence, not this release; re-verify against the current artifact.",
       "backend_evidence": "No backend access; public static guidance route only",
-      "owner": "frontend+qa"
+      "owner": "frontend+qa",
+      "page_40": 11,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/giving",
@@ -572,7 +740,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 32,
+      "disposition": "folded",
+      "redirect_target": "/finances#giving-receipts"
     },
     {
       "route": "/globe",
@@ -582,7 +753,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 2,
+      "disposition": "folded",
+      "redirect_target": "/discover?tab=globe"
     },
     {
       "route": "/hackathon",
@@ -592,7 +766,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 29,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/hackathon/tracker",
@@ -602,7 +779,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 29,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/health-privacy",
@@ -612,7 +792,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 14,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/help",
@@ -622,7 +805,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 11,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/help/:slug",
@@ -632,7 +818,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 11,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/inbox",
@@ -642,7 +831,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 22,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/institutions",
@@ -652,7 +844,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 29,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/institutions/:id",
@@ -662,7 +857,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 29,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/ledger",
@@ -672,7 +870,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 27,
+      "disposition": "folded",
+      "redirect_target": "/finances#campaign-finances"
     },
     {
       "route": "/login",
@@ -682,7 +883,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 15,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/mail",
@@ -692,7 +896,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 22,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/messaging",
@@ -702,7 +909,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/mission",
@@ -712,7 +922,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "folded",
+      "redirect_target": "/agents"
     },
     {
       "route": "/missions",
@@ -722,7 +935,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+database+qa"
+      "owner": "frontend+database+qa",
+      "page_40": 19,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/missions/:id",
@@ -732,7 +948,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+backend+qa"
+      "owner": "frontend+backend+qa",
+      "page_40": 19,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/my-blog",
@@ -742,7 +961,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/my-profile",
@@ -752,7 +974,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 33,
+      "disposition": "folded",
+      "redirect_target": "/profile"
     },
     {
       "route": "/news",
@@ -762,7 +987,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "folded",
+      "redirect_target": "/social?tab=news"
     },
     {
       "route": "/notifications",
@@ -772,7 +1000,10 @@
       "source_evidence": "apps/web/src/pages/Notifications.jsx; apps/web/src/App.jsx (Sprint 7: Mail tab links to /mail; Mail stays canonical, no inline inbox)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 22,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/oauth/callback/:provider",
@@ -782,7 +1013,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/oauth/consent",
@@ -792,7 +1026,10 @@
       "source_evidence": "apps/web/src/pages/LegacyAuthorizationNotice.jsx and explicit src/App.jsx route; deprecated Base44 MCP consent has no registered new-system server transaction",
       "behavior_evidence": "apps/web/tests/legacy-oauth-consent-retirement.test.js verifies no opaque redirect, token or query approval in source; intentionally retired route",
       "backend_evidence": "No server OAuth token issued, approval dispatched or provider scope granted by this route. New provider consents use independently validated /api/oauth provider gateway and must be approved separately.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/onboarding",
@@ -802,7 +1039,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/ops",
@@ -812,7 +1052,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=ops"
     },
     {
       "route": "/p/:slug",
@@ -822,7 +1065,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": null,
+      "disposition": "utility",
+      "redirect_target": null
     },
     {
       "route": "/permissions",
@@ -832,7 +1078,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 34,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/planetary-impact",
@@ -842,7 +1091,10 @@
       "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/AdminSustainability.jsx; apps/web/src/components/Layout.jsx; apps/web/src/pages/About.jsx; apps/web/src/api/publicData.js",
       "behavior_evidence": "2026-11-17 connector-assisted executed source contract: five positive assertions and four mutation-negative checks passed (public route, admin guard, guest navigation, server-side environmental filter, sustainability disclaimer); apps/web/tests/route-completion-increments.test.js includes committed regression assertions. Full Node/browser acceptance not yet run.",
       "backend_evidence": "Public path uses listActiveCampaigns with canonical public Supabase anon client and provider-verified funding RPC; category filter is applied before 500-row limit. No administrator functions are imported or invoked. Supabase live anon/RLS runtime verification remains pending.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 39,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/plans",
@@ -852,7 +1104,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 8,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/platform",
@@ -862,7 +1117,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 40,
+      "disposition": "folded",
+      "redirect_target": "/admin?tab=platform"
     },
     {
       "route": "/preferences",
@@ -872,7 +1130,10 @@
       "source_evidence": "apps/web/src/App.jsx: public /preferences alias redirects with replace to /permissions?section=marketing; /permissions is explicitly wrapped in MemberAccess",
       "behavior_evidence": "apps/web/tests/marketing-consent.test.js verifies the exact redirect and explicit opt-in controls; apps/web/tests/unified-permissions.test.js verifies consolidated permissions; no consent is changed by redirect",
       "backend_evidence": "The alias issues no API call or write. Its /permissions destination retains MemberAccess verified email/lifecycle/legal gates; marketing consent RPCs retain server-side auth.uid() scope. Hosted/browser acceptance is not asserted.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 34,
+      "disposition": "folded",
+      "redirect_target": "/permissions?section=marketing"
     },
     {
       "route": "/privacy",
@@ -882,7 +1143,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 13,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/profile",
@@ -892,7 +1156,10 @@
       "source_evidence": "apps/web/src/pages/Profile.jsx; apps/web/src/App.jsx (Sprint 7: Referrals tab renders ReferralRewards; Dashboard summary links to /profile?tab=referrals)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 33,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/publication",
@@ -902,7 +1169,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/publications/:id",
@@ -912,7 +1182,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/register",
@@ -922,7 +1195,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 16,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/reset-password",
@@ -932,7 +1208,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 17,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/shorts",
@@ -942,7 +1221,10 @@
       "source_evidence": "apps/web/src/pages/OrbitShorts.jsx; apps/web/src/lib/videoLinks.js; apps/web/src/lib/shortsFeed.js",
       "behavior_evidence": "apps/web/tests/orbit-shorts.test.js; apps/web/tests/orbit-shorts-render.test.js; apps/web/tests/video-links.test.js; synthetic desktop/phone interaction evidence in branch review continuation",
       "backend_evidence": "Uses only existing public campaign projections and moderated public social RPC; private records are never queried.",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "folded",
+      "redirect_target": "/social?tab=shorts"
     },
     {
       "route": "/social",
@@ -952,7 +1234,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/social/post/:id",
@@ -962,7 +1247,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 24,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/sponsor",
@@ -972,7 +1260,10 @@
       "source_evidence": "apps/web/src/pages/SponsorWithIFund.jsx; apps/web/src/App.jsx",
       "behavior_evidence": "apps/web/tests/sponsor-inquiries.test.mjs; authenticated E2E pending",
       "backend_evidence": "public.ifund_sponsor_inquiries RLS owner insert/read, review status; no sponsor activation",
-      "owner": "frontend+finance"
+      "owner": "frontend+finance",
+      "page_40": 7,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/strategy",
@@ -982,7 +1273,10 @@
       "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/App.jsx (Sprint 6: legacy route redirects to /agents?tab=strategy)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 28,
+      "disposition": "folded",
+      "redirect_target": "/agents?tab=strategy"
     },
     {
       "route": "/subscriptions",
@@ -992,7 +1286,10 @@
       "source_evidence": "apps/web/src/pages/Subscriptions.jsx; apps/web/src/App.jsx (Sprint 7: Premium tab with PremiumBillingChoices/PremiumOneTimeCheckout; Dashboard summary links to /subscriptions?tab=premium)",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 36,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/support",
@@ -1002,7 +1299,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 11,
+      "disposition": "folded",
+      "redirect_target": "/help?tab=tickets"
     },
     {
       "route": "/templates",
@@ -1012,7 +1312,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 4,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/terms",
@@ -1022,7 +1325,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 12,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/u/:id",
@@ -1032,7 +1338,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 33,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/what-if",
@@ -1042,7 +1351,10 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend+qa"
+      "owner": "frontend+qa",
+      "page_40": 4,
+      "disposition": "kept",
+      "redirect_target": null
     },
     {
       "route": "/withdrawals",
@@ -1052,7 +1364,912 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend",
+      "page_40": 27,
+      "disposition": "kept",
+      "redirect_target": null
+    }
+  ],
+  "target_pages": [
+    {
+      "page": 1,
+      "name": "Home",
+      "canonical_route": "/",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Home.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 2,
+      "name": "Discover",
+      "canonical_route": "/discover",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/Discover.jsx",
+        "src/pages/Atlas.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "discover",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Discover.jsx; apps/web/src/pages/Atlas.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/discover-globe-tab.test.mjs checks the discover/globe tabs, deep-linked by ?tab=, Atlas rendering, and ?category= preservation",
+          "backend_evidence": ""
+        },
+        {
+          "id": "globe",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Discover.jsx; apps/web/src/pages/Atlas.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/discover-globe-tab.test.mjs checks the discover/globe tabs, deep-linked by ?tab=, Atlas rendering, and ?category= preservation",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "name": "Campaign Detail",
+      "canonical_route": "/campaign/:id",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/CampaignDetail.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 4,
+      "name": "Start a Campaign",
+      "canonical_route": "/create",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/CreateCampaign.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 5,
+      "name": "Our Story",
+      "canonical_route": "/our-story",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/OurStory.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 6,
+      "name": "About",
+      "canonical_route": "/about",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/About.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 7,
+      "name": "Fundraising Partners",
+      "canonical_route": "/fundraising-partners",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/FundraisingPartners.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 8,
+      "name": "Pricing & Plans",
+      "canonical_route": "/plans",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/PublicSubscriptionPlans.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 9,
+      "name": "Download",
+      "canonical_route": "/download",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/DownloadApp.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 10,
+      "name": "Contact",
+      "canonical_route": "/contact",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Contact.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 11,
+      "name": "Help Center",
+      "canonical_route": "/help",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/Help.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "help",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Help.jsx; apps/web/src/pages/SupportTickets.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/help-tickets-tab.test.mjs checks the help/tickets tabs, deep-linked by ?tab=, the member gate on the tickets tab, and ?q= preservation",
+          "backend_evidence": ""
+        },
+        {
+          "id": "tickets",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Help.jsx; apps/web/src/pages/SupportTickets.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/help-tickets-tab.test.mjs checks the help/tickets tabs, deep-linked by ?tab=, the member gate on the tickets tab, and ?q= preservation",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 12,
+      "name": "Terms",
+      "canonical_route": "/terms",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Terms.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 13,
+      "name": "Privacy",
+      "canonical_route": "/privacy",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Privacy.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 14,
+      "name": "Health Privacy",
+      "canonical_route": "/health-privacy",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/HealthPrivacy.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 15,
+      "name": "Log In",
+      "canonical_route": "/login",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/AuthPage.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 16,
+      "name": "Create Account",
+      "canonical_route": "/register",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/AuthPage.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 17,
+      "name": "Reset Password",
+      "canonical_route": "/reset-password",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/ResetPassword.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 18,
+      "name": "Dashboard",
+      "canonical_route": "/dashboard",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Dashboard.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 19,
+      "name": "Campaign Workspace",
+      "canonical_route": "/workspace/campaign/:id",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "member",
+      "source_files": [
+        "src/pages/CampaignWorkspace.jsx",
+        "src/lib/campaignWorkspaceTabs.mjs"
+      ],
+      "tabs": [
+        {
+          "id": "story",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "media",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "updates",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "goals",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "finance",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "spending",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "tasks",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "growth",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        },
+        {
+          "id": "missions",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/CampaignWorkspace.jsx; apps/web/src/lib/campaignWorkspaceTabs.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-4-campaign-workspace.test.mjs checks the nine tabs in order, hash deep-links, validation switching, and the private Missions tab",
+          "backend_evidence": "MemberAccess wrapper on /workspace/campaign/:id in App.jsx; per-campaign authorization is the workspace route's backend acceptance (still open)"
+        }
+      ]
+    },
+    {
+      "page": 20,
+      "name": "My Campaigns",
+      "canonical_route": "/campaigns",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "member",
+      "source_files": [
+        "src/pages/MyCampaigns.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 21,
+      "name": "Saved & Following",
+      "canonical_route": "/following",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "member",
+      "source_files": [
+        "src/pages/FollowedCampaigns.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 22,
+      "name": "Notifications",
+      "canonical_route": "/notifications",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "member",
+      "source_files": [
+        "src/pages/Notifications.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "notifications",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "mail",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Notifications.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-7-checkout-terms-mail.test.mjs checks the Notifications Mail tab links to /mail and never renders Mail inline",
+          "backend_evidence": "MemberAccess wrapper on /notifications in App.jsx; Mail itself stays on /mail (see Sprint 7 mail decision)"
+        }
+      ]
+    },
+    {
+      "page": 23,
+      "name": "Media Studio",
+      "canonical_route": "/media-studio",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "member",
+      "source_files": [
+        "src/pages/MediaStudio.jsx",
+        "src/lib/mediaStudio.mjs"
+      ],
+      "tabs": [
+        {
+          "id": "generator",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-5-media-studio.test.mjs checks the five tabs in order, deep-linked by ?tab=, and each panel's content (Generator, Editor, Audio, Library, Publish)",
+          "backend_evidence": "MemberAccess wrapper on /media-studio in App.jsx; server-side image-generation allowance gate (see premium-gating-gap-check.md)"
+        },
+        {
+          "id": "editor",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-5-media-studio.test.mjs checks the five tabs in order, deep-linked by ?tab=, and each panel's content (Generator, Editor, Audio, Library, Publish)",
+          "backend_evidence": "MemberAccess wrapper on /media-studio in App.jsx; server-side image-generation allowance gate (see premium-gating-gap-check.md)"
+        },
+        {
+          "id": "audio",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-5-media-studio.test.mjs checks the five tabs in order, deep-linked by ?tab=, and each panel's content (Generator, Editor, Audio, Library, Publish)",
+          "backend_evidence": "MemberAccess wrapper on /media-studio in App.jsx; server-side image-generation allowance gate (see premium-gating-gap-check.md)"
+        },
+        {
+          "id": "library",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-5-media-studio.test.mjs checks the five tabs in order, deep-linked by ?tab=, and each panel's content (Generator, Editor, Audio, Library, Publish)",
+          "backend_evidence": "MemberAccess wrapper on /media-studio in App.jsx; server-side image-generation allowance gate (see premium-gating-gap-check.md)"
+        },
+        {
+          "id": "publish",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/MediaStudio.jsx; apps/web/src/lib/mediaStudio.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-5-media-studio.test.mjs checks the five tabs in order, deep-linked by ?tab=, and each panel's content (Generator, Editor, Audio, Library, Publish)",
+          "backend_evidence": "MemberAccess wrapper on /media-studio in App.jsx; server-side image-generation allowance gate (see premium-gating-gap-check.md)"
+        }
+      ]
+    },
+    {
+      "page": 24,
+      "name": "IFund Social",
+      "canonical_route": "/social",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/SocialFeedPage.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "posts",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/SocialFeedPage.jsx; apps/web/src/pages/Blogs.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/social-stories-tab.test.mjs checks the posts/shorts/stories/news tabs, deep-linked by ?tab=, and Blogs / Blogs-news rendering",
+          "backend_evidence": ""
+        },
+        {
+          "id": "shorts",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/SocialFeedPage.jsx; apps/web/src/pages/Blogs.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/social-stories-tab.test.mjs checks the posts/shorts/stories/news tabs, deep-linked by ?tab=, and Blogs / Blogs-news rendering",
+          "backend_evidence": ""
+        },
+        {
+          "id": "stories",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/SocialFeedPage.jsx; apps/web/src/pages/Blogs.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/social-stories-tab.test.mjs checks the posts/shorts/stories/news tabs, deep-linked by ?tab=, and Blogs / Blogs-news rendering",
+          "backend_evidence": ""
+        },
+        {
+          "id": "news",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/SocialFeedPage.jsx; apps/web/src/pages/Blogs.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/social-stories-tab.test.mjs checks the posts/shorts/stories/news tabs, deep-linked by ?tab=, and Blogs / Blogs-news rendering",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 25,
+      "name": "Forums",
+      "canonical_route": "/community",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/SocialFeedPage.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 26,
+      "name": "Events",
+      "canonical_route": "/events",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Events.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 27,
+      "name": "Finance",
+      "canonical_route": "/finances",
+      "canonical_tab": null,
+      "tab_param": "anchor",
+      "role": "member",
+      "source_files": [
+        "src/pages/FinanceDashboard.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "campaign-finances",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "giving-receipts",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "platform-finance",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 28,
+      "name": "Agents \u2014 Analysis & Recommendations",
+      "canonical_route": "/agents",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/AgentsTeam.jsx",
+        "src/lib/agentsPage.mjs"
+      ],
+      "tabs": [
+        {
+          "id": "overview",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-6-agents-messaging.test.mjs checks the five tabs in order, deep-linked by ?tab=, panel reuse, and the legacy redirects",
+          "backend_evidence": ""
+        },
+        {
+          "id": "analytics",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-6-agents-messaging.test.mjs checks the five tabs in order, deep-linked by ?tab=, panel reuse, and the legacy redirects",
+          "backend_evidence": ""
+        },
+        {
+          "id": "strategy",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-6-agents-messaging.test.mjs checks the five tabs in order, deep-linked by ?tab=, panel reuse, and the legacy redirects",
+          "backend_evidence": ""
+        },
+        {
+          "id": "recommendations",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-6-agents-messaging.test.mjs checks the five tabs in order, deep-linked by ?tab=, panel reuse, and the legacy redirects",
+          "backend_evidence": ""
+        },
+        {
+          "id": "communications",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AgentsTeam.jsx; apps/web/src/lib/agentsPage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-6-agents-messaging.test.mjs checks the five tabs in order, deep-linked by ?tab=, panel reuse, and the legacy redirects",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 29,
+      "name": "Grants & Opportunities",
+      "canonical_route": "/institutions",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/Institutions.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "opportunities",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Institutions.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/grants-hackathon-tab.test.mjs checks the opportunities/hackathon tabs, deep-linked by ?tab=, ?campaign= preservation, the /hackathon link, and the super-admin-only tracker link",
+          "backend_evidence": ""
+        },
+        {
+          "id": "hackathon",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Institutions.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/grants-hackathon-tab.test.mjs checks the opportunities/hackathon tabs, deep-linked by ?tab=, ?campaign= preservation, the /hackathon link, and the super-admin-only tracker link",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 30,
+      "name": "Connections",
+      "canonical_route": "/connections",
+      "canonical_tab": "platforms",
+      "tab_param": "section",
+      "role": "member",
+      "source_files": [
+        "src/pages/ManagePermissions.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 31,
+      "name": "Donate / Checkout",
+      "canonical_route": "/donate",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "public",
+      "source_files": [
+        "src/pages/Donate.jsx",
+        "src/lib/donatePage.mjs"
+      ],
+      "tabs": [
+        {
+          "id": "donate",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Donate.jsx; apps/web/src/lib/donatePage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-7-checkout-terms-mail.test.mjs checks the Donate/Invest tabs, deep-linked by ?tab=",
+          "backend_evidence": ""
+        },
+        {
+          "id": "invest",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Donate.jsx; apps/web/src/lib/donatePage.mjs; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-7-checkout-terms-mail.test.mjs checks the Donate/Invest tabs, deep-linked by ?tab=",
+          "backend_evidence": ""
+        }
+      ]
+    },
+    {
+      "page": 32,
+      "name": "My Giving",
+      "canonical_route": "/giving",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/FinanceDashboard.jsx"
+      ],
+      "tabs": [],
+      "note": "No standalone page: /giving redirects to the #giving-receipts section of Finance (27)."
+    },
+    {
+      "page": 33,
+      "name": "Profile",
+      "canonical_route": "/profile",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "member",
+      "source_files": [
+        "src/pages/Profile.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "profile",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "referrals",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Profile.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-7-checkout-terms-mail.test.mjs checks the Profile Referrals tab reuses ReferralRewards and the Dashboard summary links to it",
+          "backend_evidence": "MemberAccess wrapper on /profile in App.jsx"
+        }
+      ]
+    },
+    {
+      "page": 34,
+      "name": "Settings",
+      "canonical_route": "/permissions",
+      "canonical_tab": null,
+      "tab_param": "section",
+      "role": "member",
+      "source_files": [
+        "src/pages/ManagePermissions.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "ai",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "platforms",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "marketing",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "supporter-updates",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "documents",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "devices",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/ManagePermissions.jsx; apps/web/src/pages/Devices.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/settings-devices-section.test.mjs checks the devices section under ?section=devices and the five existing sections",
+          "backend_evidence": "MemberAccess wrapper on /permissions in App.jsx; Devices verifies the session via authClient()"
+        }
+      ]
+    },
+    {
+      "page": 35,
+      "name": "Referrals & Rewards",
+      "canonical_route": "/profile",
+      "canonical_tab": "referrals",
+      "tab_param": "none",
+      "role": "member",
+      "source_files": [
+        "src/pages/Profile.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 36,
+      "name": "Premium",
+      "canonical_route": "/subscriptions",
+      "canonical_tab": "premium",
+      "tab_param": "tab",
+      "role": "member",
+      "source_files": [
+        "src/pages/Subscriptions.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "plans",
+          "source_status": "not_verified",
+          "source_evidence": "",
+          "behavior_evidence": "",
+          "backend_evidence": ""
+        },
+        {
+          "id": "premium",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/Subscriptions.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/sprint-7-checkout-terms-mail.test.mjs checks the Subscriptions Premium tab reuses the one-time Premium checkout and the Dashboard links to it",
+          "backend_evidence": "MemberAccess wrapper on /subscriptions in App.jsx"
+        }
+      ]
+    },
+    {
+      "page": 37,
+      "name": "Volunteer & In-Kind",
+      "canonical_route": null,
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/Institutions.jsx"
+      ],
+      "tabs": [],
+      "note": "No URL-addressable home: volunteer research lives as a KINDS filter value in Institutions.jsx (Grants, 29). A Volunteer tab is a future build per live-repo-comparison \u00a72."
+    },
+    {
+      "page": 38,
+      "name": "External Platforms",
+      "canonical_route": "/fundraising-hub",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "member",
+      "source_files": [
+        "src/pages/ExternalFundingHub.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 39,
+      "name": "Impact & Transparency",
+      "canonical_route": "/planetary-impact",
+      "canonical_tab": null,
+      "tab_param": "none",
+      "role": "public",
+      "source_files": [
+        "src/pages/AdminSustainability.jsx"
+      ],
+      "tabs": []
+    },
+    {
+      "page": 40,
+      "name": "Admin Console",
+      "canonical_route": "/admin",
+      "canonical_tab": null,
+      "tab_param": "tab",
+      "role": "admin",
+      "source_files": [
+        "src/pages/AdminHub.jsx"
+      ],
+      "tabs": [
+        {
+          "id": "overview",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "ops",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "platform",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "integrations",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "sustainability",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "social-moderation",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "audit",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "deletions",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "studio",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "help",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        },
+        {
+          "id": "sponsor-inquiries",
+          "source_status": "source_ready",
+          "source_evidence": "apps/web/src/pages/AdminHub.jsx; apps/web/src/App.jsx",
+          "behavior_evidence": "apps/web/tests/admin-console-tabs.test.mjs renders each tab and checks super-admin gating per tab",
+          "backend_evidence": "AdminAccess wrapper on /admin in App.jsx; per-tab super-admin gating in AdminHub.jsx (superAdminTabPanel)"
+        }
+      ]
     }
   ]
 }

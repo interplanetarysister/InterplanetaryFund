@@ -36,6 +36,11 @@ const PENDING = [
   "supabase/migrations/20261111154500_ifund_opt_in_atlas_and_owner_agent_focus.sql",
   "supabase/migrations/20261115010000_ifund_ai_permission_preferences.sql",
   "supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",
+  // R2 receipt columns for campaign documents (PR #389's worker inserts
+  // them and the client selects them; the R2 migration added them to
+  // member media only). Without this the list/download selects fail
+  // against the migrated schema.
+  "supabase/migrations/20261126160000_ifund_campaign_documents_r2_receipt.sql",
   "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
   "supabase/migrations/20261110_ifund_current_legal_terms_sync.sql",
   "supabase/migrations/20261110225840_ifund_campaign_creation_state_20261110.sql",

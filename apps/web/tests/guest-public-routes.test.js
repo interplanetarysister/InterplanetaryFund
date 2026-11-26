@@ -8,7 +8,9 @@ test("guest users can browse public campaigns, social posts, blogs, publications
   for (const [route, component] of [
     ["/", "Home"], ["/discover", "Discover"], ["/campaign/:id", "CampaignDetail"],
     ["/social", "SocialRoute"], ["/community", "SocialFeedPage"],
-    ["/blogs", "Blogs"], ["/news", "Blogs"], ["/u/:id", "PublicMemberProfile"], ["/blogs/:id", "BlogArticle"],
+    // Sprint 8 (2026-11-25): /blogs and /news fold into IFund Social as the
+    // Stories and News tabs; the routes stay public redirects.
+    ["/blogs", "Navigate"], ["/news", "Navigate"], ["/u/:id", "PublicMemberProfile"], ["/blogs/:id", "BlogArticle"],
     ["/publications/:id", "PublicationArticle"],
     ["/help", "Help"], ["/help/:slug", "HelpArticle"],
     ["/about", "About"], ["/terms", "Terms"], ["/privacy", "Privacy"],
@@ -18,6 +20,10 @@ test("guest users can browse public campaigns, social posts, blogs, publications
     assert.ok(entry.includes("<" + component), route + " must render " + component);
     assert.ok(!entry.includes("<MemberAccess>"), route + " must not require authentication");
   }
+  const blogs = app.split("\n").find(line => line.includes('path="/blogs"'));
+  assert.ok(blogs?.includes('to="/social?tab=stories"'), "/blogs must redirect to the Social stories tab");
+  const news = app.split("\n").find(line => line.includes('path="/news"'));
+  assert.ok(news?.includes('to="/social?tab=news"'), "/news must redirect to the Social news tab");
 });
 
 test("guest dashboard and editor stay public, while account data remains guarded", () => {
