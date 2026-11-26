@@ -1,8 +1,8 @@
 // Same-origin private campaign document upload/download/removal on the existing R2 binding.
 // Browser clients never receive R2 credentials or an object URL. Account/session,
 // campaign ownership, current terms, object receipts and deletion absence are checked.
-const ORIGIN="https://ssibsfmtodgximseeqsv.supabase.co";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const ORIGIN="https://ssibsfmtodgximseeqsv.supabase.co";
+export const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FILE=/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.(pdf|docx|xlsx|txt|md|csv)$/i;
 const LIMIT=8*1024*1024, ACCOUNT_BYTES=200*1024*1024, CAMPAIGN_MAX=15, ORPHAN_AGE=86400000;
 export const DOCUMENT_TYPES=Object.freeze({
@@ -13,18 +13,18 @@ export const DOCUMENT_TYPES=Object.freeze({
 });
 const PURPOSES=new Set(["general","budget","proof","research","planning","outreach","media"]);
 const json=(status,data)=>Response.json(data,{status,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
-const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
+export const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 const noCache={"cache-control":"private, no-store","x-content-type-options":"nosniff"};
-const validName=v=>typeof v==="string" && v.length>0 && v.length<=160 &&
+export const validName=v=>typeof v==="string" && v.length>0 && v.length<=160 &&
   !/[\\/\u0000-\u001f\u007f]/.test(v) && v.trim()===v;
 const keyFor=(owner,campaign,file)=>"private/campaign-documents/"+owner+"/"+campaign+"/"+file;
-const hex=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),v=>v.toString(16).padStart(2,"0")).join("");
+export const hex=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),v=>v.toString(16).padStart(2,"0")).join("");
 const parse=async(response,maxBytes=65536)=>{
  const raw=await response.text();
  if(raw.length>maxBytes)fail(503,"Invalid database receipt.");
  try{return raw?JSON.parse(raw):null;}catch{fail(503,"Invalid database receipt.");}
 };
-async function supabase(env,fetcher,path,{method="GET",jwt=null,body,admin=false,prefer}={}){
+export async function supabase(env,fetcher,path,{method="GET",jwt=null,body,admin=false,prefer}={}){
  const key=admin?env.SUPABASE_SECRET_KEY:env.SUPABASE_PUBLISHABLE_KEY||env.VITE_SUPABASE_PUBLISHABLE_KEY;
  if(!key||!env.SUPABASE_URL||env.SUPABASE_URL!==ORIGIN)fail(503,"Private media database is unavailable.");
  const headers={apikey:key,accept:"application/json"};
@@ -41,7 +41,7 @@ async function supabase(env,fetcher,path,{method="GET",jwt=null,body,admin=false
  }
  return parse(r);
 }
-async function member(request,env,fetcher){
+export async function member(request,env,fetcher){
  const bearer=request.headers.get("authorization")||"";
  if(!/^Bearer [A-Za-z0-9._~-]{20,8192}$/.test(bearer))fail(401,"Sign in to manage private media.");
  const jwt=bearer.slice(7);
@@ -72,16 +72,16 @@ async function readDoc(env,fetcher,actor,campaign,id){
    fail(503,"Private document identity could not be verified.");
  return doc;
 }
-async function boundedBytes(request){
+export async function boundedBytes(request,maxBytes=LIMIT){
  const length=request.headers.get("content-length");
- if(length!==null&&(!/^\d+$/.test(length)||Number(length)<1||Number(length)>LIMIT))fail(413,"The maximum file size is 8 MB.");
+ if(length!==null&&(!/^\d+$/.test(length)||Number(length)<1||Number(length)>maxBytes))fail(413,"The maximum file size is 8 MB.");
  if(!request.body)fail(400,"No file was supplied.");
  const reader=request.body.getReader(),parts=[];let total=0;
  try{
   for(;;){
    const {done,value}=await reader.read();if(done)break;
    if(!(value instanceof Uint8Array))fail(400,"Invalid upload body.");
-   total+=value.byteLength;if(total>LIMIT)fail(413,"The maximum file size is 8 MB.");
+   total+=value.byteLength;if(total>maxBytes)fail(413,"The maximum file size is 8 MB.");
    parts.push(value);
   }
  }catch(error){await reader.cancel().catch(()=>{});throw error;}finally{reader.releaseLock();}
@@ -200,7 +200,7 @@ async function orphanScan(env,fetcher,bucket,actor,campaign){
  const prefix=keyFor(actor.id,campaign,"");
  const found=[],now=Date.now();let cursor;
  for(let i=0;i<5;i++){
-  const data=await bucket.list({prefix,limit:100,...(cursor?{cursor}:{})});
+  const data=await bucket.list({prefix,limit:100,include:["customMetadata"],...(cursor?{cursor}:{})});
   for(const object of data.objects||[]){
    const file=object.key.slice(prefix.length);
    if(!FILE.test(file)||object.customMetadata?.owner_id!==actor.id||
