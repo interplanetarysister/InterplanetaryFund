@@ -113,7 +113,6 @@ export default function CampaignEmailAddon(){
  }
  const eligible=status?.eligible===true;
  const active=status?.active===true && status?.can_receive_email===true;
- const basic=status?.paid_tier==="basic";
  const saved=status?.opted_in===true;
  return <section aria-label="Campaign email add-on" className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-card p-5 sm:p-7">
    <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full border border-cyan-400/20 shadow-[0_0_0_35px_rgba(53,213,219,0.04),0_0_0_70px_rgba(131,98,225,0.04)]"/>
@@ -127,8 +126,8 @@ export default function CampaignEmailAddon(){
        <span className="rounded-full border border-border px-3 py-1.5 text-xs font-bold">{active?"Active":saved?"Awaiting activation":"Optional"}</span>
      </div>
      <div className="rounded-xl border border-border bg-background/70 p-4">
-       <p className="font-semibold">Basic subscriber add-on <span className="text-xl text-cyan-600">+$1/month</span></p>
-       <p className="mt-1 text-xs text-muted-foreground">Requires an existing, provider-verified paid iFund subscription and your explicit opt-in. Basic customers are billed for the email option separately; selecting it never counts as payment.</p>
+       <p className="font-semibold">Optional subscriber add-on <span className="text-xl text-cyan-600">+$1/month</span></p>
+       <p className="mt-1 text-xs text-muted-foreground">Requires an existing, provider-verified paid iFund subscription and your explicit opt-in. iFund charges $1/month for the optional receive-only mailbox supplied through Cloudflare. Selecting it never counts as payment.</p>
      </div>
      {phase==="loading"&&<p role="status" className="text-sm">Checking verified paid subscription…</p>}
      {phase==="unavailable"&&<div role="alert" className="space-y-2 text-sm"><p>Unable to verify the email add-on. No address has been activated.</p>
@@ -140,7 +139,7 @@ export default function CampaignEmailAddon(){
            <input type="checkbox" className="mt-1 size-5 accent-cyan-600" checked={optIn}
              onChange={e=>{setOptIn(e.target.checked);setNotice("");}} disabled={busy}/>
            <span><strong className="block">Add an iFund campaign email address</strong>
-             <span className="mt-1 block text-sm text-muted-foreground">{basic?"Additional $1 per month, with separate recurring PayPal approval required.":"Email pricing or inclusion for this plan is not configured yet."} Deselecting suspends the feature without canceling a separate provider subscription.</span></span>
+             <span className="mt-1 block text-sm text-muted-foreground">Additional $1 per month charged by iFund, with separate recurring payment approval required. Deselecting suspends the feature without canceling a separate provider subscription.</span></span>
          </label>
          {optIn&&<div className="space-y-2">
            <label htmlFor="ifund-email-name" className="block text-sm font-semibold">Choose your personal address</label>
@@ -163,8 +162,8 @@ export default function CampaignEmailAddon(){
            {saved&&status.requested_address&&<span className="break-all text-sm font-medium">{status.requested_address}</span>}
          </div>
        </form>}
-       {saved&&basic&&<div className="rounded-xl border border-cyan-500/25 bg-background/70 p-4 text-sm" aria-label="Recurring email billing readiness">
-         <p className="font-semibold">Separate PayPal email subscription · $1/month</p>
+       {saved&&eligible&&<div className="rounded-xl border border-cyan-500/25 bg-background/70 p-4 text-sm" aria-label="Recurring email billing readiness">
+         <p className="font-semibold">iFund email add-on · $1/month</p>
          {checkoutReturn==="return"&&<p role="status" className="mt-2 rounded-lg border border-cyan-500/40 p-3">You returned from PayPal. Your email address stays inactive until iFund independently verifies a completed recurring payment and mailbox routing. An approval or return URL is not proof of payment.</p>}
          {checkoutReturn==="cancel"&&<p role="status" className="mt-2 rounded-lg border border-border p-3">You returned without completing this checkout flow. Check your PayPal subscription activity if you approved anything separately.</p>}
          {checkoutStatus===null
@@ -205,13 +204,13 @@ export default function CampaignEmailAddon(){
            :<><strong>Reserved, not active.</strong> {status.state==="awaiting_verified_addon_payment"
              ?"A separate PayPal recurring charge of $1/month has not been verified. The address cannot receive messages."
              :status.state==="awaiting_email_routing_verification"
-               ?"The add-on payment is verified, but inbound email routing has not been verified."
+               ?"The add-on payment is verified. The first successfully delivered email will verify inbound routing."
                :"This plan's add-on billing or inclusion still requires configuration."}</>}
        </div>}
      </>}
      {notice&&<p role="status" className="rounded-xl border border-cyan-500/40 bg-cyan-500/5 p-3 text-sm">{notice}</p>}
      {error&&<p role="alert" className="rounded-xl border border-red-500/40 p-3 text-sm text-red-600">{error}</p>}
-     <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0"/>This option cannot activate a mailbox, send email, publish to connected accounts or charge PayPal until separate provider-backed billing and receiver provisioning succeed.</p>
+     <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0"/>Receive-only email supplied through Cloudflare. Outbound sending is not enabled. Payment and delivery must be independently verified.</p>
    </div>
  </section>;
 }
