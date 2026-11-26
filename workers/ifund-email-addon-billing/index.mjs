@@ -169,7 +169,7 @@ const WEBHOOK_EVENT_TYPES=Object.freeze({
 });
 const WEBHOOK_EVENT=/^WH-[A-Z0-9-]{8,90}$/;
 const PROVIDER_ID=/^[A-Za-z0-9_-]{8,100}$/;
-async function receiveVerifiedEmailWebhook(request,env){
+export async function receiveVerifiedEmailWebhook(request,env,fetcher=fetch){
  // An independently registered PayPal webhook identity is mandatory; an
  // arbitrary HTTP request cannot act as a provider payment receipt.
  if(env.IFUND_PAYPAL_MODE!=="live"||
@@ -200,36 +200,50 @@ async function receiveVerifiedEmailWebhook(request,env){
    auth_algo:algo,cert_url:cert,transmission_id:trans,transmission_sig:sig,
    transmission_time:time,webhook_id:env.IFUND_EMAIL_ADDON_WEBHOOK_ID,
    webhook_event:event
- });
+ },undefined,fetcher);
  if(verification?.verification_status!=="SUCCESS")
    return error("paypal_webhook_not_verified",401);
  const kind=WEBHOOK_EVENT_TYPES[event.event_type];
  if(!kind)return json({ok:true,ignored:true});
  const resource=event.resource;
- const subscriptionId=kind==="payment"||kind==="refund"
-   ?resource?.billing_agreement_id:resource?.id;
+ let subscriptionId=kind==="payment"||kind==="refund"?resource?.billing_agreement_id:resource?.id;
+ let sale=null;
+ if(kind==="payment"||kind==="refund"){
+   // Refund resources have their own ID; resolve the original sale rather
+   // than mistakenly treating a refund ID as a completed subscription sale.
+   const saleId=kind==="refund"?(resource?.sale_id||resource?.id):resource?.id;
+   if(!PROVIDER_ID.test(saleId||""))return error("paypal_sale_identity_missing");
+   sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(saleId),"GET",undefined,undefined,fetcher);
+   if(sale?.id!==saleId)return error("paypal_sale_identity_mismatch");
+   if(!sale.billing_agreement_id&&!subscriptionId)return json({ok:true,ignored:true});
+   if(subscriptionId&&subscriptionId!==sale.billing_agreement_id)
+     return error("paypal_subscription_identity_mismatch");
+   subscriptionId=sale.billing_agreement_id;
+ }
  if(!SUB.test(subscriptionId||""))return error("paypal_subscription_identity_missing");
- const subscription=await paypal(env,"/v1/billing/subscriptions/"+subscriptionId);
- if(subscription?.id!==subscriptionId||
-    subscription.plan_id!==env.IFUND_EMAIL_ADDON_PLAN_ID||
-    !/^ifund-email-addon:[0-9a-f-]{36}$/i.test(subscription.custom_id||""))
-   return error("paypal_subscription_identity_mismatch");
+ const subscription=await paypal(env,"/v1/billing/subscriptions/"+subscriptionId,"GET",undefined,undefined,fetcher);
+ if(subscription?.id!==subscriptionId)return error("paypal_subscription_identity_mismatch");
+ const addonIdentity=/^ifund-email-addon:[0-9a-f-]{36}$/i.test(subscription.custom_id||"");
+ // The same merchant app can deliver ordinary membership events here.
+ // A different verified plan is not an email-add-on event. A conflicting
+ // add-on custom ID is an error, not an event that can be silently ignored.
+ if(subscription.plan_id!==env.IFUND_EMAIL_ADDON_PLAN_ID)
+   return addonIdentity?error("paypal_subscription_identity_mismatch"):json({ok:true,ignored:true});
+ if(!addonIdentity)return error("paypal_intent_identity_mismatch");
  const intentId=subscription.custom_id.slice("ifund-email-addon:".length);
  if(!UUID.test(intentId))return error("paypal_intent_identity_mismatch");
- const providerPlan=await paypal(env,"/v1/billing/plans/"+subscription.plan_id);
+ const providerPlan=await paypal(env,"/v1/billing/plans/"+subscription.plan_id,"GET",undefined,undefined,fetcher);
  if(!exactPlan(providerPlan))return error("paypal_provider_plan_unverified");
- const registered=await signedLedger(env,"plan_identity",{p_plan_id:subscription.plan_id});
+ const registered=await signedLedger(env,"plan_identity",{p_plan_id:subscription.plan_id},fetcher);
  if(!registered||registered.verified!==true||registered.plan_id!==subscription.plan_id||
     typeof registered.merchant_id!=="string"||!registered.merchant_id)
    return error("paypal_merchant_identity_unavailable");
  let resourceId=subscriptionId;
  let paidThrough=null;
  if(kind==="payment"||kind==="refund"){
-   const saleId=resource?.id;
-   if(!PROVIDER_ID.test(saleId||""))return error("paypal_sale_identity_missing");
-   const sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(saleId));
+   const saleId=sale?.id;
    const state=String(sale?.state||"").toLowerCase();
-   if(sale?.id!==saleId||sale.billing_agreement_id!==subscriptionId||
+   if(!PROVIDER_ID.test(saleId||"")||sale.billing_agreement_id!==subscriptionId||
       sale?.amount?.currency!=="USD"||sale?.amount?.total!=="1.00"||
       sale?.payee?.merchant_id!==registered.merchant_id||
       (kind==="payment"?state!=="completed":
@@ -246,7 +260,8 @@ async function receiveVerifiedEmailWebhook(request,env){
      paidThrough=next.toISOString();
    }
  }else{
-   const allowed=kind==="cancel"?["CANCELLED","EXPIRED"]:["SUSPENDED","CANCELLED","EXPIRED"];
+   const allowed=kind==="cancel"?["CANCELLED","EXPIRED"]:
+     event.event_type==="BILLING.SUBSCRIPTION.PAYMENT.FAILED"?["ACTIVE","SUSPENDED","CANCELLED","EXPIRED"]:["SUSPENDED","CANCELLED","EXPIRED"];
    if(!allowed.includes(subscription.status))
      return error("paypal_recurring_revocation_not_verified");
  }
@@ -255,11 +270,11 @@ async function receiveVerifiedEmailWebhook(request,env){
    kind,resource_id:resourceId,merchant_id:registered.merchant_id,
    occurred_at:event.create_time,currency:"USD",amount_cents:100,
    environment:"live",provider_verified:true,webhook_verified:true
- }});
+ }},fetcher);
  if(!staged?.accepted)return error("paypal_evidence_staging_failed");
  const reconciled=await signedLedger(env,"event_reconcile",{
    p_event_id:event.id,p_provider_paid_through:paidThrough
- });
+ },fetcher);
  if(!reconciled?.accepted)return error("paypal_email_billing_reconciliation_failed");
  return json({ok:true,event_recorded:true,
    recurring_billing_state:reconciled.billing_state||"already_processed",
