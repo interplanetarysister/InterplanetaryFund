@@ -63,6 +63,10 @@ export function redactTeamCredentials(value) {
     .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9+/_=-]{8,}/gi,"$1 [redacted]")
     .replace(/\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g,"[redacted credential]")
     .replace(/\b(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{12,})\b/g,"[redacted credential]")
+    // Prevent raw platform credentials and payment details from entering team memory.
+    .replace(/\b(?:cfat_|cfk_|sb_secret_|sb_publishable_|github_pat_)[A-Za-z0-9_-]{10,}\b/g,"[redacted credential]")
+    .replace(/\b(?:\d[ -]?){12,18}\d\b/g,"[redacted financial number]")
+    .replace(/\b((?:card|bank account|routing|account|security|verification|one[- ]time|MFA|OTP|CVV|CVC|PIN)(?:\s+(?:number|code))?)\s*[:=]\s*["']?[\d -]{3,24}["']?/gi,"$1: [redacted]")
     // Prefixed environment variable names such as PAYPAL_CLIENT_SECRET.
     .replace(/\b((?:[A-Za-z0-9]+_)*(?:password|passphrase|api_key|access_token|refresh_token|client_secret|private_key|oauth_code|authorization|secret))(\s*[:=]\s*)(["']?)([^\s,;}"']+)(["']?)/gi,
       (_match,key,separator,open,_secret,close)=>key+separator+open+"[redacted]"+close);
