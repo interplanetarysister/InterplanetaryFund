@@ -21,7 +21,7 @@ const WORK=Object.freeze({
 });
 export function runSpecialistPractice({agent,question,identityVerified=false,ownerScoped=false}={}){
  if(!TEAM_CONTEXT_AGENTS.includes(agent)||!Object.hasOwn(WORK,agent))throw Error("Unknown specialist");
- if(typeof question!=="string"||question.trim().length<8||question.length>2000)throw Error("Invalid question");
+ if(typeof question!=="string"||question.trim().length<1||question.length>2000)throw Error("Invalid question");
  const permission=assessAgentAction("practice_skill",{identityVerified,ownerScoped});
  if(!permission.allowed)throw Error("Verified owner context required for specialist tools");
  const rule=WORK[agent];
