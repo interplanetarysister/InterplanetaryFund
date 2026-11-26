@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
+import {deleteCampaignCover} from "@/api/campaignMedia.js";
+import PrivateMediaLibrary from "@/components/media/PrivateMediaLibrary";
+import StoredCoverLibrary from "@/components/media/StoredCoverLibrary";
 import AIImageStudio from "./AIImageStudio";
 import {
   AUDIO_LAYERS,
@@ -180,6 +183,21 @@ export default function MediaStudio() {
     return item;
   }
 
+  async function deleteStoredCover(item){
+    if(!item?.savedUrl||busy)return;
+    if(!window.confirm("Permanently delete this saved cover image from iFund storage? Campaigns using it must be updated first."))return;
+    setBusy("delete-cover");setError("");setNotice("");
+    try{
+      await deleteCampaignCover(authClient(),item.savedUrl);
+      setItems(current=>current.flatMap(entry=>{
+        if(entry.savedUrl!==item.savedUrl)return [entry];
+        if(!entry.file&&!entry.dataUrl)return [];
+        return [{...entry,savedUrl:"",sessionOnly:true,persisted:false}];
+      }));
+      setNotice("Stored image deleted from R2. Campaign images in use are protected.");
+    }catch(error){setError(error?.message||"Stored image deletion was not verified.");}
+    finally{setBusy("");}
+  }
   function removeItem(id) {
     setItems((current) => {
       const target = current.find((entry) => entry.id === id);
@@ -818,12 +836,17 @@ export default function MediaStudio() {
 
       {tab === "library" && (
         <div role="tabpanel" id="studio-panel-library" aria-labelledby="studio-tab-library" className="space-y-5">
+          <StoredCoverLibrary/>
+          <PrivateMediaLibrary onOpenMedia={async file=>{
+            const item=await addUpload(file,"cloud-library");
+            if(item){setSelectedId(item.id);setVideoMeta(null);setTab("editor");}
+          }}/>
           <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6" aria-label="Studio library">
             <h2 className="text-xl font-semibold">Library</h2>
             <p className="text-sm text-muted-foreground">
-              Your Studio items. Saved cover links and images you generated are kept on this device; video
-              and audio files stay in this browser session only, because iFund has no media list to fetch
-              them back from — upload them again after a reload. Nothing listed here is a sample or a demo.
+              Locally edited items remain on this device. For persistent, private image, audio and video storage,
+              use the saved media section above. Deleting a local item does not delete a previously
+              stored cover image or cloud file; use the separate permanent deletion controls.
             </p>
             <label className="ifund-interactive inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-border px-4 font-semibold">
               Upload media
@@ -864,7 +887,9 @@ export default function MediaStudio() {
                         </button>
                       )}
                       <button type="button" className={button} onClick={() => downloadOriginal(item)}>Download</button>
-                      <button type="button" className={button} onClick={() => removeItem(item.id)}>Remove</button>
+                      {item.savedUrl&&<button type="button" className={button} disabled={!!busy}
+                        onClick={()=>void deleteStoredCover(item)}>Delete saved cover</button>}
+                      <button type="button" className={button} onClick={() => removeItem(item.id)}>Remove locally</button>
                     </div>
                   </li>
                 ))}

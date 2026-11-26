@@ -6,7 +6,7 @@ import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 import { loadOwnerCampaign } from "./ownerCampaigns.js";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const DOCUMENT_BUCKET="ifund-campaign-documents";
+export const DOCUMENT_BUCKET="ifund-media"; // Canonical private Cloudflare R2 bucket.
 export const DOCUMENT_MAX_BYTES=8*1024*1024;
 export const DOCUMENT_FORMATS=Object.freeze({
   "application/pdf":"pdf",
@@ -66,13 +66,39 @@ async function unchanged(client,ownerId) {
   const {data,error}=await client.auth.getUser();
   if(error||data?.user?.id!==ownerId)throw Error("Your account changed. Reopen your campaign documents.");
 }
+// Private document bytes travel only through the same-origin, member-authenticated
+// Pages Function. File metadata and agent permissions remain Supabase RLS-owned.
+function privateMediaPath(campaignId,suffix=""){
+  return "/api/media/documents/"+requireUUID(campaignId)+(suffix?"/"+suffix:"");
+}
+async function verifiedPrivateMediaResponse(client,ownerId,path,{
+  method="GET",file,metadata,fetcher=fetch,origin=globalThis.location?.origin||"https://interplanetaryfund.com"
+}={}){
+  const session=await client.auth.getSession();
+  if(session.error||session.data?.session?.user?.id!==ownerId||!session.data.session.access_token)
+    throw Error("Your account changed before the private media request.");
+  const headers={authorization:"Bearer "+session.data.session.access_token};
+  if(method==="POST"){
+    headers["content-type"]=file.type;
+    headers["x-ifund-document-meta"]=encodeURIComponent(JSON.stringify(metadata));
+    headers.origin=new URL(origin).origin;
+  }
+  if(method==="DELETE")headers.origin=new URL(origin).origin;
+  const response=await fetcher(path,{method,headers,...(file?{body:file}:{}),signal:AbortSignal.timeout(35000)});
+  await unchanged(client,ownerId);
+  if(!response.ok){
+    const value=await response.json().catch(()=>null);
+    throw Error(typeof value?.error==="string"?value.error.slice(0,280):"Private media is temporarily unavailable.");
+  }
+  return response;
+}
 export function documentPath(ownerId,campaignId,id,type) {
-  return `${requireUUID(ownerId)}/${requireUUID(campaignId)}/${requireUUID(id)}.${DOCUMENT_FORMATS[type]||"invalid"}`;
+  return `private/campaign-documents/${requireUUID(ownerId)}/${requireUUID(campaignId)}/${requireUUID(id)}.${DOCUMENT_FORMATS[type]||"invalid"}`;
 }
 export async function listCampaignDocuments(client,campaignId) {
   const userId=await owner(client,campaignId);
   const {data,error}=await client.from("ifund_campaign_documents")
-    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
+    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,object_store,object_etag,object_sha256,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
     .eq("owner_id",userId).eq("campaign_id",campaignId)
     .order("created_at",{ascending:false}).limit(50);
   await unchanged(client,userId);
@@ -82,7 +108,7 @@ export async function listCampaignDocuments(client,campaignId) {
   return data;
 }
 export async function uploadCampaignDocument(client,campaignId,file,{
-  purpose="general",summary="",ownerExcerpt="",allowAgentUse=false,makeId=()=>crypto.randomUUID()
+  purpose="general",summary="",ownerExcerpt="",allowAgentUse=false,fetcher=fetch
 }={}){
   const problem=validateCampaignDocument(file);if(problem)throw Error(problem);
   if(!Object.hasOwn(DOCUMENT_CATEGORIES,purpose))throw Error("Choose a valid document category.");
@@ -94,41 +120,18 @@ export async function uploadCampaignDocument(client,campaignId,file,{
   const listed=await listCampaignDocuments(client,campaignId);
   if(listed.length>=15)throw Error("Limit 15 documents per campaign. Remove unused files before uploading more.");
   await verifyCampaignDocumentSignature(file);
-  const id=requireUUID(makeId(),"Could not generate a secure document identifier.");
-  const path=documentPath(userId,campaignId,id,file.type);
-  let extracted="";
-  if(file.type.startsWith("text/")){
-    extracted=(await file.slice(0,12000).text()).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g," ").slice(0,6000);
-  }
-  // File inspection and text extraction are asynchronous. Fail closed if the
-  // authenticated account changed before any private Storage write begins.
   await unchanged(client,userId);
-  const storage=client.storage.from(DOCUMENT_BUCKET);
-  const {data:uploaded,error:uploadError}=await storage.upload(path,file,{
-    contentType:file.type,cacheControl:"0",upsert:false
+  const response=await verifiedPrivateMediaResponse(client,userId,privateMediaPath(campaignId),{
+    method:"POST",file,fetcher,metadata:{file_name:sanitizedName(file.name),purpose,
+      summary,owner_excerpt:ownerExcerpt,allow_agent_use:allowAgentUse===true}
   });
-  if(uploadError||uploaded?.path!==path)throw Error("Your private document could not be uploaded.");
-  try{
-    await unchanged(client,userId);
-    const {data,error}=await client.from("ifund_campaign_documents").insert({
-      id,owner_id:userId,campaign_id:campaignId,storage_path:path,
-      file_name:sanitizedName(file.name),media_type:file.type,file_size:file.size,
-      purpose,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),extracted_text:extracted,
-      allow_agent_use:allowAgentUse
-    }).select("id,owner_id,campaign_id").single();
-    if(error?.code==="23514" && /Private document allowance reached/i.test(error.message||""))
-      throw Error("Your private document storage is full (200 MB per account). Remove unused files.");
-    if(error?.code==="23514" && /Campaign document limit reached/i.test(error.message||""))
-      throw Error("This campaign already has 15 documents. Remove an older file.");
-    if(error||data?.id!==id||data?.owner_id!==userId||data?.campaign_id!==campaignId)
-      throw Error("The document record was not verified.");
-    await unchanged(client,userId);
-    return id;
-  }catch(cause){
-    const {error:cleanupError}=await storage.remove([path]);
-    if(cleanupError)throw Error("The document record failed and private storage cleanup needs attention.");
-    throw cause;
-  }
+  if(response.status!==201)throw Error("Private media upload did not return a verified receipt.");
+  const data=await response.json().catch(()=>null);
+  if(!UUID.test(data?.id||"")||data.bytes!==file.size||data.content_type!==file.type||
+    !/^[a-f0-9]{64}$/.test(data.sha256||""))
+    throw Error("Private media upload receipt could not be verified.");
+  await unchanged(client,userId);
+  return data.id;
 }
 export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgentUse,summary,purpose,ownerExcerpt=""}){
   const userId=await owner(client,campaignId);
@@ -150,62 +153,33 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
   if(error||data?.id!==row.id||data?.owner_id!==userId)throw Error("Document permissions were not saved.");
   return data;
 }
-export async function downloadPrivateCampaignDocument(client,campaignId,row){
+export async function downloadPrivateCampaignDocument(client,campaignId,row,{fetcher=fetch}={}){
   const userId=await owner(client,campaignId);
-  if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
-    !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
-    row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
-    throw Error("Document ownership could not be verified.");
+  if(row?.owner_id!==userId||row?.campaign_id!==campaignId||!UUID.test(row.id||"")||
+    !DOCUMENT_FORMATS[row.media_type]||row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type)||
+    !/^[a-f0-9]{64}$/.test(row.object_sha256||"")||row.deletion_requested_at)
+    throw Error("Document ownership or integrity could not be verified.");
+  const response=await verifiedPrivateMediaResponse(client,userId,privateMediaPath(campaignId,row.id),{fetcher});
+  const blob=await response.blob();
+  const header=response.headers.get("x-ifund-document-sha256");
+  const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",await blob.arrayBuffer())),v=>v.toString(16).padStart(2,"0")).join("");
+  if(blob.size!==row.file_size||header!==row.object_sha256||digest!==row.object_sha256||
+    response.headers.get("content-type")!==row.media_type)
+    throw Error("Private document download failed its integrity check.");
   await unchanged(client,userId);
-  const {data,error}=await client.storage.from(DOCUMENT_BUCKET).download(row.storage_path);
-  await unchanged(client,userId);
-  if(error||!data)throw Error("This private document could not be downloaded.");
-  return data;
+  return blob;
 }
-export async function removeCampaignDocument(client,campaignId,row){
+export async function removeCampaignDocument(client,campaignId,row,{fetcher=fetch}={}){
   const userId=await owner(client,campaignId);
-  if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
-    !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
-    row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
+  if(row?.owner_id!==userId||row?.campaign_id!==campaignId||!UUID.test(row.id||"")||
+    !DOCUMENT_FORMATS[row.media_type]||row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
     throw Error("Document ownership could not be verified.");
-  await unchanged(client,userId);
-  // Stage 1: revoke agent use and persist deletion intent before any
-  // irreversible Storage operation. Safe to retry after a network failure.
-  if(!row.deletion_requested_at){
-    const {data:marked,error:markError}=await client.from("ifund_campaign_documents")
-      .update({allow_agent_use:false,deletion_requested_at:new Date().toISOString()})
-      .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
-      .is("deletion_requested_at",null)
-      .select("id,deletion_requested_at").single();
-    await unchanged(client,userId);
-    if(markError||marked?.id!==row.id||!marked.deletion_requested_at)
-      throw Error("Private document deletion could not be scheduled safely.");
-  }
-  // Stage 2: remove bytes. A failed removal leaves a pending entry that is
-  // invisible to all agent brief RPCs, and can be retried by the same owner.
-  const privateStorage=client.storage.from(DOCUMENT_BUCKET);
-  const {error:storageError}=await privateStorage.remove([row.storage_path]);
-  await unchanged(client,userId);
-  if(storageError)throw Error("File cleanup did not finish. Retry removal of the pending document.");
-  // A successful DELETE receipt does not independently prove absence. Query
-  // the same private object endpoint before removing the durable metadata row.
-  // Only a specific NoSuchKey result establishes absence; generic 404s may
-  // also represent a missing bucket or insufficient Storage authorization.
-  if(typeof privateStorage.info!=="function")
-    throw Error("Private file deletion needs independent Storage verification.");
-  const {data:remaining,error:infoError}=await privateStorage.info(row.storage_path);
-  await unchanged(client,userId);
-  if(remaining||infoError?.code!=="NoSuchKey")
-    throw Error("Private file absence could not be verified. Retry secure removal.");
-  const {data,error}=await client.from("ifund_campaign_documents").delete()
-    .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
-    .not("deletion_requested_at","is",null)
-    .select("id").single();
-  await unchanged(client,userId);
-  if(error||data?.id!==row.id)throw Error("Private file deletion completed but its pending database entry needs cleanup. Retry removal.");
+  const response=await verifiedPrivateMediaResponse(client,userId,privateMediaPath(campaignId,row.id),{
+    method:"DELETE",fetcher
+  });
+  if(response.status!==204)throw Error("Private media deletion did not return a verified absence receipt.");
   return true;
 }
-
 /** Owner-only, per-document opt-in facts usable by manual and AI agent tools. */
 export async function loadAgentDocumentBriefs(client,campaignId){
   const ownerId=await owner(client,campaignId);
@@ -253,72 +227,27 @@ export async function revokeAllOwnerDocumentAgentUse(client){
   return data;
 }
 
-const STALE_UPLOAD_AGE_MS=24*60*60*1000;
 const STORAGE_FILE=/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.(pdf|docx|xlsx|txt|md|csv)$/i;
-/**
- * Review orphaned Storage uploads older than a day. A failed metadata insert
- * must never silently consume the owner's free-tier storage indefinitely.
- * One owner-scoped directory only; do not traverse another campaign's files.
- */
-export async function findStaleCampaignDocumentUploads(client,campaignId,{now=Date.now()}={}){
+export async function findStaleCampaignDocumentUploads(client,campaignId,{fetcher=fetch}={}){
   const userId=await owner(client,campaignId);
-  if(!Number.isFinite(now))throw Error("Invalid recovery reference time.");
-  const records=await listCampaignDocuments(client,campaignId);
-  const storage=client.storage.from(DOCUMENT_BUCKET);
-  const registered=new Set(records.map(row=>row.storage_path));
-  const prefix=userId+"/"+campaignId+"/";
-  const candidates=[];
-  // Maximum ten read-only pages per explicit owner scan. Objects are sorted
-  // by name, and cleanup itself independently rechecks metadata and age.
-  for(let offset=0;offset<1000;offset+=100){
-    const {data,error}=await storage.list(userId+"/"+campaignId,{
-      limit:100,offset,sortBy:{column:"name",order:"asc"}
-    });
-    await unchanged(client,userId);
-    if(error||!Array.isArray(data)||data.length>100)
-      throw Error("Private storage inventory is unavailable for safe recovery.");
-    for(const entry of data){
-      if(!entry?.id||typeof entry.name!=="string"||!STORAGE_FILE.test(entry.name))
-        continue;
-      const when=Date.parse(entry.created_at||"");
-      if(!Number.isFinite(when)||when>now-STALE_UPLOAD_AGE_MS)continue;
-      const path=prefix+entry.name;
-      if(!registered.has(path)&&candidates.length<25)
-        candidates.push({path,name:entry.name,createdAt:entry.created_at});
-    }
-    if(data.length<100)return candidates;
-  }
-  throw Error("Private storage inventory exceeds 1,000 items. Request reviewed cleanup.");
+  const response=await verifiedPrivateMediaResponse(client,userId,privateMediaPath(campaignId,"orphans"),{fetcher});
+  const payload=await response.json().catch(()=>null);
+  if(!Array.isArray(payload?.items)||payload.items.length>25||payload.items.some(row=>
+    !STORAGE_FILE.test(row?.name||"")||
+    row.path!==("private/campaign-documents/"+userId+"/"+campaignId+"/"+row.name)||
+    typeof row.createdAt!=="string"||Number.isNaN(Date.parse(row.createdAt))))
+    throw Error("Private incomplete-upload recovery list could not be verified.");
+  return payload.items;
 }
-/**
- * Owner-initiated cleanup for a stale upload with NO associated metadata.
- * Never deletes a registered reference or a recent in-flight upload.
- */
-export async function removeStaleCampaignDocumentUpload(client,campaignId,storagePath,{now=Date.now()}={}){
+export async function removeStaleCampaignDocumentUpload(client,campaignId,storagePath,{fetcher=fetch}={}){
   const userId=await owner(client,campaignId);
-  if(typeof storagePath!=="string"||!storagePath.startsWith(userId+"/"+campaignId+"/"))
+  const prefix="private/campaign-documents/"+userId+"/"+campaignId+"/";
+  if(typeof storagePath!=="string"||!storagePath.startsWith(prefix)||!STORAGE_FILE.test(storagePath.slice(prefix.length)))
     throw Error("Only an owned private campaign upload can be cleaned up.");
-  const candidates=await findStaleCampaignDocumentUploads(client,campaignId,{now});
-  if(!candidates.some(item=>item.path===storagePath))
-    throw Error("This file is not a verified stale upload. Refresh the list.");
-  // Repeat database absence check immediately before removal. Uploads that
-  // acquired metadata while the recovery screen was open must be preserved.
-  const {data,error}=await client.from("ifund_campaign_documents")
-    .select("id")
-    .eq("owner_id",userId).eq("campaign_id",campaignId)
-    .eq("storage_path",storagePath).limit(1);
-  await unchanged(client,userId);
-  if(error||!Array.isArray(data)||data.length)
-    throw Error("This upload is registered or cannot be safely verified.");
-  const storage=client.storage.from(DOCUMENT_BUCKET);
-  const {error:removeError}=await storage.remove([storagePath]);
-  await unchanged(client,userId);
-  if(removeError)throw Error("The stale upload could not be removed.");
-  if(typeof storage.info!=="function")
-    throw Error("Private cleanup needs independent file absence verification.");
-  const {data:remaining,error:infoError}=await storage.info(storagePath);
-  await unchanged(client,userId);
-  if(remaining||infoError?.code!=="NoSuchKey")
-    throw Error("The old upload may still exist. Retry cleanup.");
+  const file=storagePath.slice(prefix.length);
+  const response=await verifiedPrivateMediaResponse(client,userId,privateMediaPath(campaignId,"orphans/"+file),{
+    method:"DELETE",fetcher
+  });
+  if(response.status!==204)throw Error("Private orphan cleanup could not be verified.");
   return true;
 }
