@@ -74,3 +74,51 @@ export async function deleteCampaignCover(client,storedUrl,{
    });
   }finally{guard.dispose();}
 }
+
+/** Owner-only inventory of newly registered public R2 covers, paginated so
+ * previously uploaded images can be found and removed on another device. */
+export async function listMyStoredCovers(client,{
+  offset=0,fetcher=fetch,origin=globalThis.location?.origin||"https://interplanetaryfund.com"
+}={}){
+ if(!Number.isSafeInteger(offset)||offset<0||offset>5000)
+   throw Error("Invalid stored-cover page.");
+ const base=new URL(origin);
+ if(base.protocol!=="https:")throw Error("Secure media requires HTTPS.");
+ const before=await client.auth.getUser(),user=before.data?.user;
+ if(before.error||!isVerifiedEmailUser(user)||!UUID.test(user.id))
+   throw Error("Sign in with a confirmed account to list saved covers.");
+ const guard=createOwnerSessionGuard(client.auth,user.id);
+ try{
+  return await guard.run(async()=>{
+   const status=await verifyAccountLifecycle(client,user);
+   if(!status.ok)throw Error(status.message);
+   const session=await client.auth.getSession();
+   if(session.error||session.data?.session?.user?.id!==user.id||!session.data.session.access_token)
+     throw Error("Your account changed while reading stored covers.");
+   const response=await fetcher("/api/media/campaign/covers?offset="+offset,{
+     method:"GET",headers:{authorization:"Bearer "+session.data.session.access_token},
+     signal:AbortSignal.timeout(20000)
+   });
+   if(!response.ok){
+    const body=await response.json().catch(()=>null);
+    throw Error(typeof body?.error==="string"?body.error.slice(0,250):"Saved covers are unavailable.");
+   }
+   const payload=await response.json().catch(()=>null);
+   const items=payload?.items;
+   if(!Array.isArray(items)||items.length>50||
+      !(payload.next_offset===null||
+        (Number.isSafeInteger(payload.next_offset)&&payload.next_offset===offset+50))||
+      items.some(row=>{
+       const url=new URL(String(row?.url||""),base);
+       return url.origin!==base.origin||url.username||url.password||url.search||url.hash||
+        !/^\/api\/media\/campaign\/file\/[a-f0-9-]{36}\.(png|jpg|webp|gif|avif)$/i.test(url.pathname)||
+        !["image/png","image/jpeg","image/webp","image/gif","image/avif"].includes(row.content_type)||
+        !Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>MAX_COVER_BYTES||
+        !/^[a-f0-9]{64}$/.test(row.sha256||"");
+      }))
+     throw Error("Stored cover inventory was not verified.");
+   guard.assertActive();
+   return {items,nextOffset:payload.next_offset};
+  });
+ }finally{guard.dispose();}
+}
