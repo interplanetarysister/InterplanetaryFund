@@ -167,7 +167,7 @@ test("per-agent conversation links preserve agent and campaign context", () => {
 test("unverified-capability warnings still present; no verified chat is claimed", () => {
   const page = read("src/pages/AgentsTeam.jsx");
   assert.match(page, /yet have verified direct advisory chat for the registered specialist/);
-  assert.match(page, /Direct AI answers are not enabled on this deployment/);
+  assert.match(page, /Agent status could not be checked/);
   assert.match(page, /a paid plan is not required/);
   assert.doesNotMatch(page,/membershipActive/);
   const lib = read("src/lib/agentsPage.mjs");
