@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
 import {deleteCampaignCover} from "@/api/campaignMedia.js";
 import PrivateMediaLibrary from "@/components/media/PrivateMediaLibrary";
+import StoredCoverLibrary from "@/components/media/StoredCoverLibrary";
 import AIImageStudio from "./AIImageStudio";
 import {
   AUDIO_LAYERS,
@@ -835,6 +836,7 @@ export default function MediaStudio() {
 
       {tab === "library" && (
         <div role="tabpanel" id="studio-panel-library" aria-labelledby="studio-tab-library" className="space-y-5">
+          <StoredCoverLibrary/>
           <PrivateMediaLibrary onOpenMedia={async file=>{
             const item=await addUpload(file,"cloud-library");
             if(item){setSelectedId(item.id);setVideoMeta(null);setTab("editor");}
