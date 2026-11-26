@@ -56,13 +56,18 @@ async function upload(request,env,fetcher,bucket,actor){
  const encoded=request.headers.get("x-ifund-file-name")||"";
  if(encoded.length<1||encoded.length>600)fail(400,"File name is invalid.");
  let name;try{name=decodeURIComponent(encoded);}catch{fail(400,"File name is invalid.");}
- if(!validName(name)||!name.toLowerCase().endsWith("."+rule[1]))fail(400,"File name or extension is invalid.");
+ if(!validName(name)||!(name.toLowerCase().endsWith("."+rule[1])||(type==="image/jpeg"&&name.toLowerCase().endsWith(".jpeg"))))fail(400,"File name or extension is invalid.");
  const permission=await supabase(env,fetcher,"/rest/v1/rpc/ifund_member_connection_allowed",{method:"POST",jwt:actor.jwt,body:{}});
  const terms=await supabase(env,fetcher,"/rest/v1/rpc/ifund_current_user_has_current_terms",{method:"POST",jwt:actor.jwt,body:{}});
  if(permission!==true||terms!==true)fail(403,"Current account permissions and terms are required.");
  const rows=await memberRows(env,fetcher,actor,"id,owner_id,file_size");
  if(rows.length>=MAX_FILES||rows.reduce((n,x)=>n+Number(x.file_size||0),0)>=MAX_TOTAL)
    fail(409,"Your media library is full.");
+ const quota=await supabase(env,fetcher,"/rest/v1/rpc/ifund_device_rate_limit",{
+  method:"POST",admin:true,body:{p_bucket_hash:await hex(new TextEncoder().encode("ifund-library-owner:"+actor.id)),p_limit:20,p_window_seconds:86400}
+ });
+ if(quota===false)fail(429,"Your daily private media upload limit is reached.");
+ if(quota!==true)fail(503,"Private media upload allowance could not be verified.");
  const bytes=await boundedBytes(request,rule[2]);
  if(!memberMediaSignature(bytes,type))fail(415,"Media bytes do not match the declared file type.");
  if(rows.reduce((n,x)=>n+Number(x.file_size||0),0)+bytes.length>MAX_TOTAL)
