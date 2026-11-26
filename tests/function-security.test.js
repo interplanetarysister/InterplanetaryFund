@@ -130,6 +130,10 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_audit_marketing_consent_change",
   "public.ifund_create_support_ticket",
   "public.ifund_super_admin_close_support_ticket",
+  // Private business email mark-read: caller is auth.uid(), authorized
+  // against ifund_admin_mail_access; updates only the selected read flag.
+  // Direct table grants remain revoked; owner/stranger tests exercise the RPC.
+  "public.ifund_admin_mail_set_read",
   "public.ifund_set_nexus_brief_preferences",
   "public.ifund_dispatch_nexus_briefs",
   "public.ifund_acknowledge_editorial_review",
