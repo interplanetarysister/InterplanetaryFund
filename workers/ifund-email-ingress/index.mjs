@@ -40,8 +40,12 @@ async function deliver(env,endpoint,payload,fetcher){
  }catch{throw Object.assign(Error("Signing key unavailable"),{deliveryStage:"signing_key"});}
  try{signature=hex(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key,bytes.encode(stamp+"."+body)));}
  catch{throw Object.assign(Error("Signing unavailable"),{deliveryStage:"signing"});}
- try{response=await fetcher(url.toString(),{method:"POST",redirect:"error",signal:AbortSignal.timeout(15000),headers:{"content-type":"application/json","x-ifund-email-timestamp":stamp,"x-ifund-email-signature":signature},body});}
- catch{throw Object.assign(Error("Receiver network unavailable"),{deliveryStage:"receiver_network"});}
+ try{response=await fetcher(url.toString(),{method:"POST",redirect:"manual",...(typeof AbortSignal.timeout==="function"?{signal:AbortSignal.timeout(15000)}:{}),headers:{"content-type":"application/json","x-ifund-email-timestamp":stamp,"x-ifund-email-signature":signature},body});}
+ catch(cause){
+  const message=String(cause?.message||"").toLowerCase();
+  const networkReason=/not a function|illegal invocation/.test(message)?"runtime_invocation":/timeout|abort/.test(message)?"timeout":/dns|resolve/.test(message)?"dns":/redirect/.test(message)?"redirect":/network|fetch|connect/.test(message)?"network":"other";
+  throw Object.assign(Error("Receiver network unavailable"),{deliveryStage:"receiver_network",networkReason});
+ }
  if(!response.ok)throw Object.assign(Error("Receiver rejected delivery"),{receiverStatus:response.status});
 }
 export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalMime.parse(raw,{maxNestingDepth:32,maxHeadersSize:128*1024})}={}){
@@ -71,7 +75,7 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   stage="signed_receiver";
   await deliver(env,endpoint,payload,fetcher);
  }catch(error){
-  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage:error?.deliveryStage||stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
+  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage:error?.deliveryStage||stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,network_reason:error?.networkReason||null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
   message.setReject("Mailbox delivery unavailable");return;
  }
  // Business backup is independent of the committed platform inbox receipt.
@@ -84,4 +88,59 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   if(archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"persisted",backup_forwarded:forwarded,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* inbox receipt remains authoritative */}}
  }
 }
-export default {email:receiveEmail};
+
+const receiptKey=key=>"mail-delivery-receipts/"+key.slice(8,-4)+".json";
+async function storeReceipt(bucket,key,record){
+ await bucket.put(receiptKey(key),JSON.stringify({...record,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});
+}
+export async function retryBusinessMail(env,{fetcher=fetch,parse=raw=>PostalMime.parse(raw,{maxNestingDepth:32,maxHeadersSize:128*1024}),now=Date.now()}={}){
+ const bucket=env.IFUND_MAIL_ARCHIVE;
+ if(!bucket)return {attempted:0,recovered:0};
+ // Only the new, business-only archive is eligible. Legacy raw mail may
+ // include private member messages and must never be replayed to admins.
+ const cursorObject=await bucket.get("mail-retry-cursor.json");
+ let cursor;try{cursor=cursorObject?(await cursorObject.json()).cursor:undefined;}catch{}
+ const page=await bucket.list({prefix:"mail-v2/",limit:40,...(cursor?{cursor}:{}),include:["customMetadata"]});
+ let attempted=0,recovered=0,failed=0;
+ for(const summary of page.objects||[]){
+  if(attempted>=5)break;
+  if(!/^mail-v2\/[a-f0-9]{64}-[a-f0-9]{64}\.eml$/.test(summary.key))continue;
+  if(summary.uploaded&&now-new Date(summary.uploaded).getTime()<60_000)continue;
+  let receipt;try{const r=await bucket.get(receiptKey(summary.key));receipt=r?await r.json():null;}catch{}
+  if(receipt?.state==="persisted")continue;
+  if(receipt?.at&&now-Date.parse(receipt.at)<Math.min(60*60_000,300_000*Math.pow(2,Math.min(receipt.attempts||0,4))))continue;
+  const object=await bucket.get(summary.key);
+  if(!object)continue;
+  const to=String(object.customMetadata?.recipient||"").trim().toLowerCase();
+  if(mailboxKind(to)!=="business")continue;
+  const from=bounded(object.customMetadata?.sender,254);
+  if(!from||object.size>25*1024*1024)continue;
+  attempted++;
+  try{
+   const raw=await readBounded(object.body,25*1024*1024);
+   const digest=hex(await crypto.subtle.digest("SHA-256",raw));
+   const recipientDigest=hex(await crypto.subtle.digest("SHA-256",bytes.encode(to)));
+   if(summary.key!=="mail-v2/"+digest+"-"+recipientDigest+".eml")throw Error("Archive identity mismatch");
+   let parsed=null;if(raw.byteLength<=2_000_000)try{parsed=await parse(raw)}catch{}
+   const payload={message_id:bounded(parsed?.messageId||digest,254),from,to,subject:bounded(parsed?.subject||"(Archived email)",240),text:bounded(parsed?.text??"The original email was archived by iFund. Its body could not be displayed.",11500)};
+   // The original envelope Message-ID and parser Message-ID normalize to
+   // the same database key; retries never send another backup email.
+   const endpoint=env.IFUND_ADMIN_EMAIL_RECEIVER_URL;
+   if(endpoint!==ORIGIN+"/functions/v1/ifund-admin-mail-ingest")throw Error("Admin receiver mismatch");
+   await deliver(env,endpoint,payload,fetcher);
+   await storeReceipt(bucket,summary.key,{state:"persisted",recovered:true,attempts:(receipt?.attempts||0)+1});
+   recovered++;
+  }catch(error){
+   await storeReceipt(bucket,summary.key,{state:"failed",stage:error?.deliveryStage||"retry_receiver",receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,network_reason:error?.networkReason||null,attempts:(receipt?.attempts||0)+1});
+   failed++;
+  }
+ }
+ // Reset to the start after a full pass. If the per-run work bound was
+ // reached, retain the old cursor so skipped items are not forgotten.
+ await bucket.put("mail-retry-cursor.json",JSON.stringify({cursor:attempted>=5?cursor??null:page.truncated?page.cursor:null}));
+ return {attempted,recovered,failed};
+}
+export default {
+ email(message,env){return receiveEmail(message,env);},
+ async scheduled(_event,env,ctx){ctx.waitUntil(retryBusinessMail(env));}
+};
