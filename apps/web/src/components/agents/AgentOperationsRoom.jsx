@@ -18,19 +18,32 @@ export default function AgentOperationsRoom({user}){
   const [sending,setSending]=useState(false);
   const [analyzing,setAnalyzing]=useState(false);
   const [analyzingAssignment,setAnalyzingAssignment]=useState(null);
+  const [automationStatus,setAutomationStatus]=useState(null);
   const refresh=useCallback(async()=>{
     if(!ownerId)return;
     const client=authClient();
     const [identity,admin]=await Promise.all([client.auth.getUser(),client.rpc("ifund_current_user_is_verified_admin")]);
     if(ownerGuard.current!==ownerId)return;
     if(identity.error||identity.data?.user?.id!==ownerId||admin.error||admin.data!==true){
-      setPermitted(false);setItems([]);setChecking(false);return;
+      setPermitted(false);setItems([]);setAutomationStatus(null);setChecking(false);return;
     }
     setPermitted(true);
-    const {data,error:readError}=await client.from("ifund_agent_operations_messages")
-      .select("id,speaker_type,agent_id,body,event_type,source_kind,source_receipt,created_at,author_user_id")
-      .eq("thread_id",THREAD).order("created_at",{ascending:false}).limit(80);
+    // A separate admin-scoped RPC reports real stored Worker run receipts,
+    // never a browser-supplied state or a claim that a Cron was delivered.
+    const [history,botStatus]=await Promise.all([
+      client.from("ifund_agent_operations_messages")
+        .select("id,speaker_type,agent_id,body,event_type,source_kind,source_receipt,created_at,author_user_id")
+        .eq("thread_id",THREAD).order("created_at",{ascending:false}).limit(80),
+      client.rpc("ifund_ops_bot_admin_status")
+    ]);
+    const {data,error:readError}=history;
     if(ownerGuard.current!==ownerId)return;
+    if(!botStatus.error && botStatus.data && typeof botStatus.data.configured==="boolean" &&
+      Number.isInteger(botStatus.data.utc_day_used) && botStatus.data.utc_day_used>=0 &&
+      botStatus.data.utc_day_used<=8 && botStatus.data.utc_day_limit===8 &&
+      (!botStatus.data.latest || ["claimed","completed","failed","superseded"].includes(botStatus.data.latest.state)))
+      setAutomationStatus(botStatus.data);
+    else setAutomationStatus(null);
     if(readError) setError("The private room could not be refreshed.");
     else {setItems((data||[]).reverse());setError("");}
     setChecking(false);
@@ -41,7 +54,7 @@ export default function AgentOperationsRoom({user}){
     const timer=setInterval(()=>{if(alive&&document.visibilityState==="visible")refresh().catch(()=>{});},30000);
     return()=>{alive=false;clearInterval(timer);};
   },[refresh]);
-  useEffect(()=>{setPermitted(false);setChecking(true);setItems([]);setBody("");},[ownerId]);
+  useEffect(()=>{setPermitted(false);setChecking(true);setItems([]);setAutomationStatus(null);setBody("");},[ownerId]);
   async function runNexus(payload){
     const client=authClient();
     const [identity,session,admin]=await Promise.all([
@@ -114,6 +127,12 @@ export default function AgentOperationsRoom({user}){
       </div>
     </div>
     <p className="text-sm text-slate-300">Only verified administrators can read or post. A question or task automatically requests a short advisory NEXUS review. Replies appear only after the backend confirms them.</p>
+    {automationStatus&&<p role="status" className="rounded-lg border border-slate-700/70 p-3 text-sm text-slate-300">
+      Background review authorization: {automationStatus.configured?"enabled":"paused"} · {automationStatus.utc_day_used}/{automationStatus.utc_day_limit} daily runs used (UTC).
+      {automationStatus.latest?<> Latest recorded run: {automationStatus.latest.state}
+        {automationStatus.latest.finished_at?" · "+new Date(automationStatus.latest.finished_at).toLocaleString():""}</>:" No scheduled run recorded yet."}
+      {" "}These are read-only agent discussions, not authorization for payment, publication or external account actions.
+    </p>}
     <div role="log" aria-label="Private agent operations messages" aria-live="polite" className="max-h-[500px] min-h-28 space-y-3 overflow-y-auto rounded-xl bg-black/20 p-3">
       {items.length===0&&<p className="text-sm text-slate-400">No saved discussions yet.</p>}
       {items.map(item=><article key={item.id} className="flex items-start gap-2 rounded-xl border border-slate-700/60 p-3">
