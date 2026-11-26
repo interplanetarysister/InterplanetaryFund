@@ -2,31 +2,28 @@ import {Link} from "react-router-dom";
 import {useEffect,useRef,useState} from "react";
 import {matchOpportunity} from "@/lib/opportunityMatch";
 import {analyzeGoalSuccess} from "@/lib/goalSuccessAnalysis.mjs";
+import {authClient} from "@/api/auth";
+import {listVerifiedMissionResources} from "@/api/missions";
+import {opportunityDeadlineLabel} from "@/lib/opportunityFreshness.mjs";
 
 const label={baseline:"Useful starting point",explore:"Worth researching",consider_carefully:"Review risks first",optional:"Optional avenue"};
 export default function GoalSuccessAnalysis({campaign}) {
   const analysis=analyzeGoalSuccess(campaign);
   const [results,setResults]=useState({state:"idle",items:[],error:""});
   const pending=useRef(null);
-  useEffect(()=>{pending.current?.abort();setResults({state:"idle",items:[],error:""});return()=>pending.current?.abort();},[campaign?.id]);
+  useEffect(()=>{pending.current?.abort();setResults({state:"idle",items:[],error:""});if(campaign?.id)void findMatches();return()=>pending.current?.abort();},[campaign?.id]);
   async function findMatches(){
     pending.current?.abort();const controller=new AbortController();pending.current=controller;
     setResults({state:"loading",items:[],error:""});
     try{
-      const response=await fetch("/api/public/opportunity-sources",{cache:"no-store",signal:controller.signal});
-      const payload=await response.json().catch(()=>null);
-      if(!response.ok||payload?.source!=="canonical_supabase_rls"||!Array.isArray(payload.opportunities))
-        throw Error("Verified opportunity records are unavailable; no unreviewed leads were substituted.");
-      const today=new Date().toISOString().slice(0,10);
-      const items=payload.opportunities.filter(item=>{
-        try{
-          const url=new URL(item.url);
-          return url.protocol==="https:"&&!url.username&&!url.password&&
-            item.status==="open"&&Boolean(item.verified_at)&&
-            (!item.deadline_date||item.deadline_date>=today)&&
-            matchOpportunity(item,campaign).score>0;
-        }catch{return false;}
-      }).sort((a,b)=>matchOpportunity(b,campaign).score-matchOpportunity(a,campaign).score).slice(0,6);
+      // Read the same owner-verified catalog as Missions, including exact
+      // deadline timestamps. No private goal text is sent to a provider.
+      const catalog=await listVerifiedMissionResources(authClient(),{limit:20});
+      const items=catalog.filter(item=>item.status==="open")
+        .map(item=>({...item,url:item.official_url,provider:item.official_provider,
+          verified_at:item.source_checked_at,cause_tags:item.tags}))
+        .filter(item=>matchOpportunity(item,campaign).score>0)
+        .sort((a,b)=>matchOpportunity(b,campaign).score-matchOpportunity(a,campaign).score).slice(0,6);
       if(!controller.signal.aborted)setResults({state:"ready",items,error:""});
     }catch(cause){
       if(!controller.signal.aborted)setResults({state:"error",items:[],error:cause?.message||"Could not check official sources."});
@@ -66,10 +63,11 @@ export default function GoalSuccessAnalysis({campaign}) {
         {results.state==="loading"?"Checking official opportunities…":"Find possible opportunities"}
       </button>
       {results.state==="error"&&<p role="alert" className="text-sm text-muted-foreground">{results.error}</p>}
-      {results.state==="ready"&&<p role="status" className="text-sm text-muted-foreground">{results.items.length} currently open, checked records show topic overlap. Eligibility and award availability are still unverified.</p>}
+      {results.state==="ready"&&<p role="status" className="text-sm text-muted-foreground">{results.items.length} recently checked records show topic overlap. Confirm current availability and eligibility with each provider.</p>}
       {results.state==="ready"&&results.items.map(item=><article key={item.id} className="space-y-2 rounded-xl border border-border p-3">
         <h5 className="font-semibold">{item.title}</h5>
         <p className="text-xs text-muted-foreground">{item.provider} · Source checked {String(item.verified_at).slice(0,10)}</p>
+        <p className="text-xs text-muted-foreground">{opportunityDeadlineLabel(item)}</p>
         <p className="text-sm">{matchOpportunity(item,campaign).summary}</p>
         <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline">Review official terms and eligibility</a>
       </article>)}
