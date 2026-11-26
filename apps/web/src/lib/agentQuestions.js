@@ -4,9 +4,9 @@ import { memberIdentity } from "./guestAccess.js";
 
 export const TEAM_QUESTION_LIMIT=2000;
 export async function askIFundAgent(client,{question,agent="auto",ownerId,fetcher=fetch,signal}){
-  if(typeof question!=="string" || question.trim().length<8 ||
+  if(typeof question!=="string" || question.trim().length<1 ||
      question.length>TEAM_QUESTION_LIMIT)
-    throw Error("Enter a question of 8–2,000 characters.");
+    throw Error("Enter a message of 1–2,000 characters.");
   const current=await client.auth.getUser();
   if(current.error || !memberIdentity(current.data?.user) ||
      current.data.user.id!==ownerId)
