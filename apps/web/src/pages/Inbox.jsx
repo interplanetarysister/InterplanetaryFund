@@ -7,6 +7,7 @@ import { safeNoticeDestination } from "@/lib/notifications";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { moderationQueue } from "@/lib/socialCommunity";
+import AdminBusinessMailbox from "@/components/AdminBusinessMailbox";
 
 function localDestination(value) {
   const safe = safeNoticeDestination(value);
@@ -107,6 +108,7 @@ export default function Inbox() {
         </div>
       </header>
 
+      {isAdmin && user?.id && <AdminBusinessMailbox key={user.id} ownerId={user.id} />}
       {isAdmin && <section aria-label="Community moderation alerts" className="space-y-2 rounded-2xl border border-primary/30 bg-card p-4">
         <h2 className="font-semibold">Community moderation · {reportStatus === "ready" ? `${reports.length} open reports` : reportStatus === "loading" ? "Loading reports…" : "Reports unavailable"}</h2>
         {reports.slice(0, 3).map(report => <p className="line-clamp-2 text-sm" key={report.id}>{report.reason}</p>)}
