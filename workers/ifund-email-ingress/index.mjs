@@ -26,9 +26,22 @@ async function deliver(env,endpoint,payload,fetcher){
  const url=new URL(endpoint);
  if(url.origin!==ORIGIN||!url.pathname.startsWith("/functions/v1/")||url.username||url.password||url.search||url.hash)throw Error("Receiver identity mismatch");
  const stamp=String(Math.floor(Date.now()/1000)),body=JSON.stringify(payload);
- const key=await crypto.subtle.importKey("pkcs8",Uint8Array.from(atob(env.IFUND_EMAIL_SIGNING_PRIVATE_KEY),c=>c.charCodeAt(0)),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
- const signature=hex(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key,bytes.encode(stamp+"."+body)));
- const response=await fetcher(url.toString(),{method:"POST",redirect:"error",signal:AbortSignal.timeout(15000),headers:{"content-type":"application/json","x-ifund-email-timestamp":stamp,"x-ifund-email-signature":signature},body});
+ let key,signature,response;
+ try{
+  const configured=String(env.IFUND_EMAIL_SIGNING_PRIVATE_KEY||"").trim();
+  if(!configured)throw Error("Missing signing key");
+  if(configured.startsWith("{")){
+   const jwk=JSON.parse(configured);
+   key=await crypto.subtle.importKey("jwk",jwk,{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+  }else{
+   const encoded=configured.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,"");
+   key=await crypto.subtle.importKey("pkcs8",Uint8Array.from(atob(encoded),c=>c.charCodeAt(0)),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+  }
+ }catch{throw Object.assign(Error("Signing key unavailable"),{deliveryStage:"signing_key"});}
+ try{signature=hex(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key,bytes.encode(stamp+"."+body)));}
+ catch{throw Object.assign(Error("Signing unavailable"),{deliveryStage:"signing"});}
+ try{response=await fetcher(url.toString(),{method:"POST",redirect:"error",signal:AbortSignal.timeout(15000),headers:{"content-type":"application/json","x-ifund-email-timestamp":stamp,"x-ifund-email-signature":signature},body});}
+ catch{throw Object.assign(Error("Receiver network unavailable"),{deliveryStage:"receiver_network"});}
  if(!response.ok)throw Object.assign(Error("Receiver rejected delivery"),{receiverStatus:response.status});
 }
 export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalMime.parse(raw,{maxNestingDepth:32,maxHeadersSize:128*1024})}={}){
@@ -58,7 +71,7 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   stage="signed_receiver";
   await deliver(env,endpoint,payload,fetcher);
  }catch(error){
-  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
+  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage:error?.deliveryStage||stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
   message.setReject("Mailbox delivery unavailable");return;
  }
  // Business backup is independent of the committed platform inbox receipt.
