@@ -2,6 +2,7 @@
 // No client operation authorizes OAuth, provider verification, publishing, financial changes, or agent execution.
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 import { TERMS_VERSION } from "../lib/legalPolicy.js";
+import { validateTaskDueAt } from "../lib/missionTaskDates.mjs";
 import { currentVerifiedOpportunity } from "../lib/opportunityFreshness.mjs";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -129,6 +130,22 @@ export async function setMissionTaskState(client,missionId,taskId,expectedRevisi
  if(r.error)throw new Error("Task update failed.");
  if(!r.data)throw new MissionConflictError("Task changed in another session.");
  if(r.data.owner_id!==ownerId||r.data.revision!==expectedRevision+1)throw new Error("Invalid task receipt.");
+ await sessionStillOwner(client,ownerId);return r.data;
+}
+export async function setMissionTaskDueAt(client,missionId,taskId,expectedRevision,dueAt){
+ ensureUuid(missionId,"Mission ID");ensureUuid(taskId,"Task ID");
+ if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)throw new Error("Missing task revision.");
+ const deadline=validateTaskDueAt(dueAt);
+ const ownerId=await verifiedOwner(client,true);
+ const r=await client.from("ifund_mission_tasks").update({due_at:deadline,revision:expectedRevision+1})
+  .eq("mission_id",missionId).eq("id",taskId).eq("owner_id",ownerId)
+  .eq("revision",expectedRevision).select(TASK_FIELDS).maybeSingle();
+ if(r.error)throw new Error("Task deadline update failed.");
+ if(!r.data)throw new MissionConflictError("Task changed in another session.");
+ if(r.data.id!==taskId||r.data.owner_id!==ownerId||r.data.mission_id!==missionId||
+    r.data.revision!==expectedRevision+1||
+    (deadline===null?r.data.due_at!==null:!r.data.due_at||Date.parse(r.data.due_at)!==Date.parse(deadline)))
+  throw new Error("Invalid task deadline receipt.");
  await sessionStillOwner(client,ownerId);return r.data;
 }
 // Explicitly read-only: provider status cannot be written or forged by the member client.
