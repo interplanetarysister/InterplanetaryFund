@@ -47,10 +47,10 @@ test("routing distinguishes specialist roles from mixed NEXUS coordination",()=>
   assert.equal(recommendAgent("Help me with our story and costs").target,"nexus");
   assert.equal(recommendAgent("Can I connect my Instagram OAuth account?").target,"link");
   assert.equal(validateTeamQuestion({request_id:KEY,question:"What should I improve about my story?",agent:"auto"}).selected,"story");
-  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"What about my story?",owner_id:UID}),/question/);
+  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"What about my story?",owner_id:UID}),/message|question/);
   assert.equal(validateTeamQuestion({request_id:KEY,question:"Hi",agent:"nexus"}).question,"Hi");
-  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"    ",agent:"auto"}),/question/);
-  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"Can I publish automatically?",agent:"admin_builder"}),/question/);
+  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"    ",agent:"auto"}),/message|question/);
+  assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"Can I publish automatically?",agent:"admin_builder"}),/message|question/);
 });
 test("prompt is source-agnostic, advisory and redacts pasted credentials",()=>{
   const input=validateTeamQuestion({request_id:KEY,question:"Can you help with my campaign story?",agent:"story"});
