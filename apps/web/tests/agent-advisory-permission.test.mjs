@@ -24,5 +24,6 @@ test("agent team checks verified owner and all AI flags",()=>{
   assert.match(source,/\.select\("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance"\)/);
   assert.match(source,/\.eq\("owner_id",owner\)\.maybeSingle\(\)/);
   assert.match(source,/canAskAgentWithSavedPermission\(/);
-  assert.match(source,/!membershipActive \|\| !aiPermissionGranted/);
+  assert.match(source,/!aiPermissionGranted/);
+  assert.doesNotMatch(source,/membershipActive|ifund_story_subscription/);
 });
