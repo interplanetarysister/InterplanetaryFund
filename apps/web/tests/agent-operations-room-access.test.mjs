@@ -36,3 +36,19 @@ test("operations room is private and usable with a single administrator message 
  assert.match(source,/Message type/);
  assert.match(source,/Administrator message/);
 });
+
+test("verified scheduled operation receipts appear in the admin-only room without leaking bot secrets",()=>{
+ const migration=readFileSync(new URL("../../../supabase/migrations/20261126132500_ifund_agent_ops_bot_admin_status.sql",import.meta.url),"utf8");
+ assert.match(migration,/ifund_current_user_is_verified_admin\(\)/);
+ assert.match(migration,/revoke all on function public\.ifund_ops_bot_admin_status\(\) from public,anon,authenticated/);
+ assert.match(migration,/grant execute on function public\.ifund_ops_bot_admin_status\(\) to authenticated/);
+ assert.match(migration,/utc_day_used/);
+ assert.match(migration,/utc_day_limit/);
+ assert.match(migration,/latest/);
+ assert.doesNotMatch(migration,/jsonb_build_object\([^)]*secret_sha256/);
+ assert.match(source,/client\.rpc\("ifund_ops_bot_admin_status"\)/);
+ assert.match(source,/Background review authorization:/);
+ assert.match(source,/Latest recorded run:/);
+ assert.match(source,/read-only agent discussions/);
+ assert.match(source,/setAutomationStatus\(null\)/);
+});
