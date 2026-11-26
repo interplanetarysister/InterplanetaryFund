@@ -162,7 +162,15 @@ test("Audio tab mixes real uploaded layers with the Web Audio API", () => {
 test("Library shows real Studio items with an honest empty state; Publish links to the social composer", () => {
   const page = read("src/pages/MediaStudio.jsx");
   assert.match(page, /No media yet\. Generate artwork in the Generator tab or upload a file above\./);
-  assert.match(page, /no media list to fetch/);
+  // The previous session-only warning was replaced by a persistent owner-scoped R2 library.
+  assert.match(page, /<PrivateMediaLibrary/);
+  assert.match(page, /<StoredCoverLibrary/);
+  assert.match(page, /Deleting a local item does not delete a previously/);
+  const cloud=read("src/components/media/PrivateMediaLibrary.jsx");
+  assert.match(cloud, /uploadMyMedia/);
+  assert.match(cloud, /deleteMyMedia/);
+  assert.match(cloud, /deleteAllMyMedia/);
+  assert.match(cloud, /listIncompleteMedia/);
   assert.match(page, /This session only/);
   assert.match(page, /Saved on this device/);
   assert.match(page, /localStorage\.getItem\(STUDIO_LIBRARY_KEY\)/);
