@@ -425,6 +425,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/donate",
+      "role": "public",
+      "component": "Donate",
+      "source_status": "not_verified",
+      "source_evidence": "apps/web/src/pages/Donate.jsx; apps/web/src/App.jsx (Sprint 7: standalone Donate/Checkout page, 40-page list page 31; reuses CampaignDonationDialog + PlatformSupportDonationDialog; no new payment engine)",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/download",
       "role": "public",
       "component": "DownloadApp",
@@ -759,7 +769,7 @@
       "role": "member",
       "component": "Notifications",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/Notifications.jsx; apps/web/src/App.jsx (Sprint 7: Mail tab links to /mail; Mail stays canonical, no inline inbox)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
@@ -879,7 +889,7 @@
       "role": "member",
       "component": "Profile",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/Profile.jsx; apps/web/src/App.jsx (Sprint 7: Referrals tab renders ReferralRewards; Dashboard summary links to /profile?tab=referrals)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
@@ -979,7 +989,7 @@
       "role": "member",
       "component": "Subscriptions",
       "source_status": "not_verified",
-      "source_evidence": "",
+      "source_evidence": "apps/web/src/pages/Subscriptions.jsx; apps/web/src/App.jsx (Sprint 7: Premium tab with PremiumBillingChoices/PremiumOneTimeCheckout; Dashboard summary links to /subscriptions?tab=premium)",
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"

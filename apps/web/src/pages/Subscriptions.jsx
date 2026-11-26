@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { isNativeBundle } from "@/lib/nativeApi";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
@@ -37,6 +38,17 @@ export default function Subscriptions(){
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const query=useMemo(()=>new URLSearchParams(window.location.search),[]);
+  // Sprint 7 (2026-11-25, owner decision 5): dedicated Premium tab. The
+  // Dashboard premium summary links here (/subscriptions?tab=premium). The
+  // Plans tab keeps the full catalog exactly as before.
+  const [tabParams,setTabParams]=useSearchParams();
+  const tab=tabParams.get("tab")==="premium"?"premium":"plans";
+  function setTab(next){
+    const nextParams=new URLSearchParams(tabParams);
+    nextParams.set("tab",next==="premium"?"premium":"plans");
+    setTabParams(nextParams,{replace:true});
+  }
+  const basicMonthly=plans.find((plan)=>plan.tier==="basic"&&plan.interval==="monthly");
   const native=isNativeBundle();
   const oneTimeActive=oneTimePurchase?.status==="captured"&&
     Number.isFinite(Date.parse(oneTimePurchase?.valid_until||""))&&
@@ -149,6 +161,17 @@ export default function Subscriptions(){
     {notice&&<p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">{notice}</p>}
     {error&&<p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</p>}
 
+    <div role="tablist" aria-label="Subscription sections" className="flex flex-wrap gap-2">
+      {[["plans","Plans"],["premium","Premium"]].map(([id,label])=><button key={id} type="button" role="tab"
+        id={`subscriptions-tab-${id}`} aria-selected={tab===id} aria-controls={`subscriptions-panel-${id}`}
+        onClick={()=>setTab(id)}
+        className={"min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold "+(tab===id
+          ?"border-primary bg-primary/10 text-primary"
+          : "border-border bg-card hover:border-primary/50")}>{label}</button>)}
+    </div>
+
+    {tab==="plans"&&<div role="tabpanel" id="subscriptions-panel-plans"
+      aria-labelledby="subscriptions-tab-plans" className="space-y-7">
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Your subscription</h2>
       {oneTimeActive&&<div role="status" className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 text-sm">
@@ -199,6 +222,31 @@ export default function Subscriptions(){
         </article>;
       })}
     </section>}
+    </div>}
+    {tab==="premium"&&<div role="tabpanel" id="subscriptions-panel-premium"
+      aria-labelledby="subscriptions-tab-premium" className="space-y-5">
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <h2 className="text-lg font-semibold">Premium</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Premium is $4.99 for one month with no automatic renewal, or $4.99 every month until you cancel. Every payment is verified before paid access begins.</p>
+        {oneTimeActive&&<p role="status" className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 text-sm">
+          <strong>Premium · one-month purchase</strong>
+          <span className="mt-1 block">Access expires {new Date(oneTimePurchase.valid_until).toLocaleString()}.</span>
+          <span className="mt-1 block text-muted-foreground">Paid once. No automatic renewal or recurring payment agreement.</span>
+        </p>}
+        {!oneTimeActive&&status&&["active","pending","past_due","approval_pending"].includes(status.status)&&
+          <p className="mt-3 text-sm"><strong>{PLAN_NAMES[status.tier]||status.tier}</strong> · {status.interval} · <span className="capitalize">{status.status}</span></p>}
+        {!oneTimeActive&&!status&&statusLoad==="ready"&&
+          <p className="mt-3 text-sm text-muted-foreground">No Premium access is recorded for this account.</p>}
+      </section>
+      {basicMonthly?<article className="rounded-2xl border border-border bg-card p-5">
+        <h2 className="text-lg font-semibold">{PLAN_NAMES[basicMonthly.tier]||basicMonthly.tier}</h2>
+        <p className="mt-1 text-sm capitalize text-muted-foreground">{basicMonthly.interval}</p>
+        <p className="mt-4 text-3xl font-bold">{verifiedSubscriptionPrice(basicMonthly)}<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+        <PremiumBillingChoices plan={basicMonthly} status={status} statusLoad={statusLoad}
+          busy={busy} native={native} oneTimeActive={oneTimeActive} onSubscribe={subscribe}/>
+      </article>:<p role="status" className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">Premium checkout is temporarily unavailable — the subscription plans could not be loaded. Please retry.</p>}
+      <p className="text-sm"><button type="button" onClick={()=>setTab("plans")} className="font-semibold text-primary underline">View all plans</button></p>
+    </div>}
     <p className="flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4"/>IFund records recurring-payment evidence only after a live PayPal status check. Subscription events are idempotently stored and member-scoped.</p>
   </main>;
 }

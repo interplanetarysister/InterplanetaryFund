@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { UserRound } from "lucide-react";
 import DriveImageButton from "@/components/DriveImageButton";
+import ReferralRewards from "@/components/referrals/ReferralRewards";
 import { authClient } from "@/api/auth";
 import { avatarUrl, loadMyProfile, profilePhotoRequest, saveMyProfile } from "@/lib/memberProfile";
 import { friendAction, friendRequests, myFriends } from "@/lib/socialCommunity";
@@ -12,6 +13,15 @@ const action = "inline-flex min-h-11 items-center rounded-xl border border-borde
 
 export default function Profile() {
   const navigate = useNavigate();
+  // Sprint 7 (2026-11-25, owner decision 5): dedicated Referrals tab.
+  // The Dashboard referral summary links here (/profile?tab=referrals).
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "referrals" ? "referrals" : "profile";
+  function setTab(next) {
+    const nextParams = new URLSearchParams(params);
+    nextParams.set("tab", next === "referrals" ? "referrals" : "profile");
+    setParams(nextParams, { replace: true });
+  }
   const [profile, setProfile] = useState(null);
   const [photo, setPhoto] = useState("");
   const [loading, setLoading] = useState(true);
@@ -129,6 +139,16 @@ export default function Profile() {
       <h1 className="font-display text-3xl font-bold">My Profile</h1>
       <Link to={`/u/${profile.id}`} className={action}>View public profile</Link>
     </header>
+    <div role="tablist" aria-label="Profile sections" className="flex flex-wrap gap-2">
+      {[["profile", "Profile"], ["referrals", "Referrals"]].map(([id, label]) => <button key={id} type="button" role="tab"
+        id={`profile-tab-${id}`} aria-selected={tab === id} aria-controls={`profile-panel-${id}`}
+        onClick={() => setTab(id)}
+        className={"min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold " + (tab === id
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-card hover:border-primary/50")}>{label}</button>)}
+    </div>
+    {tab === "profile" && <div role="tabpanel" id="profile-panel-profile"
+      aria-labelledby="profile-tab-profile" className="space-y-6">
     <section className={panel} aria-label="Permissions and connected accounts"><h2 className="text-xl font-semibold">iFund AI & account permissions</h2><p className="text-sm text-muted-foreground">Control AI assistance, platform connections, and optional communications from one place.</p><Link to="/permissions" className={action}>Manage iFund Permissions</Link></section>
     <section className={panel} aria-label="Optional campaign email"><h2 className="text-xl font-semibold">Campaign email address</h2><p className="text-sm text-muted-foreground">Paid iFund subscribers can request a personal @interplanetaryfund.com campaign email address. Basic plans require an optional additional $1 per month. The address stays inactive until separate recurring payment and mail routing are verified.</p><Link to="/subscriptions#campaign-email" className={action}>Manage campaign email add-on</Link></section>
     <section className={panel} aria-labelledby="profile-account">
@@ -250,5 +270,10 @@ export default function Profile() {
         })}>Sign out</button>
       </div>
     </section>
+    </div>}
+    {tab === "referrals" && <div role="tabpanel" id="profile-panel-referrals"
+      aria-labelledby="profile-tab-referrals" className="space-y-6">
+      <ReferralRewards ownerId={profile.id} />
+    </div>}
   </div>;
 }

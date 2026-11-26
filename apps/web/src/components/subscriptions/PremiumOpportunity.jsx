@@ -18,7 +18,7 @@ export default function PremiumOpportunity({ context = "general", compact = fals
         <p className="font-semibold text-foreground">{title}</p>
         {!compact&&<p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>}
       </div>
-      <Link to="/subscriptions" className={compact
+      <Link to="/subscriptions?tab=premium" className={compact
         ?"inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg px-2 font-semibold text-cyan-500 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         :"inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"}>View premium plans</Link>
     </div>

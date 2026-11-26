@@ -71,6 +71,7 @@ const LegacyAuthorizationNotice = lazy(() => import("./pages/LegacyAuthorization
 const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const Donate = lazy(() => import("./pages/Donate"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Messaging = lazy(() => import("./pages/Messaging"));
 const Blogs = lazy(() => import("./pages/Blogs"));
@@ -220,6 +221,12 @@ function AppRoutes() {
       <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
+      {/* Sprint 7 (2026-11-25): standalone Donate / Checkout page (40-page
+          list, page 31). Public, like Campaign Detail — guests donate through
+          the same embedded PayPal checkout. Campaign Detail keeps its own
+          embedded Donate button and summary; this is an additional
+          destination, not a replacement. */}
+      <Route path="/donate" element={<Donate />} />
       <Route path="/help" element={<Help />} />
       <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/help/:slug" element={<HelpArticle />} />

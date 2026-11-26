@@ -42,7 +42,9 @@ test("premium offers appear in context without blocking campaign editing",()=>{
  const dashboard=read("../src/pages/Dashboard.jsx");
  const image=read("../src/pages/AIImageStudio.jsx");
  const panel=read("../src/components/agents/AgentSidePanel.jsx");
- assert.match(c,/to="\/subscriptions"/);
+ // Sprint 7 (2026-11-25, owner decision 5): the premium summary links to
+ // the dedicated Premium tab, not the bare subscriptions catalog.
+ assert.match(c,/to="\/subscriptions\?tab=premium"/);
  assert.match(balance,/rpc\("ifund_ai_content_status"\)/);
  assert.match(balance,/15 free AI creations/);
  assert.match(campaign,/<TrialCreationBalance compact/);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadNotifications, acknowledgeNotification,
   acknowledgeAllNotifications, verifyInAppNotificationDelivery } from "@/lib/notifications";
@@ -9,6 +9,16 @@ import InAppReminders from "@/components/notifications/InAppReminders";
 
 export default function Notifications(){
   const navigate=useNavigate();
+  // Sprint 7 (2026-11-25, owner decision 1): a Mail tab links to /mail.
+  // Notifications summarize activity; Mail handles correspondence, so the
+  // tab never renders the inbox inline and Inbox.jsx is untouched.
+  const [params,setParams]=useSearchParams();
+  const tab=params.get("tab")==="mail"?"mail":"notifications";
+  function setTab(next){
+    const nextParams=new URLSearchParams(params);
+    nextParams.set("tab",next==="mail"?"mail":"notifications");
+    setParams(nextParams,{replace:true});
+  }
   const alive=useRef(true);
   const requestId=useRef(0);
   const actionLock=useRef(false);
@@ -94,6 +104,16 @@ export default function Notifications(){
     </header>
     {deliveryResult&&<p role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">{deliveryResult}</p>}
     {error&&<p role="alert" className="rounded-lg border border-destructive/40 p-3 text-destructive">{error}</p>}
+    <div role="tablist" aria-label="Notifications and mail" className="flex flex-wrap gap-2">
+      {[["notifications","Notifications"],["mail","Mail"]].map(([id,label])=><button key={id} type="button" role="tab"
+        id={`notifications-tab-${id}`} aria-selected={tab===id} aria-controls={`notifications-panel-${id}`}
+        onClick={()=>setTab(id)}
+        className={"min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold "+(tab===id
+          ?"border-primary bg-primary/10 text-primary"
+          : "border-border bg-card hover:border-primary/50")}>{label}</button>)}
+    </div>
+    {tab==="notifications"&&<section role="tabpanel" id="notifications-panel-notifications"
+      aria-labelledby="notifications-tab-notifications" className="space-y-3">
     {phase==="loading"&&<p role="status">Loading notifications…</p>}
     {phase==="error"&&<section className="rounded-xl border border-border bg-card p-5">
       <p>The independent notification service is not available or your session could not be verified. No sample notices are displayed.</p>
@@ -127,6 +147,14 @@ export default function Notifications(){
       })}
     </ul>}
     <InAppReminders />
+    </section>}
+    {tab==="mail"&&<section role="tabpanel" id="notifications-panel-mail"
+      aria-labelledby="notifications-tab-mail" className="space-y-4 rounded-2xl border border-border bg-card p-5">
+      <h2 className="text-xl font-semibold">Mail</h2>
+      <p className="text-sm text-muted-foreground">Notifications summarize activity. Mail handles correspondence — read and reply to messages in your inbox.</p>
+      <Link to="/mail" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Open Mail</Link>
+      <p className="text-xs text-muted-foreground">Your inbox stays at /mail; /inbox remains available as the legacy address for saved message links.</p>
+    </section>}
     <p className="text-xs text-muted-foreground">Android push, optional diagnostics, and administrative mail remain separate consent-controlled integrations; they are not enabled by opening this page.</p>
   </main>;
 }

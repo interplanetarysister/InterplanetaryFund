@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Copy, Gift, CheckCircle2 } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { validReferralCode } from "./ReferralTrialBootstrap";
@@ -87,6 +88,7 @@ export default function ReferralRewards({ ownerId }) {
       </button>
     </form>
     {note && <p role="status" className="text-sm">{note}</p>}
+    <p className="text-sm"><Link to="/profile?tab=referrals" className="font-semibold text-primary underline">Manage referrals in My Profile</Link></p>
     <p className="text-xs text-muted-foreground">One code per new account. Self-referrals, repeat claims, unpublished drafts and fabricated campaigns do not qualify.</p>
   </section>;
 }
