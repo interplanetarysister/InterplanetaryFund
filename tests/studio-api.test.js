@@ -212,8 +212,8 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   assert.equal(result.content.blocks[0].id, 'ai-1');
   assert.equal(result.content.blocks[1].url, '/');
   assert.equal(aiCalls, 1);
-  // user + super-admin check + unified consent + quota consume
-  assert.equal(calls, 4);
+  // Initial identity, role, consent, shared quota; then identity, role and consent recheck.
+  assert.equal(calls, 7);
 });
 test('Studio AI rejects short or oversized prompts before consuming quota', async () => {
   let calls = 0;
@@ -295,4 +295,20 @@ test('Studio revision restore creates a draft from a verified snapshot', async (
   assert.equal(sent.status, 'draft');
   assert.equal(sent.published_at, null);
   assert.equal(sent.updated_by, uid);
+});
+
+test('Studio AI does not return an inferred draft after consent is revoked', async () => {
+  let revoked=false;
+  const fetcher=async(url)=>{
+    if(url.endsWith('/auth/v1/user'))return Response.json({id:uid,app_metadata:{role:'super_admin'}});
+    if(url.endsWith('/rpc/ifund_current_user_is_verified_super_admin'))return Response.json(true);
+    if(url.includes('/rest/v1/ifund_ai_permission_preferences?'))
+      return Response.json([{owner_id:uid,allow_ai_campaign_drafts:true,allow_ai_outreach_drafts:true,allow_future_internal_ai_assistance:!revoked}]);
+    if(url.endsWith('/rpc/ifund_studio_consume_ai_quota'))return Response.json(true);
+    throw Error('Unexpected call');
+  };
+  const result=await routeStudioGenerateRequest(request('/api/studio/generate','POST',{prompt:'Create a private draft page'}),{
+    ...env,IFUND_STUDIO_AI_ENABLED:'enabled',AI:{run:async()=>{revoked=true;return {response:JSON.stringify({blocks:[{type:'hero',heading:'Private draft'},{type:'text',body:'Draft content'}]})};}}
+  },fetcher);
+  assert.equal(result.status,403);
 });
