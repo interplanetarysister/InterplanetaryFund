@@ -36,8 +36,14 @@ export async function observeSource(id,url,fetcher=nativeFetch){
 }
 async function rpc(env,name,body,fetcher){
  if(env.SUPABASE_URL!==ORIGIN||!/^sb_publishable_[A-Za-z0-9_-]+$/.test(env.SUPABASE_PUBLISHABLE_KEY||"")||!(/^[a-f0-9]{64}$/).test(env.IFUND_SOURCE_PROBE_KEY||""))throw Error("probe_configuration");
- const r=await fetcher(ORIGIN+"/rest/v1/rpc/"+name,{method:"POST",redirect:"error",signal:AbortSignal.timeout(12000),headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,"content-type":"application/json","x-ifund-source-probe-key":env.IFUND_SOURCE_PROBE_KEY},body:JSON.stringify(body)});
- if(!r.ok){await r.body?.cancel().catch(()=>{});throw Error("probe_rpc_unavailable");}
+ let r;
+ try{
+  r=await fetcher(ORIGIN+"/rest/v1/rpc/"+name,{method:"POST",redirect:"manual",signal:AbortSignal.timeout(12000),headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,"content-type":"application/json","x-ifund-source-probe-key":env.IFUND_SOURCE_PROBE_KEY},body:JSON.stringify(body)});
+ }catch{throw Object.assign(Error("probe_rpc_network"),{rpcStatus:null});}
+ if(!r.ok){
+  let code=null;try{const detail=JSON.parse(new TextDecoder().decode(await boundedBody(r,16384)));if(typeof detail?.code==="string"&&/^[A-Z0-9]{1,12}$/.test(detail.code))code=detail.code;}catch{}
+  throw Object.assign(Error("probe_rpc_rejected"),{rpcStatus:r.status,rpcCode:code});
+ }
  return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(await boundedBody(r,16384)));
 }
 export async function sourceTick(env,request,fetcher=nativeFetch){
@@ -48,7 +54,7 @@ export async function sourceTick(env,request,fetcher=nativeFetch){
  request.slotKey!=="verified-opportunity-refresh:"+slot||slot%300000!==0)return {state:"blocked"};
  let claims;
  try{claims=await rpc(env,"ifund_claim_funding_source_probes",{p_limit:Math.min(3,request.batchLimit)},fetcher);}
- catch{return {state:"retry"};}
+ catch(error){console.error(JSON.stringify({service:"ifund-funding-source-monitor",stage:"claim",reason:["probe_rpc_network","probe_rpc_rejected","probe_configuration"].includes(error?.message)?error.message:"invalid_response",httpStatus:error?.rpcStatus??null,code:error?.rpcCode??null}));return {state:"retry"};}
  if(!Array.isArray(claims)||claims.length>Math.min(3,request.batchLimit)||
  claims.some(c=>!Object.hasOwn(ALLOWED,c?.source_id)||ALLOWED[c.source_id]!==c.official_url||!UUID.test(c.lease_id||""))||
  new Set(claims.map(c=>c.source_id)).size!==claims.length)return {state:"blocked"};
@@ -58,7 +64,7 @@ export async function sourceTick(env,request,fetcher=nativeFetch){
   try{
    const ok=await rpc(env,"ifund_complete_funding_source_probe",{p_source_id:c.source_id,p_lease_id:c.lease_id,p_status:result.status,p_http_status:result.httpStatus,p_sha256:result.sha256},fetcher);
    if(ok===true){recorded++;if(result.status==="failed")unavailable++;}
-  }catch{/* Expiring lease allows later safe retry. */}
+  }catch(error){console.error(JSON.stringify({service:"ifund-funding-source-monitor",stage:"receipt",reason:["probe_rpc_network","probe_rpc_rejected","probe_configuration"].includes(error?.message)?error.message:"invalid_response",httpStatus:error?.rpcStatus??null,code:error?.rpcCode??null}));/* Expiring lease allows later safe retry. */}
  }
  return {state:claims.length===0?"idle":recorded===claims.length?"completed":"retry",recorded,unavailable};
 }
