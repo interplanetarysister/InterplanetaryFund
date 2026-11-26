@@ -29,6 +29,42 @@ export default function Inbox() {
   const isAdmin = useAdminAccess(user) === "admin";
   const [reports, setReports] = useState([]);
   const [reportStatus, setReportStatus] = useState("loading");
+  const [businessMail, setBusinessMail] = useState([]);
+  const [businessMailStatus, setBusinessMailStatus] = useState("loading");
+  const [businessMailError, setBusinessMailError] = useState("");
+  const [businessMailBusy, setBusinessMailBusy] = useState("");
+
+  const loadBusinessMail = useCallback(async () => {
+    setBusinessMailStatus("loading");
+    setBusinessMailError("");
+    const { data, error } = await authClient().rpc("ifund_admin_mail_list");
+    if (error || !Array.isArray(data)) {
+      setBusinessMailStatus("unavailable");
+      setBusinessMailError(error?.message || "Business mail could not be verified.");
+      return;
+    }
+    setBusinessMail(data);
+    setBusinessMailStatus("ready");
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) void loadBusinessMail();
+    else { setBusinessMail([]); setBusinessMailStatus("not-authorized"); }
+  }, [isAdmin, loadBusinessMail]);
+
+  async function setBusinessMailRead(id, read) {
+    setBusinessMailBusy(id);
+    const { data, error } = await authClient().rpc("ifund_admin_mail_set_read", {
+      p_message: id, p_read: read
+    });
+    if (error || data !== true) {
+      setBusinessMailError(error?.message || "Could not update business mail.");
+    } else {
+      setBusinessMail(rows => rows.map(m => m.id === id ? { ...m, is_read: read } : m));
+    }
+    setBusinessMailBusy("");
+  }
+
   useEffect(() => {
     let active = true;
     if (isAdmin) {
@@ -111,6 +147,38 @@ export default function Inbox() {
         <h2 className="font-semibold">Community moderation · {reportStatus === "ready" ? `${reports.length} open reports` : reportStatus === "loading" ? "Loading reports…" : "Reports unavailable"}</h2>
         {reports.slice(0, 3).map(report => <p className="line-clamp-2 text-sm" key={report.id}>{report.reason}</p>)}
         <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center text-primary underline">Review community post reports</Link>
+      </section>}
+      {isAdmin && <section aria-label="Private iFund business mail" className="space-y-3 rounded-2xl border border-cyan-700/30 bg-card p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="font-semibold">Business email inbox</h2>
+            <p className="text-xs text-muted-foreground">Received @interplanetaryfund.com mail · restricted to approved administrators</p>
+          </div>
+          <button type="button" className="min-h-10 rounded-xl border border-border px-3 text-sm"
+            onClick={loadBusinessMail} disabled={businessMailStatus === "loading"}>
+            Refresh mail
+          </button>
+        </div>
+        {businessMailError && <p role="alert" className="text-sm text-red-700">{businessMailError}</p>}
+        {businessMailStatus === "loading" && <p role="status" className="text-sm text-muted-foreground">Loading private business mail…</p>}
+        {businessMailStatus === "ready" && !businessMail.length && <p className="text-sm text-muted-foreground">No business email received yet.</p>}
+        {businessMailStatus === "ready" && businessMail.map(message => (
+          <article key={message.id} className="space-y-2 rounded-xl border border-border bg-background p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="break-words text-sm font-semibold">{message.subject || "(No subject)"}</p>
+                <p className="break-all text-xs text-muted-foreground">From: {message.sender_address} · To: {message.recipient_address}</p>
+                <p className="text-xs text-muted-foreground">{message.received_at ? new Date(message.received_at).toLocaleString() : "Date unavailable"}</p>
+              </div>
+              <button type="button" disabled={Boolean(businessMailBusy)}
+                className="min-h-9 rounded-lg border border-border px-3 text-xs"
+                onClick={() => setBusinessMailRead(message.id, !message.is_read)}>
+                {message.is_read ? "Mark unread" : "Mark read"}
+              </button>
+            </div>
+            <p className="whitespace-pre-wrap break-words text-sm">{message.body_text || "(No text body)"}</p>
+          </article>
+        ))}
       </section>}
       <p className="text-sm text-muted-foreground">To talk to an IFund agent, open <Link to="/messaging" className="font-semibold text-cyan-600 underline">Messaging</Link>. Mail does not show private agent conversations.</p>
       <section className="flex flex-wrap gap-2" aria-label="Mail filters">
