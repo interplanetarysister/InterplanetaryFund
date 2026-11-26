@@ -51,7 +51,7 @@ async function deliver(env,endpoint,payload,fetcher){
 export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalMime.parse(raw,{maxNestingDepth:32,maxHeadersSize:128*1024})}={}){
  const to=String(message.to||"").trim().toLowerCase(),kind=mailboxKind(to);
  if(kind==="unknown"){message.setReject("Unknown mailbox");return;}
- let raw,payload,archiveKey;let stage="read";
+ let raw,payload,archiveKey,archiveStored=false;let stage="read";
  try{
   if(Number(message.rawSize)>25*1024*1024)throw Error("Message too large");
   raw=await readBounded(message.raw,25*1024*1024);
@@ -61,7 +61,8 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   // archive unknown, unpaid or private paid-user messages in the admin archive.
   if(business||kind==="verification"){
    archiveKey="mail-v2/"+digest+"-"+hex(await crypto.subtle.digest("SHA-256",bytes.encode(to)))+".eml";
-   await env.IFUND_MAIL_ARCHIVE.put(archiveKey,raw,{httpMetadata:{contentType:"message/rfc822"},customMetadata:{recipient:to,sender:bounded(message.from,254)}});
+   await env.IFUND_MAIL_ARCHIVE.put(archiveKey,raw,{httpMetadata:{contentType:"message/rfc822"},customMetadata:{recipient:to,sender:bounded(message.from,254),message_id:bounded(message.headers?.get("message-id")||digest,254),subject:bounded(message.headers?.get("subject"),240)}});
+   archiveStored=true;
   }
   stage="parse";
   let parsed=null;
@@ -75,7 +76,15 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   stage="signed_receiver";
   await deliver(env,endpoint,payload,fetcher);
  }catch(error){
-  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage:error?.deliveryStage||stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,network_reason:error?.networkReason||null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
+  // Do not claim an inbox write when it failed. If the raw official mail
+  // is already durably archived, retain it for the bounded recovery job.
+  if(kind==="business"&&archiveKey&&archiveStored){
+   let forwarded=true;
+   try{await message.forward(to==="user@interplanetaryfund.com"?"interplanetarysister@gmail.com":"cuddlemeplatonically@gmail.com");}
+   catch{forwarded=false;}
+   try{await storeReceipt(env.IFUND_MAIL_ARCHIVE,archiveKey,{state:"failed",stage:error?.deliveryStage||stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,network_reason:error?.networkReason||null,backup_forwarded:forwarded,attempts:0});}catch{/* archived object remains eligible for recovery */}
+   return;
+  }
   message.setReject("Mailbox delivery unavailable");return;
  }
  // Business backup is independent of the committed platform inbox receipt.
@@ -122,13 +131,13 @@ export async function retryBusinessMail(env,{fetcher=fetch,parse=raw=>PostalMime
    const recipientDigest=hex(await crypto.subtle.digest("SHA-256",bytes.encode(to)));
    if(summary.key!=="mail-v2/"+digest+"-"+recipientDigest+".eml")throw Error("Archive identity mismatch");
    let parsed=null;if(raw.byteLength<=2_000_000)try{parsed=await parse(raw)}catch{}
-   const payload={message_id:bounded(parsed?.messageId||digest,254),from,to,subject:bounded(parsed?.subject||"(Archived email)",240),text:bounded(parsed?.text??"The original email was archived by iFund. Its body could not be displayed.",11500)};
+   const payload={message_id:bounded(object.customMetadata?.message_id||parsed?.messageId||digest,254),from,to,subject:bounded(parsed?.subject||object.customMetadata?.subject||"(Archived email)",240),text:bounded(parsed?.text??"The original email was archived by iFund. Its body could not be displayed.",11500)};
    // The original envelope Message-ID and parser Message-ID normalize to
    // the same database key; retries never send another backup email.
    const endpoint=env.IFUND_ADMIN_EMAIL_RECEIVER_URL;
    if(endpoint!==ORIGIN+"/functions/v1/ifund-admin-mail-ingest")throw Error("Admin receiver mismatch");
    await deliver(env,endpoint,payload,fetcher);
-   await storeReceipt(bucket,summary.key,{state:"persisted",recovered:true,attempts:(receipt?.attempts||0)+1});
+   await storeReceipt(bucket,summary.key,{state:"persisted",recovered:true,backup_forwarded:receipt?.backup_forwarded??null,attempts:(receipt?.attempts||0)+1});
    recovered++;
   }catch(error){
    await storeReceipt(bucket,summary.key,{state:"failed",stage:error?.deliveryStage||"retry_receiver",receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,network_reason:error?.networkReason||null,attempts:(receipt?.attempts||0)+1});
