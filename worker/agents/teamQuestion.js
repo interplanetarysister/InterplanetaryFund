@@ -204,6 +204,11 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     })});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
     const answer=validateTeamAnswer(result,input.selected);
+    // Consent can change during inference. Do not persist the response or
+    // release it as an authorized answer after revocation/account suspension.
+    if((await api.rpc("ifund_current_account_is_active"))!==true||
+       !await api.futureInternalAIPermission("recommendation",false))
+      fail(403,"Your AI permission changed. Enable private AI assistance before retrying.");
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
         agentId:input.selected,content:answer.answer,speaker:"agent",fetcher});
