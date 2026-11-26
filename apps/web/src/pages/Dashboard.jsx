@@ -71,7 +71,7 @@ export default function Dashboard() {
           placeholder="Describe a need, an idea or a question. Nothing is published without you."
           submitLabel="Continue"
           note="Private by default. Turn on AI assistance in Permissions if you want suggestions."
-          onSubmit={(prompt) => navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } })}
+          onSubmit={(prompt) => navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt, source: "home-what-if" } })}
           className="mt-5 max-w-2xl"
         />
       </div>
