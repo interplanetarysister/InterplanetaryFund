@@ -11,5 +11,11 @@ test("connections route opens the unified permissions hub with the actual provid
  assert.match(hub,/<Connections\s*\/>/);
  assert.match(page,/ifund_connections/);
  assert.match(page,/ifund_my_public_links/);
- assert.match(page,/\/api\/oauth\/status/);
+ // Bug 1 (2026-11-25 audit): the member page read the admin-only
+ // /api/oauth/status, which 403s for non-admins, so "Connect securely"
+ // never rendered for regular members. It now reads the member-safe
+ // /api/oauth/readiness endpoint; the admin status endpoint stays
+ // admin-only (AdminConnections.jsx is its intended consumer).
+ assert.match(page,/\/api\/oauth\/readiness/);
+ assert.doesNotMatch(page,/\/api\/oauth\/status/);
 });

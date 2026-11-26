@@ -20,6 +20,8 @@ export default function LegalFooter() {
         <Link to="/help" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">Help & Legal</Link>
         <span>·</span>
         <Link to="/download" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">Get the app</Link>
+        <span>·</span>
+        <Link to="/templates" className="inline-flex min-h-11 items-center hover:text-foreground transition-colors">Templates</Link>
       </div>
       © 2026 <Link to="/help/copyright-and-intellectual-property"
         className="inline-flex min-h-11 items-center underline underline-offset-2 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
