@@ -48,6 +48,7 @@ test("routing distinguishes specialist roles from mixed NEXUS coordination",()=>
   assert.equal(recommendAgent("Can I connect my Instagram OAuth account?").target,"link");
   assert.equal(validateTeamQuestion({request_id:KEY,question:"What should I improve about my story?",agent:"auto"}).selected,"story");
   assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"What about my story?",owner_id:UID}),/question/);
+  assert.equal(validateTeamQuestion({request_id:KEY,question:"Hi",agent:"nexus"}).question,"Hi");
   assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"    ",agent:"auto"}),/question/);
   assert.throws(()=>validateTeamQuestion({request_id:KEY,question:"Can I publish automatically?",agent:"admin_builder"}),/question/);
 });
@@ -65,6 +66,13 @@ test("prompt is source-agnostic, advisory and redacts pasted credentials",()=>{
   assert.equal(validateTeamAnswer({response:"Prepare a short outline first."},"story").actions_performed,false);
   assert.throws(()=>validateTeamAnswer({response:""},"story"));
 });
+test("a verified member can send a short greeting to an agent",async()=>{
+  const backend=mockBackend();
+  const response=await routeTeamQuestion(request("Hi",{agent:"nexus"}),env,backend.fetcher);
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).agent,"nexus");
+});
+
 test("unlimited administrator can receive an agent answer with no numeric quota",async()=>{
   const backend=mockBackend({unlimited:true});
   const response=await routeTeamQuestion(request("How do we engage a potential partner?"),env,backend.fetcher);
