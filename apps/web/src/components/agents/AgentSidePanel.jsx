@@ -214,7 +214,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
       setVoiceError("For your security, do not speak passwords or account codes. Use the secure sign-in form.");
       setQuestion("");return;
     }
-    if (!availability.enabled || busy || text.length < 8 || text.length > 2000 || !user?.id) return;
+    if (!availability.enabled || busy || text.length < 1 || text.length > 2000 || !user?.id) return;
     stopListening();
     stopAudio();
     setQuestion("");
@@ -312,7 +312,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         <textarea id="ifund-side-agent-question" rows={2} maxLength={2000}
           value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask your agent…"
           className="min-w-0 flex-1 resize-none rounded-xl border border-slate-600 bg-slate-950 p-3 text-sm text-white placeholder:text-slate-400"/>
-        <button type="submit" aria-label="Send agent question" disabled={!availability.enabled || busy || question.trim().length < 8}
+        <button type="submit" aria-label="Send agent question" disabled={!availability.enabled || busy || question.trim().length < 1}
           className="ifund-agent-panel-send inline-flex min-h-11 min-w-11 items-center justify-center self-end rounded-xl bg-cyan-600 p-3 text-white disabled:opacity-40"><Send size={18}/></button>
       </form>
       <Link to={"/agents?agent=" + encodeURIComponent(identity)} className="ifund-agent-panel-tool mt-2 inline-flex min-h-11 items-center gap-1 text-sm text-cyan-300">Open full workspace <ExternalLink size={12}/></Link>
