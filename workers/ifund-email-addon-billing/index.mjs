@@ -8,6 +8,23 @@ const PLAN=/^P-[A-Z0-9]{20,32}$/;
 const SUB=/^I-[A-Z0-9]{10,30}$/;
 const json=(value,status=200)=>Response.json(value,{status,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
 const error=(message,status=503)=>json({ok:false,error:message},status);
+async function boundedJson(request,limit){
+ const type=request.headers.get("content-type")||"";
+ if(!/^application\/json(?:\s*;|\s*$)/i.test(type))throw Object.assign(Error("invalid_json"),{status:415});
+ const length=request.headers.get("content-length");
+ if(length!==null&&(!/^\d+$/.test(length)||Number(length)>limit))
+   throw Object.assign(Error("request_too_large"),{status:413});
+ if(!request.body)throw Object.assign(Error("invalid_json"),{status:400});
+ const reader=request.body.getReader(),parts=[];let size=0;
+ try{
+  while(true){const {value,done}=await reader.read();if(done)break;
+   size+=value.byteLength;if(size>limit)throw Object.assign(Error("request_too_large"),{status:413});
+   parts.push(value);}
+ }catch(e){await reader.cancel().catch(()=>{});throw e;}finally{reader.releaseLock();}
+ const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}
+ try{return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes))}
+ catch{throw Object.assign(Error("invalid_json"),{status:400});}
+}
 async function secret(binding){
  if(typeof binding==="string")return binding;
  return typeof binding?.get==="function"?await binding.get():"";
@@ -47,7 +64,8 @@ function exactPlan(value){
     cycle?.frequency?.interval_count===1&&
     cycle.total_cycles===0&&
     price?.currency_code==="USD"&&price?.value==="1.00"&&
-    (!setup||(setup.currency_code==="USD"&&setup.value==="0.00"));
+    (!setup||(setup.currency_code==="USD"&&setup.value==="0.00"))&&
+    (!value.taxes||(typeof value.taxes.percentage==="string"&&Number(value.taxes.percentage)===0));
 }
 export {exactPlan};
 async function accessToken(env,fetcher=fetch){
@@ -98,6 +116,7 @@ async function status(request,env){
    throw Error("provider_plan_unavailable");
  const enabled=env.IFUND_EMAIL_ADDON_CHECKOUT_ENABLED==="enabled"&&
    PLAN.test(env.IFUND_EMAIL_ADDON_PLAN_ID||"")&&
+   /^[A-Z0-9]{8,80}$/.test(env.IFUND_EMAIL_ADDON_WEBHOOK_ID||"")&&
    env.IFUND_PAYPAL_MODE==="live";
  return json({ok:true,monthly_amount_cents:100,currency:"USD",interval:"monthly",
   checkout_ready:enabled&&readiness.checkout_ready===true,
@@ -106,14 +125,13 @@ async function status(request,env){
 async function start(request,env){
  const {token}=await member(request,env);
  if(env.IFUND_EMAIL_ADDON_CHECKOUT_ENABLED!=="enabled"||
-   env.IFUND_PAYPAL_MODE!=="live"||!PLAN.test(env.IFUND_EMAIL_ADDON_PLAN_ID||""))
+   env.IFUND_PAYPAL_MODE!=="live"||!PLAN.test(env.IFUND_EMAIL_ADDON_PLAN_ID||"")||
+   !/^[A-Z0-9]{8,80}$/.test(env.IFUND_EMAIL_ADDON_WEBHOOK_ID||""))
   return error("recurring_email_checkout_not_available");
  const readiness=await rpc(env,token,"ifund_campaign_email_checkout_readiness");
  if(readiness?.checkout_ready!==true||readiness?.monthly_amount_cents!==100)
   return error("recurring_email_checkout_not_available");
- const raw=await request.text();
- if(raw.length>500)return error("invalid_checkout_request",400);
- let body;try{body=JSON.parse(raw)}catch{return error("invalid_checkout_request",400)}
+ let body;try{body=await boundedJson(request,500)}catch(e){return error("invalid_checkout_request",e.status||400)}
  if(!body||Object.keys(body).length!==1||!UUID.test(body.request_id||""))
   return error("invalid_checkout_request",400);
  const plan=await paypal(env,"/v1/billing/plans/"+env.IFUND_EMAIL_ADDON_PLAN_ID);
@@ -176,12 +194,7 @@ export async function receiveVerifiedEmailWebhook(request,env,fetcher=fetch){
     !/^[A-Z0-9]{8,80}$/.test(env.IFUND_EMAIL_ADDON_WEBHOOK_ID||"")||
     !PLAN.test(env.IFUND_EMAIL_ADDON_PLAN_ID||""))
    return error("email_provider_webhook_not_configured");
- const size=Number(request.headers.get("content-length")||0);
- if(!Number.isFinite(size)||size>24000)return error("invalid_paypal_webhook_size",413);
- const raw=await request.text();
- if(!raw||raw.length>24000)return error("invalid_paypal_webhook_size",413);
- let event;
- try{event=JSON.parse(raw)}catch{return error("invalid_paypal_webhook",400)}
+ let event;try{event=await boundedJson(request,24000)}catch(e){return error("invalid_paypal_webhook",e.status||400)}
  if(!event||typeof event!=="object"||!WEBHOOK_EVENT.test(event.id||"")||
    typeof event.event_type!=="string"||typeof event.create_time!=="string")
    return error("invalid_paypal_webhook",400);
