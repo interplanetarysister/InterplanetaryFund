@@ -11,7 +11,8 @@ const has = (text, snippet, message) => assert.ok(text.includes(snippet), messag
 
 test("catch-all and legacy alias routes are real redirects or explicit 404s", () => {
   for (const [path, target] of [
-    ["/atlas", "/globe"],
+    // Sprint 8 (2026-11-25): /atlas folds into Discover as the Globe tab.
+    ["/atlas", "/discover?tab=globe"],
     ["/blog", "/social"],
     ["/my-profile", "/profile"],
   ]) {
@@ -33,8 +34,8 @@ test("parameterized public routes use the verified shared page components", () =
   has(institutionEntry, '<Route path="/institutions/:id" element={<Institutions />} />');
   has(route("/institutions"), '<Route path="/institutions" element={<Institutions />} />');
   assert.doesNotMatch(institutionEntry, /ComingSoon|MemberAccess/);
-  assert.match(app, /function SocialRoute\(\) \{[\s\S]*?get\("tab"\) === "publications"[\s\S]*?<Navigate to="\/news" replace \/>/,
-    "the social publications tab must redirect to the canonical news route");
+  assert.match(app, /function SocialRoute\(\) \{[\s\S]*?get\("tab"\) === "publications"[\s\S]*?<Navigate to="\/social\?tab=news" replace \/>/,
+    "the social publications tab must redirect to the Social news tab");
   has(route("/social"), "<SocialRoute />");
 });
 

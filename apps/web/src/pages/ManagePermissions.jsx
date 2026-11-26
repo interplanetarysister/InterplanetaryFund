@@ -6,11 +6,12 @@ import CommunicationPreferences from "@/components/CommunicationPreferences";
 import Connections from "./Connections";
 import PublishingWorkflowNav from "@/components/communications/PublishingWorkflowNav";
 import CampaignDocumentPermissions from "@/components/permissions/CampaignDocumentPermissions";
+import Devices from "./Devices";
 
 export default function ManagePermissions() {
   const location = useLocation();
   const requestedSection=new URLSearchParams(location.search).get("section");
-  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : ["ai","platforms","marketing","supporter-updates","documents"].includes(requestedSection)?requestedSection:"ai");
+  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : ["ai","platforms","marketing","supporter-updates","documents","devices"].includes(requestedSection)?requestedSection:"ai");
   return <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
     <PublishingWorkflowNav current="connections"/>
     <header className="space-y-2">
@@ -21,7 +22,7 @@ export default function ManagePermissions() {
     </header>
     <div className="flex flex-wrap gap-2" role="group" aria-label="Permission categories">
       {[
-        ["ai","AI Assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"]
+        ["ai","AI Assistance"],["platforms","Connected platforms"],["marketing","Optional marketing"],["supporter-updates","Supporter updates"],["documents","Campaign documents"],["devices","Devices"]
       ].map(([id,label])=><button key={id} type="button" onClick={()=>setOpen(id)} aria-pressed={open===id} className={`ifund-interactive min-h-11 rounded-xl border px-4 font-semibold ${open===id ? "border-primary bg-primary/10" : "border-border"}`}>{label}</button>)}
     </div>
     {open==="ai" && <AIPermissionPreferences />}
@@ -32,6 +33,7 @@ export default function ManagePermissions() {
     {open==="marketing" && <MarketingPreferences/>}
     {open==="supporter-updates" && <CommunicationPreferences/>}
     {open==="documents" && <CampaignDocumentPermissions/>}
+    {open==="devices" && <Devices/>}
     <p className="text-sm text-muted-foreground">Revoking an iFund preference cannot revoke permissions you granted directly at an external provider; disconnect the account here and check the provider's settings to revoke its authorization.</p>
   </div>;
 }

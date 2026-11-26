@@ -20,11 +20,9 @@ const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
-const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const FundYourMission = lazy(() => import("./pages/FundYourMission"));
 const SponsorWithIFund = lazy(() => import("./pages/SponsorWithIFund"));
-const AdminSponsorInquiries = lazy(() => import("./pages/AdminSponsorInquiries"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -42,13 +40,15 @@ const Events = lazy(() => import("./pages/Events"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
 function SocialRoute() {
   const { search } = useLocation();
+  // Sprint 8 (2026-11-25): the legacy ?tab=publications deep link folds into
+  // the IFund Social news tab (40-page list, page 24) instead of the retired
+  // standalone /news route.
   return new URLSearchParams(search).get("tab") === "publications"
-    ? <Navigate to="/news" replace />
+    ? <Navigate to="/social?tab=news" replace />
     : <SocialFeedPage />;
 }
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
-const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const CampaignTemplates = lazy(() => import("./pages/CampaignTemplates"));
 const WhatIfStart = lazy(() => import("./pages/WhatIfStart"));
@@ -74,28 +74,19 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const Donate = lazy(() => import("./pages/Donate"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Messaging = lazy(() => import("./pages/Messaging"));
-const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
 const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
-const AdminStudio = lazy(() => import("./pages/AdminStudio"));
 const AdminHub = lazy(() => import("./pages/AdminHub"));
-const AdminDeletionQueue = lazy(() => import("./pages/AdminDeletionQueue"));
 const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
-const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const ManagePermissions = lazy(() => import("./pages/ManagePermissions"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
 const MemberOnboarding = lazy(() => import("./pages/MemberOnboarding"));
-const Devices = lazy(() => import("./pages/Devices"));
-const OperationsHub = lazy(() => import("./pages/OperationsHub"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
-const AdminAudit = lazy(() => import("./pages/AdminAudit"));
-const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
-const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const MediaStudio = lazy(() => import("./pages/MediaStudio"));
 
 // These two legacy routes still need independent, authorized backend parity.
@@ -147,22 +138,39 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/shorts" element={<Navigate to="/social?tab=shorts" replace />} />
-      <Route path="/globe" element={<Atlas />} />
+      {/* Sprint 8 (2026-11-25): /globe folds into Discover (40-page list,
+          page 2) as the Globe tab rendering Atlas. /atlas pointed at /globe;
+          it now goes straight to the same tab instead of chaining. */}
+      <Route path="/globe" element={<Navigate to="/discover?tab=globe" replace />} />
       <Route path="/institutions" element={<Institutions />} />
       <Route path="/fund-your-mission" element={<FundYourMission />} />
       <Route path="/sponsor" element={<SponsorWithIFund />} />
       <Route path="/institutions/:id" element={<Institutions />} />
-      <Route path="/atlas" element={<Navigate to="/globe" replace />} />
+      <Route path="/atlas" element={<Navigate to="/discover?tab=globe" replace />} />
       <Route path="/agents" element={<AgentsTeam />} />
       <Route path="/messaging" element={<MemberAccess><Messaging /></MemberAccess>} />
-      <Route path="/mission" element={<AgentsTeam />} />
+      {/* Sprint 8 (2026-11-25): /mission was an Agents alias ("Mission Control")
+          rendering AgentsTeam directly. It now redirects to the single tabbed
+          Agents page (40-page list, page 28); the /missions list and workspace
+          stay as compatibility routes under Campaign Workspace (page 19). */}
+      <Route path="/mission" element={<Navigate to="/agents" replace />} />
       <Route path="/media-studio" element={<MemberAccess><MediaStudio /></MemberAccess>} />
       <Route path="/ai-images" element={<MemberAccess><Navigate to="/media-studio?tab=generator" replace /></MemberAccess>} />
-      <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
-      <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
-      <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
+      {/* Sprint 8 (2026-11-25): /devices folds into the Settings page as a
+          section (40-page list, page 34). /permissions is the Settings page;
+          ManagePermissions renders Devices.jsx under ?section=devices. */}
+      <Route path="/devices" element={<MemberAccess><Navigate to="/permissions?section=devices" replace /></MemberAccess>} />
+      {/* Sprint 8 (2026-11-25): /ops and /platform fold into the Admin
+          Console (40-page list, page 40) as the Ops and Platform tabs.
+          AdminHub gates those tabs behind super-admin access, exactly as
+          these routes were gated; the redirect keeps the same wrappers. */}
+      <Route path="/ops" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=ops" replace /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/platform" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=platform" replace /></SuperAdminAccess></MemberAccess>} />
       <Route path="/analytics" element={<MemberAccess><LegacyAgentsRedirect tab="analytics" /></MemberAccess>} />
-      <Route path="/donors" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
+      {/* Sprint 8 (2026-11-25): /donors and /engagement rendered the same
+          CampaignEngagement component. /donors now redirects to /engagement,
+          kept as the compatibility route under Campaign Workspace (page 19). */}
+      <Route path="/donors" element={<MemberAccess><Navigate to="/engagement" replace /></MemberAccess>} />
       <Route path="/connect" element={<Navigate to="/connections" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/events" element={<Events />} />
@@ -173,25 +181,35 @@ function AppRoutes() {
       <Route path="/withdrawals" element={<WithdrawalVerification />} />
       <Route path="/plans" element={<PublicSubscriptionPlans />} />
       <Route path="/subscriptions" element={<MemberAccess><Subscriptions /></MemberAccess>} />
-      <Route path="/support" element={<MemberAccess><SupportTickets /></MemberAccess>} />
+      {/* Sprint 8 (2026-11-25): /support folds into Help Center (40-page
+          list, page 11) as the Support tickets tab. The tab itself gates
+          SupportTickets behind sign-in (AgentsTeam member-tab pattern); the
+          redirect keeps the old route's MemberAccess wrapper. */}
+      <Route path="/support" element={<MemberAccess><Navigate to="/help?tab=tickets" replace /></MemberAccess>} />
       <Route path="/engagement" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
       <Route path="/preferences" element={<Navigate to="/permissions?section=marketing" replace />} />
       <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/strategy" element={<MemberAccess><LegacyAgentsRedirect tab="strategy" /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><LegacyAgentsRedirect tab="communications" /></MemberAccess>} />
       <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
-      <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries /></SuperAdminAccess></MemberAccess>} />
+      {/* Sprint 8 (2026-11-25): the admin sub-routes fold into the Admin
+          Console (40-page list, page 40) as tabs. Each redirect keeps the
+          route's original MemberAccess + AdminAccess/SuperAdminAccess
+          wrappers, and AdminHub gates the same tabs per-tab. Exceptions:
+          /admin/finance already redirects to /finances#platform-finance,
+          and /planetary-impact stays its own public destination (page 39). */}
+      <Route path="/admin/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=sponsor-inquiries" replace /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
-      <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=studio" replace /></SuperAdminAccess></MemberAccess>} />
       <Route path="/planetary-impact" element={<AdminSustainability />} />
-      <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
-      <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
-      <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><AdminDeletionQueue /></SuperAdminAccess></MemberAccess>} />
-      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
-      <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><Navigate to="/admin?tab=sustainability" replace /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=audit" replace /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=deletions" replace /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><Navigate to="/admin?tab=integrations" replace /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=help" replace /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
       <Route path="/social/post/:id" element={<SocialPostPage />} />
-      <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><Navigate to="/admin?tab=social-moderation" replace /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/what-if" element={WHAT_IF_ENABLED ? <WhatIfStart/> : <Navigate to="/create?manual=1" replace/>} />
@@ -213,9 +231,12 @@ function AppRoutes() {
       <Route path="/mail" element={<MemberAccess><Inbox /></MemberAccess>} />
       {/* Legacy deep links remain valid; do not lose saved /inbox message destinations. */}
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
-      <Route path="/blogs" element={<Blogs />} />
+      {/* Sprint 8 (2026-11-25): /blogs and /news fold into IFund Social
+          (40-page list, page 24) as the Stories and News tabs. Detail routes
+          /blogs/:id and /publications/:id stay standalone. */}
+      <Route path="/blogs" element={<Navigate to="/social?tab=stories" replace />} />
       <Route path="/blog" element={<Navigate to="/social" replace />} />
-      <Route path="/news" element={<Blogs news />} />
+      <Route path="/news" element={<Navigate to="/social?tab=news" replace />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
       <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />

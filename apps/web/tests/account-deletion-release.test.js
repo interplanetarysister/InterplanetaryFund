@@ -28,7 +28,9 @@ function stub({ guest=false, verified=true, fail=false }={}) {
 test("account deletion is a public website route and private admin queue is guarded",()=>{
   const app=read("src/App.jsx");
   assert.match(app,/path="\/delete-account" element=\{<DeleteAccount \/>}/);
-  assert.match(app,/path="\/admin\/deletions" element=\{<MemberAccess><SuperAdminAccess><AdminDeletionQueue \/><\/SuperAdminAccess><\/MemberAccess>}/);
+  // Sprint 8 (2026-11-25): /admin/deletions folds into the Admin Console as
+  // the Deletions tab; the route stays a super-admin-guarded redirect.
+  assert.match(app,/path="\/admin\/deletions" element=\{<MemberAccess><SuperAdminAccess><Navigate to="\/admin\?tab=deletions" replace \/><\/SuperAdminAccess><\/MemberAccess>}/);
   assert.match(read("src/pages/Privacy.jsx"),/to="\/delete-account"/);
   assert.match(read("src/pages/Profile.jsx"),/to="\/delete-account"/);
 });

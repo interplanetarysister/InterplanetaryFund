@@ -8,11 +8,29 @@ import { spawnSync } from "node:child_process";
 // Exercise the actual release gate against isolated route-inventory fixtures.
 // Never alter production acceptance entries to manufacture a passing result.
 const gate = readFileSync(new URL("../ci/verify-route-readiness.mjs", import.meta.url), "utf8");
-const accepted = (route, role, backend_evidence = "tests/negative-authorization.test.js") => ({
+const accepted = (route, role, backend_evidence = "tests/negative-authorization.test.js", page_40 = 1, disposition = "kept", redirect_target = null) => ({
   route, role, component: "FixturePage", source_status: "source_ready",
   source_evidence: "src/App.jsx", behavior_evidence: "tests/negative-authorization.test.js",
-  backend_evidence,
+  backend_evidence, page_40, disposition, redirect_target,
 });
+// The extended gate also enforces the 40-page target inventory, so the
+// fixture carries a minimal valid one: 40 public pages, each hosted on the
+// fixture's declared "/" route under its own source_ready tab.
+const fixtureTargetPages = () => Array.from({ length: 40 }, (_, i) => ({
+  page: i + 1,
+  name: "Fixture page " + (i + 1),
+  canonical_route: "/",
+  canonical_tab: "fixture-tab-" + (i + 1),
+  tab_param: "tab",
+  role: "public",
+  source_files: ["src/App.jsx"],
+  tabs: [{
+    id: "fixture-tab-" + (i + 1), source_status: "source_ready",
+    source_evidence: "src/App.jsx",
+    behavior_evidence: "tests/negative-authorization.test.js",
+    backend_evidence: "",
+  }],
+}));
 function evaluate(modify = rows => rows) {
   const workspace = mkdtempSync(join(tmpdir(), "ifund-route-auth-"));
   try {
@@ -30,13 +48,13 @@ function evaluate(modify = rows => rows) {
     writeFileSync(join(workspace, "src", "components", "Layout.jsx"),
       'const nav = [{ to: "/admin/audit" }, { to: "/devices" }, { to: "/ops" }];');
     const rows = [
-      accepted("/", "public", ""),
-      accepted("/admin/audit", "admin"),
-      accepted("/devices", "member"),
-      accepted("/ops", "super_admin"),
+      accepted("/", "public", "", 1),
+      accepted("/admin/audit", "admin", undefined, 40),
+      accepted("/devices", "member", undefined, 34),
+      accepted("/ops", "super_admin", undefined, 40),
     ];
     writeFileSync(join(workspace, "ci", "route-acceptance.json"), JSON.stringify({
-      schema_version: 1, routes: modify(rows),
+      schema_version: 1, routes: modify(rows), target_pages: fixtureTargetPages(),
     }));
     return spawnSync(process.execPath, [join(workspace, "ci", "verify-route-readiness.mjs")], {
       encoding: "utf8", timeout: 5000,

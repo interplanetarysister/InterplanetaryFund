@@ -11,9 +11,12 @@ const legacyId = "c73e129607a4d92f52a8d450"; // representative 24-char ID; NOT a
 
 test("original published Stories paths are rendered, not placeholder routes", () => {
   const app=read("src/App.jsx");
-  for(const [path,view] of [["/blogs","Blogs"],["/blogs/:id","BlogArticle"],["/publications/:id","PublicationArticle"]]) {
+  for(const [path,view] of [["/blogs/:id","BlogArticle"],["/publications/:id","PublicationArticle"]]) {
     assert.ok(app.includes('path="'+path+'" element={<'+view+' />}'),path);
   }
+  // Sprint 8 (2026-11-25): /blogs folds into IFund Social as the Stories tab;
+  // the path is still rendered, as a tab, not a placeholder route.
+  assert.ok(app.includes('path="/blogs" element={<Navigate to="/social?tab=stories" replace />}'),"/blogs");
   assert.match(read("src/pages/Blogs.jsx"),/IFund Stories & Blogs/);
   assert.match(read("src/pages/BlogArticle.jsx"),/CampaignEmbeddedText/);
   assert.match(read("src/pages/PublicationArticle.jsx"),/finalized PDF/);

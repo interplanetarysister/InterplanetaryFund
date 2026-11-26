@@ -12,15 +12,65 @@ import { FEED_PAGE_SIZE, listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
 import CommunityDirectory from "@/components/community/CommunityDirectory";
 import OrbitShorts from "@/pages/OrbitShorts";
+import Blogs from "@/pages/Blogs";
 import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
 import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
+
+// Sprint 8 (2026-11-25): IFund Social tabs (40-page list). Posts, Shorts,
+// Stories and News live on this one page; /blogs and /news redirect here
+// (see App.jsx). Stories renders the existing Blogs list and News renders
+// its news variant — both fetch their own data, so this page adds no
+// editorial fetching. Pattern follows MediaStudio/AgentsTeam: tab state
+// lives in the URL (?tab=stories) so tabs are deep-linkable.
+const SOCIAL_FEED_TABS = Object.freeze([
+  { id: "posts", label: "Posts" },
+  { id: "shorts", label: "Shorts" },
+  { id: "stories", label: "Stories" },
+  { id: "news", label: "News" },
+]);
+
+// Unknown or missing values fall back to the Posts feed.
+function tabFromParam(value) {
+  const found = SOCIAL_FEED_TABS.find((tab) => tab.id === String(value || "").toLowerCase());
+  return found ? found.id : "posts";
+}
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
   const [campaignVideos, setCampaignVideos] = useState([]);
   const [campaignFeedError, setCampaignFeedError] = useState(false);
   const timeline = useMemo(() => unifiedSocialEntries(posts, community ? [] : campaignVideos), [posts, campaignVideos, community]);
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const tab = tabFromParam(params.get("tab"));
+  // Keep the compose params (?shareCampaign=, ?kind=, ?shareStory=,
+  // ?sharePublication=) when switching tabs, as AgentsTeam does.
+  function setTab(next) {
+    const nextParams = new URLSearchParams(params);
+    nextParams.set("tab", tabFromParam(next));
+    setParams(nextParams, { replace: true });
+  }
+  // The Posts feed is the default view. The community variant has no
+  // tablist (as before), so its feed is never wrapped as a tab panel.
+  const showFeed = community || tab === "posts";
+  const postsPanelProps = community
+    ? {}
+    : { role: "tabpanel", id: "social-panel-posts", "aria-labelledby": "social-tab-posts" };
+  // One tablist shared by the Shorts branch and the main return. Four
+  // min-h-11 (44px) buttons in a wrapping row: no horizontal overflow at
+  // 320px, and the active/inactive pairing matches AgentsTeam
+  // (bg-primary/text-primary-foreground vs bg-card) for contrast.
+  const socialTabList = (
+    <div role="tablist" aria-label="Social feed views" className="flex flex-wrap gap-2">
+      {SOCIAL_FEED_TABS.map((item) => (
+        <button key={item.id} type="button" role="tab" id={`social-tab-${item.id}`}
+          aria-selected={tab === item.id} aria-controls={`social-panel-${item.id}`}
+          className={`ifund-interactive min-h-11 rounded-xl border px-4 py-2 font-semibold ${tab === item.id ? "bg-primary text-primary-foreground" : "bg-card"}`}
+          onClick={() => setTab(item.id)}>
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
   const campaignToShare = params.get("shareCampaign");
   const sharingUpdate = params.get("kind") === "update";
   const storyToShare = params.get("shareStory");
@@ -188,14 +238,13 @@ export default function SocialFeedPage({ community = false }) {
 
   // The video feed is a view of Social, not a separate top-level destination.
   // Keep the existing /shorts deep link working through its route redirect.
-  if (!community && params.get("tab") === "shorts") return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-5 px-4 py-8">
+  if (!community && tab === "shorts") return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-5 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">IFund Social Feed</h1>
       <p className="mt-2 text-muted-foreground">Community posts and campaign videos in one place.</p></header>
-    <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1" >
-      <Link to="/social" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Posts</Link>
-      <Link to="/social?tab=shorts" aria-current="page" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Shorts</Link>
-    </nav>
-    <OrbitShorts />
+    {socialTabList}
+    <div role="tabpanel" id="social-panel-shorts" aria-labelledby="social-tab-shorts">
+      <OrbitShorts />
+    </div>
   </div>;
 
   return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -203,16 +252,13 @@ export default function SocialFeedPage({ community = false }) {
       <h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social Feed"}</h1>
       <p className="mt-2 text-muted-foreground">Share updates and discover community conversations.</p>
     </header>
-    {!community && <nav aria-label="Social feed views" className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1">
-      <Link to="/social" aria-current="page" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Posts</Link>
-      <Link to="/social?tab=shorts" className="ifund-interactive flex min-h-11 items-center justify-center rounded-xl px-4 font-semibold text-muted-foreground hover:text-foreground">Shorts</Link>
-    </nav>}
+    {!community && socialTabList}
     <nav aria-label="Community pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
       <Link to="/social" aria-current={community ? undefined : "page"}>Social Feed</Link>
       <Link to="/community" aria-current={community ? "page" : undefined}>Community</Link>
       <Link to="/social?tab=shorts">Orbit Shorts</Link>
-      <Link to="/blogs">Stories &amp; Blogs</Link>
-      <Link to="/news">IFund Newscaster</Link>
+      <Link to="/social?tab=stories">Stories &amp; Blogs</Link>
+      <Link to="/social?tab=news">IFund Newscaster</Link>
     </nav>
     {community && <section className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-card to-cyan-500/5 p-5" aria-label="Fund your Mission community opportunities">
       <p className="text-xs font-semibold uppercase tracking-widest text-primary">Make progress on your goals</p>
@@ -221,6 +267,13 @@ export default function SocialFeedPage({ community = false }) {
       <Link to="/fund-your-mission" className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-border px-4 py-2 font-semibold text-primary">Explore funding opportunities</Link>
     </section>}
     {community && <CommunityDirectory />}
+    {!community && tab === "stories" && <div role="tabpanel" id="social-panel-stories" aria-labelledby="social-tab-stories">
+      <Blogs />
+    </div>}
+    {!community && tab === "news" && <div role="tabpanel" id="social-panel-news" aria-labelledby="social-tab-news">
+      <Blogs news />
+    </div>}
+    {showFeed && <div {...postsPanelProps} className="space-y-6">
     {canPost ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       {shareSuggestion && body.trim() && !body.includes(shareSuggestion.split("\n").at(-1)) && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
         <p>Your saved draft was preserved. Add this campaign to your post when you’re ready.</p>
@@ -265,5 +318,6 @@ export default function SocialFeedPage({ community = false }) {
       {!loading && !feedError && timeline.length === 0 && <p className="rounded-xl border border-border p-5 text-muted-foreground">No public updates yet.</p>}
       {!loading && !feedError && hasMore && <button type="button" className="min-h-11 rounded-xl border border-border px-4" onClick={() => load(posts.at(-1))}>Load older posts</button>}
     </section>
+    </div>}
   </div>;
 }

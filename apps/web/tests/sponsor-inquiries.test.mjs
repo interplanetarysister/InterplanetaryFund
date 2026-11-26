@@ -8,7 +8,9 @@ test("Sponsor pages preserve public inquiry and privileged review distinction",(
  const admin=read("../src/pages/AdminSponsorInquiries.jsx");
  const routes=JSON.parse(read("../ci/route-acceptance.json")).routes;
  assert.match(app,/path="\/sponsor" element={<SponsorWithIFund \/>}/);
- assert.match(app,/path="\/admin\/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><AdminSponsorInquiries \/><\/SuperAdminAccess><\/MemberAccess>}/);
+ // Sprint 8 (2026-11-25): /admin/sponsor-inquiries folds into the Admin
+ // Console as the Sponsor Inquiries tab; the route stays a super-admin-guarded redirect.
+ assert.match(app,/path="\/admin\/sponsor-inquiries" element={<MemberAccess><SuperAdminAccess><Navigate to="\/admin\?tab=sponsor-inquiries" replace \/><\/SuperAdminAccess><\/MemberAccess>}/);
  assert.equal(routes.find(r=>r.route==="/sponsor")?.role,"public");
  assert.equal(routes.find(r=>r.route==="/admin/sponsor-inquiries")?.role,"super_admin");
  assert.match(applicant,/ifund_current_account_is_active/);

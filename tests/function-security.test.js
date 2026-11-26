@@ -67,6 +67,13 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "private.ifund_finalize_paypal_capture",
   "private.ifund_record_verified_paypal_refund",
   "private.ifund_register_paypal_order",
+  // R2 private-storage reserve trigger (PR #389, migration
+  // 20261126073000): BEFORE INSERT trigger only — reads the two private
+  // tables' size sums, takes a transaction-scoped advisory lock, raises
+  // when the 4 GiB shared reserve is reached, returns NEW. It writes no
+  // table data, pins search_path, and execute is revoked from
+  // public/anon/authenticated in the same migration.
+  "ifund_private.ifund_r2_private_global_reserve",
   // The member functions derive the caller from auth.uid() and require current
   // terms plus an active, verified account. Editorial writes also check the
   // owning blog and verified publisher role or member entitlement.

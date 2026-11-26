@@ -27,7 +27,7 @@ const PAGE_TITLES = {
   "/dashboard": "Overview", "/help": "Help Center", "/fundraising-tips": "Fundraising Guide", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
   "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Outreach", "/agents": "Agents — Analysis & Recommendations", "/messaging": "Messaging", "/mail": "Mail",
   "/inbox": "Mail", "/following": "Following", "/mission": "Mission Control", "/media-studio": "Media Studio", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
-  "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
+  "/connections": "Connections", "/community": "Community", "/institutions": "Grants & Opportunities",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns", "/donate": "Donate / Checkout",
@@ -73,7 +73,7 @@ const navSections = [
       { to: "/events", label: "Fundraising Events", icon: CalendarDays },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
       { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
-  { to: "/institutions", label: "Opportunities", icon: Building2 },
+  { to: "/institutions", label: "Grants & Opportunities", icon: Building2 },
     ],
   },
   {

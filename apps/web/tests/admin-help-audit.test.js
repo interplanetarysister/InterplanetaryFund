@@ -53,10 +53,12 @@ test("audit feed rejects malformed pages and never returns raw record fields", (
 });
 
 test("admin routes enforce server-backed role checks and honest read-only provenance", () => {
-  for (const [path,component] of [
-    ["/admin/audit","AdminAudit"], ["/admin/help","AdminHelpEditor"],
+  // Sprint 8 (2026-11-25): /admin/audit and /admin/help fold into the Admin
+  // Console as tabs; the routes stay super-admin-guarded redirects.
+  for (const [path, tab] of [
+    ["/admin/audit", "audit"], ["/admin/help", "help"],
   ]) {
-    assert.ok(route(path)?.includes("<MemberAccess><SuperAdminAccess><" + component),
+    assert.ok(route(path)?.includes('<MemberAccess><SuperAdminAccess><Navigate to="/admin?tab=' + tab + '"'),
       path + " must require verified super-admin before loading private records");
   }
   assert.match(layout, /useSuperAdminAccess\(user\)/, "restricted nav must use server-verified super admin");
