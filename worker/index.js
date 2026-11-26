@@ -11,6 +11,7 @@ import { strategyRoute } from './agents/strategy.js';
 import { routeTeamQuestion } from './agents/teamQuestion.js';
 import { routeMissionExplore } from './missions/explore.js';
 import { routeMissionPlan } from './missions/plan.js';
+import { routePrivateDocumentDownload } from './services/r2DocumentDownload.mjs';
 import { routeAgentOperations } from './agents/opsRoom.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
@@ -29,6 +30,7 @@ export default {
         return response(503, { error: 'Recurring email checkout is not configured.' });
       return env.IFUND_EMAIL_ADDON_BILLING.fetch(request);
     }
+    if (pathname === '/api/campaign-documents/download') return routePrivateDocumentDownload(request, env);
     if (pathname === '/api/missions/explore') return routeMissionExplore(request, env);
     if (pathname === '/api/missions/plan') {
       // Mission inference uses isolated Workers AI only when explicitly enabled.
