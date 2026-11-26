@@ -107,6 +107,7 @@ export default function WhatIfStart(){
              <LockKeyhole size={18} aria-hidden="true"/> {busy==="save"?"Saving…":"Save private Mission"}
            </button>
          </div>
+         {!prompt.trim()&&<p className="text-xs text-slate-300">Write your idea above first — both buttons unlock as soon as it has text.</p>}
        </form>
        {accountNeeded&&<div className="space-y-3 rounded-2xl border border-cyan-400/40 bg-slate-900 p-4" role="status">
          <p className="text-sm">A verified iFund account is needed to save your Mission securely. Your idea has not been sent to your account.</p>
