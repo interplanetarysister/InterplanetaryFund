@@ -125,3 +125,24 @@ export async function removeIncompleteMedia(client,item,{fetcher=fetch}={}){
   return true;
  });
 }
+
+// Explicit owner-only batch cleanup, for removing private files before account
+// deletion. Each server request is independently authenticated and capped at
+// ten verified object removals. Never report success while any media remain.
+export async function deleteAllMyMedia(client,{fetcher=fetch}={}){
+ return withMember(client,async({token,guard})=>{
+  let removed=0;
+  for(let page=0;page<6;page++){
+   guard.assertActive();
+   const response=await requestMedia(fetcher,"DELETE","/api/media/library/all",token);
+   const data=await response.json().catch(()=>null);
+   if(!Number.isSafeInteger(data?.removed)||data.removed<0||data.removed>10||
+      !Number.isSafeInteger(data.remaining)||data.remaining<0||data.remaining>50)
+     throw Error("The server could not verify the batch media deletion.");
+   removed+=data.removed;
+   if(data.remaining===0)return removed;
+   if(data.removed===0)throw Error("Some saved media could not be deleted. Retry after resolving the pending file.");
+  }
+  throw Error("Media cleanup requires another verified batch. Refresh your library.");
+ });
+}
