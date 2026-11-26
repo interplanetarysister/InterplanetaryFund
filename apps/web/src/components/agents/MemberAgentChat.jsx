@@ -12,14 +12,13 @@ const MAX_MESSAGE_LENGTH = 2000;
 const ANALYSIS_PREFIX = "Please analyze my situation and suggest specific, realistic next steps, potential risks, and ways to measure progress. My request: ";
 const emptyThreads = () => ({});
 
-export default function MemberAgentChat({ user, agent, onAgentChange }) {
+export default function MemberAgentChat({ user, agent }) {
   const ownerId = user?.id || null;
   const [drafts, setDrafts] = useState({});
   const [threads, setThreads] = useState(emptyThreads);
   const [permission, setPermission] = useState({ status: "loading", allowed: false });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [activeRequest, setActiveRequest] = useState(null);
   const [consentRevision, setConsentRevision] = useState(0);
   const inFlight = useRef(null);
   const log = useRef(null);
@@ -37,7 +36,6 @@ export default function MemberAgentChat({ user, agent, onAgentChange }) {
     setThreads(emptyThreads());
     setError("");
     setBusy(false);
-    setActiveRequest(null);
     setPermission({ status: "loading", allowed: false });
     return () => inFlight.current?.abort();
   }, [ownerId]);
@@ -101,7 +99,6 @@ export default function MemberAgentChat({ user, agent, onAgentChange }) {
     const requestAgent = selected;
     const requestId = crypto.randomUUID();
     setBusy(true);
-    setActiveRequest(requestId);
     setError("");
     setDrafts(previous => ({...previous,[requestAgent]:""}));
     setThreads(previous => ({
@@ -134,7 +131,6 @@ export default function MemberAgentChat({ user, agent, onAgentChange }) {
       if (inFlight.current === controller) {
         inFlight.current = null;
         setBusy(false);
-        setActiveRequest(null);
       }
     }
   }
