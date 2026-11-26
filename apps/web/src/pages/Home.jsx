@@ -65,9 +65,9 @@ export default function Home() {
         ["01", "Start with an idea", "Tell us what matters to you. No technical setup required."],
         ["02", "Make it your own", "Adjust your campaign and choose what you want to share."],
         ["03", "Grow with support", "Explore trusted fundraising connections, outreach and guidance."]
-      ].map(([number,title,description])=><div key={number} className="rounded-2xl border border-white/10 bg-white/[.04] p-6"><span className="text-xs font-bold tracking-widest text-cyan-300">{number}</span><h2 className="mt-3 text-lg font-semibold">{title}</h2><p className="mt-2 text-sm leading-relaxed text-slate-300">{description}</p></div>)}
+      ].map(([number,title,description])=><div key={number} className="rounded-2xl border border-border bg-card p-6"><span className="text-xs font-bold tracking-widest text-primary">{number}</span><h2 className="mt-3 text-lg font-semibold text-foreground">{title}</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></div>)}
     </section>
-    <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 px-5 pb-12 text-sm"><Link to="/our-story" className="inline-flex min-h-11 items-center gap-2 text-cyan-200 underline underline-offset-4">Discover our story <ArrowRight className="h-4 w-4" /></Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center text-slate-300 underline underline-offset-4">Fundraising partners</Link><Link to="/plans" className="inline-flex min-h-11 items-center text-slate-300 underline underline-offset-4">Premium tools &amp; plans</Link></div>
+    <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 px-5 pb-12 text-sm"><Link to="/our-story" className="inline-flex min-h-11 items-center gap-2 text-primary underline underline-offset-4">Discover our story <ArrowRight className="h-4 w-4" /></Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center text-muted-foreground underline underline-offset-4">Fundraising partners</Link><Link to="/plans" className="inline-flex min-h-11 items-center text-muted-foreground underline underline-offset-4">Premium tools &amp; plans</Link></div>
     <LegalFooter />
   </div>;
 }

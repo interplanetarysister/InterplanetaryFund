@@ -14,9 +14,10 @@ import { isNativeBundle } from "@/lib/nativeApi";
 // withdrawal of platform support.
 // Backend route contract: POST /api/payments/platform-support/create-order
 // then POST /api/payments/platform-support/capture-order. The backend is
-// source-only until the migration is applied and the worker is deployed, so
-// an unavailable embedded route falls back to the hosted PayPal link below
-// instead of presenting a dead button.
+// deployed (migration 20261125190000 applied, ifund-payment-ledger v13,
+// ifund-payments worker v36 — backend activation 2026-11-25), and an
+// unavailable embedded route still falls back to the hosted PayPal link
+// below instead of presenting a dead button.
 let sdkPromise, sdkClient;
 function loadPayPal(clientId) {
   if (typeof window !== "undefined" && window.paypal?.Buttons && window.paypal?.CardFields)
@@ -171,8 +172,8 @@ export default function PlatformSupportDonationDialog({ open, onOpenChange, onSu
     setFieldErrors({ number: false, expiry: false, cvv: false });
     setWalletNotice(""); setSdkFailed(false);
     (async () => {
-      // The embedded route is not deployed yet: a missing or unavailable
-      // config endpoint is a hosted-link fallback, never a dead form.
+      // A missing or unavailable config endpoint is a hosted-link
+      // fallback, never a dead form.
       let config;
       try {
         config = await api("/api/payments/config");
