@@ -92,7 +92,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
   if (path === "/api/agents/team/status") {
     if (request.method !== "GET") return noStore(405,{error:"Method not allowed."});
     return noStore(200,{configured:env.IFUND_TEAM_QUESTIONS_ENABLED === "enabled" &&
-      typeof env.AI?.run === "function",requires_membership:true,
+      typeof env.AI?.run === "function",requires_membership:false,
       external_publishing:false,provider_actions:false});
   }
   if (path !== "/api/agents/team/question") return noStore(404,{error:"Not found."});
@@ -130,7 +130,11 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       p_input_sha256: sha,
       p_agent_id: input.selected,
     };
-    if(!Number.isInteger(quota.remaining)||quota.remaining<0)
+    // A verified unlimited entitlement intentionally has no remaining count.
+    // The former integer-only check rejected every admin/unlimited answer.
+    const unlimited = quota.unlimited === true && quota.remaining === null;
+    const metered = Number.isInteger(quota.remaining) && quota.remaining >= 0;
+    if (!unlimited && !metered)
       fail(503,"Your AI question allowance could not be verified.");
     let history=[];
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
