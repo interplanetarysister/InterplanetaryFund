@@ -244,3 +244,43 @@ test("Agents can find and apply previously refined goal knowledge from team hist
   assert.equal(extractGoalKnowledgeFromHistory(null), null);
   assert.equal(goalKnowledgeApplicationSummary(null), null);
 });
+
+function contextHarness(){
+  const base=harness();
+  const recorded=[];
+  const fetcher=async(url,opts)=>{
+    if(url.endsWith("/rpc/ifund_team_recent")) return Response.json([]);
+    if(url.endsWith("/rpc/ifund_team_record_user")||url.endsWith("/rpc/ifund_team_record_agent")){
+      recorded.push(JSON.parse(opts.body));
+      return Response.json(UID);
+    }
+    return base.fetcher(url,opts);
+  };
+  const env={...base.env,IFUND_TEAM_CONTEXT_ENABLED:"enabled",
+    IFUND_WORKFORCE_EXECUTOR_KEY:"a".repeat(64)};
+  return {fetcher,env,recorded,rpc:base.rpc,inferences:base.inferences};
+}
+
+test("REACH question with team context enabled records under a backend identity", async () => {
+  const { TEAM_CONTEXT_AGENTS } = await import("../worker/agents/teamContext.js");
+  const h=contextHarness();
+  const response=await routeTeamQuestion(request("How do I fix my oauth connection?","reach"),h.env,h.fetcher);
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.agent,"reach");
+  assert.ok(h.recorded.length>=2);
+  // Every recorded event must use an identity the team-context store
+  // accepts (the nine backend specialists); "reach" itself would throw.
+  assert.ok(h.recorded.every(e=>TEAM_CONTEXT_AGENTS.includes(e.p_agent_id)));
+  assert.ok(h.recorded.every(e=>e.p_agent_id==="link"));
+});
+
+test("locked refinement is returned but never recorded as team knowledge", async () => {
+  const h=contextHarness();
+  const response=await routeTeamQuestion(request("Please deep research my goal for my medical campaign","nexus"),h.env,h.fetcher);
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.goal_knowledge?.status,"subscriber_required");
+  assert.equal(body.goal_knowledge?.research_questions?.length,0);
+  assert.ok(!h.recorded.some(e=>String(e.p_content).includes("goal_knowledge_refinement")));
+});

@@ -158,6 +158,17 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const dispatch=input.selected==="nexus"
       ? buildDispatch({question:input.question,requestId:input.requestId})
       : null;
+    // Team-context recording identity. The shared team-context store (JS
+    // validation and the database allowlist alike) knows only the nine
+    // backend specialist ids, so a front-desk conversation is recorded
+    // under its primary backend specialist — the topic owner for this
+    // question, or the front desk's first backend. Without this mapping a
+    // REACH question fails validation and cannot be recorded at all.
+    // Long-term fix: a migration adding front-desk ids to the allowlist.
+    const contextAgentId=isFrontDeskAgent(input.selected)
+      ? (input.recommendation.topics.find(t=>FRONT_DESK_BACKENDS[input.selected].includes(t))
+         || FRONT_DESK_BACKENDS[input.selected][0])
+      : input.selected;
     // "Refine Knowledge About Your Goal": any agent the member asks can
     // prepare the research plan — knowledge is never limited to one agent.
     // The plan is recorded in shared team context so the whole team works
@@ -203,7 +214,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       if(context.state!=="ready") fail(503,"Your private agent history could not be verified.");
       history=Array.isArray(context.events)?context.events:[];
       await appendTeamContext({env,jwt:api.jwt,eventKey:input.requestId,
-        agentId:input.selected,content:input.question,speaker:"user",fetcher});
+        agentId:contextAgentId,content:input.question,speaker:"user",fetcher});
     }
     // Record the prepared dispatch in shared team context so the owning
     // specialist sees the member's exact brief when they launch it. A failed
@@ -227,7 +238,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       if (goalKnowledge.status === "prepared" && env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
         try {
           await appendTeamContext({env,jwt:api.jwt,eventKey:refineEventKey(input.requestId),
-            agentId:input.selected,content:JSON.stringify({goal_knowledge_refinement:goalKnowledge}),
+            agentId:contextAgentId,content:JSON.stringify({goal_knowledge_refinement:goalKnowledge}),
             speaker:"agent",fetcher});
           goalKnowledge.context_saved=true;
         } catch { /* prepared locally; the card still carries the plan */ }
@@ -352,7 +363,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const answer=validateTeamAnswer(result,input.selected);
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
-        agentId:input.selected,content:answer.answer,speaker:"agent",fetcher});
+        agentId:contextAgentId,content:answer.answer,speaker:"agent",fetcher});
     }
     const completed = await api.rpc("ifund_complete_agent_question", quotaReservation);
     if (completed !== true)

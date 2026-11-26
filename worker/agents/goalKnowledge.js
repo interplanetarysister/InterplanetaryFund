@@ -208,10 +208,12 @@ export function goalKnowledgeApplicationSummary(plan) {
   };
 }
 
-// Cross-campaign learning candidate: category-level patterns only. Names,
-// contact details, links and exact amounts are stripped before anything can
-// be proposed as a reusable playbook entry, and a super-admin must approve
-// it before it influences another member's campaign.
+// Cross-campaign learning candidate: category-level patterns only. Contact
+// details, links, phone numbers and exact amounts are stripped
+// automatically before anything can be proposed as a reusable playbook
+// entry. Names cannot be detected reliably by pattern, which is exactly
+// why a super-admin must review and approve every candidate before it can
+// influence another member's campaign.
 export function anonymizeForCategoryPlaybook({ category = "general", findings = "" } = {}) {
   const cleaned = redactTeamCredentials(String(findings || ""))
     .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, "[contact removed]")
