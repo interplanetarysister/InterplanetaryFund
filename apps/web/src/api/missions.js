@@ -2,6 +2,7 @@
 // No client operation authorizes OAuth, provider verification, publishing, financial changes, or agent execution.
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 import { TERMS_VERSION } from "../lib/legalPolicy.js";
+import { currentVerifiedOpportunity } from "../lib/opportunityFreshness.mjs";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MISSION_FIELDS="id,owner_id,title,original_prompt,goal_type,desired_outcome,summary,status,privacy,current_plan_version,revision,created_at,updated_at,completed_at,archived_at";
@@ -235,24 +236,18 @@ export async function suggestMissionPlan(client,missionId,revision,{requestId=cr
 // Read-only public-source discovery scoped to signed-in members.
 // The SQL policy exposes only source-checked catalog entries; this client never
 // sends private Mission prompts to providers or asserts personal eligibility.
-export async function listVerifiedMissionResources(client,{goalType="other",limit=12}={}){
+export async function listVerifiedMissionResources(client,{goalType="other",limit=12,now=Date.now()}={}){
  const owner=await verifiedOwner(client);
  const wanted=TYPES.has(goalType)?goalType:"other";
  const cap=Math.min(20,Math.max(1,Number.isSafeInteger(limit)?limit:12));
  const result=await client.from("ifund_opportunity").select(
-  "id,title,type,description,official_url,official_provider,verified_at,cause_tags,geography,requirements_complete,deadline_at,source_system,status"
+  "id,title,type,description,official_url,official_provider,verified_at,cause_tags,geography,requirements_complete,deadline_at,deadline_date,source_system,status"
  ).eq("source_system","ifund_external_verified_v1")
   .in("status",["open","program"])
   .not("verified_at","is",null)
-  .order("verified_at",{ascending:false}).limit(cap);
+  .order("verified_at",{ascending:false}).limit(Math.min(100,cap*5));
  if(result.error||!Array.isArray(result.data))throw new Error("Potential resource links could not be loaded.");
- const items=result.data.filter(row=>{
-  if(typeof row?.official_url!=="string")return false;
-  try{return new URL(row.official_url).protocol==="https:"&&
-   row.source_system==="ifund_external_verified_v1"&&
-   row.verified_at!=null&&["open","program"].includes(row.status);}
-  catch{return false;}
- }).map(row=>({
+ const items=result.data.filter(row=>currentVerifiedOpportunity(row,{now})).map(row=>({
   id:String(row.id),title:String(row.title||"Resource"),type:String(row.type||"resource"),
   description:String(row.description||"").slice(0,1000),
   official_url:row.official_url,
@@ -260,6 +255,7 @@ export async function listVerifiedMissionResources(client,{goalType="other",limi
   geography:String(row.geography||"Location requirements vary"),
   tags:Array.isArray(row.cause_tags)?row.cause_tags.filter(x=>typeof x==="string"):[],
   source_checked_at:row.verified_at,
+  status:row.status,deadline_at:row.deadline_at??null,deadline_date:row.deadline_date??null,
   // Verification applies to the source link only, not benefits, award amounts,
   // qualification or account/connection authority.
   source_status:"source_link_checked",
@@ -272,7 +268,7 @@ export async function listVerifiedMissionResources(client,{goalType="other",limi
   return bScore-aScore;
  });
  await sessionStillOwner(client,owner);
- return sorted;
+ return sorted.slice(0,cap);
 }
 
 
