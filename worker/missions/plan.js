@@ -15,7 +15,7 @@ function normalizePlan(raw){
   const steps=raw.steps.map((s,i)=>{
     const title=typeof s?.title==="string"?s.title.trim():"";
     const detail=typeof s?.detail==="string"?s.detail.trim():"";
-    if(!title||title.length>240||detail.length>1400)throw Error("A plan step was incomplete.");
+    if(!title||title.length>240||!detail||detail.length>1400)throw Error("A plan step was incomplete.");
     return {id:"step-"+(i+1),title,detail,agent:AGENTS.has(s.agent)?s.agent:"nexus",state:"suggested",verification:"not_checked"};
   });
   const fundraising=raw.fundraising===true;
@@ -86,7 +86,7 @@ export async function routeMissionPlan(request,env={},fetcher=fetch){
     });
     if(!response.ok)fail(503,"Private Mission could not be loaded.");
     const records=await response.json();
-    if(!Array.isArray(records)||records.length!==1||records[0].owner_id!==api.user.id)
+    if(!Array.isArray(records)||records.length!==1||records[0].owner_id!==api.user.id||records[0].id!==raw.mission_id)
       fail(404,"That private Mission is unavailable.");
     const mission=records[0];
     if(mission.revision!==raw.revision || mission.status==="archived")
