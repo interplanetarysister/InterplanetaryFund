@@ -194,6 +194,19 @@ export async function routeMemberMedia(request,env,fetcher=fetch){
    const rows=await memberRows(env,fetcher,actor,"id,owner_id,content_kind,content_type,file_name,file_size,created_at,deletion_requested_at,object_sha256");
    return json(200,{items:rows});
   }
+  if(parts.length===4&&parts[3]==="all"&&request.method==="DELETE"){
+   // Bounded owner-initiated account cleanup. Each request removes at most
+   // ten files and verifies object absence before removing durable metadata.
+   const records=await memberRows(env,fetcher,actor,"id,owner_id,file_size");
+   let removed=0;
+   for(const item of records.slice(0,10)){
+    if(!UUID.test(item.id||""))fail(503,"Invalid owner media inventory.");
+    await remove(env,fetcher,bucket,actor,item.id);
+    removed++;
+   }
+   const remaining=await memberRows(env,fetcher,actor,"id,owner_id,file_size");
+   return json(200,{removed,remaining:remaining.length});
+  }
   if(parts.length===4&&parts[3]==="orphans"&&request.method==="GET")
    return await orphanScan(env,fetcher,bucket,actor);
   if(parts.length===5&&parts[3]==="orphans"&&request.method==="DELETE")
