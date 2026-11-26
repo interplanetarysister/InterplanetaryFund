@@ -202,3 +202,15 @@ test("server-verified unlimited administrator or paid quota admits agent respons
  assert.equal(result.questions_unlimited,true);
  assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
 });
+
+test("revoked unified consent during inference denies response and releases reservation",async()=>{
+ const backend=mockBackend();let revoked=false;
+ const fetcher=async(url,options)=>{
+   if(revoked&&url.includes("/ifund_ai_permission_preferences?"))
+     return Response.json([{owner_id:UID,allow_ai_campaign_drafts:false,allow_ai_outreach_drafts:false,allow_future_internal_ai_assistance:false}]);
+   return backend.fetcher(url,options);
+ };
+ const r=await routeTeamQuestion(request("How can I improve my campaign story?"),{...env,AI:{run:async()=>{revoked=true;return {response:"Draft a short summary."}}}},fetcher);
+ assert.equal(r.status,403);
+ assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_release_agent_question")));
+});
