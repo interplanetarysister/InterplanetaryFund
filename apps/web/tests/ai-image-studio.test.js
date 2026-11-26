@@ -22,15 +22,15 @@ const imageRequest = (value = payload, extra = {}) => new Request(API, {
     ...extra },
   body: JSON.stringify(value),
 });
-function fakeServices({ quota = true, verified = true, aiAllowed = true, foreign = false } = {}) {
-  const calls = [];
+function fakeServices({ quota = true, verified = true, aiAllowed = true, foreign = false, reservation = {allowed:true,state:"reserved",limit:15,remaining:14}, revokeAfterInference = false } = {}) {
+  const calls = []; let consentReads=0;
   const fetcher = async (url, options) => {
     calls.push({ url, options });
     if (url.endsWith("/auth/v1/user"))
       return Response.json(verified ? { id: OWNER, app_metadata: { role: "member" } } : {}, {status: verified ? 200 : 401});
     if (url.includes("/rest/v1/ifund_ai_permission_preferences?"))
-      return Response.json([{owner_id:foreign ? "22222222-2222-4222-8222-222222222222" : OWNER,allow_ai_campaign_drafts:aiAllowed,allow_ai_outreach_drafts:aiAllowed,allow_future_internal_ai_assistance:aiAllowed}]);
-    if (url.endsWith("/rpc/ifund_ai_content_reserve")) return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
+      return Response.json([{owner_id:foreign ? "22222222-2222-4222-8222-222222222222" : OWNER,allow_ai_campaign_drafts:aiAllowed,allow_ai_outreach_drafts:aiAllowed,allow_future_internal_ai_assistance:aiAllowed&&!(revokeAfterInference&&++consentReads>1)}]);
+    if (url.endsWith("/rpc/ifund_ai_content_reserve")) return Response.json(reservation);
     if (url.endsWith("/rpc/ifund_ai_content_complete")) return Response.json(true);
     if (url.endsWith("/rpc/ifund_trial_ai_generation_release")) return Response.json(true);
     if (url.endsWith("/rest/v1/rpc/ifund_ai_image_consume_free_quota"))
@@ -75,7 +75,7 @@ test("enabled image generation verifies owner, consumes quota before AI, and ret
   assert.equal(json.image_base64, validImage);
   assert.equal(json.generated, true);
   assert.equal(aiCalls, 1);
-  assert.equal(service.calls.length, 5);
+  assert.equal(service.calls.length, 6);
   assert.ok(!JSON.stringify(json).includes(OWNER), "owner identities must not be returned");
 });
 
@@ -155,4 +155,24 @@ test("switch off or foreign AI consent blocks artwork before quota and inference
     assert.equal(res.status,403);
     assert.ok(!mock.calls.some(call => call.url.endsWith("/rpc/ifund_ai_image_consume_free_quota")));
   }
+});
+
+test("administrator artwork bypasses personal credits but not provider capacity",async()=>{
+ const service=fakeServices({reservation:{allowed:true,state:"admin_exempt",limit:null}});
+ const r=await routeImageStudio(imageRequest(),{...baseEnv,AI:{run:async()=>({image:validImage})}},service.fetcher);
+ assert.equal(r.status,200);
+ assert.ok(service.calls.some(x=>x.url.endsWith("/rpc/ifund_ai_image_consume_free_quota")));
+ assert.ok(!service.calls.some(x=>x.url.endsWith("/rpc/ifund_ai_content_complete")));
+});
+test("paid credit exhaustion returns 429 before provider capacity or AI",async()=>{
+ const service=fakeServices({reservation:{allowed:false,state:"monthly_limit",limit:50,remaining:0}});
+ const r=await routeImageStudio(imageRequest(),{...baseEnv,AI:{run:()=>assert.fail("exhausted")}},service.fetcher);
+ assert.equal(r.status,429);
+ assert.ok(!service.calls.some(x=>x.url.endsWith("/rpc/ifund_ai_image_consume_free_quota")));
+});
+test("revocation during artwork inference denies delivery",async()=>{
+ const service=fakeServices({revokeAfterInference:true});
+ const r=await routeImageStudio(imageRequest(),{...baseEnv,AI:{run:async()=>({image:validImage})}},service.fetcher);
+ assert.equal(r.status,403);
+ assert.ok(!service.calls.some(x=>x.url.endsWith("/rpc/ifund_ai_content_complete")));
 });
