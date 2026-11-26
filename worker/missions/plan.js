@@ -103,6 +103,20 @@ export async function routeMissionPlan(request,env={},fetcher=fetch){
     reserved={p_request_id:raw.request_id,p_input_sha256:sha,p_agent_id:"nexus"};
     const model=await env.AI.run(MODEL,{messages:promptFor(mission),max_tokens:1450,temperature:0.25});
     const plan=parseMissionPlan(model);
+    if((await api.rpc("ifund_current_account_is_active"))!==true||
+       (await api.rpc("ifund_current_user_has_current_terms"))!==true||
+       !await api.futureInternalAIPermission("recommendation",false))
+      fail(403,"Account verification or AI permission changed. No plan was saved.");
+    const latest=await fetcher(SUPABASE_ORIGIN+path,{
+      headers:{authorization:"Bearer "+api.jwt,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+      signal:AbortSignal.timeout(12000)
+    });
+    if(!latest.ok)fail(503,"Private Mission could not be rechecked.");
+    const current=await latest.json();
+    if(!Array.isArray(current)||current.length!==1||current[0]?.id!==mission.id||
+       current[0]?.owner_id!==api.user.id||current[0]?.revision!==mission.revision||
+       current[0]?.status==="archived")
+      fail(409,"Mission changed; reload its latest version.");
     const done=await api.rpc("ifund_complete_agent_question",reserved);
     if(done!==true)fail(503,"AI usage could not be finalized. Please retry without saving this result.");
     completed=true;
