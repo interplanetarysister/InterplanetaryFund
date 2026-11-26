@@ -150,7 +150,7 @@ export default function AgentsTeam() {
   },[user?.id]);
   async function submitAgentQuestion(event) {
     event.preventDefault();
-    if(questionBusy || agentQuestion.trim().length<8) return;
+    if(questionBusy || agentQuestion.trim().length<1) return;
     if(!aiPermissionGranted){setQuestionError("Enable campaign drafting or private AI assistance under My Profile → Manage iFund Permissions → AI assistance before asking a specialist.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
@@ -237,7 +237,7 @@ export default function AgentsTeam() {
       <p className="ifund-agents-muted max-w-2xl text-sm leading-relaxed">Describe what you need. NEXUS will direct your question to a relevant specialist, or you can select a specialist yourself. Every answer is advisory; external actions always require separate authorization.</p>
       <form className="mt-4 space-y-3" onSubmit={submitAgentQuestion}>
         <label className="block text-sm font-medium" htmlFor="agent-specialist-question">What would you like help with?</label>
-        <textarea id="agent-specialist-question" rows={3} minLength={8} maxLength={2000}
+        <textarea id="agent-specialist-question" rows={3} minLength={1} maxLength={2000}
           required value={agentQuestion} onChange={e => setAgentQuestion(e.target.value)}
           placeholder="For example: How should I explain my spending plan in the story?"
           className="w-full min-h-[120px] resize-y p-4 text-sm leading-relaxed" />
@@ -271,7 +271,7 @@ export default function AgentsTeam() {
         {aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">AI permission check unavailable; retry once your session is verified.</p>}
         {aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Private AI help is switched off. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> to use agent chat.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
-        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !aiPermissionGranted}
+        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<1 || !aiPermissionGranted}
           className="ifund-agents-submit">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
