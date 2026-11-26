@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {
   validateLibraryFile,listMyMedia,uploadMyMedia,downloadMyMedia,deleteMyMedia,
-  listIncompleteMedia,removeIncompleteMedia
+  listIncompleteMedia,removeIncompleteMedia,deleteAllMyMedia
 } from "@/api/memberMedia";
 
 const button="ifund-interactive min-h-11 rounded-xl border border-border px-4 py-2 text-sm font-semibold disabled:opacity-50";
@@ -59,7 +59,8 @@ export default function PrivateMediaLibrary({onOpenMedia}){
      setMessage(label==="upload"?"Media uploaded to your private library.":
        label==="delete"?"Stored media deleted and verified absent.":
        label==="scan"?"Incomplete upload scan finished.":
-       label==="orphan"?"Abandoned upload securely removed.":"Media retrieved.");
+       label==="orphan"?"Abandoned upload securely removed.":
+       label==="delete-all"?"Private media removed in verified batches.":"Media retrieved.");
    return result;
   }catch(e){if(!unmounted.current&&generation===revision.current)setError(e.message||"Media operation failed.");}
   finally{if(!unmounted.current&&revision.current===(refresh?generation+1:generation))setBusy("");}
@@ -89,6 +90,11 @@ export default function PrivateMediaLibrary({onOpenMedia}){
  async function remove(item){
   if(!window.confirm('Permanently delete "'+item.file_name+'" from your private iFund storage? This cannot be undone.'))return;
   await run("delete",()=>deleteMyMedia(authClient(),item));
+ }
+ async function deleteAll(){
+  if(!rows.length||!verified||busy||loading)return;
+  if(!window.confirm("Delete ALL "+rows.length+" saved iFund cloud media files from this account? This permanently removes stored image, audio, and video objects, and cannot be undone."))return;
+  await run("delete-all",()=>deleteAllMyMedia(authClient()));
  }
  async function scan(){
   await run("scan",async()=>{const files=await listIncompleteMedia(authClient());setOrphans(files);},{refresh:false});
@@ -122,6 +128,7 @@ export default function PrivateMediaLibrary({onOpenMedia}){
   {error&&<p role="alert" className="text-sm text-red-500">{error}</p>}
   {message&&<p role="status" className="text-sm">{message}</p>}
   {verified&&<p className="text-sm text-muted-foreground">{rows.length}/50 files · {(rows.reduce((sum,row)=>sum+row.file_size,0)/1048576).toFixed(1)}/256 MB used</p>}
+  {verified&&rows.length>0&&<button type="button" disabled={!!busy||loading} className={button} onClick={()=>void deleteAll()}>Delete all saved cloud media</button>}
   {verified&&!rows.length&&!loading&&<p className="rounded-xl border border-dashed border-border p-4 text-sm">No saved cloud media yet. Upload an image, audio recording, or video to get started.</p>}
   {verified&&rows.length>0&&<ul className="space-y-2">
    {rows.map(item=><li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3" key={item.id}>
