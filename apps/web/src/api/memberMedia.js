@@ -16,7 +16,7 @@ export function validateLibraryFile(file){
  const rule=LIBRARY_MIME[file?.type];
  if(!file||!rule)return "Choose a supported JPG, PNG, WebP, GIF, MP4, WebM, MP3, WAV, OGG or M4A file.";
  if(!file.size||file.size>rule[2])return "Images: 5 MB maximum; audio: 16 MB; video: 40 MB.";
- if(!file.name||file.name.length>160||/[\\/\u0000-\u001f\u007f]/.test(file.name)||!file.name.toLowerCase().endsWith("."+rule[1]))
+ if(!file.name||file.name.length>160||/[\\/\u0000-\u001f\u007f]/.test(file.name)||!(file.name.toLowerCase().endsWith("."+rule[1])||(file.type==="image/jpeg"&&file.name.toLowerCase().endsWith(".jpeg"))))
    return "Use a valid file name and extension matching the chosen media format.";
  return "";
 }
