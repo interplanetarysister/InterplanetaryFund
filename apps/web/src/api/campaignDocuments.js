@@ -72,7 +72,7 @@ export function documentPath(ownerId,campaignId,id,type) {
 export async function listCampaignDocuments(client,campaignId) {
   const userId=await owner(client,campaignId);
   const {data,error}=await client.from("ifund_campaign_documents")
-    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
+    .select("id,owner_id,campaign_id,storage_path,object_store,object_etag,object_sha256,object_verified_at,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
     .eq("owner_id",userId).eq("campaign_id",campaignId)
     .order("created_at",{ascending:false}).limit(50);
   await unchanged(client,userId);
@@ -150,8 +150,30 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
   if(error||data?.id!==row.id||data?.owner_id!==userId)throw Error("Document permissions were not saved.");
   return data;
 }
-export async function downloadPrivateCampaignDocument(client,campaignId,row){
+export async function downloadPrivateCampaignDocument(client,campaignId,row,{fetcher=fetch}={}){
   const userId=await owner(client,campaignId);
+  if(row?.object_store==="r2"){
+    if(row.owner_id!==userId||row.campaign_id!==campaignId||!UUID.test(row.id||"")||
+       !DOCUMENT_FORMATS[row.media_type]||row.deletion_requested_at!==null||
+       !Number.isSafeInteger(row.file_size)||row.file_size<1||row.file_size>DOCUMENT_MAX_BYTES||
+       row.storage_path!=="private/campaign-documents/"+documentPath(userId,campaignId,row.id,row.media_type))
+      throw Error("Document ownership could not be verified.");
+    const {data:auth,error}=await client.auth.getSession();
+    if(error||auth?.session?.user?.id!==userId||!auth?.session?.access_token)
+      throw Error("Sign in before downloading private documents.");
+    await unchanged(client,userId);
+    const result=await fetcher("/api/campaign-documents/download?campaign_id="+encodeURIComponent(campaignId)+"&document_id="+encodeURIComponent(row.id),{
+      headers:{authorization:"Bearer "+auth.session.access_token},cache:"no-store",redirect:"error",signal:AbortSignal.timeout(30000)
+    });
+    if(!result.ok||result.headers.get("content-type")!=="application/octet-stream"||
+       result.headers.get("content-length")!==String(row.file_size))
+      throw Error("This private document could not be independently verified.");
+    const blob=await result.blob();
+    await unchanged(client,userId);
+    if(blob.size!==row.file_size)throw Error("Private document bytes could not be verified.");
+    return blob;
+  }
+  // Retained legacy adapter for historical consumers; never use it for an R2 record.
   if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
     !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
     row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
