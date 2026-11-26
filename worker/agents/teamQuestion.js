@@ -20,7 +20,7 @@ const SPECIALISTS = Object.freeze({
   pulse: "PULSE", link: "LINK", discover: "DISCOVER",
 });
 const validQuestion = value => typeof value === "string" &&
-  value.trim().length >= 8 && value.trim().length <= 2000 &&
+  value.trim().length >= 1 && value.trim().length <= 2000 &&
   !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value);
 const noStore = (status, body) => reply(status, body);
 
@@ -30,7 +30,7 @@ export function validateTeamQuestion(raw) {
       !validQuestion(raw.question) || !UUID.test(raw.request_id || "") ||
       (raw.agent !== undefined && raw.agent !== "auto" &&
         !Object.hasOwn(SPECIALISTS, raw.agent)))
-    fail(400, "Ask a question between 8 and 2,000 characters and choose a valid team member.");
+    fail(400, "Enter a message of 1–2,000 characters and choose a valid team member.");
   const question = raw.question.trim();
   const recommendation = recommendAgent(question);
   const selected = raw.agent && raw.agent !== "auto" ? raw.agent : recommendation.target;
