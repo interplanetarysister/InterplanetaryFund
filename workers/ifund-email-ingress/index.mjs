@@ -150,6 +150,11 @@ export async function retryBusinessMail(env,{fetcher=fetch,parse=raw=>PostalMime
  return {attempted,recovered,failed};
 }
 export default {
- email(message,env){return receiveEmail(message,env);},
+ async email(message,env,ctx){
+  await receiveEmail(message,env);
+  if(mailboxKind(String(message.to||"").trim().toLowerCase())==="business"){
+   ctx.waitUntil(retryBusinessMail(env).catch(()=>console.error("Business mail recovery unavailable")));
+  }
+ },
  async scheduled(_event,env,ctx){ctx.waitUntil(retryBusinessMail(env));}
 };
