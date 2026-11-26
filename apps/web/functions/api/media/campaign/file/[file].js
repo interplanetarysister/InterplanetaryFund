@@ -36,15 +36,16 @@ async function coverLedger(env,key){
  return {row:rows[0]||null,base,headers};
 }
 async function markCoverDeleted(ledger,owner,key){
- if(!ledger.row||ledger.row.deleted_at!==null)return;
+ if(!ledger.row)return;
+ // Only after R2 HEAD has proven absence, erase the ledger row itself.
+ // Retaining a soft-deleted FK row would permanently block auth-user erasure.
  const response=await fetch(ledger.base+"?object_key=eq."+encodeURIComponent(key)+
-  "&owner_id=eq."+owner+"&deleted_at=is.null&select=object_key,deleted_at",{
-    method:"PATCH",headers:ledger.headers,redirect:"error",signal:AbortSignal.timeout(12000),
-    body:JSON.stringify({deleted_at:new Date().toISOString()})
+  "&owner_id=eq."+owner+"&select=object_key",{
+    method:"DELETE",headers:ledger.headers,redirect:"error",signal:AbortSignal.timeout(12000)
   });
  if(!response.ok)throw Error("Cover deletion quota receipt was not stored.");
  const rows=await response.json();
- if(!Array.isArray(rows)||rows.length!==1||rows[0].object_key!==key||!rows[0].deleted_at)
+ if(!Array.isArray(rows)||rows.length!==1||rows[0].object_key!==key)
   throw Error("Cover quota deletion receipt could not be verified.");
 }
 export async function onRequest({request,env,params}){
