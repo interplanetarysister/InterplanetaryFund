@@ -12,8 +12,9 @@ test("one persistent agent panel spans both public and member routes",()=>{
  assert.match(dock,/Ask IFund/);
  assert.match(dock,/<AgentSidePanel/);
  assert.doesNotMatch(layout,/<AgentSidePanel/);
- assert.match(panel,/\/api\/agents\/team\/status/);
- assert.match(panel,/ifund_story_subscription/);
+ assert.match(panel,/enabled: permitted && verified\?\.id === owner/);
+ assert.doesNotMatch(panel,/ifund_story_subscription/);
+ assert.match(panel,/setQuestion\(text\)/);
  assert.match(panel,/canAskAgentWithSavedPermission/);
 });
 test("free site navigation remains available without bypassing AI authorization",()=>{
