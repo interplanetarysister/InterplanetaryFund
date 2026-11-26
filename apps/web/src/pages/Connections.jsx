@@ -100,7 +100,7 @@ export default function Connections() {
         (async () => {
           const { data, error: issue }=await client.auth.getSession();
           if (issue || !data?.session?.access_token) return {};
-          const result=await fetch("/api/oauth/status",{headers:{Authorization:"Bearer "+data.session.access_token}});
+          const result=await fetch("/api/oauth/readiness",{headers:{Authorization:"Bearer "+data.session.access_token}});
           const payload=await result.json().catch(()=>({}));
           if (!result.ok || payload.enabled!==true) return {};
           return payload.providers || {};

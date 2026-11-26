@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Copy, Gift, CheckCircle2 } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { validReferralCode } from "./ReferralTrialBootstrap";
+import { trialAccessState } from "@/lib/referralTrial.mjs";
 
 export default function ReferralRewards({ ownerId }) {
   const [info, setInfo] = useState(null);
@@ -28,6 +29,7 @@ export default function ReferralRewards({ ownerId }) {
     return () => { active = false; };
   }, [ownerId]);
   const url = info?.referral_code ? "https://interplanetaryfund.com/register?ref=" + encodeURIComponent(info.referral_code) : "";
+  const trialState = trialAccessState(info?.trial_enabled, info?.trial_expires_at);
   async function copyLink() {
     try { await navigator.clipboard.writeText(url); setNote("Referral link copied."); }
     catch { setNote("Copy the referral link from the field below."); }
@@ -71,9 +73,11 @@ export default function ReferralRewards({ ownerId }) {
       <p className="text-sm"><CheckCircle2 className="mr-1 inline h-4 w-4 text-cyan-600" aria-hidden="true"/>
         {Number(info.successful_referrals || 0)} qualifying referrals · {Number(info.pending_hours || 0)} saved bonus hours
       </p>
-      {info.trial_enabled && info.trial_expires_at
+      {trialState === "active"
         ? <p className="text-sm text-muted-foreground">Agent access through {new Date(info.trial_expires_at).toLocaleString()} (unless a verified paid plan grants longer access).</p>
-        : <p className="text-sm text-muted-foreground">The trial service isn't activated yet. Qualifying referral hours are saved for launch; no card is charged.</p>}
+        : trialState === "expired"
+          ? <p className="text-sm text-muted-foreground">Agent trial access ended {new Date(info.trial_expires_at).toLocaleString()}. Refer members or choose a plan to continue.</p>
+          : <p className="text-sm text-muted-foreground">The trial service isn't activated yet. Qualifying referral hours are saved for launch; no card is charged.</p>}
     </div>}
     <form onSubmit={applyCode} className="flex flex-wrap items-end gap-2">
       <label className="min-w-0 flex-1 text-sm font-semibold">Have a referral code?

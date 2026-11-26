@@ -705,6 +705,31 @@ async function activeOAuthAccount(request, env, fetcher) {
 
 export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
+  if (url.pathname === '/api/oauth/readiness') {
+    if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+    const sameOriginDiagnostic = request.method === 'GET' &&
+      !request.headers.get('origin') &&
+      request.headers.get('Sec-Fetch-Site') === 'same-origin' &&
+      url.protocol === 'https:';
+    const origin = oauthCorsOrigin(request, env) || (sameOriginDiagnostic ? url.origin : '');
+    if (!origin) return response(403, { error: 'Origin not allowed.' });
+    const canValidateMember = env.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
+      typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0;
+    if (!canValidateMember) {
+      return response(503, {
+        enabled: false, providers: {},
+        error: 'Supabase member authentication is not configured.',
+      });
+    }
+    // Member-safe readiness: per-provider configured booleans only. No admin
+    // diagnostics (runtime/storage), no credential values. Requires a verified
+    // active member so unauthenticated callers cannot probe provider config.
+    // The admin status endpoint below stays admin-only.
+    const account = await activeOAuthAccount(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in before checking provider readiness.' });
+    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
+    return response(200, { enabled: env.OAUTH_API_ENABLED === 'true', providers });
+  }
   if (url.pathname === '/api/oauth/status') {
     if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
     const sameOriginDiagnostic = request.method === 'GET' &&

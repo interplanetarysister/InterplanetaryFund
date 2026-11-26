@@ -180,3 +180,88 @@ test('OAuth disconnect refuses noncanonical Supabase endpoints without contactin
     assert.deepEqual(await result.json(), { error: 'Connection management is unavailable.' });
   }
 });
+
+// Bug 1 (2026-11-25 audit): GET /api/oauth/status is admin-only, so a signed-in
+// member always got 403 and Connections.jsx treated it as {} — canStart was
+// always false and "Connect securely" never rendered for members. The
+// member-safe endpoint below returns per-provider configured booleans only
+// (no admin diagnostics, no credential values) to a verified active member.
+const memberUid = '11111111-1111-4111-8111-111111111111';
+function memberFetcher(active = true) {
+  return async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: memberUid }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    if (String(url).endsWith('/rpc/ifund_current_account_is_active')) {
+      return new Response(JSON.stringify(active), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    assert.fail('Unexpected upstream request: ' + url);
+  };
+}
+const readinessRequest = (headers = {}) => new Request('https://interplanetaryfund.com/api/oauth/readiness', {
+  headers: {
+    origin: 'https://interplanetaryfund.com',
+    authorization: 'Bearer test-member-token',
+    ...headers,
+  },
+});
+// Google has no approval flag, so client id + secret alone make it ready.
+// YouTube shares the Google credentials but needs YOUTUBE_OAUTH_ENABLED.
+const googleConfiguredEnv = {
+  ...validEnv,
+  GOOGLE_OAUTH_CLIENT_ID: 'test-google-client-id',
+  GOOGLE_OAUTH_CLIENT_SECRET: 'test-google-client-secret',
+};
+
+test('member readiness returns per-provider booleans without admin diagnostics', async () => {
+  const result = await routeOAuthRequest(readinessRequest(), googleConfiguredEnv, memberFetcher());
+  assert.equal(result.status, 200);
+  const payload = await result.json();
+  assert.equal(payload.enabled, true);
+  assert.equal(payload.providers.google, true);
+  assert.equal(payload.providers.github, false);
+  assert.equal(payload.providers.youtube, false);
+  assert.equal(Object.hasOwn(payload, 'runtime'), false);
+  assert.equal(Object.hasOwn(payload, 'storage_ready'), false);
+  assert.doesNotMatch(JSON.stringify(payload), /test-google-client-secret|sb_secret|AAAA/);
+});
+
+test('member readiness denies unauthenticated and inactive members', async () => {
+  const noAuth = new Request('https://interplanetaryfund.com/api/oauth/readiness', {
+    headers: { origin: 'https://interplanetaryfund.com' },
+  });
+  const unauthenticated = await routeOAuthRequest(noAuth, googleConfiguredEnv, memberFetcher());
+  assert.equal(unauthenticated.status, 401);
+  const inactive = await routeOAuthRequest(readinessRequest(), googleConfiguredEnv, memberFetcher(false));
+  assert.equal(inactive.status, 401);
+});
+
+test('member readiness rejects non-GET methods and foreign origins', async () => {
+  const post = new Request('https://interplanetaryfund.com/api/oauth/readiness', {
+    method: 'POST',
+    headers: { origin: 'https://interplanetaryfund.com', authorization: 'Bearer test-member-token' },
+  });
+  assert.equal((await routeOAuthRequest(post, googleConfiguredEnv, memberFetcher())).status, 405);
+  const foreign = readinessRequest({ origin: 'https://evil.example' });
+  assert.equal((await routeOAuthRequest(foreign, googleConfiguredEnv, memberFetcher())).status, 403);
+});
+
+test('member readiness fails closed without Supabase member auth configured', async () => {
+  const result = await routeOAuthRequest(readinessRequest(), {
+    ...validEnv, SUPABASE_URL: '', SUPABASE_PUBLISHABLE_KEY: '',
+  }, () => assert.fail('No upstream request is allowed before Supabase member auth is configured.'));
+  assert.equal(result.status, 503);
+  const payload = await result.json();
+  assert.equal(payload.enabled, false);
+  assert.deepEqual(payload.providers, {});
+});
+
+test('Connections reads the member readiness endpoint, not the admin status endpoint', async () => {
+  const page = await readFile(new URL('../apps/web/src/pages/Connections.jsx', import.meta.url), 'utf8');
+  assert.match(page, /fetch\("\/api\/oauth\/readiness"/);
+  assert.doesNotMatch(page, /\/api\/oauth\/status/);
+});
