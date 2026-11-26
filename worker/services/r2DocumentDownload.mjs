@@ -49,7 +49,16 @@ export async function routePrivateDocumentDownload(request,env,{fetcher=fetch,au
      row.storage_path!==documentObjectKey({ownerId,campaignId,documentId,extension:TYPES[row.media_type]}))
    return reply(404,{error:"Private document unavailable."});
   const object=await verifiedPrivateDocumentRead({env,row:{...row,document_id:row.id},ownerId});
-  if(!await eligible(api))return reply(403,{error:"Your account can no longer access this document."});
+  // Revocation or reviewed deletion may begin while R2 is resolving the object.
+  // Recheck the authoritative immutable receipt before releasing the stream.
+  const discard=async()=>{try{await object.body?.cancel?.();}catch{/* denial stays final */}};
+  try{
+   if(!await eligible(api)){await discard();return reply(403,{error:"Your account can no longer access this document."});}
+   const current=await readRows("/rest/v1/ifund_campaign_documents?select="+FIELDS+"&id=eq."+documentId+"&campaign_id=eq."+campaignId+"&owner_id=eq."+ownerId,api,env,fetcher);
+   if(current.length!==1||FIELDS.split(",").some(field=>current[0]?.[field]!==row[field])){
+    await discard();return reply(404,{error:"Private document unavailable."});
+   }
+  }catch(error){await discard();throw error;}
   return new Response(object.body,{status:200,headers:{
    "content-type":"application/octet-stream","content-disposition":"attachment",
    "content-length":String(row.file_size),"cache-control":"private, no-store",
