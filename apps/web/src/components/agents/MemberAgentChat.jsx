@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Send, Sparkles } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { askIFundAgent } from "@/lib/agentQuestions";
+import { loadTeamHistory } from "@/api/teamContext";
+import { groupMemberAgentHistory } from "@/lib/memberAgentHistory.mjs";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
@@ -20,6 +22,7 @@ export default function MemberAgentChat({ user, agent }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [consentRevision, setConsentRevision] = useState(0);
+  const [historyState, setHistoryState] = useState({status:"idle",error:""});
   const inFlight = useRef(null);
   const log = useRef(null);
   const ownerGuard = useRef(ownerId);
@@ -37,6 +40,7 @@ export default function MemberAgentChat({ user, agent }) {
     setError("");
     setBusy(false);
     setPermission({ status: "loading", allowed: false });
+    setHistoryState({status:"idle",error:""});
     return () => inFlight.current?.abort();
   }, [ownerId]);
 
@@ -78,6 +82,32 @@ export default function MemberAgentChat({ user, agent }) {
     });
     return () => controller.abort();
   }, [checkPermission, consentRevision]);
+
+  // The server has already saved owner-scoped team exchanges. Rehydrate the
+  // member composer when re-entering Messaging rather than losing all replies
+  // on refresh. A failed history read never blocks sending a new question.
+  const refreshSavedHistory = useCallback(async (signal) => {
+    if (!ownerId) return;
+    setHistoryState({status:"loading",error:""});
+    try {
+      const saved = await loadTeamHistory(authClient(),{limit:60});
+      if (signal?.aborted || ownerGuard.current!==ownerId) return;
+      const grouped = groupMemberAgentHistory(saved);
+      // Do not erase a pending or unsaved response while a request is underway.
+      if (!inFlight.current) setThreads(grouped);
+      setHistoryState({status:"ready",error:""});
+    } catch (cause) {
+      if (!signal?.aborted && ownerGuard.current===ownerId)
+        setHistoryState({status:"error",error:cause?.message || "Private history could not be loaded."});
+    }
+  },[ownerId]);
+
+  useEffect(() => {
+    if (!ownerId || permission.status==="loading") return;
+    const controller=new AbortController();
+    void refreshSavedHistory(controller.signal);
+    return () => controller.abort();
+  },[ownerId,permission.status,refreshSavedHistory]);
 
   useEffect(() => {
     log.current?.scrollTo({top:log.current.scrollHeight,behavior:"smooth"});
@@ -143,6 +173,18 @@ export default function MemberAgentChat({ user, agent }) {
         <p className="text-sm text-muted-foreground">Personal AI guidance and analysis · available to free and subscribed members</p>
       </div>
     </header>
+
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="text-xs text-muted-foreground">Your recent saved exchanges load from your private iFund team history.</p>
+      <button type="button" disabled={busy || historyState.status==="loading"}
+        onClick={() => void refreshSavedHistory()}
+        className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium disabled:opacity-50">
+        {historyState.status==="loading"?"Loading history…":"Refresh history"}
+      </button>
+    </div>
+    {historyState.status==="error"&&<p role="status" className="text-xs text-muted-foreground">
+      {historyState.error} You can still send a new message.
+    </p>}
 
     <div ref={log} role="log" aria-label="Your conversation with the selected agent"
       aria-live="polite" className="max-h-[32rem] min-h-56 space-y-3 overflow-y-auto rounded-xl border border-border bg-background/70 p-4">
