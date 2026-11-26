@@ -12,6 +12,17 @@ export function mayUseFutureInternalAI({ user, preferences, capability } = {}) {
   return INTERNAL_ONLY.has(capability);
 }
 
+// Default-access variant for accounts with NO saved preference row
+// (owner directive 2026-11-26: AI chat on for all accounts by default).
+// Identity and capability classification are unchanged — internal-only
+// capabilities pass, high-impact actions never do. Accounts with a saved
+// row always go through mayUseFutureInternalAI above.
+export function mayUseFutureInternalAIByDefault({ user, capability } = {}) {
+  if (!user?.id || user.is_anonymous === true || !user.email_confirmed_at) return false;
+  if (typeof capability !== "string" || HIGH_IMPACT.has(capability)) return false;
+  return INTERNAL_ONLY.has(capability);
+}
+
 export function isHighImpactAIAction(capability) {
   return HIGH_IMPACT.has(capability);
 }

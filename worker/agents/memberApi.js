@@ -1,4 +1,4 @@
-import { mayUseFutureInternalAI } from "../../apps/web/src/lib/internalAIConsent.mjs";
+import { mayUseFutureInternalAI, mayUseFutureInternalAIByDefault } from "../../apps/web/src/lib/internalAIConsent.mjs";
 import { hasUnifiedAIConsent } from "../../apps/web/src/lib/unifiedAIConsent.mjs";
 export const SUPABASE_ORIGIN = "https://ssibsfmtodgximseeqsv.supabase.co";
 export const UUID =
@@ -93,9 +93,14 @@ export async function memberApi(request, env, fetcher = fetch) {
         if (!required) return false;
         throw error;
       }
-      const allowed = Array.isArray(preferences) && preferences.length === 1 &&
-        hasUnifiedAIConsent(preferences[0], user.id) &&
-        mayUseFutureInternalAI({ user, preferences: preferences[0], capability });
+      // No saved row = the member never opted out: platform default is ON
+      // for internal capabilities (owner directive 2026-11-26). A saved
+      // row, even a partial legacy one, always governs itself.
+      const allowed = Array.isArray(preferences) && (preferences.length === 0
+        ? mayUseFutureInternalAIByDefault({ user, capability })
+        : preferences.length === 1 &&
+          hasUnifiedAIConsent(preferences[0], user.id) &&
+          mayUseFutureInternalAI({ user, preferences: preferences[0], capability }));
       if (!allowed && required) fail(403, "Enable private AI assistance in My Account before asking the team.");
       return allowed;
     },
@@ -110,7 +115,11 @@ export async function memberApi(request, env, fetcher = fetch) {
         if (!required) return false;
         throw error;
       }
-      const allowed = Array.isArray(preferences) && preferences.length === 1 && hasUnifiedAIConsent(preferences[0], user.id) && preferences[0]?.[field] === true;
+      // No saved row = platform default ON (owner directive 2026-11-26);
+      // a saved row governs itself exactly as before.
+      const allowed = Array.isArray(preferences) && (preferences.length === 0
+        ? true
+        : preferences.length === 1 && hasUnifiedAIConsent(preferences[0], user.id) && preferences[0]?.[field] === true);
       if (!allowed && required)
         fail(403, "Turn on AI Assistance in My Account to use AI suggestions.");
       return allowed;
