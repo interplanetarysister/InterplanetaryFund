@@ -27,11 +27,11 @@ function fixture({anonymous=false,deleted=false,corrupt=false,limited=false,refe
     ledger.set(row.object_key,row);
     return Response.json([{object_key:row.object_key,owner_id:row.owner_id,object_sha256:row.object_sha256}]);
    }
-   if(init.method==="PATCH"){
+   if(init.method==="DELETE"){
     const row=ledger.get(key);
     if(!row)return Response.json([]);
-    row.deleted_at=JSON.parse(init.body).deleted_at;
-    return Response.json([{object_key:row.object_key,deleted_at:row.deleted_at}]);
+    ledger.delete(key);
+    return Response.json([{object_key:row.object_key}]);
    }
    return Response.json(ledger.has(key)?[ledger.get(key)]:[]);
   }
@@ -105,6 +105,7 @@ test("owner can permanently delete a stored R2 cover only when it has no saved c
   }}),env:h.env,params:{file}});
   assert.equal(res.status,204);
   assert.equal(h.objects.size,0);
+  assert.equal(h.ledger.size,0);
   assert.equal((await serve({request:new Request(receipt.url),env:h.env,params:{file}})).status,404);
  });
 });
