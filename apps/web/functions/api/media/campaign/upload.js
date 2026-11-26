@@ -82,7 +82,7 @@ export async function onRequest({request,env}){
     return rows;
   }
   try{
-    await bucket.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:"public, max-age=86400"},
+    await bucket.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:"public, max-age=120, must-revalidate"},
       customMetadata:{owner_id:owner,sha256}});
     const head=await bucket.head(key);
     if(!head||head.size!==bytes.length)throw Error("image_head_unverified");
