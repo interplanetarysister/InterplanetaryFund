@@ -6,7 +6,7 @@ Deno.serve(async (req)=>{
  if(origin && !["https://interplanetaryfund.com","https://www.interplanetaryfund.com","https://interplanetaryfund.base44.app","https://interplanetaryfund-migration.pages.dev","https://interplanetary-fund2.interplanetary-fund.workers.dev","http://localhost","capacitor://localhost"].includes(origin)) return new Response(null,{status:403});
  if(req.method==="OPTIONS") return new Response(null,{status:204,headers:{"access-control-allow-origin":origin||"https://interplanetaryfund.com","access-control-allow-headers":"authorization, content-type, apikey, x-client-info","access-control-allow-methods":"GET, PATCH, OPTIONS","vary":"origin"}});
  if(!["GET","PATCH"].includes(req.method)) return json({error:"Method not allowed"},405);
- const url=Deno.env.get("SUPABASE_URL"),service=Deno.env.get("SUPABASE_SECRET_KEYS") ? (Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!))[0] as string) : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+ const url=Deno.env.get("SUPABASE_URL"),service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}")).find((v):v is string=>typeof v==="string"&&v.startsWith("sb_secret_"));
  if(!url||!service) return json({error:"Unavailable"},503);
  const bearer=req.headers.get("authorization")||"";
  if(!/^Bearer\s+\S+$/i.test(bearer)) return json({error:"Unauthorized"},401);
