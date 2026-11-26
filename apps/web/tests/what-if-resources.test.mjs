@@ -7,7 +7,7 @@ const ID="1c00c40e-7722-4d1a-8edc-2d234a440cbf";
 const resource=(overrides={})=>({
  id:"external:example",title:"Example community program",type:"grant",
  description:"Research this potential program.",official_url:"https://example.org/program",
- official_provider:"Example provider",verified_at:"2026-11-12T00:00:00Z",
+ official_provider:"Example provider",verified_at:new Date().toISOString(),
  source_system:"ifund_external_verified_v1",status:"program",
  cause_tags:["community","education"],geography:"Provider-specific",
  requirements_complete:false,deadline_at:null,...overrides
@@ -51,6 +51,10 @@ test("unverified, non-HTTPS and revoked catalog entries are never shown",async()
   resource({official_url:"http://unsafe.invalid/"}),
   resource({verified_at:null}),
   resource({status:"closed"}),
+  resource({deadline_at:"2020-01-01T00:00:00Z"}),
+  resource({deadline_date:"2020-01-01"}),
+  resource({verified_at:"2020-01-01T00:00:00Z"}),
+  resource({official_url:"https://user:pass@example.org/"}),
   resource({source_system:"untrusted-import"}),
   resource({id:"external:valid"})
  ]);
