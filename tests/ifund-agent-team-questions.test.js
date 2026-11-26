@@ -231,3 +231,35 @@ test("AI chat is on by default for accounts that never saved a preference", asyn
   const noRow = mockBackend({ noRow: true });
   assert.equal((await routeTeamQuestion(request("Help me improve my fundraising campaign idea"), env, noRow.fetcher)).status, 200);
 });
+
+test("client accepts REACH answers and passes prepared-work cards through sanitized", async () => {
+  const { askIFundAgent } = await import("../apps/web/src/lib/agentQuestions.js");
+  const user = { id: UID, email_confirmed_at: "2026-11-01T00:00:00Z", is_anonymous: false };
+  const client = {
+    auth: {
+      getUser: async () => ({ data: { user }, error: null }),
+      getSession: async () => ({ data: { session: { user, access_token: "token" } }, error: null }),
+    },
+  };
+  const payload = {
+    agent: "reach", answer: "Here is how to fix the connection.", actions_performed: false,
+    consultations: [{ agent: "link", status: "completed", kind: "advisory_analysis", summary: "OAuth grant expired." }],
+    dispatch: { kind: "chief_of_staff_dispatch", status: "prepared", specialist: "story",
+      tool: "Private AI campaign writing", workspace_path: "/agents?tab=writing",
+      actions_performed: false, context_saved: true, brief: "member words stay server-side" },
+    goal_knowledge: { kind: "goal_knowledge_refinement", status: "prepared",
+      label: "Refine Knowledge About Your Goal", category: "medical",
+      knowledge_areas: ["fastest_path"], estimated_minutes: 2, context_saved: true },
+  };
+  const fetcher = async () => Response.json(payload);
+  const result = await askIFundAgent(client, { question: "How do I fix my connection?", agent: "reach", ownerId: UID, fetcher });
+  assert.equal(result.agent, "reach");
+  assert.equal(result.consultations.length, 1);
+  assert.equal(result.dispatch.specialist, "story");
+  assert.equal(result.dispatch.brief, undefined);
+  assert.equal(result.goal_knowledge.category, "medical");
+  // Malformed prepared-work shapes are dropped, never rendered.
+  const bad = { ...payload, dispatch: { kind: "chief_of_staff_dispatch", status: "completed", specialist: "story", tool: "x", workspace_path: "https://evil.example", actions_performed: true } };
+  const dropped = await askIFundAgent(client, { question: "q", agent: "reach", ownerId: UID, fetcher: async () => Response.json(bad) });
+  assert.equal(dropped.dispatch, null);
+});

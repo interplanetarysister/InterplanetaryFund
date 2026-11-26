@@ -760,7 +760,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
                 },
               ],
               ...sampling,
-              max_tokens: 3200,
+              max_tokens: 2200,
               response_format: storyResponseFormat(false),
             });
             const revisedSuggestion = storyOutput(revised, false);

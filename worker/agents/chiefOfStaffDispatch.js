@@ -17,7 +17,7 @@ import { redactTeamCredentials } from "./teamContext.js";
 // Member-facing workspace for each specialist. Mirrors AGENT_WORKSPACES in
 // apps/web/src/lib/agentWorkspaces.mjs (presentation paths); keep in sync.
 export const SPECIALIST_WORKSPACES = Object.freeze({
-  story: { tool: "Private AI campaign writing", path: "/agents?tab=writing" },
+  story: { tool: "Private AI campaign writing", path: "/agents?agent=story" },
   polaris: { tool: "Campaign strategy and Mission Brief", path: "/strategy" },
   orbit: { tool: "Campaign finances and budget review", path: "/finances" },
   forge: { tool: "Campaign growth and engagement metrics", path: "/engagement" },

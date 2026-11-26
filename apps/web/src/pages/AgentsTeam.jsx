@@ -16,6 +16,7 @@ import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWor
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 import AgentDispatchCard from "@/components/agents/AgentDispatchCard";
+import GoalKnowledgeCard from "@/components/agents/GoalKnowledgeCard";
 import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import AgentOperationsRoom from "@/components/agents/AgentOperationsRoom";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
@@ -294,6 +295,7 @@ export default function AgentsTeam() {
         <p className="text-xs text-muted-foreground">Your question: {agentReply.question}</p>
         <AgentConsultationTrail consultations={agentReply.consultations}/>
         <AgentDispatchCard dispatch={agentReply.dispatch}/>
+        <GoalKnowledgeCard goalKnowledge={agentReply.goal_knowledge}/>
         <p className="ifund-agents-reply-body text-sm">{agentReply.answer}</p>
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>

@@ -158,13 +158,14 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const dispatch=input.selected==="nexus"
       ? buildDispatch({question:input.question,requestId:input.requestId})
       : null;
-    // Team-context recording identity. The shared team-context store (JS
-    // validation and the database allowlist alike) knows only the nine
-    // backend specialist ids, so a front-desk conversation is recorded
-    // under its primary backend specialist — the topic owner for this
-    // question, or the front desk's first backend. Without this mapping a
-    // REACH question fails validation and cannot be recorded at all.
-    // Long-term fix: a migration adding front-desk ids to the allowlist.
+    // Recording/metering identity. The shared team-context store and the
+    // question-quota RPCs alike enforce the nine backend specialist ids
+    // (JS validation and database allowlists), so a front-desk
+    // conversation is recorded and metered under its primary backend
+    // specialist — the topic owner for this question, or the front desk's
+    // first backend. Without this mapping a REACH question fails quota
+    // verification and context validation in production.
+    // Long-term fix: a migration adding front-desk ids to the allowlists.
     const contextAgentId=isFrontDeskAgent(input.selected)
       ? (input.recommendation.topics.find(t=>FRONT_DESK_BACKENDS[input.selected].includes(t))
          || FRONT_DESK_BACKENDS[input.selected][0])
@@ -190,8 +191,11 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const hashData=JSON.stringify({question:input.question,agent:input.selected});
     const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(hashData));
     const sha=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+    // Quota RPCs enforce the same nine-backend allowlist as team context,
+    // so metering also uses the recording identity (contextAgentId), not
+    // the front-desk id the member picked.
     const quota=await api.rpc("ifund_reserve_agent_question",{
-      p_request_id:input.requestId,p_input_sha256:sha,p_agent_id:input.selected,
+      p_request_id:input.requestId,p_input_sha256:sha,p_agent_id:contextAgentId,
     });
     if(quota?.state==="daily_limit") fail(429,"Daily AI question allowance reached. Your free iFund tools remain available.");
     if(quota?.state==="already_reserved") fail(409,"This question was already submitted. Start a new request to ask again.");
@@ -200,7 +204,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     quotaReservation = {
       p_request_id: input.requestId,
       p_input_sha256: sha,
-      p_agent_id: input.selected,
+      p_agent_id: contextAgentId,
     };
     // A verified unlimited entitlement intentionally has no remaining count.
     // The former integer-only check rejected every admin/unlimited answer.

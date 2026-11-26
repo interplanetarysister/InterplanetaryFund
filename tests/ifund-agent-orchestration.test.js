@@ -248,17 +248,23 @@ test("Agents can find and apply previously refined goal knowledge from team hist
 function contextHarness(){
   const base=harness();
   const recorded=[];
+  const quotaAgents=[];
   const fetcher=async(url,opts)=>{
     if(url.endsWith("/rpc/ifund_team_recent")) return Response.json([]);
     if(url.endsWith("/rpc/ifund_team_record_user")||url.endsWith("/rpc/ifund_team_record_agent")){
       recorded.push(JSON.parse(opts.body));
       return Response.json(UID);
     }
+    if(url.endsWith("/rpc/ifund_reserve_agent_question")||
+       url.endsWith("/rpc/ifund_complete_agent_question")||
+       url.endsWith("/rpc/ifund_release_agent_question")){
+      try { quotaAgents.push(JSON.parse(opts.body).p_agent_id); } catch {}
+    }
     return base.fetcher(url,opts);
   };
   const env={...base.env,IFUND_TEAM_CONTEXT_ENABLED:"enabled",
     IFUND_WORKFORCE_EXECUTOR_KEY:"a".repeat(64)};
-  return {fetcher,env,recorded,rpc:base.rpc,inferences:base.inferences};
+  return {fetcher,env,recorded,quotaAgents,rpc:base.rpc,inferences:base.inferences};
 }
 
 test("REACH question with team context enabled records under a backend identity", async () => {
@@ -273,6 +279,10 @@ test("REACH question with team context enabled records under a backend identity"
   // accepts (the nine backend specialists); "reach" itself would throw.
   assert.ok(h.recorded.every(e=>TEAM_CONTEXT_AGENTS.includes(e.p_agent_id)));
   assert.ok(h.recorded.every(e=>e.p_agent_id==="link"));
+  // Quota RPCs enforce the same allowlist: reserve/complete must also use
+  // the backend identity, never "reach".
+  assert.ok(h.quotaAgents.length>=2);
+  assert.ok(h.quotaAgents.every(a=>a==="link"));
 });
 
 test("locked refinement is returned but never recorded as team knowledge", async () => {
