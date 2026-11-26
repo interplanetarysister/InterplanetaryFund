@@ -34,10 +34,10 @@ test("Messaging uses real existing agent icons and separate guarded operations r
  const room=read("apps/web/src/components/agents/AgentOperationsRoom.jsx");
  assert.match(page,/AgentIdentityIcon identity=\{id\}/);
  assert.match(page,/AgentOperationsRoom key=\{user.id\} user=\{user\}/);
- assert.match(page,/<MemberAgentChat key=\\{user.id\\} user=\\{user\\} agent=\\{active\\}\\/>/);
+ assert.ok(page.includes("<MemberAgentChat key={user.id} user={user} agent={active}/>"));
  assert.match(page,/adminStatus==="admin"/);
- assert.match(page,/useAdminAccess\\(user\\)/);
- assert.doesNotMatch(page,/window\\.dispatchEvent\\(new CustomEvent/);
+ assert.ok(page.includes("useAdminAccess(user)"));
+ assert.ok(!page.includes("window.dispatchEvent(new CustomEvent"));
  assert.match(page,/to="\/mail"/);
  assert.match(room,/ifund_current_user_is_verified_admin/);
  assert.match(room,/ifund_agent_operations_messages/);
