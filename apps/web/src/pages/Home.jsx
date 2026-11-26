@@ -14,8 +14,9 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuthSession();
   const signedIn = Boolean(user && !user.is_anonymous);
+  const whatIfEnabled = import.meta.env.VITE_IFUND_WHAT_IF_ENABLED === "enabled";
   function begin(prompt) {
-    navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } });
+    navigate(whatIfEnabled ? "/what-if" : "/create?manual=1", { state: { prompt, source: "home-what-if" } });
   }
   return <div className="ifund-public min-h-dvh bg-[#080c18] text-white pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
     <QuickActions user={signedIn ? user : null} />
@@ -48,8 +49,8 @@ export default function Home() {
         </p>
         <PromptComposer id="home-what-if" variant="hero" label="What would you like to make possible?"
           placeholder="I want to… I need help with… What if we could…"
-          submitLabel="Build my campaign" maxLength={1500}
-          note="Your idea stays private until you choose to publish."
+          submitLabel={whatIfEnabled ? "Explore my possibilities" : "Build my campaign"} maxLength={1500}
+          note={whatIfEnabled ? "Start privately. Fundraising is optional." : "Your idea stays private until you choose to publish."}
           onSubmit={begin} className="mt-9 w-full max-w-2xl !rounded-3xl !border-cyan-100/25 !bg-[#111a30]/95 !p-5 sm:!p-7" />
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-sm">
           <Link to="/create?manual=1" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-cyan-300/40 px-5 font-semibold text-cyan-100 hover:bg-cyan-100/10"><Sparkles className="h-4 w-4" /> Start a campaign without a prompt</Link>
@@ -63,8 +64,8 @@ export default function Home() {
     <section className="mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-3 sm:px-8" aria-label="How IFund helps">
       {[
         ["01", "Start with an idea", "Tell us what matters to you. No technical setup required."],
-        ["02", "Make it your own", "Adjust your campaign and choose what you want to share."],
-        ["03", "Grow with support", "Explore trusted fundraising connections, outreach and guidance."]
+        ["02", "Make it your own", whatIfEnabled ? "Develop a private Mission and decide whether fundraising is useful." : "Adjust your campaign and choose what you want to share."],
+        ["03", "Grow with support", whatIfEnabled ? "Explore planning, resources and guidance for your goal." : "Explore trusted fundraising connections, outreach and guidance."]
       ].map(([number,title,description])=><div key={number} className="rounded-2xl border border-border bg-card p-6"><span className="text-xs font-bold tracking-widest text-primary">{number}</span><h2 className="mt-3 text-lg font-semibold text-foreground">{title}</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></div>)}
     </section>
     <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 px-5 pb-12 text-sm"><Link to="/our-story" className="inline-flex min-h-11 items-center gap-2 text-primary underline underline-offset-4">Discover our story <ArrowRight className="h-4 w-4" /></Link><Link to="/fundraising-partners" className="inline-flex min-h-11 items-center text-muted-foreground underline underline-offset-4">Fundraising partners</Link><Link to="/templates" className="inline-flex min-h-11 items-center text-muted-foreground underline underline-offset-4">Browse campaign templates</Link><Link to="/plans" className="inline-flex min-h-11 items-center text-muted-foreground underline underline-offset-4">Premium tools &amp; plans</Link></div>
