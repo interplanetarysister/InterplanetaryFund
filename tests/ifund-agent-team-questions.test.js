@@ -18,7 +18,7 @@ const request=(question,opts={})=>new Request("https://ifund.test/api/agents/tea
   method:"POST",headers:{Authorization:"Bearer good.token", "content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent:"auto",...opts})
 });
-function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit"}={}){
+function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit",unlimited=false}={}){
   const calls=[];
   const fetcher=async(url,options={})=>{
     calls.push([url,options.method]);
@@ -33,7 +33,7 @@ function mockBackend({quota=true,active=true,permission=true,futureAI=false,fore
       }]);
     }
     if(url.endsWith("/rpc/ifund_reserve_agent_question"))
-      return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:quotaState,limit:20});
+      return Response.json(quota?{allowed:true,state:"reserved",remaining:unlimited?null:19,limit:unlimited?null:20,unlimited}:{allowed:false,state:quotaState,limit:20});
     if(url.endsWith("/rpc/ifund_complete_agent_question"))
       return Response.json(true);
     if(url.endsWith("/rpc/ifund_release_agent_question"))
@@ -191,4 +191,14 @@ test("only explicitly approved skills supplement the specialist advisory prompt"
   assert.match(updated[0].content,/provider-cleared funds/);
   assert.match(updated[0].content,/external permissions/);
   assert.equal(updated[1].role,"user");
+});
+
+test("server-verified unlimited administrator or paid quota admits agent response",async()=>{
+ const backend=mockBackend({unlimited:true});
+ const response=await routeTeamQuestion(request("How can I improve my campaign story?"),env,backend.fetcher);
+ assert.equal(response.status,200);
+ const result=await response.json();
+ assert.equal(result.questions_remaining_today,null);
+ assert.equal(result.questions_unlimited,true);
+ assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
 });
