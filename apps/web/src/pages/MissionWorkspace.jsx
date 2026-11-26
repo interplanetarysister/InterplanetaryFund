@@ -4,9 +4,10 @@ import { ArrowRight, BrainCircuit, CheckCircle2, Circle, LockKeyhole, Orbit, Plu
 import { authClient } from "@/api/auth";
 import MissionBudget from "@/components/missions/MissionBudget";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { localTaskDateToIso,taskDateInputValue } from "@/lib/missionTaskDates.mjs";
 import {
  loadMission,listMissionPlans,listMissionTasks,listMissionCampaignLinks,
- addMissionTask,setMissionTaskState,saveReviewedMissionPlan,suggestMissionPlan,
+ addMissionTask,setMissionTaskState,setMissionTaskDueAt,saveReviewedMissionPlan,suggestMissionPlan,
  updateMission,getMissionIntegrationStatus,listVerifiedMissionResources,bookmarkMissionResource
 } from "@/api/missions";
 
@@ -25,6 +26,20 @@ const starterPlan=m=>({
  evidence:{status:"suggested_unverified",external_sources_checked:0,provider_offers_confirmed:0},
  source:"owner_template",external_actions_performed:false
 });
+function TaskDeadlineEditor({task,disabled,onSave}){
+ const [value,setValue]=useState(()=>taskDateInputValue(task.due_at));
+ const original=taskDateInputValue(task.due_at);
+ const [error,setError]=useState("");
+ const canEdit=!["done","cancelled"].includes(task.state);
+ if(!canEdit)return task.due_at?<p className="px-3 pb-3 text-xs text-muted-foreground">Due: {new Date(task.due_at).toLocaleString()}</p>:null;
+ return <div className="flex flex-wrap items-end gap-2 px-3 pb-3">
+   <label className="min-w-0 flex-1 text-xs text-muted-foreground">Due date (optional, local time)
+     <input type="datetime-local" value={value} onChange={e=>{setValue(e.target.value);setError("");}} disabled={disabled} className={field+" mt-1"} aria-label={"Due date for "+task.title}/>
+   </label>
+   <button type="button" className={button} disabled={disabled||value===original} onClick={()=>{try{const date=localTaskDateToIso(value);setError("");void onSave(task,date);}catch(cause){setError(cause.message);}}}>Save date</button>
+   {error&&<p role="alert" className="w-full text-xs text-destructive">{error}</p>}
+ </div>;
+}
 export default function MissionWorkspace(){
  const {id}=useParams(),session=useAuthSession(),owner=session.user?.id||null;
  const [phase,setPhase]=useState("loading"),[error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -129,6 +144,15 @@ export default function MissionWorkspace(){
   catch(cause){setError(cause.message||"Task save failed.");}
   finally{setBusy("");}
  }
+ async function saveTaskDeadline(task,dueAt){
+  if(!ready||busy)return;
+  setBusy(task.id+":deadline");setError("");setNotice("");
+  try{
+   await setMissionTaskDueAt(authClient(),mission.id,task.id,task.revision,dueAt);
+   await refreshData();setNotice(dueAt?"Task due date saved. Upcoming reminders are shown in your private inbox.":"Task due date removed.");
+  }catch(cause){setError(cause.message||"Task date was not saved.");}
+  finally{setBusy("");}
+ }
  async function toggleTask(task){
   if(!ready||busy)return;
   setBusy(task.id);setError("");
@@ -198,11 +222,14 @@ export default function MissionWorkspace(){
     <article className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-7" aria-label="Mission tasks">
      <div className="flex items-baseline justify-between gap-3"><h2 className="text-xl font-semibold">Your checklist</h2><span className="text-sm text-muted-foreground">{done} / {tasks.length}</span></div>
      {tasks.length===0&&<p className="text-sm text-muted-foreground">Save a plan to create your first steps, or add a task yourself.</p>}
-     <div className="space-y-2">{tasks.map(t=><button type="button" key={t.id} onClick={()=>toggleTask(t)} disabled={!!busy} aria-pressed={t.state==="done"}
+     <div className="space-y-2">{tasks.map(t=><div key={t.id} className="rounded-xl border border-border"><button type="button" onClick={()=>toggleTask(t)} disabled={!!busy} aria-pressed={t.state==="done"}
         className="flex min-h-12 w-full items-start gap-3 rounded-xl border border-border p-3 text-left transition hover:border-cyan-400/60 disabled:opacity-50">
        {t.state==="done"?<CheckCircle2 size={21} className="mt-0.5 shrink-0 text-emerald-500"/>:<Circle size={21} className="mt-0.5 shrink-0 text-muted-foreground"/>}
        <span className={t.state==="done"?"line-through text-muted-foreground":""}><span className="font-medium">{t.title}</span>{t.description&&<span className="mt-1 block text-xs text-muted-foreground">{t.description}</span>}</span>
-      </button>)}</div>
+      </button>
+       <TaskDeadlineEditor key={t.id+":"+t.revision} task={t} disabled={!!busy} onSave={saveTaskDeadline}/>
+      </div>)}</div>
+      <p className="text-xs text-muted-foreground">Choose a due date to receive private in-app reminders when an active Mission task is approaching its deadline.</p>
       <form onSubmit={addTask} className="flex flex-wrap gap-2"><label htmlFor="new-mission-task" className="sr-only">New task</label>
        <input id="new-mission-task" className={field+" min-w-0 flex-1"} maxLength={240} value={newTask} onChange={e=>setNewTask(e.target.value)} placeholder="Add your next task"/>
        <button type="submit" disabled={!newTask.trim()||!!busy} className={button}><Plus size={17}/> Add task</button>
