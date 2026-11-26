@@ -155,7 +155,9 @@ test("per-agent conversation links preserve agent and campaign context", () => {
   assert.match(page, /to="\/messaging">Messaging<\/Link>/);
   const messaging = read("src/pages/Messaging.jsx");
   assert.match(messaging, /agentFromParam\(params\.get\("agent"\)\)/);
-  assert.match(messaging, /window\.dispatchEvent\(new CustomEvent\("ifund-open-agent", \{ detail: \{ agent: requestedAgent \} \}\)\)/);
+  assert.match(messaging, /if \\(requestedAgent\\) setActive\\(requestedAgent\\)/);
+  assert.match(messaging, /<MemberAgentChat key=\\{user.id\\} user=\\{user\\} agent=\\{active\\}\\/>/);
+  assert.doesNotMatch(messaging, /window\\.dispatchEvent\\(new CustomEvent/);
   assert.match(messaging, /`\/agents\?agent=\$\{encodeURIComponent\(active\)\}/);
   // The floating agent-chat sidebar opens the dedicated route, keeping the agent.
   const panel = read("src/components/agents/AgentSidePanel.jsx");
