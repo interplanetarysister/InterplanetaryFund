@@ -55,7 +55,7 @@ export default function PrivateMediaLibrary({onOpenMedia}){
    const result=await job();
    if(unmounted.current||generation!==revision.current)return;
    if(refresh)await reload();
-   if(!unmounted.current&&generation===revision.current||!refresh)
+   if(!unmounted.current&&revision.current===(refresh?generation+1:generation))
      setMessage(label==="upload"?"Media uploaded to your private library.":
        label==="delete"?"Stored media deleted and verified absent.":
        label==="scan"?"Incomplete upload scan finished.":
