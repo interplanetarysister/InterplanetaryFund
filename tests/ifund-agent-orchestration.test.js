@@ -201,3 +201,46 @@ test("Refine Knowledge About Your Goal prepares a full, unlimited research plan"
   assert.doesNotMatch(candidate.findings, /jane@example\.com|example\.com|\$5,000|555-123-4567/);
   assert.match(candidate.findings, /Short updates with proof worked/);
 });
+
+test("Refine Knowledge tier gate: subscribers and verified admins only, fail closed", async () => {
+  const { classifyMemberAccess, extractGoalKnowledgeFromHistory, goalKnowledgeApplicationSummary,
+    buildGoalKnowledgePlan } = await import("../worker/agents/goalKnowledge.js");
+  // Verified admin / super-admin (enterprise, admin_granted) is eligible.
+  assert.deepEqual(classifyMemberAccess({ tier: "enterprise", level: 4, status: "active", active: true, admin_granted: true }),
+    { kind: "admin", eligible: true, tier: "enterprise", level: 4, verified: true });
+  // Paying subscribers at any paid level are eligible.
+  assert.equal(classifyMemberAccess({ tier: "basic", level: 1, status: "active", active: true, admin_granted: false }).kind, "subscriber");
+  assert.equal(classifyMemberAccess({ tier: "professional", level: 3, status: "active", active: true, admin_granted: false }).eligible, true);
+  // Free tier is not eligible.
+  assert.deepEqual(classifyMemberAccess({ tier: "free", level: 0, status: "inactive", active: false, admin_granted: false }),
+    { kind: "free", eligible: false, tier: "free", level: 0, verified: true });
+  // Lapsed/inactive paid rows and unverifiable answers fail closed.
+  assert.equal(classifyMemberAccess({ tier: "basic", level: 1, status: "cancelled", active: false, admin_granted: false }).eligible, false);
+  assert.equal(classifyMemberAccess(null).eligible, false);
+  assert.equal(classifyMemberAccess(undefined).eligible, false);
+  assert.equal(classifyMemberAccess({ admin_granted: "yes", active: "true", level: "4" }).eligible, false);
+  assert.equal(classifyMemberAccess({ tier: "enterprise", level: 4, active: true, admin_granted: false }).kind, "subscriber");
+});
+
+test("Agents can find and apply previously refined goal knowledge from team history", async () => {
+  const { extractGoalKnowledgeFromHistory, goalKnowledgeApplicationSummary, buildGoalKnowledgePlan } =
+    await import("../worker/agents/goalKnowledge.js");
+  const plan = buildGoalKnowledgePlan({ question: "Deep research my goal: surgery bills" });
+  const events = [
+    { speaker: "user", agent_id: "nexus", content: "hello", recorded_at: "2026-11-26T00:00:00Z" },
+    { speaker: "agent", agent_id: "nexus", content: JSON.stringify({ goal_knowledge_refinement: plan }), recorded_at: "2026-11-26T00:01:00Z" },
+    { speaker: "agent", agent_id: "nexus", content: JSON.stringify({ goal_knowledge_refinement: { ...plan, status: "subscriber_required" } }), recorded_at: "2026-11-26T00:02:00Z" },
+  ];
+  // The latest PREPARED plan is the learned knowledge; a locked notice is not.
+  const found = extractGoalKnowledgeFromHistory(events);
+  assert.equal(found.category, "medical");
+  assert.equal(found.status, "prepared");
+  const summary = goalKnowledgeApplicationSummary(found);
+  assert.equal(summary.category, "medical");
+  assert.ok(summary.knowledge_areas.includes("fastest_path"));
+  assert.ok(summary.research_questions.some(q => /fastest/i.test(q)));
+  // No plan on file -> nothing to apply.
+  assert.equal(extractGoalKnowledgeFromHistory([{ content: "no plan here" }]), null);
+  assert.equal(extractGoalKnowledgeFromHistory(null), null);
+  assert.equal(goalKnowledgeApplicationSummary(null), null);
+});

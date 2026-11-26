@@ -152,6 +152,62 @@ export function buildGoalKnowledgePlan({ question = "", category = null, origin 
   };
 }
 
+// Tier gate (owner directive 2026-11-26): in-depth goal research is a
+// subscriber-tier advantage, also available to verified admin/super-admin.
+// The authoritative source is the server-side ifund_story_subscription()
+// RPC, read with the member's own JWT — never the browser's or the member's
+// say-so. It returns {tier, level, status, active, admin_granted}, where a
+// verified admin (including super-admin) is enterprise level 4 with
+// admin_granted=true, a paying subscriber is active with level>=1, and a
+// free account is level 0. Anything missing or malformed fails CLOSED to
+// free: an unverifiable tier never grants the advantage.
+export function classifyMemberAccess(subscription) {
+  const tier = typeof subscription?.tier === "string" &&
+    /^[a-z_]{1,24}$/.test(subscription.tier) ? subscription.tier : "free";
+  const level = Number.isInteger(subscription?.level) ? subscription.level : 0;
+  if (subscription?.admin_granted === true)
+    return { kind: "admin", eligible: true, tier, level, verified: true };
+  if (subscription?.active === true && level >= 1)
+    return { kind: "subscriber", eligible: true, tier, level, verified: true };
+  return { kind: "free", eligible: false, tier, level, verified: subscription != null };
+}
+
+// Reference & application: when a refinement was recorded earlier in the
+// member's shared team context, later conversations must be able to find it
+// and apply it. History events carry the plan as JSON content; the latest
+// eligible plan wins. Returns null when nothing usable is on file.
+export function extractGoalKnowledgeFromHistory(events) {
+  if (!Array.isArray(events)) return null;
+  for (let i = events.length - 1; i >= 0; i--) {
+    const content = events[i]?.content;
+    if (typeof content !== "string" || !content.includes("goal_knowledge_refinement")) continue;
+    try {
+      const parsed = JSON.parse(content);
+      const plan = parsed?.goal_knowledge_refinement;
+      if (plan && plan.kind === "goal_knowledge_refinement" && plan.status === "prepared")
+        return plan;
+    } catch { /* not a plan record; keep scanning */ }
+  }
+  return null;
+}
+
+// Compact form of an on-file plan for a model message: enough for any agent
+// to apply the learned knowledge in discussion — the paths to favour, the
+// category practices, the questions the research set out to answer — without
+// re-sending the member's private wording.
+export function goalKnowledgeApplicationSummary(plan) {
+  if (!plan || plan.kind !== "goal_knowledge_refinement") return null;
+  return {
+    label: GOAL_KNOWLEDGE_LABEL,
+    category: typeof plan.category === "string" ? plan.category : "general",
+    knowledge_areas: Array.isArray(plan.knowledge_areas) ? plan.knowledge_areas.slice(0, 10) : [],
+    brief_sections: Array.isArray(plan.brief_sections) ? plan.brief_sections.slice(0, 9) : [],
+    research_questions: Array.isArray(plan.research_questions)
+      ? plan.research_questions.slice(0, 8).map(q => String(q).slice(0, 300)) : [],
+    brief_expires_after_days: plan.brief_expires_after_days || 90,
+  };
+}
+
 // Cross-campaign learning candidate: category-level patterns only. Names,
 // contact details, links and exact amounts are stripped before anything can
 // be proposed as a reusable playbook entry, and a super-admin must approve

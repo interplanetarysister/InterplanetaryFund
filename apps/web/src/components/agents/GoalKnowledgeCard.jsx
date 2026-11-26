@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
 const AREA_LABELS = {
@@ -22,6 +23,26 @@ const AREA_LABELS = {
  */
 export default function GoalKnowledgeCard({ goalKnowledge }) {
   if (!goalKnowledge || goalKnowledge.kind !== "goal_knowledge_refinement") return null;
+  if (goalKnowledge.status === "subscriber_required") {
+    return (
+      <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/5 p-3">
+        <div className="flex items-center gap-2">
+          <AgentIdentityIcon identity="nexus" size={28} />
+          <p className="text-sm font-semibold">{goalKnowledge.label || "Refine Knowledge About Your Goal"} — subscriber advantage</p>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          In-depth research into the fastest, easiest way to achieve your kind of goal is included with a
+          subscription (and for admins). Your team can still help with general guidance on the free tier.
+        </p>
+        <Link
+          className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-amber-300 px-4 font-semibold text-slate-950"
+          to="/subscriptions"
+        >
+          See agent plans
+        </Link>
+      </div>
+    );
+  }
   const areas = Array.isArray(goalKnowledge.knowledge_areas) ? goalKnowledge.knowledge_areas : [];
   return (
     <div className="mt-2 rounded-xl border border-emerald-300/30 bg-emerald-300/5 p-3">
