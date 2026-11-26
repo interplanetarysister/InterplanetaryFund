@@ -41,6 +41,7 @@ function BrandMark({ platform, size = "small" }) {
 }
 function VerifiedLabel({ row, link }) {
   if (row?.status === "connected" && row.verified_at) return <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300"><CheckCircle2 size={15}/> Securely connected</span>;
+  if (row?.status === "error") return <span className="text-sm font-semibold text-destructive">Connection needs attention — reconnect to restore it</span>;
   if (row && row.status !== "disconnected") return <span className="text-sm text-amber-700 dark:text-amber-300">Finish connecting</span>;
   if (link) return <span className="text-sm text-cyan-700 dark:text-cyan-300">Public page saved</span>;
   return <span className="text-sm text-muted-foreground">Choose how to connect</span>;
@@ -67,6 +68,14 @@ export default function Connections() {
   const [helpConsent, setHelpConsent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [providerReady, setProviderReady] = useState({});
+  // configured vs operational vs fully authorized are different facts. The
+  // gateway reports the first two; the member's own connection records supply
+  // the third. Never treat a configured credential as publishing permission.
+  const [providerStates, setProviderStates] = useState({});
+  // null = readiness not loaded yet, true/false = the gateway's oauthRuntimeReady()
+  // answer. Kept separate from providerReady so the page can tell "service
+  // outage" apart from "this platform is not offered yet".
+  const [oauthServiceReady, setOauthServiceReady] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recordError, setRecordError] = useState("");
   const [diagnosticError, setDiagnosticError] = useState("");
@@ -86,7 +95,7 @@ export default function Connections() {
     setRecordError("");
     setDiagnosticError("");
     if (!user?.id) {
-      setRecords([]); setLinks([]); setChoices([]); setCampaigns([]); setProviderReady({}); setHelpConsent(null);
+      setRecords([]); setLinks([]); setChoices([]); setCampaigns([]); setProviderReady({}); setProviderStates({}); setOauthServiceReady(null); setHelpConsent(null);
       setLoading(false);
       return () => { active = false; };
     }
@@ -99,11 +108,18 @@ export default function Connections() {
         listOwnerCampaigns(client),
         (async () => {
           const { data, error: issue }=await client.auth.getSession();
-          if (issue || !data?.session?.access_token) return {};
+          if (issue || !data?.session?.access_token) return null;
           const result=await fetch("/api/oauth/readiness",{headers:{Authorization:"Bearer "+data.session.access_token}});
           const payload=await result.json().catch(()=>({}));
-          if (!result.ok || payload.enabled!==true) return {};
-          return payload.providers || {};
+          if (!result.ok || payload.enabled!==true) return { runtimeReady:false, providers:{}, providerStates:{} };
+          // runtime_ready mirrors the gateway's oauthRuntimeReady() gate. When it
+          // is false no provider can start an authorization, even one whose own
+          // client id/secret and approval flag are configured.
+          return {
+            runtimeReady: payload.runtime_ready===true,
+            providers: payload.providers || {},
+            providerStates: payload.provider_states || {},
+          };
         })(),
         client.rpc("ifund_my_connection_assistance")
       ]);
@@ -114,7 +130,10 @@ export default function Connections() {
       setLinks(extract(1));
       setChoices(extract(2));
       setCampaigns(jobs[3].status==="fulfilled" && Array.isArray(jobs[3].value) ? jobs[3].value : []);
-      setProviderReady(jobs[4].status==="fulfilled" ? jobs[4].value || {} : {});
+      const readiness=jobs[4].status==="fulfilled" && jobs[4].value ? jobs[4].value : null;
+      setProviderReady(readiness?.providers || {});
+      setProviderStates(readiness?.providerStates || {});
+      setOauthServiceReady(readiness ? readiness.runtimeReady : null);
       const help=jobs[5].status==="fulfilled" && !jobs[5].value?.error && Array.isArray(jobs[5].value.data)
         ? jobs[5].value.data[0] || null : null;
       setHelpConsent(help);
@@ -134,8 +153,32 @@ export default function Connections() {
   const account = selectedOAuth ? records.find(row=>matchesStoredConnection(row,selectedOAuth) && row.status!=="disconnected") : null;
   const canStart = Boolean(selectedOAuth && providerReady[selectedOAuth]===true && user?.id);
   const isLinked = Boolean(account?.status==="connected" && account.verified_at);
+  // Backend facts (configured / operational) and the member's authorization
+  // record are distinct. An error or expired grant needs reconnecting, while a
+  // configured-but-not-operational provider must never look authorized.
+  const selectedProviderState = selectedOAuth ? providerStates[selectedOAuth]?.state || "not_configured" : "not_applicable";
+  const connectionState = !selectedOAuth ? "not_applicable" :
+    !user?.id ? "sign_in_required" :
+    account?.status==="error" ? "needs_reconnect" :
+    isLinked ? "authorized" :
+    selectedProviderState==="unavailable" ? "unavailable" :
+    selectedProviderState==="ready" ? "available" : "not_configured";
   const selectedChoice = choices.find(row=>row.provider===selected.id)?.choice || "manual";
   const savedId = saved?.provider || "";
+  // Distinct member states instead of one blanket "unavailable" message:
+  // signed out, gateway outage, platform not offered yet, and a saved
+  // connection whose reconnect/refresh is paused. Disconnect is never gated by
+  // any of these, so access can always be revoked during an outage.
+  const secureNotice = !selectedOAuth || canStart ? "" :
+    connectionState==="sign_in_required" ? "Sign in to connect "+selected.name+" securely. You can still save a public page link or open the official site." :
+    connectionState==="needs_reconnect" ? "Your "+selected.name+" connection needs attention — reconnect to restore it. You can still disconnect." :
+    (oauthServiceReady===false || connectionState==="unavailable") ? (isLinked
+      ? "iFund's secure connection service is temporarily unavailable, so your "+selected.name+" connection is saved but reconnecting and connection checks are paused. You can still disconnect."
+      : "iFund's secure connection service is temporarily unavailable right now. You can still save a public page link or open the official site.") :
+    loading ? "" :
+    connectionState==="not_configured" ? "Secure sign-in for "+selected.name+" is not available yet. You can still save a public page link or open the official site." :
+    isLinked ? "Your "+selected.name+" connection is saved, but secure sign-in for it is unavailable right now, so reconnecting is paused. You can still disconnect." :
+    "Secure sign-in for "+selected.name+" is not available yet. You can still save a public page link or open the official site.";
 
   useEffect(() => {
     setLinkInput(saved?.page_url || "");
@@ -312,7 +355,7 @@ export default function Connections() {
       {tiles.length===0 && <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">No matching platforms. Try another name or category.</p>}
     </section>
 
-    <section id="connection-details" className="space-y-5 rounded-3xl border border-border bg-card p-5 sm:p-7" aria-label={selected.name+" connection instructions"}>
+    <section id="connection-details" data-connection-state={connectionState} className="space-y-5 rounded-3xl border border-border bg-card p-5 sm:p-7" aria-label={selected.name+" connection instructions"}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-4"><BrandMark platform={selected} size="large"/><div><h2 className="text-2xl font-bold">{selected.name}</h2><p className="text-sm text-muted-foreground">{selected.kind==="crowdfunding"?"Fundraising page":selected.kind==="social"?"Social profile":"Account connection"}</p></div></div>
         <VerifiedLabel row={account} link={saved}/>
@@ -333,12 +376,12 @@ export default function Connections() {
         {selected.site && <a href={selected.site} target="_blank" rel="noopener noreferrer" className={BUTTON}>
           Open {selected.name} <ChevronRight size={16}/>
         </a>}
-        {isLinked && <button type="button" className={BUTTON} disabled={Boolean(busy)} onClick={()=>manage("refresh")}>
+        {isLinked && <button type="button" className={BUTTON} disabled={Boolean(busy) || !canStart} onClick={()=>manage("refresh")}>
           <RefreshCw size={16}/>{busy==="refresh"?"Checking…":"Check connection"}
         </button>}
       </div>
-      {selectedOAuth && !canStart && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-900 dark:text-amber-200">
-        Secure sign-in is unavailable right now. You can still save a public page link or open the official site.
+      {secureNotice && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-900 dark:text-amber-200">
+        {secureNotice}
       </p>}
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.

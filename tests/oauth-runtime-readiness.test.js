@@ -222,12 +222,57 @@ test('member readiness returns per-provider booleans without admin diagnostics',
   assert.equal(result.status, 200);
   const payload = await result.json();
   assert.equal(payload.enabled, true);
+  assert.equal(payload.runtime_ready, true);
   assert.equal(payload.providers.google, true);
   assert.equal(payload.providers.github, false);
   assert.equal(payload.providers.youtube, false);
+  // Configured and operationally verified are separate facts. A configured
+  // provider is not proof of a member grant, publishing or fundraising ability.
+  assert.deepEqual(payload.provider_states.google, { configured: true, operational: true, state: 'ready' });
+  assert.deepEqual(payload.provider_states.github, { configured: false, operational: true, state: 'not_configured' });
   assert.equal(Object.hasOwn(payload, 'runtime'), false);
   assert.equal(Object.hasOwn(payload, 'storage_ready'), false);
   assert.doesNotMatch(JSON.stringify(payload), /test-google-client-secret|sb_secret|AAAA/);
+});
+
+// Defect repaired 2026-11-26: providers were computed from providerConfig()
+// alone, so a fully configured provider reported ready while the authorization
+// routes answered 503 "Provider connections are not configured." A member must
+// never be sent to a consent screen the gateway would then refuse.
+test('member readiness hides every provider while the OAuth runtime is not ready', async () => {
+  const runtimeBroken = { ...googleConfiguredEnv, OAUTH_ENCRYPTION_KEY: 'A'.repeat(36) };
+  const result = await routeOAuthRequest(readinessRequest(), runtimeBroken, memberFetcher());
+  assert.equal(result.status, 200);
+  const payload = await result.json();
+  assert.equal(payload.enabled, true);
+  assert.equal(payload.runtime_ready, false);
+  assert.equal(payload.providers.google, false);
+  assert.equal(Object.values(payload.providers).some((value) => value === true), false);
+  // Credentials remain configured; the operation is unavailable. The member
+  // must not be told the provider is "not offered" when it is a gateway outage.
+  assert.deepEqual(payload.provider_states.google, { configured: true, operational: false, state: 'unavailable' });
+  assert.equal(Object.hasOwn(payload, 'runtime'), false);
+  assert.doesNotMatch(JSON.stringify(payload), /test-google-client-secret|sb_secret|A{36}/);
+});
+
+test('member readiness fails closed when the activation flag is off despite valid provider credentials', async () => {
+  const disabled = { ...googleConfiguredEnv, OAUTH_API_ENABLED: 'false' };
+  const result = await routeOAuthRequest(readinessRequest(), disabled, memberFetcher());
+  assert.equal(result.status, 200);
+  const payload = await result.json();
+  assert.equal(payload.enabled, false);
+  assert.equal(payload.runtime_ready, false);
+  assert.equal(payload.providers.google, false);
+});
+
+test('member readiness stays a member route while the server key is missing', async () => {
+  const noServerKey = { ...googleConfiguredEnv, SUPABASE_SECRET_KEY: '' };
+  const result = await routeOAuthRequest(readinessRequest(), noServerKey, memberFetcher());
+  assert.equal(result.status, 200);
+  const payload = await result.json();
+  assert.equal(payload.runtime_ready, false);
+  assert.equal(payload.providers.google, false);
+  assert.doesNotMatch(JSON.stringify(payload), /sb_secret|SUPABASE_SECRET_KEY/);
 });
 
 test('member readiness denies unauthenticated and inactive members', async () => {
@@ -264,4 +309,18 @@ test('Connections reads the member readiness endpoint, not the admin status endp
   const page = await readFile(new URL('../apps/web/src/pages/Connections.jsx', import.meta.url), 'utf8');
   assert.match(page, /fetch\("\/api\/oauth\/readiness"/);
   assert.doesNotMatch(page, /\/api\/oauth\/status/);
+  // The page must act on the complete readiness response: a provider is only
+  // startable when runtime_ready is true, and the outage has to be surfaced as
+  // its own state rather than a blanket "unavailable" notice.
+  assert.match(page, /runtime_ready/);
+  assert.match(page, /oauthServiceReady/);
+  assert.match(page, /secureNotice/);
+  // configured / operational / fully authorized are surfaced as distinct states.
+  assert.match(page, /payload\.provider_states/);
+  assert.match(page, /data-connection-state=\{connectionState\}/);
+  assert.match(page, /connectionState==="needs_reconnect"/);
+  assert.match(page, /connectionState==="not_configured"/);
+  assert.match(page, /connectionCapabilityReadiness/);
+  // Disconnect must stay reachable while sign-in is unavailable.
+  assert.match(page, /operation!=="disconnect" && !canStart/);
 });

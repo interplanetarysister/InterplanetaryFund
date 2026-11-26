@@ -39,7 +39,18 @@ The admin status endpoint returns binding names and configured booleans only; it
 
 Before enabling `OAUTH_API_ENABLED`, verify the active Supabase project, apply and verify the OAuth vault migrations, bind the server-only key, test a real member OAuth round trip for each enabled provider, and confirm the Pages Function route is deployed on each approved Pages origin. Keep the allowlist limited to active custom domains actually used for member authorization. Never repoint or replace the legacy D1 OAuth portal as a shortcut.
 
-## 2026-11-18 connected-account audit
+### Member readiness contract
+
+The member page calls `/api/oauth/readiness`, never the admin-only `/api/oauth/status`. The response is value-free and requires an active Supabase member. It exposes:
+
+- `enabled`: whether the gateway flag is on.
+- `runtime_ready`: the same six-binding AND gate used by start/callback/refresh. A provider credential alone cannot make this true.
+- `providers[name]`: true only when that provider is configured **and** the shared gateway is operational.
+- `provider_states[name]`: `{ configured, operational, state }`, where `state` is `not_configured`, `unavailable` (credentials exist but the gateway cannot start an exchange), or `ready`.
+
+A member’s saved connection is a separate, per-account fact derived from `ifund_connections`. The page distinguishes `sign_in_required`, `needs_reconnect`, `authorized`, `unavailable`, `available`, and `not_configured`; disconnect stays reachable in every state so saved access can always be revoked. None of these states grants publishing, campaign-management, fundraising or withdrawal capability.
+
+## 2026-11-18 connected-account audit (historical snapshot)
 
 - Cloudflare account authenticated as the IFund business account. The production Pages project is `interplanetaryfund-migration`; the active Supabase project is `ssibsfmtodgximseeqsv` in the `interplanetary fund` organization. The older `tzehxfikoslihnclhxuz` project is inactive.
 - Production Pages already has the correct Supabase URL, publishable key, JWKS URL, server-only secret binding, and OAuth encryption secret binding. The secret values are masked by Cloudflare's API, so presence is verified but their actual contents/cryptographic validity are not.

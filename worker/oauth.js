@@ -722,13 +722,51 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       });
     }
     // Member-safe readiness: per-provider configured booleans only. No admin
-    // diagnostics (runtime/storage), no credential values. Requires a verified
-    // active member so unauthenticated callers cannot probe provider config.
-    // The admin status endpoint below stays admin-only.
+    // diagnostics (the runtime/storage arrays stay on the admin status route),
+    // no credential values. Requires a verified active member so
+    // unauthenticated callers cannot probe provider configuration. The admin
+    // status endpoint below stays admin-only.
+    //
+    // Defect repaired 2026-11-26: providers were derived from providerConfig()
+    // alone, so a provider could report ready while oauthRuntimeReady() was
+    // false — the member was then sent to a consent screen only for the
+    // start/callback route to answer 503 "Provider connections are not
+    // configured." Every provider now carries the same runtime + storage gate
+    // the authorization routes use. Disconnect stays exempt from that gate (see
+    // below) so saved access can always be revoked during an outage.
     const account = await activeOAuthAccount(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in before checking provider readiness.' });
-    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
-    return response(200, { enabled: env.OAUTH_API_ENABLED === 'true', providers });
+    const runtimeReady = oauthRuntimeReady(env);
+    // serviceConfigured() is implied by runtimeReady() today (both require the
+    // server key and a 32-byte encryption key) but is kept explicit so the two
+    // gates cannot drift apart. Its value is not echoed to members: only the
+    // single runtime_ready boolean leaves this route.
+    const storageReady = serviceConfigured(env);
+    // Three separate facts, never conflated:
+    //  - configured: this provider's credentials and approval flag exist;
+    //  - operational: the shared gateway can start and persist an exchange;
+    //  - providers[name]: both hold, so an authorization may actually start.
+    // A verified member connection is a fourth, per-account fact and is derived
+    // by the page from its own records. None of these values grants publishing,
+    // campaign-management or fundraising capability by itself.
+    const providerStates = {};
+    const providers = {};
+    for (const name of Object.keys(PROVIDERS)) {
+      const configured = !!providerConfig(name, env);
+      const operational = runtimeReady && storageReady;
+      providerStates[name] = {
+        configured,
+        operational,
+        state: !configured ? 'not_configured' : operational ? 'ready' : 'unavailable',
+      };
+      providers[name] = configured && operational;
+    }
+    return response(200, {
+      enabled: env.OAUTH_API_ENABLED === 'true',
+      runtime_ready: runtimeReady,
+      providers,
+      provider_states: providerStates,
+    });
   }
   if (url.pathname === '/api/oauth/status') {
     if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
