@@ -13,9 +13,19 @@ export const JOBS=Object.freeze([
  {id:"growth-reporting",minutes:1440,offset:905,flag:"IFUND_STITCH_REPORTS_ENABLED",binding:"IFUND_STITCH_REPORTS",batch:20},
  {id:"delivery-notifications",minutes:15,offset:10,flag:"IFUND_STITCH_NOTIFICATIONS_ENABLED",binding:"IFUND_STITCH_NOTIFICATIONS",batch:20}
 ]);
+// Cloudflare invokes cron ticks slightly after their nominal boundary.
+// Normalize within the first minute of the intended slot, never using
+// wall-clock time (which could shift a delayed retry into a different slot).
+export function normalizeSlot(value){
+ if(!Number.isSafeInteger(value)||value<1000000000)return null;
+ const ms=value<10000000000?value*1000:value;
+ if(ms<1000000000000||ms>=4102444800000)return null;
+ const slot=Math.floor(ms/300000)*300000;
+ return ms-slot<60000?slot:null;
+}
 export function due(job,scheduledTime){
- if(!Number.isSafeInteger(scheduledTime)||scheduledTime<0||scheduledTime%300000!==0)return false;
- return (Math.floor(scheduledTime/60000)-job.offset)%job.minutes===0;
+ const slot=normalizeSlot(scheduledTime);
+ return slot!==null&&(Math.floor(slot/60000)-job.offset)%job.minutes===0;
 }
 async function health(env){
  const checks=[];
@@ -32,8 +42,8 @@ async function health(env){
  return checks;
 }
 export async function runTick(event,env,emit=record=>console.log(JSON.stringify(record))){
- const scheduledTime=event?.scheduledTime;
- if(env.IFUND_STITCH_SCHEDULER_ENABLED!=="enabled"||!Number.isSafeInteger(scheduledTime)||scheduledTime<0||scheduledTime%300000!==0)return [];
+ const scheduledTime=normalizeSlot(event?.scheduledTime);
+ if(env.IFUND_STITCH_SCHEDULER_ENABLED!=="enabled"||scheduledTime===null)return [];
  const results=[];
  // Health probes do not execute any business workflow, consume AI, or publish content.
  if(env.IFUND_STITCH_HEALTH_ENABLED==="enabled"&&due({minutes:30,offset:0},scheduledTime)){
@@ -52,6 +62,7 @@ export async function runTick(event,env,emit=record=>console.log(JSON.stringify(
    results.push({job:job.id,state:result.state});
   }catch{results.push({job:job.id,state:"failed"});}
  }
+ emit({service:"ifund-stitch-scheduler",scheduledTime,job:"dispatch",state:"completed",jobs:results.length});
  for(const result of results)emit({service:"ifund-stitch-scheduler",scheduledTime,...result});
  return results;
 }
