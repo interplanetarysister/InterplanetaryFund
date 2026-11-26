@@ -6,6 +6,7 @@ import { askIFundAgent } from "@/lib/agentQuestions";
 import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mjs";
 import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
+import AgentDispatchCard from "@/components/agents/AgentDispatchCard";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 
 const MAX_MESSAGE_LENGTH = 2000;
@@ -116,7 +117,7 @@ export default function MemberAgentChat({ user, agent }) {
         ...previous,
         [requestAgent]:[...(previous[requestAgent] || []),{
           id:crypto.randomUUID(),kind:"answer",agent:result.agent,
-          text:result.answer,consultations:result.consultations
+          text:result.answer,consultations:result.consultations,dispatch:result.dispatch
         }]
       }));
     } catch (cause) {
@@ -160,6 +161,7 @@ export default function MemberAgentChat({ user, agent }) {
         </div>
         <p className="whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
         {message.kind==="answer"&&<AgentConsultationTrail consultations={message.consultations}/>}
+        {message.kind==="answer"&&<AgentDispatchCard dispatch={message.dispatch}/>}
       </article>)}
       {busy&&<p role="status" className="text-sm text-muted-foreground">Your agent is preparing a response…</p>}
     </div>

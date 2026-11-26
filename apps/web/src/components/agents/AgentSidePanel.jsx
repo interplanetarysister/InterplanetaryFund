@@ -9,8 +9,15 @@ import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mj
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
+import AgentDispatchCard from "@/components/agents/AgentDispatchCard";
 
-const choices = Object.keys(AGENT_IDENTITIES);
+import { frontAgentForSpecialist } from "@/lib/agentTrainingDirectory.mjs";
+
+// Members pick from front doors only: backend specialists behind a front
+// desk (ECHO, PULSE, LINK, FORGE) are reached through REACH, so the picker
+// shows each front agent once. Existing deep links to a backend specialist
+// still resolve to its front door here.
+const choices = [...new Set(Object.keys(AGENT_IDENTITIES).map(frontAgentForSpecialist))];
 /** A non-modal workspace companion: route changes must never reset a conversation. */
 export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggestion }) {
   const { user } = useAuthSession();
@@ -37,7 +44,8 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
   const previousOwner = useRef(user?.id || null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
-  const identity = choices.includes(agent) ? agent : "nexus";
+  const identity = choices.includes(agent) ? agent
+    : choices.includes(frontAgentForSpecialist(agent)) ? frontAgentForSpecialist(agent) : "nexus";
   useEffect(() => {
     if(!voiceSuggestion?.text || !agent || consumedSuggestion.current===voiceSuggestion.id)return;
     consumedSuggestion.current=voiceSuggestion.id;
@@ -227,7 +235,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
     try {
       const response = await askIFundAgent(authClient(), { question: text, agent: identity, ownerId: user.id, signal: controller.signal });
       if (!controller.signal.aborted) {
-        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer, consultations:response.consultations }]);
+        setMessages(items => [...items, { agent: response.agent, kind: "answer", text: response.answer, consultations:response.consultations, dispatch:response.dispatch }]);
         if (voiceEnabled && speakAgent(response.answer, response.agent, {onEnd: () => setSpeaking(false)})) setSpeaking(true);
       }
     } catch (cause) {
@@ -267,6 +275,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
           <strong className="min-w-0 break-words">{AGENT_IDENTITIES[message.agent]?.name || "Agent"}</strong>
         </div>}
         {message.kind==="answer" && <AgentConsultationTrail consultations={message.consultations}/>}
+        {message.kind==="answer" && <AgentDispatchCard dispatch={message.dispatch}/>}
         <p className="whitespace-pre-wrap break-words">{message.text}</p>
       </div>)}
       {busy && <p role="status" className="text-sm text-slate-400">Checking your question…</p>}

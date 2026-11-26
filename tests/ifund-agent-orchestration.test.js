@@ -91,3 +91,55 @@ test("agent interfaces render genuine service receipts with their governed icons
  assert.match(page,/AgentConsultationTrail consultations=\{agentReply.consultations\}/);
  assert.match(page,/Proposed specialist calls:/);
 });
+
+test("REACH front desk consults only its own backend specialists", async () => {
+  const { planAgentConsultations, frontDeskSynthesisMessages } = await import("../worker/agents/teamOrchestration.js");
+  const { recommendAgent, frontAgentForSpecialist, isFrontDeskAgent } = await import("../apps/web/src/lib/agentTrainingDirectory.mjs");
+  assert.equal(isFrontDeskAgent("reach"), true);
+  assert.equal(frontAgentForSpecialist("echo"), "reach");
+  assert.equal(frontAgentForSpecialist("pulse"), "reach");
+  assert.equal(frontAgentForSpecialist("link"), "reach");
+  assert.equal(frontAgentForSpecialist("forge"), "reach");
+  assert.equal(frontAgentForSpecialist("story"), "story");
+  // A connections question routed to LINK is planned for REACH as a LINK consult.
+  const rec = recommendAgent("my oauth connection repair for a linked account");
+  const planned = planAgentConsultations({ question: "q", selected: "reach", recommendation: rec });
+  assert.deepEqual(planned, ["link"]);
+  // Topics outside REACH's scope are never planned for it.
+  const storyRec = recommendAgent("help rewrite my campaign story headline");
+  assert.deepEqual(planAgentConsultations({ question: "q", selected: "reach", recommendation: storyRec }), []);
+  // Synthesis presents one REACH voice and rejects non-backend consultations.
+  const messages = frontDeskSynthesisMessages({ front: "reach", question: "How do I fix my connection?",
+    consultations: [{ agent: "link", status: "completed", summary: "The OAuth grant expired." }] });
+  assert.match(messages[0].content, /You are REACH/);
+  assert.match(messages[1].content, /connections/);
+  assert.throws(() => frontDeskSynthesisMessages({ front: "reach", question: "q",
+    consultations: [{ agent: "story", status: "completed", summary: "x" }] }), /front-desk/i);
+});
+
+test("NEXUS dispatch prepares explicit single-domain action requests only", async () => {
+  const { detectDispatchIntent, buildDispatch, dispatchEventKey } = await import("../worker/agents/chiefOfStaffDispatch.js");
+  const { replyEventKey } = await import("../worker/agents/teamContext.js");
+  // Explicit action + one specialist domain -> dispatch.
+  assert.deepEqual(detectDispatchIntent("Draft my campaign story for the food drive"), { specialist: "story" });
+  assert.deepEqual(detectDispatchIntent("Prepare a thank-you email for my supporters"), { specialist: "echo" });
+  assert.deepEqual(detectDispatchIntent("Fix my oauth connection repair"), { specialist: "link" });
+  // Pure questions are advisory, never dispatched.
+  assert.equal(detectDispatchIntent("How do I write a campaign story?"), null);
+  assert.equal(detectDispatchIntent("What is a good strategy for my goal?"), null);
+  // No action verb, or mixed domains, stays advisory.
+  assert.equal(detectDispatchIntent("Tell me about referral attribution"), null);
+  assert.equal(detectDispatchIntent("Draft my story and prepare a budget breakdown"), null);
+  const dispatch = buildDispatch({ question: "Draft my campaign story for the food drive", requestId: UID });
+  assert.equal(dispatch.status, "prepared");
+  assert.equal(dispatch.specialist, "story");
+  assert.equal(dispatch.actions_performed, false);
+  assert.equal(dispatch.requires_member_launch, true);
+  assert.match(dispatch.workspace_path, /^\//);
+  // Dispatch idempotency key is a valid UUID distinct from message/reply keys.
+  const key = dispatchEventKey(UID);
+  assert.match(key, /^[0-9a-f-]{36}$/i);
+  assert.notEqual(key, UID);
+  assert.notEqual(key, replyEventKey(UID));
+  assert.equal(dispatchEventKey(UID), key);
+});
