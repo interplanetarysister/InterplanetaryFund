@@ -38,3 +38,11 @@
 3. Preserve the 8/day AI run cap, the no-payments/no-publish advisory boundary, and fail-closed owner-scoped RLS for private sources.
 4. Never rotate or copy `IFUND_OPS_BOT_TOKEN` into GitHub, Vite, client code, or a chat message.
 5. Use manual Cloudflare Pages ad hoc Git deploys only after source review/tests; automatic Git deployments and GitHub Actions minutes remain disabled.
+
+## Admin frontend release — same day
+- Added `public.ifund_ops_bot_admin_status()` as a privileged **read-only** RPC gated on `public.ifund_current_user_is_verified_admin()`. It exposes only the enabled status, current UTC-day run count and 8-run limit, and the latest run's status/timestamps; it does **not** return the secret fingerprint, account data or private message content.
+- The RPC grants EXECUTE to authenticated only; anonymous grants revoked. Production verification: `anon_can_read=false`, `member_can_call=true`, and unauthenticated direct execution rejected with SQLSTATE `42501` and `Administrator access required`.
+- `apps/web/src/components/agents/AgentOperationsRoom.jsx` now displays the verified run summary, fetching it alongside admin room messages and clearing status on auth changes. Missing receipts do not fabricate success.
+- Squash PR #390 to main commit `b5aaadb7e0d9ad5a5a26707f27152fe24d0cf242`, Cloudflare production deployment `2cbe0ee1-2a8a-4c42-b0af-4e0c621fa9c0` **all stages success** with **100/100 root, 1,307/1,307 frontend tests, and successful Vite build**. Public apex, www and preview aliases point to that deployment.
+- Supabase advisor labels this new authenticated SECURITY DEFINER RPC as a generic warning; the exposure is intentional and defended by live verified-admin checks in the body and restricted execute grants. Do not remove the admin guard.
+- Build emits an informational Wrangler auto-discovery warning because root `wrangler.jsonc` is a **Workers API** config, not the Pages frontend project. The build correctly skips that file and compiles Pages Functions. Do not add Pages output settings to the Workers API config merely to suppress the warning.
