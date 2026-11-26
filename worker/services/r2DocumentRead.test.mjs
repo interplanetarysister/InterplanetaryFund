@@ -7,7 +7,7 @@ const campaign = "22222222-2222-4222-8222-222222222222";
 const doc = "33333333-3333-4333-8333-333333333333";
 const sha = "ab".repeat(32);
 const key = `private/campaign-documents/${owner}/${campaign}/${doc}.pdf`;
-const row = { document_id:doc, campaign_id:campaign, storage_path:key, object_etag:'"receipt"', object_sha256:sha, object_verified_at:"2026-11-20T00:00:00Z", file_size:5 };
+const row = { document_id:doc, owner_id:owner, object_store:"r2", campaign_id:campaign, storage_path:key, object_etag:'"receipt"', object_sha256:sha, object_verified_at:"2026-11-20T00:00:00Z", file_size:5 };
 const head = { httpEtag:'"receipt"', size:5, checksums:{sha256:sha} };
 test("R2 binding is mandatory",()=>assert.throws(()=>requireCampaignR2({})));
 test("ArrayBuffer SHA256 is normalized to hex",()=>{
