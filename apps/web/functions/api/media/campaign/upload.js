@@ -26,15 +26,15 @@ async function bodyBytes(request){
   finally{reader.releaseLock();}
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}return bytes;
 }
-async function ownerIdentity(request,env){
+export async function ownerIdentity(request,env,fetcher=fetch){
   const bearer=request.headers.get("authorization")||"",endpoint=env.SUPABASE_URL;
   const key=env.SUPABASE_PUBLISHABLE_KEY||env.VITE_SUPABASE_PUBLISHABLE_KEY;
   if(!/^Bearer [A-Za-z0-9._~-]{20,8192}$/.test(bearer)||endpoint!=="https://ssibsfmtodgximseeqsv.supabase.co"||!key)return null;
   const headers={apikey:key,authorization:bearer,accept:"application/json"};
-  const response=await fetch(endpoint+"/auth/v1/user",{headers,redirect:"error",signal:AbortSignal.timeout(8000)});
+  const response=await fetcher(endpoint+"/auth/v1/user",{headers,redirect:"error",signal:AbortSignal.timeout(8000)});
   if(!response.ok)return null;const user=await readJsonBody(response,64000);
   if(!UUID.test(user?.id||"")||user.is_anonymous===true||!user.email_confirmed_at)return null;
-  const profile=await fetch(endpoint+"/rest/v1/ifund_profiles?select=account_status,account_deletion_pending&id=eq."+encodeURIComponent(user.id),{headers,redirect:"error",signal:AbortSignal.timeout(8000)});
+  const profile=await fetcher(endpoint+"/rest/v1/ifund_profiles?select=account_status,account_deletion_pending&id=eq."+encodeURIComponent(user.id),{headers,redirect:"error",signal:AbortSignal.timeout(8000)});
   if(!profile.ok)return null;const rows=await readJsonBody(profile,16000);
   return Array.isArray(rows)&&rows.length===1&&rows[0].account_status==="active"&&rows[0].account_deletion_pending===false?user.id:null;
 }
@@ -56,7 +56,7 @@ export async function onRequest({request,env}){
   try {
     const headers={apikey:serviceKey,"content-type":"application/json"};
     if(serviceKey.startsWith("eyJ"))headers.authorization="Bearer "+serviceKey;
-    for(const [bucketName,maximum,seconds] of [["ifund-cover-owner:"+owner,10,86400],["ifund-cover-global",25,86400]]) {
+    for(const [bucketName,maximum,seconds] of [["ifund-cover-owner:"+owner,10,86400],["ifund-cover-global",500,86400]]) {
       const bucketHash=await digest(new TextEncoder().encode(bucketName));
       const grant=await fetch(env.SUPABASE_URL+"/rest/v1/rpc/ifund_device_rate_limit",{method:"POST",headers,redirect:"error",signal:AbortSignal.timeout(8000),body:JSON.stringify({p_bucket_hash:bucketHash,p_limit:maximum,p_window_seconds:seconds})});
       const allowed=grant.ok?await readJsonBody(grant,64):null;
@@ -75,5 +75,9 @@ export async function onRequest({request,env}){
     const saved=await bucket.get(key);
     if(!saved||saved.size!==bytes.length||typeof saved.arrayBuffer!=="function"||await digest(await saved.arrayBuffer())!==sha256)throw Error("image_bytes_unverified");
     return json(201,{url:url.origin+"/api/media/campaign/file/"+file,content_type:type,bytes:bytes.length,sha256});
-  }catch{return json(503,{error:"Image storage could not verify the saved bytes. Please retry."});}
+  }catch{
+    // A failed R2 readback must not accumulate invisible orphan images.
+    try{await bucket.delete?.(key);}catch{/* A cleanup retry may require owner review. */}
+    return json(503,{error:"Image storage could not verify the saved bytes. Please retry."});
+  }
 }
