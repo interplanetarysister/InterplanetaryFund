@@ -10,8 +10,15 @@ async function referencedCover(env,url,fetcher=fetch){
    throw Error("Cover references cannot be checked.");
  const headers={apikey:key,accept:"application/json"};
  if(!key.startsWith("sb_secret_"))headers.authorization="Bearer "+key;
- const filter=encodeURIComponent(url);
- const r=await fetcher(env.SUPABASE_URL+"/rest/v1/ifund_campaigns?select=id&cover_image_url=eq."+filter+"&limit=1",{
+ const u=new URL(url);
+ // A preview-origin cover can be attached to a production-domain campaign or
+ // viewed through the www alias. Search by the opaque immutable cover path,
+ // not by the current request hostname. Any match blocks destructive removal.
+ const path=u.pathname;
+ if(!/^\/api\/media\/campaign\/file\/[a-f0-9-]{36}\.(png|jpg|webp|gif|avif)$/i.test(path))
+   throw Error("Invalid cover reference.");
+ const query=new URLSearchParams({select:"id",cover_image_url:"like.*"+path,limit:"1"});
+ const r=await fetcher(env.SUPABASE_URL+"/rest/v1/ifund_campaigns?"+query.toString(),{
   method:"GET",headers,redirect:"error",signal:AbortSignal.timeout(12000)
  });
  if(!r.ok)throw Error("Campaign references could not be checked.");
