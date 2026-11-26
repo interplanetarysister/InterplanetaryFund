@@ -9,7 +9,6 @@ import { canAskAgentWithSavedPermission } from "@/lib/agentAdvisoryPermission.mj
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { makeRecognition, speakAgent, stopSpeaking, canSpeak } from "@/lib/agentSpeech.mjs";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
-import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 
 const choices = Object.keys(AGENT_IDENTITIES);
 /** A non-modal workspace companion: route changes must never reset a conversation. */
@@ -188,22 +187,18 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
     (async () => {
       try {
         const client = authClient();
-        const [status, subscription, preferences, identityResponse] = await Promise.all([
-          fetch("/api/agents/team/status", { signal: controller.signal, cache: "no-store" }),
-          client.rpc("ifund_story_subscription"),
+        // Advisory status and paid subscriptions are not chat entitlements.
+        // A verified member with saved AI consent can send on every iFund page.
+        const [preferences, identityResponse] = await Promise.all([
           client.from("ifund_ai_permission_preferences").select("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance").eq("owner_id", owner).maybeSingle(),
           client.auth.getUser(),
         ]);
-        const gateway = await status.json().catch(() => null);
         const verified = identityResponse.data?.user;
         const permitted = !preferences.error && canAskAgentWithSavedPermission({ user: verified, ownerId: owner, preferences: preferences.data });
-        const subscribed = !subscription.error && subscription.data?.active === true && Number.isInteger(subscription.data.level) && subscription.data.level >= 1;
         if (controller.signal.aborted) return;
         setAvailability({
-          loading: false, enabled: status.ok && gateway?.configured === true && subscribed && permitted && verified?.id === owner,
-          reason: !status.ok || gateway?.configured !== true ? "Direct agent answers are unavailable on this deployment." :
-            !subscribed ? "Direct answers require a verified AI membership." :
-            !permitted ? "Enable private AI assistance in your permissions to ask an agent." : "",
+          loading: false, enabled: permitted && verified?.id === owner,
+          reason: !permitted ? "Enable private AI assistance in your permissions to ask an agent." : "",
         });
       } catch {
         if (!controller.signal.aborted) setAvailability({ loading: false, enabled: false, reason: "Agent access could not be verified." });
@@ -236,7 +231,10 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         if (voiceEnabled && speakAgent(response.answer, response.agent, {onEnd: () => setSpeaking(false)})) setSpeaking(true);
       }
     } catch (cause) {
-      if (!controller.signal.aborted) setError(cause?.message || "The agent could not answer.");
+      if (!controller.signal.aborted) {
+        setQuestion(text);
+        setError(cause?.message || "The agent could not answer. Your message is ready to retry.");
+      }
     } finally {
       if (active.current === controller) { active.current = null; setBusy(false); }
     }
@@ -282,7 +280,7 @@ export default function AgentSidePanel({ agent, onSelect, onClose, voiceSuggesti
         <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Discover</Link>
         {user && <Link to="/dashboard" className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-3 text-cyan-200">Dashboard</Link>}
       </nav>
-      {!availability.enabled && <PremiumOpportunity context="agent" compact />}
+
       {!availability.enabled && <p role="status" className="mb-2 text-sm text-slate-200">{availability.loading ? "Checking agent access…" : availability.reason}{" "}
         {!user ? <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link> :
           <Link className="underline" to="/subscriptions">Agent plans and permissions</Link>}
