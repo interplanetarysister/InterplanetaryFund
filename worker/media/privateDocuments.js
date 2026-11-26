@@ -155,7 +155,16 @@ async function upload(request,env,fetcher,bucket,actor,campaign){
   return json(201,{id,bytes:bytes.length,content_type:type,sha256:sha});
  }catch(error){
   if(created){
-   try{await bucket.delete(objectKey);if(await bucket.head(objectKey))fail(503,"Orphaned private media requires recovery.");}
+   // An interrupted INSERT response is not proof the transaction failed.
+   // Preserve the R2 object when a matching durable document record may exist.
+   let registered;
+   try{
+    registered=await supabase(env,fetcher,
+      "/rest/v1/ifund_campaign_documents?select=id&id=eq."+id+"&limit=1",{admin:true});
+   }catch{fail(503,"Document registration is uncertain; stored bytes were retained for reviewed recovery.");}
+   if(!Array.isArray(registered)||registered.length)
+     fail(503,"Document receipt may already exist; stored bytes were retained.");
+   try{await bucket.delete(objectKey);if(await bucket.head(objectKey))throw Error("Object still exists");}
    catch{fail(503,"Private media cleanup needs recovery. The upload was not completed.");}
   }
   throw error;
