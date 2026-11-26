@@ -42,7 +42,7 @@ export default function PrivateMediaLibrary({onOpenMedia}){
  useEffect(()=>{
   unmounted.current=false;void reload();
   const {data}=authClient().auth.onAuthStateChange(()=>{
-   ++revision.current;setRows([]);setOrphans([]);setVerified(false);setMessage("");
+   ++revision.current;setRows([]);setOrphans([]);setVerified(false);setMessage("");setBusy("");
    void reload();
   });
   return()=>{unmounted.current=true;revision.current++;data?.subscription?.unsubscribe();};
@@ -62,7 +62,7 @@ export default function PrivateMediaLibrary({onOpenMedia}){
        label==="orphan"?"Abandoned upload securely removed.":"Media retrieved.");
    return result;
   }catch(e){if(!unmounted.current&&generation===revision.current)setError(e.message||"Media operation failed.");}
-  finally{if(!unmounted.current)setBusy("");}
+  finally{if(!unmounted.current&&revision.current===(refresh?generation+1:generation))setBusy("");}
  }
  async function upload(e){
   const file=e.currentTarget.files?.[0];
@@ -83,7 +83,7 @@ export default function PrivateMediaLibrary({onOpenMedia}){
   await run("open",async()=>{
    const blob=await downloadMyMedia(authClient(),item);
    const file=new File([blob],item.file_name,{type:item.content_type});
-   onOpenMedia(file);
+   await onOpenMedia(file);
   },{refresh:false});
  }
  async function remove(item){
