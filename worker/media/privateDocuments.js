@@ -118,6 +118,11 @@ async function upload(request,env,fetcher,bucket,actor,campaign){
  if(!Array.isArray(rows)||rows.length>500)fail(503,"Private document storage limits cannot be verified.");
  if(rows.filter(x=>x.campaign_id===campaign).length>=CAMPAIGN_MAX)fail(409,"This campaign already has 15 documents.");
  if(rows.reduce((n,x)=>n+Number(x.file_size||0),0)>=ACCOUNT_BYTES)fail(409,"Your private document storage is full.");
+ const quota=await supabase(env,fetcher,"/rest/v1/rpc/ifund_device_rate_limit",{
+  method:"POST",admin:true,body:{p_bucket_hash:await hex(new TextEncoder().encode("ifund-private-doc-owner:"+actor.id)),p_limit:20,p_window_seconds:86400}
+ });
+ if(quota===false)fail(429,"Your daily private document upload limit is reached.");
+ if(quota!==true)fail(503,"Private document upload allowance could not be verified.");
  const bytes=await boundedBytes(request);
  if(!documentSignature(bytes,type))fail(415,"Document bytes do not match their file type.");
  if(rows.reduce((n,x)=>n+Number(x.file_size||0),0)+bytes.length>ACCOUNT_BYTES)fail(409,"Your private document storage is full.");
