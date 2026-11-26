@@ -168,7 +168,8 @@ test("unverified-capability warnings still present; no verified chat is claimed"
   const page = read("src/pages/AgentsTeam.jsx");
   assert.match(page, /yet have verified direct advisory chat for the registered specialist/);
   assert.match(page, /Direct AI answers are not enabled on this deployment/);
-  assert.match(page, /Direct specialist answers require an active verified membership and AI permission/);
+  assert.match(page, /a paid plan is not required/);
+  assert.doesNotMatch(page,/membershipActive/);
   const lib = read("src/lib/agentsPage.mjs");
   assert.match(lib, /Messaging is NOT a tab here/);
   assert.doesNotMatch(lib, /verified (direct |specialist )?chat is (available|live|enabled)/i);
