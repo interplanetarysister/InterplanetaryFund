@@ -86,10 +86,8 @@ export default function AgentsTeam() {
   const [questionError,setQuestionError]=useState("");
   const [questionBusy,setQuestionBusy]=useState(false);
   const [gateway,setGateway]=useState({status:"loading",configured:false});
-  const [membership,setMembership]=useState({status:"loading",active:false,ownerId:null});
   const [aiPermission,setAiPermission]=useState({status:"loading",allowed:false,ownerId:null});
   const [consentRevision,setConsentRevision]=useState(0);
-  const membershipActive=Boolean(user?.id && membership.ownerId===user.id && membership.status==="ready" && membership.active);
   const aiPermissionGranted=Boolean(user?.id && aiPermission.ownerId===user.id && aiPermission.status==="ready" && aiPermission.allowed);
   const requestRef=useRef({generation:0,controller:null});
   useEffect(()=>{
@@ -104,24 +102,6 @@ export default function AgentsTeam() {
       }).catch(()=>{if(!controller.signal.aborted)setGateway({status:"unavailable",configured:false});});
     return()=>controller.abort();
   },[]);
-  useEffect(()=>{
-    let active=true;
-    setMembership({status:"loading",active:false,ownerId:user?.id||null});
-    if(!user?.id){setMembership({status:"signed-out",active:false,ownerId:null});return()=>{active=false};}
-    const owner=user.id;
-    try {
-      const client=authClient();
-      client.rpc("ifund_story_subscription").then(async({data,error})=>{
-        const {data:identity}=await client.auth.getUser();
-        if(!active||identity?.user?.id!==owner)return;
-        setMembership({status:error?"unavailable":"ready",ownerId:owner,
-          active:!error&&data?.active===true&&Number.isInteger(data?.level)&&data.level>=1});
-      }).catch(()=>{if(active)setMembership({status:"unavailable",active:false,ownerId:owner});});
-    } catch {
-      if(active)setMembership({status:"unavailable",active:false,ownerId:owner});
-    }
-    return()=>{active=false;};
-  },[user?.id]);
   useEffect(()=>{
     const changed=event=>{
       if(event.detail?.ownerId !== user?.id)return;
@@ -171,8 +151,6 @@ export default function AgentsTeam() {
   async function submitAgentQuestion(event) {
     event.preventDefault();
     if(questionBusy || agentQuestion.trim().length<8) return;
-    if(!gateway.configured){setQuestionError("Direct AI questions are not yet enabled here. Use the available specialist tools.");return;}
-    if(!membershipActive){setQuestionError("An active verified AI membership is needed for direct agent answers.");return;}
     if(!aiPermissionGranted){setQuestionError("Enable campaign drafting or private AI assistance under My Profile → Manage iFund Permissions → AI assistance before asking a specialist.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
@@ -289,14 +267,12 @@ export default function AgentsTeam() {
         {authStatus!=="loading" && !user && <p className="text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to ask an agent.</p>}
         {gateway.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking agent service availability…</p>}
         {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Direct AI answers are not enabled on this deployment. You can still choose specialist tools below.</p>}
-        {gateway.configured&&membership.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI membership…</p>}
-        {gateway.configured&&membership.status==="ready"&&!membershipActive&&<p role="status" className="text-sm">Free specialist matching is available. <Link to="/subscriptions" className="text-primary underline">See verified AI plans</Link> for direct answers.</p>}
-        {gateway.configured&&membership.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI membership could not be verified. No paid question was sent.</p>}
-        {gateway.configured&&membershipActive&&aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your saved AI permissions…</p>}
-        {gateway.configured&&membershipActive&&aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI permission could not be verified. No question was sent.</p>}
-        {gateway.configured&&membershipActive&&aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Direct AI questions are disabled in your saved permissions. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> and save to use the agent team.</p>}
+        {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Agent status could not be checked. You can still submit; the service will report any delivery error.</p>}
+        {aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI permissions…</p>}
+        {aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">AI permission check unavailable; retry once your session is verified.</p>}
+        {aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Private AI help is switched off. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> to use agent chat.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
-        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membershipActive || !aiPermissionGranted}
+        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !aiPermissionGranted}
           className="ifund-agents-submit">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
@@ -345,7 +321,7 @@ export default function AgentsTeam() {
     {user && <TeamConversationHistory />}
     <section className="ifund-agents-writing">
       <h2 className="text-lg font-semibold">Campaign writing studio</h2>
-      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require an active verified membership and AI permission.</p>
+      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require a verified sign-in and saved AI permission; a paid plan is not required.</p>
       <button type="button" disabled={!user} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
       {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
       {user && showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
