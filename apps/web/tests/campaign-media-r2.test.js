@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {onRequest as upload} from "../functions/api/media/campaign/upload.js";
 import {onRequest as serve} from "../functions/api/media/campaign/file/[file].js";
 import {deleteCampaignCover} from "../src/api/campaignMedia.js";
+import {onRequestGet as listStoredCovers} from "../functions/api/media/campaign/covers.js";
 import {uploadCampaignCover} from "../src/api/campaignMedia.js";
 const owner="11111111-1111-4111-8111-111111111111",other="22222222-2222-4222-8222-222222222222";
 const origin="https://preview.interplanetaryfund-migration.pages.dev",token="a".repeat(50),png=new Uint8Array([137,80,78,71,13,10,26,10]);
@@ -33,6 +34,7 @@ function fixture({anonymous=false,deleted=false,corrupt=false,limited=false,refe
     ledger.delete(key);
     return Response.json([{object_key:row.object_key}]);
    }
+   if(!key)return Response.json([...ledger.values()].filter(row=>row.owner_id===owner&&!row.deleted_at));
    return Response.json(ledger.has(key)?[ledger.get(key)]:[]);
   }
   if(String(url).includes("/rest/v1/ifund_campaigns?"))return Response.json(referenced?[{id:other}]:[]);
@@ -144,4 +146,20 @@ test("browser cover removal refuses forged URLs before calling any DELETE operat
   await assert.rejects(deleteCampaignCover(client,url,{origin,fetcher:async()=>{calls++;return new Response(null,{status:204})}}),/verified iFund/);
  }
  assert.equal(calls,0);
+});
+
+test("saved public cover inventory is owner scoped and persists across devices",async()=>{
+ const h=fixture();
+ await withFetch(h.fetcher,async()=>{
+  const receipt=await(await upload({request:request(),env:h.env})).json();
+  const response=await listStoredCovers({request:new Request(origin+"/api/media/campaign/covers?offset=0",{
+   headers:{authorization:"Bearer "+token}
+  }),env:h.env});
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.items.length,1);
+  assert.equal(body.items[0].url,receipt.url);
+  assert.equal(body.items[0].sha256,receipt.sha256);
+  assert.ok(!body.items[0].url.includes(owner));
+ });
 });
