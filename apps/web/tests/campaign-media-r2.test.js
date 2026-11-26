@@ -8,7 +8,7 @@ const owner="11111111-1111-4111-8111-111111111111",other="22222222-2222-4222-822
 const origin="https://preview.interplanetaryfund-migration.pages.dev",token="a".repeat(50),png=new Uint8Array([137,80,78,71,13,10,26,10]);
 function request(body=png,options={}){return new Request(origin+"/api/media/campaign/upload",{method:"POST",headers:{origin,authorization:"Bearer "+token,"content-type":"image/png",...options.headers},body,...options});}
 function fixture({anonymous=false,deleted=false,corrupt=false,limited=false,referenced=false}={}){
- const objects=new Map();let calls=0;
+ const objects=new Map(),ledger=new Map();let calls=0;
  const env={IFUND_CAMPAIGN_MEDIA_ENABLED:"enabled",SUPABASE_SECRET_KEY:"s".repeat(30),SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_PUBLISHABLE_KEY:"public-test-key",IFUND_CAMPAIGN_MEDIA:{
   async put(key,bytes,metadata){objects.set(key,{bytes:new Uint8Array(bytes),...metadata});},
   async head(key){const o=objects.get(key);return o?{size:o.bytes.length,httpMetadata:o.httpMetadata,customMetadata:o.customMetadata}:null;},
@@ -20,12 +20,27 @@ function fixture({anonymous=false,deleted=false,corrupt=false,limited=false,refe
   if(String(url).endsWith("/rpc/ifund_device_rate_limit")){
    const p=JSON.parse(init.body);assert.match(p.p_bucket_hash,/^[a-f0-9]{64}$/);assert.ok(p.p_limit>=1&&p.p_limit<=1000);assert.ok(p.p_window_seconds>=1&&p.p_window_seconds<=86400);return Response.json(!limited);
   }
+  if(String(url).includes("/rest/v1/ifund_public_cover_objects")){
+   const parsed=new URL(String(url)),key=(parsed.searchParams.get("object_key")||"").replace(/^eq\./,"");
+   if(init.method==="POST"){
+    const row={...JSON.parse(init.body),deleted_at:null};
+    ledger.set(row.object_key,row);
+    return Response.json([{object_key:row.object_key,owner_id:row.owner_id,object_sha256:row.object_sha256}]);
+   }
+   if(init.method==="PATCH"){
+    const row=ledger.get(key);
+    if(!row)return Response.json([]);
+    row.deleted_at=JSON.parse(init.body).deleted_at;
+    return Response.json([{object_key:row.object_key,deleted_at:row.deleted_at}]);
+   }
+   return Response.json(ledger.has(key)?[ledger.get(key)]:[]);
+  }
   if(String(url).includes("/rest/v1/ifund_campaigns?"))return Response.json(referenced?[{id:other}]:[]);
   if(String(url).endsWith("/auth/v1/user"))return Response.json({id:owner,email_confirmed_at:"yes",is_anonymous:anonymous});
   if(String(url).includes("ifund_profiles"))return Response.json([{account_status:"active",account_deletion_pending:deleted}]);
   throw Error("Unexpected upstream request");
  };
- return {env,fetcher,objects,getCalls:()=>calls};
+ return {env,fetcher,objects,ledger,getCalls:()=>calls};
 }
 async function withFetch(fetcher,run){const original=globalThis.fetch;globalThis.fetch=fetcher;try{return await run();}finally{globalThis.fetch=original;}}
 test("public image bytes round-trip through canonical R2 with verified digest and GET/HEAD delivery",async()=>{
