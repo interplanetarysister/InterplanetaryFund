@@ -67,17 +67,58 @@ export async function onRequest({request,env}){
   let bytes;try{bytes=await bodyBytes(request);}catch(error){return json(error instanceof RangeError?413:400,{error:"The image could not be read within the 5 MB limit."});}
   if(!bytes.length||!imageSignature(bytes,type))return json(415,{error:"Image bytes do not match the selected file type."});
   const file=crypto.randomUUID()+"."+TYPES[type],key="campaigns/public/"+file;
+  const sha256=await digest(bytes);
+  const receipt={url:url.origin+"/api/media/campaign/file/"+file,content_type:type,bytes:bytes.length,sha256};
+  const serviceHeaders={apikey:serviceKey,accept:"application/json","content-type":"application/json",
+    prefer:"return=representation"};
+  if(!serviceKey.startsWith("sb_secret_"))serviceHeaders.authorization="Bearer "+serviceKey;
+  const ledgerUrl=env.SUPABASE_URL+"/rest/v1/ifund_public_cover_objects";
+  async function lookup(){
+    const response=await fetch(ledgerUrl+"?select=object_key,owner_id,object_sha256,deleted_at&object_key=eq."+
+      encodeURIComponent(key)+"&limit=1",{headers:serviceHeaders,redirect:"error",signal:AbortSignal.timeout(12000)});
+    if(!response.ok)throw Error("cover_ledger_unavailable");
+    const rows=await readJsonBody(response,8192);
+    if(!Array.isArray(rows)||rows.length>1)throw Error("cover_ledger_invalid");
+    return rows;
+  }
   try{
-    const sha256=await digest(bytes);
-    await bucket.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:"public, max-age=86400"},customMetadata:{owner_id:owner,sha256}});
+    await bucket.put(key,bytes,{httpMetadata:{contentType:type,cacheControl:"public, max-age=86400"},
+      customMetadata:{owner_id:owner,sha256}});
     const head=await bucket.head(key);
     if(!head||head.size!==bytes.length)throw Error("image_head_unverified");
     const saved=await bucket.get(key);
-    if(!saved||saved.size!==bytes.length||typeof saved.arrayBuffer!=="function"||await digest(await saved.arrayBuffer())!==sha256)throw Error("image_bytes_unverified");
-    return json(201,{url:url.origin+"/api/media/campaign/file/"+file,content_type:type,bytes:bytes.length,sha256});
+    if(!saved||saved.size!==bytes.length||typeof saved.arrayBuffer!=="function"||
+      await digest(await saved.arrayBuffer())!==sha256)throw Error("image_bytes_unverified");
+    const inserted=await fetch(ledgerUrl+"?select=object_key,owner_id,object_sha256",{
+      method:"POST",headers:serviceHeaders,redirect:"error",signal:AbortSignal.timeout(12000),
+      body:JSON.stringify({object_key:key,owner_id:owner,content_type:type,
+        byte_count:bytes.length,object_sha256:sha256})
+    });
+    if(!inserted.ok)throw Error("cover_ledger_insert_failed");
+    const rows=await readJsonBody(inserted,8192);
+    if(!Array.isArray(rows)||rows.length!==1||rows[0].object_key!==key||
+      rows[0].owner_id!==owner||rows[0].object_sha256!==sha256)
+      throw Error("cover_ledger_receipt_invalid");
+    return json(201,receipt);
   }catch{
-    // A failed R2 readback must not accumulate invisible orphan images.
-    try{await bucket.delete?.(key);}catch{/* A cleanup retry may require owner review. */}
-    return json(503,{error:"Image storage could not verify the saved bytes. Please retry."});
+    // An interrupted database response may follow a committed insert.
+    // Never delete a registered cover whose receipt was saved successfully.
+    let rows;try{rows=await lookup();}catch{
+      return json(503,{error:"Image registration is uncertain. Stored bytes have been retained for reviewed recovery."});
+    }
+    if(rows.length){
+      const match=rows[0];
+      if(match.object_key===key&&match.owner_id===owner&&
+        match.object_sha256===sha256&&match.deleted_at===null){
+        const object=await bucket.head(key).catch(()=>null);
+        if(object?.size===bytes.length)return json(201,receipt);
+      }
+      return json(503,{error:"Stored image was retained because a database receipt exists. Refresh before retrying."});
+    }
+    try{
+      await bucket.delete(key);
+      if(await bucket.head(key))throw Error("cover_cleanup_not_verified");
+    }catch{return json(503,{error:"Image cleanup could not be verified. Recovery is required."});}
+    return json(503,{error:"The image was not saved. Check storage space and retry."});
   }
 }
