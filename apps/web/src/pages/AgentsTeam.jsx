@@ -16,6 +16,7 @@ import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWor
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import AgentConsultationTrail from "@/components/agents/AgentConsultationTrail";
 import AgentDispatchCard from "@/components/agents/AgentDispatchCard";
+import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import AgentOperationsRoom from "@/components/agents/AgentOperationsRoom";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
@@ -152,7 +153,7 @@ export default function AgentsTeam() {
   async function submitAgentQuestion(event) {
     event.preventDefault();
     if(questionBusy || agentQuestion.trim().length<1) return;
-    if(!aiPermissionGranted){setQuestionError("Enable campaign drafting or private AI assistance under My Profile → Manage iFund Permissions → AI assistance before asking a specialist.");return;}
+    if(!aiPermissionGranted){setQuestionError("Private AI help is switched off for your account. Use the AI Assistance switch just above the Ask button to turn it on, then ask again.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
     requestRef.current.controller?.abort();
@@ -270,9 +271,16 @@ export default function AgentsTeam() {
         {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Agent status could not be checked. You can still submit; the service will report any delivery error.</p>}
         {aiPermission.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI permissions…</p>}
         {aiPermission.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">AI permission check unavailable; retry once your session is verified.</p>}
-        {aiPermission.status==="ready"&&!aiPermissionGranted&&<p role="status" className="text-sm">Private AI help is switched off. <Link to="/permissions?section=ai" className="text-primary underline">Enable private AI assistance</Link> to use agent chat.</p>}
+        {aiPermission.status==="ready"&&!aiPermissionGranted&&<div className="space-y-3">
+          <p role="status" className="text-sm">Private AI help is switched off for your account. Turn it on right here to use agent chat — a subscription is not required.</p>
+          <AIPermissionPreferences/>
+        </div>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
-        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<1 || !aiPermissionGranted}
+        {/* The permission gate is enforced in submitAgentQuestion, which
+            explains itself. Keeping it out of the disabled condition means
+            clicking Ask with help switched off surfaces that explanation
+            instead of a silently dead button. */}
+        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<1}
           className="ifund-agents-submit">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
