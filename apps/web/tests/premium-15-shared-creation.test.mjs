@@ -51,5 +51,6 @@ test("premium offers appear in context without blocking campaign editing",()=>{
  assert.match(campaign,/Save private draft/);
  assert.match(dashboard,/<PremiumOpportunity context="dashboard"/);
  assert.match(image,/<PremiumOpportunity context="artwork"/);
- assert.match(panel,/<PremiumOpportunity context="agent" compact/);
+ assert.doesNotMatch(panel,/<PremiumOpportunity context="agent"/);
+ assert.match(panel,/canAskAgentWithSavedPermission/);
 });
