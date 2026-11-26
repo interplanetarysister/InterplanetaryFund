@@ -130,7 +130,9 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       p_input_sha256: sha,
       p_agent_id: input.selected,
     };
-    if(!Number.isInteger(quota.remaining)||quota.remaining<0)
+    // Unlimited is a server-attested entitlement, not a numeric allowance.
+    const unlimited=quota.unlimited===true && quota.remaining===null && quota.limit===null;
+    if(!unlimited && (!Number.isSafeInteger(quota.remaining)||quota.remaining<0))
       fail(503,"Your AI question allowance could not be verified.");
     let history=[];
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
@@ -213,7 +215,8 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     return noStore(200,{...answer,consultations,advisory_skill:practice.skill,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
-      questions_remaining_today:quota.remaining,
+      questions_remaining_today:unlimited?null:quota.remaining,
+      questions_unlimited:unlimited,
       inference_completed:true});
   } catch(error) {
     if (api && quotaReservation && !quotaCompleted) {
