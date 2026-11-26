@@ -9,14 +9,14 @@ const key="private/campaign-documents/"+owner+"/"+campaign+"/"+id+".pdf";
 const receipt={id,owner_id:owner,campaign_id:campaign,object_store:"r2",storage_path:key,object_etag:'"receipt"',object_sha256:sha,object_verified_at:"2026-11-25T00:00:00Z",file_size:5,media_type:"application/pdf",deletion_requested_at:null};
 const head={size:5,httpEtag:'"receipt"',checksums:{sha256:sha}};
 const url="https://interplanetaryfund.com/api/campaign-documents/download?campaign_id="+campaign+"&document_id="+id;
-function fixture({row=receipt,owned=true,authorized=true,flag="enabled",changed=false,anonymous=false}={}){
- const calls=[];
+function fixture({row=receipt,owned=true,authorized=true,flag="enabled",changed=false,anonymous=false,revokedDuringRead=false}={}){
+ const calls=[];let documentReads=0;
  const env={IFUND_PRIVATE_R2_DOCUMENT_READ_ENABLED:flag,SUPABASE_PUBLISHABLE_KEY:"synthetic",
   IFUND_CAMPAIGN_MEDIA:{head:async path=>{calls.push(["head",path]);return head;},
    get:async path=>{calls.push(["get",path]);return {...head,size:changed?6:5,body:"%PDF-"};}}};
  const authenticate=async()=>{calls.push(["auth"]);if(anonymous)throw Object.assign(Error("Sign in"),{status:401});
   return {user:{id:owner},jwt:"synthetic",rpc:async name=>{calls.push(["rpc",name]);return authorized;}};};
- const fetcher=async path=>{calls.push(["rest",path]);return Response.json(path.includes("ifund_campaign_documents")?[row]:owned?[{id:campaign,owner_id:owner}]:[]);};
+ const fetcher=async path=>{calls.push(["rest",path]);return Response.json(path.includes("ifund_campaign_documents")?[++documentReads>1&&revokedDuringRead?{...row,deletion_requested_at:"2026-11-26T00:00:00Z"}:row]:owned?[{id:campaign,owner_id:owner}]:[]);};
  return {env,calls,options:{authenticate,fetcher}};
 }
 const run=(f,req=new Request(url))=>routePrivateDocumentDownload(req,f.env,f.options);
@@ -41,4 +41,11 @@ test("anonymous, inactive and cross-owner records never reach R2",async()=>{
 test("changed object receipt fails closed",async()=>{
  const f=fixture({changed:true}),r=await run(f);assert.equal(r.status,503);
  assert.match((await r.json()).error,/independently verified/);
+});
+
+test("document revoked while object is resolving is denied before streaming",async()=>{
+ const f=fixture({revokedDuringRead:true}),r=await run(f);
+ assert.equal(r.status,404);
+ assert.equal(f.calls.filter(x=>x[0]==="get").length,1);
+ assert.equal(f.calls.filter(x=>x[0]==="rest"&&x[1].includes("ifund_campaign_documents")).length,2);
 });
