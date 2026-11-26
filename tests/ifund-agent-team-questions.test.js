@@ -18,7 +18,7 @@ const request=(question,opts={})=>new Request("https://ifund.test/api/agents/tea
   method:"POST",headers:{Authorization:"Bearer good.token", "content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent:"auto",...opts})
 });
-function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit"}={}){
+function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit",unlimited=false}={}){
   const calls=[];
   const fetcher=async(url,options={})=>{
     calls.push([url,options.method]);
@@ -33,7 +33,7 @@ function mockBackend({quota=true,active=true,permission=true,futureAI=false,fore
       }]);
     }
     if(url.endsWith("/rpc/ifund_reserve_agent_question"))
-      return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:quotaState,limit:20});
+      return Response.json(quota?(unlimited?{allowed:true,state:"reserved",remaining:null,limit:null,unlimited:true}:{allowed:true,state:"reserved",remaining:19,limit:20,unlimited:false}):{allowed:false,state:quotaState,limit:20});
     if(url.endsWith("/rpc/ifund_complete_agent_question"))
       return Response.json(true);
     if(url.endsWith("/rpc/ifund_release_agent_question"))
@@ -65,6 +65,16 @@ test("prompt is source-agnostic, advisory and redacts pasted credentials",()=>{
   assert.equal(validateTeamAnswer({response:"Prepare a short outline first."},"story").actions_performed,false);
   assert.throws(()=>validateTeamAnswer({response:""},"story"));
 });
+test("unlimited administrator can receive an agent answer with no numeric quota",async()=>{
+  const backend=mockBackend({unlimited:true});
+  const response=await routeTeamQuestion(request("How do we engage a potential partner?"),env,backend.fetcher);
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.questions_remaining_today,null);
+  assert.equal(body.actions_performed,false);
+  assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
+});
+
 test("member permission and quota lead to real model response, without tool actions",async()=>{
   const backend=mockBackend();
   const response=await routeTeamQuestion(request("How can I improve my campaign story?"),env,backend.fetcher);
@@ -108,7 +118,7 @@ test("source wiring exposes account-safe question UI without pretending external
   assert.match(worker,/routeTeamQuestion\(request, env\)/);
   assert.match(app,/askIFundAgent\(authClient\(\)/);
   assert.match(app,/requestRef\.current\.controller\?\.abort\(\)/);
-  assert.match(app,/Direct AI answers require an active provider-backed AI membership/);
+  assert.match(app,/including free accounts/);
   assert.match(quota,/pg_advisory_xact_lock/);
   assert.match(quota,/ifund_story_subscription/);
   assert.match(quota,/already_reserved/);
@@ -125,7 +135,7 @@ test("gateway status reports configuration, not a fake specialist answer",async(
   assert.equal(available.status,200);
   const body=await available.json();
   assert.equal(body.configured,true);
-  assert.equal(body.requires_membership,true);
+  assert.equal(body.requires_membership,false);
   assert.equal(body.external_publishing,false);
   const disabled=await routeTeamQuestion(req,{},mockBackend().fetcher);
   assert.equal((await disabled.json()).configured,false);
@@ -133,10 +143,11 @@ test("gateway status reports configuration, not a fake specialist answer",async(
 test("member UI checks actual entitlement and gateway before calling model",()=>{
   const source=readFileSync(new URL("../apps/web/src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
   const router=readFileSync(new URL("../worker/index.js",import.meta.url),"utf8");
-  assert.match(source,/ifund_story_subscription/);
+  assert.doesNotMatch(source,/ifund_story_subscription|membershipActive/);
   assert.match(source,/\/api\/agents\/team\/status/);
-  assert.match(source,/gateway\.configured/);
-  assert.match(source,/membership\.active/);
+  assert.match(source,/canAskAgentWithSavedPermission/);
+  assert.match(source,/!aiPermissionGranted/);
+  assert.doesNotMatch(source,/if\(!gateway\.configured\)/);
   assert.match(router,/\/api\/agents\/team\/status/);
 });
 
