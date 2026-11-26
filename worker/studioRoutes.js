@@ -305,6 +305,13 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
       status: 'draft',
     });
     if (!validated) return response(502, { error: 'Studio AI returned an unsupported layout. Try a more specific instruction.' });
+    // A generated layout remains a private draft, and authorization must
+    // still be current when it is returned after a potentially slow model call.
+    const currentAccount = await authenticatedStudioUser(request, env, fetcher);
+    if (!currentAccount || currentAccount.uid !== account.uid || currentAccount.role !== 'super_admin')
+      return response(403, { error: 'Studio access changed during generation. No page was saved.' });
+    const currentConsent = await verifyOwnerAIConsent(env, currentAccount, fetcher);
+    if (!currentConsent.allowed) return response(currentConsent.status, {error:'AI permission could not be verified after generation. No page was saved.'});
     return response(200, { content: validated.content, dailyLimit: 2 });
   } catch (error) {
     if (error instanceof BodyError) return response(error.status, { error: error.message });
