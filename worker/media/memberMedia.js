@@ -95,7 +95,16 @@ async function upload(request,env,fetcher,bucket,actor){
   return json(201,{id,name,kind:rule[0],type,size:bytes.length,sha256:sha});
  }catch(error){
   if(created){
-   try{await bucket.delete(key);if(await bucket.head(key))fail(503,"Unregistered media needs recovery.");}
+   // A network error may occur AFTER the database inserted the receipt. Never
+   // delete registered bytes in that case; that would silently corrupt a user file.
+   let registered;
+   try{
+    registered=await supabase(env,fetcher,
+     "/rest/v1/ifund_member_media?select=id&id=eq."+id+"&limit=1",{admin:true});
+   }catch{fail(503,"Upload receipt is uncertain; the object was retained for reviewed recovery.");}
+   if(!Array.isArray(registered)||registered.length)
+     fail(503,"An upload receipt may already exist; the stored object was retained.");
+   try{await bucket.delete(key);if(await bucket.head(key))throw Error("Object still exists");}
    catch{fail(503,"Private upload cleanup requires recovery. Retry later.");}
   }
   throw error;
