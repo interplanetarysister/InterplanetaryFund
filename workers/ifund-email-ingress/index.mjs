@@ -29,12 +29,12 @@ async function deliver(env,endpoint,payload,fetcher){
  const key=await crypto.subtle.importKey("pkcs8",Uint8Array.from(atob(env.IFUND_EMAIL_SIGNING_PRIVATE_KEY),c=>c.charCodeAt(0)),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
  const signature=hex(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},key,bytes.encode(stamp+"."+body)));
  const response=await fetcher(url.toString(),{method:"POST",redirect:"error",signal:AbortSignal.timeout(15000),headers:{"content-type":"application/json","x-ifund-email-timestamp":stamp,"x-ifund-email-signature":signature},body});
- if(!response.ok)throw Error("Receiver rejected delivery");
+ if(!response.ok)throw Object.assign(Error("Receiver rejected delivery"),{receiverStatus:response.status});
 }
 export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalMime.parse(raw,{maxNestingDepth:32,maxHeadersSize:128*1024})}={}){
  const to=String(message.to||"").trim().toLowerCase(),kind=mailboxKind(to);
  if(kind==="unknown"){message.setReject("Unknown mailbox");return;}
- let raw,payload;
+ let raw,payload,archiveKey;let stage="read";
  try{
   if(Number(message.rawSize)>25*1024*1024)throw Error("Message too large");
   raw=await readBounded(message.raw,25*1024*1024);
@@ -43,9 +43,10 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   // Keep the platform's raw business/verification archive private. Never
   // archive unknown, unpaid or private paid-user messages in the admin archive.
   if(business||kind==="verification"){
-   const archiveKey="mail-v2/"+digest+"-"+hex(await crypto.subtle.digest("SHA-256",bytes.encode(to)))+".eml";
+   archiveKey="mail-v2/"+digest+"-"+hex(await crypto.subtle.digest("SHA-256",bytes.encode(to)))+".eml";
    await env.IFUND_MAIL_ARCHIVE.put(archiveKey,raw,{httpMetadata:{contentType:"message/rfc822"},customMetadata:{recipient:to,sender:bounded(message.from,254)}});
   }
+  stage="parse";
   let parsed=null;
   if(raw.byteLength<=2_000_000){try{parsed=await parse(raw)}catch{ /* official mail is still archived */ }}
   if(!parsed&&!business)throw Error("Mailbox delivery unavailable");
@@ -54,14 +55,20 @@ export async function receiveEmail(message,env,{fetcher=fetch,parse=raw=>PostalM
   const endpoint=business?env.IFUND_ADMIN_EMAIL_RECEIVER_URL:kind==="verification"?env.IFUND_EMAIL_RECEIVER_URL:env.IFUND_MEMBER_EMAIL_RECEIVER_URL;
   if(business&&endpoint!==ORIGIN+"/functions/v1/ifund-admin-mail-ingest")throw Error("Admin receiver mismatch");
   if((kind==="paid"||kind==="member")&&endpoint!==ORIGIN+"/functions/v1/ifund-member-mail-ingress")throw Error("Member receiver mismatch");
+  stage="signed_receiver";
   await deliver(env,endpoint,payload,fetcher);
- }catch{message.setReject("Mailbox delivery unavailable");return;}
+ }catch(error){
+  if(kind==="business"&&archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"failed",stage,receiver_status:Number.isInteger(error?.receiverStatus)?error.receiverStatus:null,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* the original archive remains available */}}
+  message.setReject("Mailbox delivery unavailable");return;
+ }
  // Business backup is independent of the committed platform inbox receipt.
  // Cloudflare may reject forwarding for authentication or destination reasons;
  // do not discard a successfully received business message in that case.
  if(kind==="business"){
+  let forwarded=true;
   try{await message.forward(to==="user@interplanetaryfund.com"?"interplanetarysister@gmail.com":"cuddlemeplatonically@gmail.com");}
-  catch{console.error("Business backup forwarding failed after inbox delivery");}
+  catch{forwarded=false;console.error("Business backup forwarding failed after inbox delivery");}
+  if(archiveKey){try{await env.IFUND_MAIL_ARCHIVE.put("mail-delivery-receipts/"+archiveKey.slice(8,-4)+".json",JSON.stringify({state:"persisted",backup_forwarded:forwarded,at:new Date().toISOString()}),{httpMetadata:{contentType:"application/json"}});}catch{/* inbox receipt remains authoritative */}}
  }
 }
 export default {email:receiveEmail};
