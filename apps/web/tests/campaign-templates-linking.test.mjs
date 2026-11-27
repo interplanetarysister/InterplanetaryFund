@@ -39,6 +39,18 @@ test('/events and /download are routed and listed in both sitemaps', () => {
   }
 });
 
+/* Repair follow-up (2026-11-25): /fundraising-partners and /plans were the
+   last two public routes absent from both sitemaps — same gap class as
+   /templates, /events, and /download. Both are already linked from Home. */
+test('/fundraising-partners and /plans are routed and listed in both sitemaps', () => {
+  assert.match(app, /<Route path="\/fundraising-partners" element={<FundraisingPartners \/>} \/>/, 'the /fundraising-partners route exists');
+  assert.match(app, /<Route path="\/plans" element={<PublicSubscriptionPlans \/>} \/>/, 'the /plans route exists');
+  for (const path of ['/fundraising-partners', '/plans']) {
+    assert.match(sitemapFunction, new RegExp(`"${path.replace('/', '\\/')}"`), `the Pages Function sitemap lists ${path}`);
+    assert.match(staticSitemap, new RegExp(`<loc>https:\\/\\/interplanetaryfund\\.com${path.replace('/', '\\/')}<\\/loc>`), `the static sitemap lists ${path}`);
+  }
+});
+
 test('both sitemaps list the same static paths', () => {
   // Bug 5 (2026-11-25 sweep): Sprint 3 added /our-story to public/sitemap.xml
   // and its test only reads that file — but the Pages Function sitemap, which

@@ -11,6 +11,7 @@ const timestamp='2026-11-20T00:00:00Z';
 const row={
   document_id:doc,campaign_id:campaign,
   storage_path:`private/campaign-documents/${owner}/${campaign}/${doc}.pdf`,
+  object_store:'r2',owner_id:owner,
   deletion_requested_at:timestamp,object_etag:'"etag"',
   object_sha256:'a'.repeat(64),file_size:10
 };
@@ -36,7 +37,7 @@ const run=({queue=reviewed,deletions=requests,rows=[row],receiptFor=()=>receipt,
         return deletions;
       }
       if(name==='ifund_super_admin_private_document_inventory'){
-        assert.deepEqual(args,{p_request_id:requestId,p_limit:100});
+        assert.deepEqual(args,{p_request_id:requestId,p_limit:10});
         return rows;
       }
       throw Error('Unexpected RPC: '+name);
@@ -74,8 +75,10 @@ test('missing deletion timestamp denied',async()=>assert.rejects(run({rows:[{...
 test('agent-consented receipt denied',async()=>assert.rejects(run({receiptFor:()=>({...receipt,allow_agent_use:true})})));
 test('duplicate document denied',async()=>assert.rejects(run({rows:[row,row]})));
 test('oversized inventory denied',async()=>assert.rejects(run({rows:Array(101).fill(row)})));
-test('read-only bounded partial batch',async()=>{
-  const rows=Array.from({length:12},(_,i)=>{
+test('ten-row batch returns all ten documents',async()=>{
+  // The inventory binds receipt work to ten objects: more than ten rows are
+  // rejected outright (see 'oversized inventory denied'), never truncated.
+  const rows=Array.from({length:10},(_,i)=>{
     const id=(i+1).toString(16).padStart(12,'0');
     return {...row,document_id:`44444444-4444-4444-8444-${id}`,storage_path:row.storage_path.replace(doc,`44444444-4444-4444-8444-${id}`)};
   });

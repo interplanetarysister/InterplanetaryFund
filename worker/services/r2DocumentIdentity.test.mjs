@@ -7,7 +7,7 @@ const campaign="33333333-3333-4333-8333-333333333333";
 const id="44444444-4444-4444-8444-444444444444";
 const sha="a".repeat(64);
 const key=documentObjectKey({ownerId:owner,campaignId:campaign,documentId:id,extension:"pdf"});
-const row={document_id:id,campaign_id:campaign,storage_path:key,object_etag:'"etag"',object_sha256:sha,object_verified_at:"2026-11-20T00:00:00Z",file_size:123};
+const row={document_id:id,campaign_id:campaign,storage_path:key,object_store:"r2",owner_id:owner,object_etag:'"etag"',object_sha256:sha,object_verified_at:"2026-11-20T00:00:00Z",file_size:123};
 test("exact owner R2 metadata receipt",()=>{
  const receipt=verifyDocumentIdentity(row,owner);
  assert.equal(receipt.key,key);
