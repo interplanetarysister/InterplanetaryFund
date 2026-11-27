@@ -37,7 +37,7 @@ function fakeClient({
     if (table === "ifund_posts") {
       if (insertError) return { data: null, error: { message: "insert failed" } };
       const author = returnOtherAuthor ? OTHER : q.payload.author_id;
-      return { data: { id: POST_ID, author_id: author, body: q.payload.body, created_at: "2026-11-02T00:00:00Z" }, error: null };
+      return { data: { id: POST_ID, author_id: author, body: q.payload.body, media_id: q.payload.media_id ?? null, created_at: "2026-11-02T00:00:00Z" }, error: null };
     }
     return { data: null, error: { message: "unexpected table" } };
   }
@@ -102,8 +102,34 @@ test("the feed page gates the composer and posts through the validated path", ()
   const page = source("src/pages/SocialFeedPage.jsx");
   assert.match(page, /import \{ canMemberPost, publishPost, MAX_POST_LENGTH \} from "@\/lib\/socialPosts\.js"/);
   assert.match(page, /canMemberPost\(authClient\(\), user\)/);
-  assert.match(page, /await publishPost\(authClient\(\), user, body\)/);
+  assert.match(page, /await publishPost\(authClient\(\), user, body, attachment\?\.id \?\? null\)/);
   assert.match(page, /maxLength=\{MAX_POST_LENGTH\}/);
   // The raw insert must be gone.
   assert.doesNotMatch(page, /from\("ifund_posts"\)\.insert/);
+});
+
+const MEDIA_ID = "44444444-4444-4444-8444-444444444444";
+
+test("a published post may carry one library media reference", async () => {
+  const f = fakeClient();
+  const row = await publishPost(f, user(), "Launch clip", MEDIA_ID);
+  assert.equal(row.media_id, MEDIA_ID);
+  const insert = f.calls.find((c) => c.type === "insert");
+  assert.deepEqual(insert.payload, { author_id: OWNER, body: "Launch clip", media_id: MEDIA_ID });
+});
+
+test("a malformed media reference is rejected before any database write", async () => {
+  for (const bad of ["not-a-uuid", "", 42, {}]) {
+    const f = fakeClient();
+    await assert.rejects(publishPost(f, user(), "hi", bad), /attached media could not be verified/i);
+    assert.equal(f.calls.some((c) => c.type === "insert"), false);
+  }
+});
+
+test("the composer offers library upload and picker wired to the member media API", () => {
+  const page = source("src/pages/SocialFeedPage.jsx");
+  assert.match(page, /import \{ listMyMedia, uploadMyMedia, validateLibraryFile \} from "@\/api\/memberMedia"/);
+  assert.match(page, /uploadMyMedia\(authClient\(\), file\)/);
+  assert.match(page, /listMyMedia\(authClient\(\)\)/);
+  assert.match(page, /Attach media from your library/);
 });

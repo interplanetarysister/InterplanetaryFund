@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { videoFromUrl, videoFromText, clipDescription } from "../src/lib/videoLinks.js";
+import { videoFromUrl, videoFromText, clipDescription, resolvePublicMediaUrl, publicMediaDirectSources } from "../src/lib/videoLinks.js";
 const ID = "dQw4w9WgXcQ";
 
 test("supported YouTube links reconstruct a privacy-enhanced player with no user parameters", () => {
@@ -32,4 +32,32 @@ test("text discovery tolerates prose punctuation and descriptions never repeat v
   assert.equal(videoFromText(null),null);
   assert.equal(clipDescription("Our public update https://youtube.com/watch?v="+ID+"&token=synthetic"),"Our public update");
   assert.equal(clipDescription("x".repeat(400)).length,350);
+});
+test("attached post media paths resolve only against the page origin", () => {
+  const path = "/api/media/public/file/11111111-1111-4111-8111-111111111111.mp4";
+  assert.equal(resolvePublicMediaUrl(path, "https://interplanetaryfund.com"),
+    "https://interplanetaryfund.com" + path);
+  assert.equal(resolvePublicMediaUrl(path, "https://preview.example.test/dashboard"),
+    "https://preview.example.test" + path);
+  // Everything else passes through untouched, including provider URLs,
+  // foreign paths, lookalike prefixes and non-strings.
+  for (const value of ["https://youtu.be/dQw4w9WgXcQ", "/api/media/library/file/x.mp4",
+    "/api/media/public/file/not-a-uuid.mp4", "/api/media/public/file/11111111-1111-4111-8111-111111111111.exe",
+    "/api/media/public/file/11111111-1111-4111-8111-111111111111.mp4/extra", null, undefined, 42]) {
+    assert.equal(resolvePublicMediaUrl(value, "https://interplanetaryfund.com"), value, String(value));
+  }
+  assert.equal(resolvePublicMediaUrl(path, "not a url"), path);
+  assert.deepEqual(publicMediaDirectSources("https://interplanetaryfund.com"),
+    [{ origin: "https://interplanetaryfund.com", pathPrefix: "/api/media/public/file/" }]);
+  assert.deepEqual(publicMediaDirectSources("::bad::"), []);
+});
+test("a resolved attached video is a direct clip only for its own origin", () => {
+  const path = "/api/media/public/file/11111111-1111-4111-8111-111111111111.webm";
+  const origin = "https://interplanetaryfund.com";
+  const resolved = resolvePublicMediaUrl(path, origin);
+  assert.equal(videoFromUrl(resolved, { directSources: publicMediaDirectSources(origin) })?.type, "direct");
+  // Another origin's approval list must not bless this URL, and the raw
+  // relative path alone never resolves as a video.
+  assert.equal(videoFromUrl(resolved, { directSources: publicMediaDirectSources("https://evil.test") }), null);
+  assert.equal(videoFromUrl(path, { directSources: publicMediaDirectSources(origin) }), null);
 });

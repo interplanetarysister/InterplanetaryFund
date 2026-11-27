@@ -65,6 +65,13 @@ const PENDING = [
   "supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
   // Future internal AI assistance preference selected by the agent side panel.
   "supabase/migrations/20261119110000_ifund_future_internal_ai_assistance_preference.sql",
+  // Phase 1 attach & play: posts select media_id (the member-media
+  // attachment) in the social client; execute the real DDL so the column
+  // and the guard trigger exist in this harness. The member-media library
+  // table comes first — the attach migration foreign-keys to it.
+  "supabase/migrations/20261113080000_ifund_member_connections_hub.sql",
+  "supabase/migrations/20261126064000_ifund_private_member_media_r2.sql",
+  "supabase/migrations/20261126200000_ifund_social_post_media_attach.sql",
 ];
 
 const PGlite = await loadPGlite();
