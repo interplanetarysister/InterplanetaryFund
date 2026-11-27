@@ -18,13 +18,14 @@ const request=(question,opts={})=>new Request("https://ifund.test/api/agents/tea
   method:"POST",headers:{Authorization:"Bearer good.token", "content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent:"auto",...opts})
 });
-function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit",unlimited=false}={}){
+function mockBackend({quota=true,active=true,permission=true,futureAI=false,foreignOwner=false,quotaState="daily_limit",unlimited=false,noRow=false}={}){
   const calls=[];
   const fetcher=async(url,options={})=>{
     calls.push([url,options.method]);
     if(url.endsWith("/auth/v1/user"))return Response.json({id:UID,email_confirmed_at:"2026-11-01T00:00:00Z",is_anonymous:false});
     if(url.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(active);
     if(url.includes("/ifund_ai_permission_preferences?")){
+      if(noRow)return Response.json([]);
       return Response.json([{
         owner_id:foreignOwner?"33333333-3333-4333-8333-333333333333":UID,
         allow_ai_campaign_drafts:permission,
@@ -210,4 +211,55 @@ test("only explicitly approved skills supplement the specialist advisory prompt"
   assert.match(updated[0].content,/provider-cleared funds/);
   assert.match(updated[0].content,/external permissions/);
   assert.equal(updated[1].role,"user");
+});
+
+test("AI chat is on by default for accounts that never saved a preference", async () => {
+  const { hasDefaultAIChatAccess } = await import("../apps/web/src/lib/unifiedAIConsent.mjs");
+  const { canAskAgentWithSavedPermission } = await import("../apps/web/src/lib/agentAdvisoryPermission.mjs");
+  const user = { id: UID, email_confirmed_at: "2026-11-01T00:00:00Z", is_anonymous: false };
+  // No saved row: never opted out -> access on (owner directive 2026-11-26).
+  assert.equal(hasDefaultAIChatAccess(null, UID), true);
+  assert.equal(canAskAgentWithSavedPermission({ user, ownerId: UID, preferences: null }), true);
+  // A saved row governs itself: unified on -> on; anything off -> off.
+  const on = { owner_id: UID, allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true, allow_future_internal_ai_assistance: true };
+  const off = { owner_id: UID, allow_ai_campaign_drafts: false, allow_ai_outreach_drafts: false, allow_future_internal_ai_assistance: false };
+  const mixed = { owner_id: UID, allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: false, allow_future_internal_ai_assistance: false };
+  assert.equal(canAskAgentWithSavedPermission({ user, ownerId: UID, preferences: on }), true);
+  assert.equal(canAskAgentWithSavedPermission({ user, ownerId: UID, preferences: off }), false);
+  assert.equal(canAskAgentWithSavedPermission({ user, ownerId: UID, preferences: mixed }), false);
+  // Server route agrees: no-row member is answered, saved-off member is not.
+  const noRow = mockBackend({ noRow: true });
+  assert.equal((await routeTeamQuestion(request("Help me improve my fundraising campaign idea"), env, noRow.fetcher)).status, 200);
+});
+
+test("client accepts REACH answers and passes prepared-work cards through sanitized", async () => {
+  const { askIFundAgent } = await import("../apps/web/src/lib/agentQuestions.js");
+  const user = { id: UID, email_confirmed_at: "2026-11-01T00:00:00Z", is_anonymous: false };
+  const client = {
+    auth: {
+      getUser: async () => ({ data: { user }, error: null }),
+      getSession: async () => ({ data: { session: { user, access_token: "token" } }, error: null }),
+    },
+  };
+  const payload = {
+    agent: "reach", answer: "Here is how to fix the connection.", actions_performed: false,
+    consultations: [{ agent: "link", status: "completed", kind: "advisory_analysis", summary: "OAuth grant expired." }],
+    dispatch: { kind: "chief_of_staff_dispatch", status: "prepared", specialist: "story",
+      tool: "Private AI campaign writing", workspace_path: "/agents?tab=writing",
+      actions_performed: false, context_saved: true, brief: "member words stay server-side" },
+    goal_knowledge: { kind: "goal_knowledge_refinement", status: "prepared",
+      label: "Refine Knowledge About Your Goal", category: "medical",
+      knowledge_areas: ["fastest_path"], estimated_minutes: 2, context_saved: true },
+  };
+  const fetcher = async () => Response.json(payload);
+  const result = await askIFundAgent(client, { question: "How do I fix my connection?", agent: "reach", ownerId: UID, fetcher });
+  assert.equal(result.agent, "reach");
+  assert.equal(result.consultations.length, 1);
+  assert.equal(result.dispatch.specialist, "story");
+  assert.equal(result.dispatch.brief, undefined);
+  assert.equal(result.goal_knowledge.category, "medical");
+  // Malformed prepared-work shapes are dropped, never rendered.
+  const bad = { ...payload, dispatch: { kind: "chief_of_staff_dispatch", status: "completed", specialist: "story", tool: "x", workspace_path: "https://evil.example", actions_performed: true } };
+  const dropped = await askIFundAgent(client, { question: "q", agent: "reach", ownerId: UID, fetcher: async () => Response.json(bad) });
+  assert.equal(dropped.dispatch, null);
 });

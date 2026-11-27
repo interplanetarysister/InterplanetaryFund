@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   CAMPAIGN_COPY_ANGLES, CAMPAIGN_COPY_GUIDANCE,
   freeCopyOutlineOptions, findRedundantCampaignOptions,
-  requireDistinctCampaignOptions,
+  requireDistinctCampaignOptions, findEchoedSentences,
+  EXPERT_CAMPAIGN_WRITER_METHOD, ANTI_ECHO_RULES,
 } from "../apps/web/src/lib/campaignCopyQuality.mjs";
 import { storyMessages, storyOutput } from "../worker/agents/story.js";
 import { campaignPreviewInput,basicCampaignOutline } from "../worker/services/campaign-preview.js";
@@ -90,4 +91,16 @@ test("weekly practice involves Story Polaris Echo, candidate scores are never au
  assert.deepEqual(evaluateCampaignCopyCandidate({titles:draft.titles,summaries:draft.summaries}),
   {passed:false,issue:"independent_fact_and_ethics_review_required",independently_reviewed:false});
  assert.equal(evaluateCampaignCopyCandidate({titles:[...draft.titles.slice(0,4),draft.titles[0]],summaries:draft.summaries}).issue,"redundant_options");
+});
+test("echo detection flags organizer sentences restated in generated copy",()=>{
+ const details="We need to raise money for new brakes and a transmission for the van. The van takes kids to after school programs every day.";
+ const echoed="Our fundraiser matters. We need to raise money for new brakes and a transmission for the van. Every gift moves us forward.";
+ assert.equal(findEchoedSentences(echoed,details).length,1);
+ const fresh="The van is how thirty kids get to tutoring, practice and home again. Its brakes are worn and the transmission is slipping, and the repair bill is what stands between those kids and their afternoons.";
+ assert.equal(findEchoedSentences(fresh,details).length,0);
+ assert.match(EXPERT_CAMPAIGN_WRITER_METHOD,/professional campaign manager/i);
+ assert.match(ANTI_ECHO_RULES,/restating/i);
+ const messages=storyMessages({details,section:null},{research:null});
+ assert.match(messages[0].content,/UNDERSTAND/);
+ assert.match(messages[0].content,/Do not reuse the organizer's sentences/);
 });

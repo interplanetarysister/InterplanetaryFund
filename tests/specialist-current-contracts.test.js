@@ -53,8 +53,10 @@ function service({ preferences, anonymous = false, malformed = "", claims = { st
   return { fetcher, calls };
 }
 
-test("all specialist generation checks current saved AI permission before context, quota or inference", async () => {
-  for (const agent of agents) for (const preferences of [[], [{}], [{ [agent.permission]: false }], [{ [agent.permission]: true }, { [agent.permission]: true }]]) {
+test("all specialist generation checks current AI permission before context, quota or inference", async () => {
+  // Saved rows govern themselves: a malformed row, an explicit off, or
+  // duplicate rows are all refused at the permission gate.
+  for (const agent of agents) for (const preferences of [[{}], [{ [agent.permission]: false }], [{ [agent.permission]: true }, { [agent.permission]: true }]]) {
     const backend = service({ preferences });
     const response = await agent.route(http(agent.name, agent.action, input(agent.name)), {
       ...env, AI: { run: () => assert.fail("revoked inference") },
@@ -62,6 +64,17 @@ test("all specialist generation checks current saved AI permission before contex
     assert.equal(response.status, 403, agent.name);
     assert.equal(backend.calls.length, 3);
     assert.match(backend.calls[2].url, /select=owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance/);
+  }
+  // No saved row at all: the member never opted out, so AI Assistance is
+  // ON by platform default (owner directive 2026-11-26) and the request
+  // proceeds past the permission gate into context loading.
+  for (const agent of agents) {
+    const backend = service({ preferences: [] });
+    const response = await agent.route(http(agent.name, agent.action, input(agent.name)), {
+      ...env, AI: { run: async () => ({ response: "ok" }) },
+    }, backend.fetcher);
+    assert.notEqual(response.status, 403, agent.name);
+    assert.ok(backend.calls.length > 3, agent.name);
   }
 });
 

@@ -11,6 +11,7 @@ export const AGENT_IDENTITIES = Object.freeze({
   link: { name: "LINK", role: "Managed Connections", color: "#8294FF" },
   story: { name: "STORY", role: "Campaign Writing", color: "#F5B5D3" },
   discover: { name: "DISCOVER", role: "Connection Discovery", color: "#9DE3FF" },
+  reach: { name: "REACH", role: "Outreach, Connections & Growth", color: "#7EE787" },
 });
 export function AgentIdentityIcon({ identity = "nexus", size = 48, className = "" }) {
   const knownIdentity = Object.hasOwn(AGENT_IDENTITIES, identity) ? identity : "nexus";
@@ -28,6 +29,7 @@ export function AgentIdentityIcon({ identity = "nexus", size = 48, className = "
       {knownIdentity === "story" && <><path d="M9 10h13c5 0 7 2 7 6v24c-3-2-6-3-10-3H9z"/><path d="M29 16c0-4 3-6 8-6h3v27c-5 0-8 1-11 3"/><path d="M14 20h8m-8 6h7m13-6h3m-3 6h3"/></>}
       {knownIdentity === "discover" && <><circle cx="24" cy="24" r="17"/><path d="M24 10v7m0 14v7M10 24h7m14 0h7"/><path d="m18 30 5-13 7-3-5 14-7 2Z"/></>}
       {knownIdentity === "link" && <><ellipse cx="24" cy="24" rx="21" ry="10" transform="rotate(-37 24 24)"/><ellipse cx="24" cy="24" rx="21" ry="10" transform="rotate(37 24 24)"/><circle cx="10" cy="34" r="3" fill={color}/><circle cx="38" cy="34" r="3" fill={color}/></>}
+      {knownIdentity === "reach" && <><circle cx="17" cy="31" r="3" fill={color} stroke="none"/><path d="M17 28V17a14 14 0 0 1 14-7"/><path d="M17 22a9 9 0 0 1 9-9"/><path d="M31 5l12 12M43 9v8h-8"/></>}
     </svg>
   </span>;
 }

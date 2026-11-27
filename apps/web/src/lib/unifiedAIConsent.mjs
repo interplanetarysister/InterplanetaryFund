@@ -15,6 +15,18 @@ export function hasUnifiedAIConsent(preferences, ownerId) {
     AI_CONSENT_FIELDS.every(field => preferences[field] === true)
   );
 }
+// Owner directive 2026-11-26: AI agent chat is ON for all accounts by
+// default. An account that has never saved an AI preference has never
+// opted out, so it has chat access. An account with a saved row is
+// governed by that row — unified consent on, anything else off — until
+// the member changes it. Callers only pass a successful read here: a
+// failed read is an error path, never "no row", so access still fails
+// closed when the preference cannot be verified.
+export function hasDefaultAIChatAccess(preferences, ownerId) {
+  if (preferences == null)
+    return typeof ownerId === "string" && ownerId.length > 0;
+  return hasUnifiedAIConsent(preferences, ownerId);
+}
 export function hasMixedLegacyAIConsent(preferences, ownerId) {
   if (!preferences || preferences.owner_id !== ownerId) return false;
   const grants = AI_CONSENT_FIELDS.map(field => preferences[field] === true);

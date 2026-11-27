@@ -30,21 +30,17 @@ export default function AIPermissionPreferences() {
         .select(COLUMNS).eq("owner_id", user.id).maybeSingle();
       if (readError || (data && data.owner_id !== user.id)) throw Error("Unable to load your saved AI setting.");
       if (!active) return;
-      // No record: preserve opt-in interest from signup only as an unsaved proposal.
+      // No record: AI Assistance is ON by default for every account
+      // (owner directive 2026-11-26). The switch shows that real state;
+      // saving is only needed to record an explicit choice, such as
+      // opting out.
       let next = hasUnifiedAIConsent(data, user.id);
       if (hasMixedLegacyAIConsent(data, user.id)) setMessage("Your earlier AI choices were different. AI stays off until you choose On and save.");
       if (!data) {
-        try {
-          const pending = JSON.parse(sessionStorage.getItem("ifund-signup-ai-interest-v1") || "null");
-          if (pending?.email === user.email?.toLowerCase() &&
-              Number.isFinite(pending.timestamp) && Date.now() >= pending.timestamp &&
-              Date.now() - pending.timestamp < 86400000) {
-            next = AI_FIELDS.every(field => pending.choices?.[field] === true);
-            setMessage("Review this choice from sign-up, then save it to your account.");
-          }
-        } catch { /* Storage is optional. */ }
+        next = true;
+        setMessage("AI Assistance is on by default for every account. You only need to save if you want to turn it off.");
       }
-      setSaved(hasUnifiedAIConsent(data, user.id));
+      setSaved(!data ? true : hasUnifiedAIConsent(data, user.id));
       setEnabled(next);
       setPhase("ready");
     })().catch(cause => {

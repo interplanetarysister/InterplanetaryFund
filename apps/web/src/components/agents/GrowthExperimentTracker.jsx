@@ -71,6 +71,7 @@ export default function GrowthExperimentTracker({campaigns=[]}) {
        className="mt-1 min-h-24 w-full rounded-lg border bg-background p-3"/>
    </label>
    <button type="submit" disabled={Boolean(busy)||!campaignId} className="min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">Save experiment plan</button>
+   {!campaignId&&<p className="text-xs text-muted-foreground">{campaigns.length ? "Choose one of your campaigns above to enable saving." : "You need a campaign first — once you have one, choose it above to enable saving."}</p>}
   </form>
   {notice&&<p role="status" className="text-sm">{notice}</p>}
   {state.phase==="loading"&&<p role="status">Loading experiment journal…</p>}

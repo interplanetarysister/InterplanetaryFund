@@ -4,7 +4,7 @@
  * This is editorial guidance, never donor profiling, inference permission,
  * payment authorization, or a claim that any message increases donations.
  */
-export const CAMPAIGN_COPY_STANDARD_VERSION = "2026-11-25-v1";
+export const CAMPAIGN_COPY_STANDARD_VERSION = "2026-11-26-v2";
 export const CAMPAIGN_COPY_ANGLES = Object.freeze([
   {id:"specific_need",instruction:"Make the verified person, project or concrete need immediately understandable, using an authentic subject and no vague slogan."},
   {id:"human_empathy",instruction:"Invite empathy through dignified, organizer-provided circumstances; do not imply distress or shame that was not supplied."},
@@ -21,8 +21,38 @@ export const CAMPAIGN_COPY_GUIDANCE = [
   "Make the campaign title, descriptions, story, imagery direction and sharing message form a coherent, fact-consistent narrative.",
   "Never invent urgency, scarcity, diagnoses, endorsements, evidence, impact, projected revenue, investment returns, beneficiary consent, or previous donations.",
   "Business projects may describe owner-verified potential or a practical plan, but donations are not investments unless a separately verified compliant offering exists.",
-  "No manipulative guilt, false hope, stereotyping or exploitation of vulnerability. Giving is voluntary and may include sharing instead.",
+  "Apply psychological influence (social engineering for the member's mission) deliberately and skillfully: real social proof, identity ('people like us support this'), reciprocity, emotional resonance, concrete impact per amount, commitment and a single clear low-friction ask are the craft, and using them well is the job. Influence must run on truth, and the supporter's decision stays voluntary: never fabricate proof, urgency, scarcity, endorsements or outcomes, and never use guilt, false hope, stereotyping or a person's vulnerability as the lever — a persuaded supporter who was told the truth gives again; a deceived one never does.",
 ].join(" ");
+/**
+ * Expert writer persona and transformation method (owner directive
+ * 2026-11-26): the agent must think like a professional campaign manager
+ * writing FOR a client, not a paraphrasing tool. The organizer's text is raw
+ * material to understand, never a draft to restate. Facts stay exactly as
+ * supplied; the wording, structure and emphasis are the writer's own work.
+ */
+export const EXPERT_CAMPAIGN_WRITER_METHOD = [
+  "Work like a professional campaign manager writing for a client whose cause you have studied, in this order, silently: (1) UNDERSTAND — extract who this is for, what is needed, why now, what the money or support concretely does, and what a supporter gets to be part of; reason about the goal behind the words, including needs the organizer implied but did not state well. (2) CHOOSE AN ANGLE — pick the single strongest honest reason a stranger would care in the first five seconds, and build everything around it. (3) WRITE FRESH — compose new wording from the facts; never lift the organizer's sentences, sentence order, or phrasing. Proper names, exact figures and genuine direct quotes are the only text carried over word for word. (4) SHAPE THE STORY — open on a specific human moment or concrete need, make the stakes plain, explain the plan and how each part of the goal amount maps to it, show what changes when the goal is met, and close with one clear, voluntary invitation (give, share, or follow) and what update supporters will receive. (5) POLISH — vary sentence length, prefer concrete nouns and active verbs, cut every sentence that only repeats an earlier one, and read it as a busy stranger on a phone: if a line would not make them pause, rewrite it.",
+  "Write at an easy reading level: short sentences, everyday words, one idea per sentence. Expert means clear and persuasive, never flowery or corporate. Sound like a trusted person who believes in this cause, not like a form letter or a press release.",
+  "Psychological influence is the marketing craft: lead with the beneficiary and the change, not the organizer's biography; make the first line earn the second; use the organizer's real specifics (places, items, counts, dates they supplied) as proof; name what a specific amount accomplishes so the reader can picture their own impact; invite the reader into an identity ('join the neighbors who…') using only support that actually exists; remove every friction between feeling and acting — one ask, one next step, no competing requests. End sections with forward motion. Write the share message the way a supporter would actually post it: one human sentence, the concrete need, and the link placeholder left for the owner.",
+].join(" ");
+export const ANTI_ECHO_RULES = [
+  "Do not reuse the organizer's sentences or near-paraphrases of them anywhere in titles, summaries, story or share copy; restating their wording back to them is a failure, even when it is accurate.",
+  "Do not follow the organizer's paragraph order; reorganize the facts into the story shape above.",
+  "Do not repeat the same fact, appeal or phrase in more than one paragraph; each paragraph must add something new.",
+  "Titles must not be the first words of the organizer's text or of the story; each title is its own hook written for a scrolling stranger.",
+].join(" ");
+const sentencesOf = value => String(value || "").split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => words(s).length >= 6);
+/**
+ * Sentence-level echo detection: returns generated sentences that merely
+ * restate the organizer's own sentences (high token overlap), so a caller
+ * can request one targeted revision instead of shipping a paraphrase.
+ */
+export function findEchoedSentences(generated, source) {
+  const sourceSentences = sentencesOf(source);
+  if (!sourceSentences.length) return [];
+  return sentencesOf(generated).filter(sentence =>
+    sourceSentences.some(original => nearSame(sentence, original)));
+}
 const words = value => String(value || "").normalize("NFKC").toLocaleLowerCase("en-US")
   .match(/[\p{L}\p{N}]+/gu) || [];
 const tokenSet = value => new Set(words(value).filter(w => w.length > 2));
