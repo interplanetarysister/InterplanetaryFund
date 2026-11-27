@@ -7,14 +7,18 @@ const cards = read("../src/pages/AgentsTeam.jsx");
 const identities = read("../src/components/agents/AgentIdentityIcon.jsx");
 const contract = JSON.parse(read("../../../worker/services/position-contracts.json"));
 
-test("nine registered roles remain, with DISCOVER consolidated into LINK on the member board", () => {
-  assert.equal(AGENT_WORKSPACES.length, 9);
-  assert.equal(new Set(AGENT_WORKSPACES.map(a=>a.service)).size, 9);
-  assert.equal(new Set(AGENT_WORKSPACES.map(a=>a.identity)).size, 9);
+test("nine specialist roles plus the REACH front desk remain, with backends consolidated on the member board", () => {
+  assert.equal(AGENT_WORKSPACES.length, 10);
+  assert.equal(new Set(AGENT_WORKSPACES.map(a=>a.service)).size, 10);
+  assert.equal(new Set(AGENT_WORKSPACES.map(a=>a.identity)).size, 10);
   assert.ok(!AGENT_WORKSPACES.some(a=>a.service==="admin_builder_agent"));
   const publicRoles=AGENT_WORKSPACES.filter(a=>!a.consolidatedInto);
-  assert.equal(publicRoles.length,8);
+  assert.equal(publicRoles.length,5);
+  assert.deepEqual(publicRoles.map(a=>a.identity).sort(), ["nexus","orbit","polaris","reach","story"]);
   assert.equal(AGENT_WORKSPACES.find(a=>a.identity==="discover")?.consolidatedInto,"link");
+  for (const backend of ["echo","pulse","link","forge"]) {
+    assert.equal(AGENT_WORKSPACES.find(a=>a.identity===backend)?.consolidatedInto,"reach");
+  }
   assert.match(cards,/filter\(agent => !agent\.consolidatedInto\)/);
   for (const workspace of AGENT_WORKSPACES) {
     assert.match(workspace.service,/^[a-z_]+$/);
