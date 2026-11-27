@@ -21,6 +21,32 @@ function approvedDirectSource(url, sources) {
   });
 }
 
+// Attached post media is projected by the public feed RPCs as a
+// same-origin path, never an absolute URL: the RPC cannot know which
+// origin (production, preview, www alias) will render it. Only this
+// exact shape may be resolved against the page origin; everything else
+// passes through unchanged so provider URLs keep their strict checks.
+const PUBLIC_MEDIA_PATH = /^\/api\/media\/public\/file\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:mp4|webm|png|jpg|webp|gif)$/i;
+
+export function resolvePublicMediaUrl(value, origin) {
+  if (typeof value !== "string" || !PUBLIC_MEDIA_PATH.test(value)) return value;
+  try {
+    const base = new URL(origin);
+    if (base.protocol !== "https:" && base.protocol !== "http:") return value;
+    return base.origin + value;
+  } catch { return value; }
+}
+
+// The one approved direct source for attached post media: this site's
+// own public media route. approvedDirectSource still requires https.
+export function publicMediaDirectSources(origin) {
+  try {
+    const base = new URL(origin);
+    if (base.protocol !== "https:" && base.protocol !== "http:") return [];
+    return [{ origin: base.origin, pathPrefix: "/api/media/public/file/" }];
+  } catch { return []; }
+}
+
 export function videoFromUrl(value, { directSources = [] } = {}) {
   if (typeof value !== "string" || !value || value.length > MAX_URL_LENGTH || /[\u0000-\u0020\\]/.test(value)) return null;
   try {

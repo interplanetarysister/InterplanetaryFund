@@ -1,4 +1,4 @@
-import { clipDescription, videoFromText, videoFromUrl } from "./videoLinks.js";
+import { clipDescription, resolvePublicMediaUrl, videoFromText, videoFromUrl } from "./videoLinks.js";
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const CAMPAIGN_ID = new RegExp("^" + UUID + "$", "i");
 const POST_ID = new RegExp("^(?:post-" + UUID + "|archive-[A-Za-z0-9_-]{1,128})$", "i");
@@ -16,7 +16,7 @@ export function collectShorts(campaigns, posts, options) {
   for (const post of posts.slice(0, 100)) {
     // RPC IDs distinguish moderated public projections from raw/private rows.
     if (!post || !POST_ID.test(post.id) || typeof post.body !== "string" || post.visibility === "private" || ["draft", "removed", "hidden"].includes(post.status)) continue;
-    const video = videoFromUrl(post.media_url, options) || videoFromText(post.body, options) || videoFromUrl(post.external_url, options);
+    const video = videoFromUrl(resolvePublicMediaUrl(post.media_url, options?.origin), options) || videoFromText(post.body, options) || videoFromUrl(post.external_url, options);
     if (video) add({ id: "post-" + post.id, video, title: "Community video", description: clipDescription(post.body),
       href: "/social/post/" + encodeURIComponent(post.id), kind: "Community" });
   }
