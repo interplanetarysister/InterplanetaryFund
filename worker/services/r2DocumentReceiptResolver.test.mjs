@@ -8,7 +8,7 @@ const campaign='33333333-3333-4333-8333-333333333333';
 const documentId='44444444-4444-4444-8444-444444444444';
 const jwt='eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.signature';
 const storage_path=`private/campaign-documents/${owner}/${campaign}/${documentId}.pdf`;
-const receipt=()=>({id:documentId,owner_id:owner,campaign_id:campaign,object_store:'r2',storage_path,object_etag:'synthetic-etag',object_sha256:'a'.repeat(64),object_verified_at:'2026-11-19T22:00:00Z',file_size:100,media_type:'application/pdf'});
+const receipt=()=>({id:documentId,owner_id:owner,campaign_id:campaign,object_store:'r2',storage_path,object_etag:'synthetic-etag',object_sha256:'a'.repeat(64),object_verified_at:'2026-11-19T22:00:00Z',deletion_requested_at:'2026-11-19T22:00:00Z',allow_agent_use:false,file_size:100,media_type:'application/pdf'});
 const request={documentId,ownerId:owner,jwt};
 
 test('returns a frozen, exact owner receipt and passes token to trusted RPC',async()=>{

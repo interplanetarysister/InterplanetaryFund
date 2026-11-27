@@ -21,11 +21,18 @@ test("catch-all and legacy alias routes are real redirects or explicit 404s", ()
     has(entry, '<Navigate to="' + target + '" replace />', path + " must redirect to " + target);
     assert.doesNotMatch(entry, /ComingSoon/, path + " must not be a placeholder");
   }
-  for (const path of ["*", "/admin/*"]) {
+  for (const path of ["*"]) {
     const entry = route(path);
     has(entry, "<PageNotFound />", path + " must render the real 404 page");
     assert.doesNotMatch(entry, /ComingSoon/, path + " must not be a placeholder");
   }
+  // Follow-up (2026-11-26): /admin/* is no longer a bare 404 — it maps known
+  // Admin Console tab ids to /admin?tab=<id> and 404s only unknown segments.
+  // /admin/ops and /admin/platform previously fell through to this 404.
+  assert.match(app, /<Route path="\/admin\/\*" element=\{<AdminLegacyRedirect \/>} \/>/,
+    "/admin/* must use the admin legacy redirect");
+  assert.match(app, /function AdminLegacyRedirect\(\) \{[\s\S]*?return <PageNotFound \/>;/,
+    "unknown admin segments must still render the real 404 page");
   assert.doesNotMatch(app, /const\s+ComingSoon\s*=|element=\{<ComingSoon\s*\/>\}/);
 });
 

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import "@/styles-connected-interactions.css";
-import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { legacyAuthCallbackUrl } from "./lib/authFlow";
 import { agentsRedirectSearch } from "./lib/agentsPage.mjs";
 import PageNotFound from "./lib/PageNotFound";
@@ -104,6 +104,22 @@ const Loading = () => <div className="fixed inset-0 flex items-center justify-ce
 function LegacyAgentsRedirect({ tab }) {
   const { search, hash } = useLocation();
   return <Navigate to={{ pathname: "/agents", search: agentsRedirectSearch(tab, search), hash }} replace />;
+}
+
+// Follow-up (2026-11-26): /admin/ops and /admin/platform had no route at all —
+// they fell through to the /admin/* 404, while every other admin sub-route
+// redirects to its Admin Console tab (40-page list, page 40). This catch-all
+// maps any known Admin Console tab id under /admin/* to /admin?tab=<id>, using
+// the same bare-Navigate mechanism as the /globe, /blogs, /news and /mission
+// redirects; the destination (/admin) gates itself behind MemberAccess +
+// AdminAccess and per-tab super-admin checks. Unknown segments still render
+// PageNotFound, exactly as before — this is not a blanket redirect.
+const ADMIN_CONSOLE_TAB_IDS = ["overview", "ops", "platform", "integrations", "sustainability", "social-moderation", "audit", "deletions", "studio", "help", "sponsor-inquiries"];
+function AdminLegacyRedirect() {
+  const { "*": segment } = useParams();
+  const tab = (segment || "").split("/")[0].toLowerCase();
+  if (ADMIN_CONSOLE_TAB_IDS.includes(tab)) return <Navigate to={`/admin?tab=${tab}`} replace />;
+  return <PageNotFound />;
 }
 
 function AppRoutes() {
@@ -251,7 +267,7 @@ function AppRoutes() {
       <Route path="/help" element={<Help />} />
       <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
-      <Route path="/admin/*" element={<PageNotFound />} />
+      <Route path="/admin/*" element={<AdminLegacyRedirect />} />
 
     </Route>
     <Route path="*" element={<PageNotFound />} />

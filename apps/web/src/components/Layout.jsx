@@ -33,6 +33,14 @@ const PAGE_TITLES = {
   "/campaigns": "My Campaigns", "/donate": "Donate / Checkout",
   "/our-story": "Our Story", "/terms": "Terms of Service", "/privacy": "Privacy Policy", "/health-privacy": "Health Privacy",
   "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact", "/planetary-impact": "Planetary Impact",
+  "/templates": "Campaign Templates", "/about": "About", "/contact": "Contact", "/download": "Download IFund",
+  "/login": "Sign In", "/register": "Create Account", "/forgot-password": "Forgot Password", "/reset-password": "Reset Password",
+  "/auth/callback": "Signing In", "/auth/mobile-callback": "Signing In", "/oauth/consent": "Authorization Notice",
+  "/onboarding": "Set Up Your Workspace", "/founding-members": "Founding Members", "/delete-account": "Delete Account",
+  "/hackathon": "Hackathon Demo", "/hackathon/tracker": "Hackathon Tracker",
+  "/support": "Support Requests", "/engagement": "Campaign Engagement", "/permissions": "Permissions",
+  "/admin/deletions": "Deletion Queue", "/admin/social-moderation": "Community Moderation",
+  "/fundraising-partners": "Fundraising Partners", "/fundraising-hub": "Fundraising Hub", "/publication": "My Publication",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
@@ -45,6 +53,12 @@ function pageTitle(pathname) {
   if (pathname.startsWith("/help/")) return "Help Article";
   if (pathname.startsWith("/community/")) return "Community";
   if (pathname.startsWith("/institutions/")) return "Institution";
+  if (pathname.startsWith("/oauth/callback/")) return "Signing In";
+  if (pathname.startsWith("/events/")) return "Fundraising Events";
+  if (pathname.startsWith("/social/post/")) return "Social Post";
+  if (pathname.startsWith("/publications/")) return "Publication";
+  if (pathname.startsWith("/p/")) return "Published Page";
+  if (pathname.startsWith("/embed/campaign/")) return "Campaign";
   return "Interplanetary Fund";
 }
 

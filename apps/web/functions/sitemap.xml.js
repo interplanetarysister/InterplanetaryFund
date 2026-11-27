@@ -6,6 +6,7 @@ const PROJECT = "https://ssibsfmtodgximseeqsv.supabase.co";
 const STATIC_PATHS = [
   "/", "/discover", "/globe", "/about", "/our-story", "/help", "/contact", "/templates",
   "/blogs", "/news", "/terms", "/privacy", "/events", "/download",
+  "/fundraising-partners", "/plans",
 ];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const xmlEscape = (v) => String(v).replace(/[&<>"']/g, (c) => ({

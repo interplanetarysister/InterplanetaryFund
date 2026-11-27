@@ -31,7 +31,10 @@ test("admin operations paths are guarded and do not silently grant privileges", 
   assert.match(page("OperationsHub"), /BuilderOperationalReview/, "ops uses server-verified read-only diagnostics");
   assert.match(page("OperationsHub"), /WorkflowRegistry/, "ops surfaces the existing restricted workflow registry");
   assert.match(readFileSync(new URL("../src/components/agents/WorkflowRegistry.jsx", import.meta.url), "utf8"), /ifund_admin_workflow_registry/, "workflow source must use its verified administrator RPC");
-  assert.ok(route("/admin/*")?.includes("<PageNotFound"), "unknown admin path should be intentional 404, not ComingSoon");
+  // Follow-up (2026-11-26): /admin/* maps known Admin Console tab ids to
+  // /admin?tab=<id>; unknown admin paths still 404 via AdminLegacyRedirect.
+  assert.ok(route("/admin/*")?.includes("<AdminLegacyRedirect"), "unknown admin path should be handled by the admin legacy redirect, not ComingSoon");
+  assert.match(app, /function AdminLegacyRedirect\(\) \{[\s\S]*?return <PageNotFound \/>;/, "unknown admin segments must still render the real 404 page");
 });
 
 test("member analytics is discoverable without exposing administrator links", () => {
