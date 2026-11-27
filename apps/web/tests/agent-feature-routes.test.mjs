@@ -11,8 +11,8 @@ import {AGENT_FEATURES,agentWorkspaceHref,agentToolHref,parseAgentFeatureSelecti
 const campaign='11111111-1111-4111-8111-111111111111',foreign='22222222-2222-4222-8222-222222222222',owner='owner-A';
 const render=(Component,props)=>renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(Component,props)));
 
-test('all nine roles resolve real workspace and feature links without private input',()=>{
- assert.equal(AGENT_FEATURES.length,9);
+test('all ten roles resolve real workspace and feature links without private input',()=>{
+ assert.equal(AGENT_FEATURES.length,10);
  for(const agent of AGENT_FEATURES){
   const href=agentWorkspaceHref(agent.identity,campaign),parsed=parseAgentFeatureSelection(href.slice(href.indexOf('?')));
   assert.equal(parsed.identity,agent.identity);assert.equal(parsed.campaignId,campaign);assert.equal(parsed.invalidCampaign,false);
@@ -29,7 +29,7 @@ test('prototype identities, malformed campaign IDs and URL input cannot grant a 
  assert.equal(campaignFromOwnedList(campaign,[{id:campaign,owner_id:'owner-B'}],owner),'');
  assert.equal(campaignFromOwnedList(campaign,[{id:campaign,owner_id:owner}],owner),campaign);
 });
-test('actual launcher exposes all nine accessible workspace and real-tool links',async()=>{
+test('actual launcher exposes all ten accessible workspace and real-tool links',async()=>{
  const {default:Launcher}=await loadComponent('src/components/agents/AgentFeatureLauncher.jsx');
  const html=render(Launcher,{campaignId:campaign});
  for(const agent of AGENT_FEATURES){assert.ok(html.includes('Open '+agent.name));assert.ok(html.includes(agentWorkspaceHref(agent.identity,campaign).replaceAll('&','&amp;')));}
