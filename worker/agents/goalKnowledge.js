@@ -174,21 +174,27 @@ export function classifyMemberAccess(subscription) {
 
 // Reference & application: when a refinement was recorded earlier in the
 // member's shared team context, later conversations must be able to find it
-// and apply it. History events carry the plan as JSON content; the latest
-// eligible plan wins. Returns null when nothing usable is on file.
+// and apply it. History events carry the plan as JSON content. Team-context
+// reads return events NEWEST-first (ifund_team_recent orders by recorded_at
+// desc), so "latest" is decided by recorded_at, never by array position —
+// a member who refined two different goals gets the most recent plan.
+// Returns null when nothing usable is on file.
 export function extractGoalKnowledgeFromHistory(events) {
   if (!Array.isArray(events)) return null;
-  for (let i = events.length - 1; i >= 0; i--) {
-    const content = events[i]?.content;
+  let best = null, bestTime = -Infinity;
+  for (const event of events) {
+    const content = event?.content;
     if (typeof content !== "string" || !content.includes("goal_knowledge_refinement")) continue;
     try {
       const parsed = JSON.parse(content);
       const plan = parsed?.goal_knowledge_refinement;
-      if (plan && plan.kind === "goal_knowledge_refinement" && plan.status === "prepared")
-        return plan;
+      if (!plan || plan.kind !== "goal_knowledge_refinement" || plan.status !== "prepared") continue;
+      const time = Date.parse(event.recorded_at || "");
+      const stamp = Number.isFinite(time) ? time : 0;
+      if (stamp >= bestTime) { best = plan; bestTime = stamp; }
     } catch { /* not a plan record; keep scanning */ }
   }
-  return null;
+  return best;
 }
 
 // Compact form of an on-file plan for a model message: enough for any agent

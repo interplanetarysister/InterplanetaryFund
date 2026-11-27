@@ -432,6 +432,23 @@ test("prompts bound research and preserve explicit preference provenance without
   ]);
 });
 
+test("story prompt carries an on-file Refine Knowledge plan in compact form", async () => {
+  const { buildGoalKnowledgePlan } = await import("../worker/agents/goalKnowledge.js");
+  const plan = buildGoalKnowledgePlan({ question: "Deep research my goal: surgery bills" });
+  const input = storyInput({ details: "My campaign needs some supplies.", request_id: rid });
+  const withPlan = storyMessages(input, {
+    shared_agent_history: [
+      { agent_id: "nexus", speaker: "agent", recorded_at: "2026-11-26T03:00:00Z",
+        source_kind: "agent_response", content: JSON.stringify({ goal_knowledge_refinement: plan }) },
+    ],
+  });
+  const data = JSON.parse(withPlan[1].content);
+  assert.equal(data.goal_knowledge_on_file.category, "medical");
+  assert.ok(data.goal_knowledge_on_file.research_questions.some(q => /fastest/i.test(q)));
+  const withoutPlan = storyMessages(input, { shared_agent_history: [] });
+  assert.equal(JSON.parse(withoutPlan[1].content).goal_knowledge_on_file, null);
+});
+
 test("structured provider objects validate and oversized stored facts are rejected before reserving inference", async () => {
   assert.deepEqual(storyOutput({ response: suggestion }), suggestion);
   let began = false;

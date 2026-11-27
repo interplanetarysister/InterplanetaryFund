@@ -4,6 +4,7 @@ import { readJsonBody, BodyError } from "../bodyLimit.js";
 import { IFUND_MEMBER_FIRST_AGENT_POLICY } from "./memberFirstPolicy.js";
 import { normalizeWritingPreferences } from "./writingPreferences.js";
 import { appendTeamContext, readTeamContext, readCampaignDocumentContext, replyEventKey, redactTeamCredentials } from "./teamContext.js";
+import { extractGoalKnowledgeFromHistory, goalKnowledgeApplicationSummary } from "./goalKnowledge.js";
 import {
   beginStoryAssignment,
   invokeImplementation,
@@ -213,6 +214,13 @@ export function storyMessages(input, context) {
               excerpt: String(row.content || "").slice(0, 400),
             }))
           : [],
+        // A prepared "Refine Knowledge About Your Goal" plan anywhere in the
+        // shared history, in compact form: the 400-char excerpts above cut
+        // the plan's research questions off, so it is also carried whole
+        // (bounded) here for the Story Agent to actually apply.
+        goal_knowledge_on_file: Array.isArray(context.shared_agent_history)
+          ? goalKnowledgeApplicationSummary(extractGoalKnowledgeFromHistory(context.shared_agent_history))
+          : null,
         owner_preferences: Array.isArray(context.preferences)
           ? context.preferences
               .filter(

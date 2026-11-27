@@ -250,10 +250,21 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     }
     // Learned-knowledge reference: if an earlier refinement is on file in
     // this member's team context, every later answer must be able to find
-    // it and apply it (see the application message pushed below).
-    const learnedKnowledge = goalKnowledge?.status === "prepared"
+    // it and apply it (see the application message pushed below). The
+    // conversation window above is only the last few exchanges — each one
+    // adds up to three events — so a plan would silently fall out of reach
+    // after a couple of chats. When the shallow window has no plan, do one
+    // deeper extraction-only read; the model's history brief is unchanged.
+    let learnedKnowledge = goalKnowledge?.status === "prepared"
       ? goalKnowledge
       : extractGoalKnowledgeFromHistory(history);
+    if (!learnedKnowledge && env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+      try {
+        const deeper = await readTeamContext({env,jwt:api.jwt,campaignId:null,limit:40,fetcher});
+        if (deeper.state === "ready")
+          learnedKnowledge = extractGoalKnowledgeFromHistory(deeper.events);
+      } catch { /* no plan reachable; answers proceed without it */ }
+    }
     // Read *only* previously evaluated and verified super-admin-approved skills
     // through the signed-in member's existing RLS/authorization context.
     // A missing training registry never blocks the user's regular assistance.

@@ -245,6 +245,24 @@ test("Agents can find and apply previously refined goal knowledge from team hist
   assert.equal(goalKnowledgeApplicationSummary(null), null);
 });
 
+test("Learned-knowledge extraction picks the newest plan in real (newest-first) history order", async () => {
+  const { extractGoalKnowledgeFromHistory, buildGoalKnowledgePlan } =
+    await import("../worker/agents/goalKnowledge.js");
+  const older = buildGoalKnowledgePlan({ question: "Deep research my goal: surgery bills" });
+  const newer = buildGoalKnowledgePlan({ question: "Deep research my goal: record an album" });
+  assert.equal(older.category, "medical");
+  assert.equal(newer.category, "creative");
+  // ifund_team_recent returns recorded_at DESC: index 0 is the newest event.
+  const descEvents = [
+    { speaker: "agent", agent_id: "nexus", content: JSON.stringify({ goal_knowledge_refinement: newer }), recorded_at: "2026-11-26T03:00:00Z" },
+    { speaker: "user", agent_id: "nexus", content: "thanks", recorded_at: "2026-11-26T02:00:00Z" },
+    { speaker: "agent", agent_id: "nexus", content: JSON.stringify({ goal_knowledge_refinement: older }), recorded_at: "2026-11-26T01:00:00Z" },
+  ];
+  assert.equal(extractGoalKnowledgeFromHistory(descEvents).category, "creative");
+  // Same result when the array happens to arrive oldest-first.
+  assert.equal(extractGoalKnowledgeFromHistory([...descEvents].reverse()).category, "creative");
+});
+
 function contextHarness(){
   const base=harness();
   const recorded=[];
