@@ -170,3 +170,88 @@ test('a write without a database-generated UUID cannot be confirmed', async () =
   );
   assert.equal(r.status, 503);
 });
+
+const mediaId = 'c1234567-89ab-4def-8abc-1234567890ab';
+function mediaRow(overrides = {}) {
+  return {
+    id: mediaId, owner_id: uid, content_kind: 'video', content_type: 'video/mp4',
+    file_size: 1024, object_path: `private/member-media/${uid}/${mediaId}.mp4`,
+    object_etag: 'etag-1', object_sha256: 'a'.repeat(64), deletion_requested_at: null,
+    ...overrides,
+  };
+}
+function mediaMock(calls, mediaRows) {
+  return async (url, settings) => {
+    calls.push({ url: String(url), settings });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).includes('/rest/v1/ifund_member_media?')) return Response.json(mediaRows);
+    const parsed = JSON.parse(settings.body);
+    return Response.json([{ id: postId, author_id: uid, body: parsed.body,
+      media_id: parsed.media_id ?? null, created_at: '2026-10-25T00:00:00Z' }]);
+  };
+}
+test('post with the author\'s own library video attaches after owner-scoped verification', async () => {
+  const calls = [];
+  const r = await routeCommunityWrite(
+    makeRequest('POST', '/api/community/posts', { body: 'Watch this', media_id: mediaId }),
+    env, mediaMock(calls, [mediaRow()]),
+  );
+  assert.equal(r.status, 201);
+  assert.deepEqual(await r.json(), {
+    id: postId, body: 'Watch this', created_at: '2026-10-25T00:00:00Z', media_id: mediaId,
+  });
+  assert.equal(calls.length, 3);
+  assert.ok(calls[1].url.includes('/rest/v1/ifund_member_media?'));
+  assert.ok(calls[1].url.includes('owner_id=eq.' + uid));
+  assert.ok(calls[1].url.includes('id=eq.' + mediaId));
+  assert.equal(calls[1].settings.headers.Authorization, calls[2].settings.headers.Authorization);
+  assert.deepEqual(JSON.parse(calls[2].settings.body), {
+    author_id: uid, body: 'Watch this', media_id: mediaId,
+  });
+});
+test('post with the author\'s own library image attaches', async () => {
+  const calls = [];
+  const image = mediaRow({ content_kind: 'image', content_type: 'image/png',
+    object_path: `private/member-media/${uid}/${mediaId}.png`, file_size: 2048 });
+  const r = await routeCommunityWrite(
+    makeRequest('POST', '/api/community/posts', { body: 'Photo', media_id: mediaId }),
+    env, mediaMock(calls, [image]),
+  );
+  assert.equal(r.status, 201);
+  assert.equal((await r.json()).media_id, mediaId);
+});
+test('another member\'s media, audio and pending-deletion media never attach', async () => {
+  for (const rows of [
+    [], // Owner-scoped lookup finds nothing for someone else's file.
+    [mediaRow({ content_kind: 'audio', content_type: 'audio/mpeg',
+      object_path: `private/member-media/${uid}/${mediaId}.mp3` })],
+    [mediaRow({ deletion_requested_at: '2026-10-25T00:00:00Z' })],
+    [mediaRow({ object_path: 'private/member-media/someone-else.mp4' })],
+    [mediaRow({ object_sha256: 'not-a-sha' })],
+  ]) {
+    const calls = [];
+    const r = await routeCommunityWrite(
+      makeRequest('POST', '/api/community/posts', { body: 'Nope', media_id: mediaId }),
+      env, mediaMock(calls, rows),
+    );
+    assert.equal(r.status, 422);
+    assert.equal((await r.json()).error, 'Attached media could not be verified.');
+    // Auth + media lookup happened; the post insert was never attempted.
+    assert.equal(calls.length, 2);
+    assert.ok(!calls.some(c => c.url.includes('/rest/v1/ifund_posts?')));
+  }
+});
+test('malformed media references fail before any database lookup', async () => {
+  for (const payload of [
+    { body: 'Hi', media_id: 'not-a-uuid' },
+    { body: 'Hi', media_id: 42 },
+    { body: 'Hi', media_id: mediaId, author_id: other },
+  ]) {
+    const calls = [];
+    const r = await routeCommunityWrite(
+      makeRequest('POST', '/api/community/posts', payload), env, mediaMock(calls, [mediaRow()]),
+    );
+    assert.equal(r.status, 422);
+    assert.equal(calls.length, 1); // Auth only.
+  }
+});

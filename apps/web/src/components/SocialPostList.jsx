@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Flag, Share2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import { ShortsVideo } from "@/pages/OrbitShorts";
-import { videoFromText, videoFromUrl } from "@/lib/videoLinks.js";
+import { publicMediaDirectSources, resolvePublicMediaUrl, videoFromText, videoFromUrl } from "@/lib/videoLinks.js";
 import { getPostLikes, likePost, nativePostId, reportPost, readReplies, replyToPost } from "@/lib/socialCommunity";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -36,8 +36,12 @@ async function sharePost(post) {
 function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
   const externalUrl = safeExternalUrl(post.external_url);
-  const mediaUrl = safeExternalUrl(post.media_url);
-  const mediaVideo = videoFromUrl(post.media_url);
+  // Attached library media arrives as a same-origin public path; resolve
+  // it against this origin and approve only that route as a direct source.
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://interplanetaryfund.com";
+  const resolvedMediaUrl = resolvePublicMediaUrl(post.media_url, origin);
+  const mediaUrl = safeExternalUrl(resolvedMediaUrl);
+  const mediaVideo = videoFromUrl(resolvedMediaUrl, { directSources: publicMediaDirectSources(origin) });
   const video = mediaVideo || videoFromText(post.body) || videoFromUrl(post.external_url);
   const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
   const discussionId = likeId;

@@ -3,11 +3,18 @@ import { Link } from "react-router-dom";
 import { listPublicVideoCampaigns } from "@/api/publicData";
 import { listPublicPosts } from "@/lib/publicSocialFeed";
 import { createShortsFeedController, loadPublicVideoPosts, loadShortsFeed, moveShortIndex } from "@/lib/shortsFeed";
+import { publicMediaDirectSources } from "@/lib/videoLinks.js";
 
 const initialFeed = { phase: "loading", items: [], partial: false };
 const loadPublicFeed = () => loadShortsFeed({
   loadCampaigns: () => listPublicVideoCampaigns({ limit: 150 }),
   loadPosts: () => loadPublicVideoPosts({ loadPage: listPublicPosts }),
+  // Attached post media plays from this site's own public media route;
+  // approve exactly that origin + prefix as a direct video source.
+  options: typeof window === "undefined" ? undefined : {
+    origin: window.location.origin,
+    directSources: publicMediaDirectSources(window.location.origin),
+  },
 });
 
 export function ShortsVideo({ item }) {

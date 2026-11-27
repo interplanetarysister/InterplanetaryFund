@@ -14,6 +14,7 @@ import CommunityDirectory from "@/components/community/CommunityDirectory";
 import OrbitShorts from "@/pages/OrbitShorts";
 import Blogs from "@/pages/Blogs";
 import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
+import { listMyMedia, uploadMyMedia, validateLibraryFile } from "@/api/memberMedia";
 import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 
 // Sprint 8 (2026-11-25): IFund Social tabs (40-page list). Posts, Shorts,
@@ -86,6 +87,11 @@ export default function SocialFeedPage({ community = false }) {
   const [feedError, setFeedError] = useState("");
   const [publishError, setPublishError] = useState("");
   const [notice, setNotice] = useState("");
+  const [attachment, setAttachment] = useState(null);
+  const [attachBusy, setAttachBusy] = useState(false);
+  const [attachError, setAttachError] = useState("");
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryItems, setLibraryItems] = useState(null);
 
   const load = useCallback(async (before) => {
     setLoading(true);
@@ -213,6 +219,43 @@ export default function SocialFeedPage({ community = false }) {
     }
   }
 
+  async function attachFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || attachBusy) return;
+    const invalid = validateLibraryFile(file);
+    if (invalid) { setAttachError(invalid); return; }
+    if (!["video", "image"].includes(file.type.split("/")[0])) {
+      setAttachError("Attach a video or image file.");
+      return;
+    }
+    setAttachBusy(true);
+    setAttachError("");
+    try {
+      const saved = await uploadMyMedia(authClient(), file);
+      setAttachment({ id: saved.id, name: file.name, kind: saved.kind });
+      setLibraryOpen(false);
+    } catch (cause) {
+      setAttachError(cause?.message || "The file could not be uploaded.");
+    } finally {
+      setAttachBusy(false);
+    }
+  }
+
+  async function toggleLibrary() {
+    if (libraryOpen) { setLibraryOpen(false); return; }
+    setLibraryOpen(true);
+    if (libraryItems !== null) return;
+    setAttachError("");
+    try {
+      const items = await listMyMedia(authClient());
+      setLibraryItems(items.filter(item => ["video", "image"].includes(item.content_kind) && !item.deletion_requested_at));
+    } catch (cause) {
+      setLibraryItems([]);
+      setAttachError(cause?.message || "Your media library could not be loaded.");
+    }
+  }
+
   async function publish(event) {
     event.preventDefault();
     if (busy || !canPost || !body.trim()) return;
@@ -220,7 +263,8 @@ export default function SocialFeedPage({ community = false }) {
     setPublishError("");
     setNotice("");
     try {
-      await publishPost(authClient(), user, body);
+      await publishPost(authClient(), user, body, attachment?.id ?? null);
+      setAttachment(null);
       setBody("");
       try { if (draftKey) localStorage.removeItem(draftKey); } catch { /* local storage unavailable */ }
       let cleared = true;
@@ -280,7 +324,7 @@ export default function SocialFeedPage({ community = false }) {
         <button type="button" className="mt-2 min-h-11 text-primary underline disabled:opacity-50" disabled={body.trim().length + 2 + shareSuggestion.length > MAX_POST_LENGTH} onClick={() => setBody(current => `${current.trim()}\n\n${shareSuggestion}`)}>Add campaign reference to draft</button>
       </div>}
       <label htmlFor="ifund-post" className="font-semibold">Share a post or video</label>
-      <p className="text-xs text-muted-foreground">Paste a public YouTube or Vimeo video link into your post. After publishing, supported videos appear in both the main timeline and Shorts. Media from connected external accounts is not imported without permission.</p>
+      <p className="text-xs text-muted-foreground">Attach your own uploaded video or image and it plays right here and in Shorts after publishing. You can also paste a public YouTube or Vimeo video link into your post. Media from connected external accounts is not imported without permission.</p>
       <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body}
         onChange={e => setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" />
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -290,6 +334,30 @@ export default function SocialFeedPage({ community = false }) {
           <button type="button" disabled={busy || !body.trim()} onClick={saveDraft} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Save draft</button>
           <button disabled={busy || !body.trim()} className="ifund-interactive min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
         </div>
+      </div>
+      <div className="space-y-2 rounded-xl border border-border p-3">
+        <p className="text-sm font-medium">Attach media from your library</p>
+        {attachment ? <div className="flex flex-wrap items-center gap-3">
+          <p className="min-w-0 break-words text-sm">{attachment.kind === "video" ? "Video" : "Image"} attached: <strong>{attachment.name}</strong>. It becomes public with this post; removing the post or deleting the file stops playback.</p>
+          <button type="button" disabled={busy} onClick={() => setAttachment(null)} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Remove attachment</button>
+        </div> : <div className="flex flex-wrap gap-2">
+          <label className={`inline-flex min-h-11 items-center rounded-xl border border-border px-4 ${attachBusy ? "opacity-50" : "cursor-pointer"}`}>
+            {attachBusy ? "Uploading…" : "Upload a video or image"}
+            <input type="file" accept="video/mp4,video/webm,image/png,image/jpeg,image/webp,image/gif" className="hidden" disabled={attachBusy || busy} onChange={attachFile} />
+          </label>
+          <button type="button" disabled={attachBusy || busy} onClick={toggleLibrary} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">{libraryOpen ? "Hide my library" : "Choose from my library"}</button>
+        </div>}
+        {attachError && <p role="alert" className="text-sm text-destructive">{attachError}</p>}
+        {libraryOpen && !attachment && (libraryItems === null
+          ? <p role="status" className="text-sm text-muted-foreground">Loading your library…</p>
+          : libraryItems.length === 0
+            ? <p className="text-sm text-muted-foreground">No videos or images in your library yet. Upload one above to attach it.</p>
+            : <ul className="space-y-2">
+                {libraryItems.map(item => <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
+                  <span className="min-w-0 break-words text-sm">{item.content_kind === "video" ? "Video" : "Image"} · {item.file_name}</span>
+                  <button type="button" disabled={busy} onClick={() => { setAttachment({ id: item.id, name: item.file_name, kind: item.content_kind }); setLibraryOpen(false); }} className="min-h-11 rounded-lg bg-primary px-4 text-primary-foreground disabled:opacity-50">Attach</button>
+                </li>)}
+              </ul>)}
       </div>
       <div className="flex flex-wrap gap-3" aria-label="Review draft on another platform">
         {socialComposeTargets(body).map(target =>

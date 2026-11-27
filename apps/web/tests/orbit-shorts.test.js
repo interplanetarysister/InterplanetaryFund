@@ -65,3 +65,21 @@ test("repeated or malformed public cursors cannot create an unbounded load", asy
  assert.equal(calls,2);
  await assert.rejects(loadPublicVideoPosts({pageSize:0,loadPage:async()=>[]}),/limit/);
 });
+test("posts with attached native videos join Shorts as direct clips", async () => {
+  const { publicMediaDirectSources } = await import("../src/lib/videoLinks.js");
+  const origin = "https://interplanetaryfund.com";
+  const attached = { ...post, body: "Launch clip", media_url: "/api/media/public/file/" + UUID + ".mp4" };
+  const options = { origin, directSources: publicMediaDirectSources(origin) };
+  const items = collectShorts([], [attached], options);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].video.type, "direct");
+  assert.equal(items[0].video.src, origin + "/api/media/public/file/" + UUID + ".mp4");
+  assert.equal(items[0].href, "/social/post/post-" + UUID);
+  // Without the approved own-origin source the same post is not a clip:
+  // attached media never bypasses the direct-source approval rule.
+  assert.equal(collectShorts([], [attached]).length, 0);
+  assert.equal(collectShorts([], [attached], { origin, directSources: publicMediaDirectSources("https://evil.test") }).length, 0);
+  // Attached images are not Shorts.
+  const image = { ...attached, media_url: "/api/media/public/file/" + UUID + ".png" };
+  assert.equal(collectShorts([], [image], options).length, 0);
+});
