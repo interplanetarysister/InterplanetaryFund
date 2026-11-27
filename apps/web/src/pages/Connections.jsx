@@ -9,6 +9,7 @@ import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { CONNECTION_PLATFORMS, OAUTH_PLATFORM_IDS, PLATFORM_KIND_NAMES, selectedConnectionPlatform, connectionSteps, matchesStoredConnection } from "@/lib/connectionCatalog.mjs";
 import { validatePublicConnectionLink } from "@/lib/connectionLinkValidation.mjs";
 import { connectionCapabilityReadiness } from "@/lib/connectionCapabilityReadiness.mjs";
+import { OAUTH_CONSENT_SHARED, oauthConsent, persistentLinkAgreement } from "@/lib/oauthConsent.mjs";
 
 const BUTTON = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40";
 const PRIMARY = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40";
@@ -76,6 +77,8 @@ export default function Connections() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const [consentProvider, setConsentProvider] = useState(null);
+  const [consentChecked, setConsentChecked] = useState(false);
   const [linkInput, setLinkInput] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
   const [pairedCampaign, setPairedCampaign] = useState("");
@@ -133,6 +136,8 @@ export default function Connections() {
   const saved = links.find(row=>row.provider===selected.id);
   const account = selectedOAuth ? records.find(row=>matchesStoredConnection(row,selectedOAuth) && row.status!=="disconnected") : null;
   const canStart = Boolean(selectedOAuth && providerReady[selectedOAuth]===true && user?.id);
+  const consent = selectedOAuth ? oauthConsent(selectedOAuth) : null;
+  const consentOpen = Boolean(canStart && consentProvider===selectedOAuth && consent);
   const isLinked = Boolean(account?.status==="connected" && account.verified_at);
   const selectedChoice = choices.find(row=>row.provider===selected.id)?.choice || "manual";
   const savedId = saved?.provider || "";
@@ -142,6 +147,8 @@ export default function Connections() {
     setLinkLabel(saved?.label || "");
     setPairedCampaign(saved?.campaign_id || "");
     setConfirmDisconnect(false);
+    setConsentProvider(null);
+    setConsentChecked(false);
     setError("");
     setNotice("");
   }, [selected.id,saved?.page_url,saved?.label,saved?.campaign_id]);
@@ -156,6 +163,21 @@ export default function Connections() {
 
   function choosePlatform(platform) {
     setParams({connect:platform.id});
+  }
+  // The authorization request comes first: "Connect securely" opens the
+  // request, and the provider sign-in only starts after the member ticks the
+  // persistent-link agreement in it. Reconnect needs a fresh tick each time.
+  // The provider sign-in is never started from the first click.
+  function requestConnect() {
+    if (!canStart || busyLock.current) return;
+    if (!consentOpen || !consentChecked) {
+      setConsentProvider(selectedOAuth);
+      setConsentChecked(false);
+      setError("");
+      setNotice("");
+      return;
+    }
+    manage("start");
   }
   async function manage(operation) {
     if (!selectedOAuth || !user?.id || busyLock.current || (operation!=="disconnect" && !canStart)) return;
@@ -327,8 +349,8 @@ export default function Connections() {
         <ol className="mt-3 space-y-2 text-sm">{instructions.map((step,i)=><li className="flex gap-3" key={i}><span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i+1}</span><span>{step}</span></li>)}</ol>
       </div>
       <div className="flex flex-wrap gap-3">
-        {canStart && <button type="button" className={PRIMARY} disabled={Boolean(busy)||loading} onClick={()=>manage("start")}>
-          <ShieldCheck size={17}/>{busy==="start"?"Opening sign-in…":isLinked?"Reconnect securely":"Connect securely"}
+        {canStart && <button type="button" className={PRIMARY} disabled={Boolean(busy)||loading} onClick={()=>requestConnect()}>
+          <ShieldCheck size={17}/>{busy==="start"?"Opening sign-in…":consentOpen?(consentChecked?"Continue to "+selected.name+" sign-in":"Review the request below"):isLinked?"Reconnect securely":"Connect securely"}
         </button>}
         {selected.site && <a href={selected.site} target="_blank" rel="noopener noreferrer" className={BUTTON}>
           Open {selected.name} <ChevronRight size={16}/>
@@ -337,8 +359,30 @@ export default function Connections() {
           <RefreshCw size={16}/>{busy==="refresh"?"Checking…":"Check connection"}
         </button>}
       </div>
+      {consentOpen && consent && <div role="group" aria-label={"Authorization request for "+selected.name} className="space-y-3 rounded-2xl border border-primary/40 bg-primary/5 p-4">
+        <h3 className="font-semibold">Authorization request — {selected.name}</h3>
+        <p className="text-sm text-muted-foreground">Before you sign in on {selected.name}, here is what IFund is asking for. You will still review and approve this request on {selected.name} itself, with your own account.</p>
+        <ul className="list-disc space-y-1 pl-5 text-sm">
+          {consent.requests.map((item)=><li key={item}>{item}</li>)}
+        </ul>
+        <p className="text-sm">{OAUTH_CONSENT_SHARED.stored}</p>
+        <p className="text-sm">{OAUTH_CONSENT_SHARED.persistent}</p>
+        <p className="text-sm">{OAUTH_CONSENT_SHARED.publishing}</p>
+        <p className="text-sm">{OAUTH_CONSENT_SHARED.financial}</p>
+        <p className="text-sm">{OAUTH_CONSENT_SHARED.disconnect}</p>
+        <label className="flex items-start gap-2 text-sm font-medium">
+          <input type="checkbox" checked={consentChecked} onChange={(event)=>setConsentChecked(event.target.checked)} className="mt-1 size-4 shrink-0 accent-primary"/>
+          <span>{persistentLinkAgreement(selected.name)}</span>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className={PRIMARY} disabled={!consentChecked || Boolean(busy) || loading} onClick={()=>manage("start")}>
+            <ShieldCheck size={17}/>Continue to {selected.name} sign-in
+          </button>
+          <button type="button" className={BUTTON} onClick={()=>{setConsentProvider(null); setConsentChecked(false);}}>Cancel</button>
+        </div>
+      </div>}
       {selectedOAuth && !canStart && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-900 dark:text-amber-200">
-        Secure sign-in is unavailable right now. You can still save a public page link or open the official site.
+        Secure sign-in for {selected.name} isn&apos;t set up yet. IFund still needs to register its {selected.name} app and connect it here. You can still save a public page link or open the official site.
       </p>}
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.
