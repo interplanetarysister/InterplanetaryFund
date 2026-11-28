@@ -397,3 +397,98 @@ test("saved campaign reference is forwarded to owner-verified Story and invalid 
  const invalid=await campaignPreview(request({...input,campaign_id:"another-user"}),f.env,f.fetcher);
  assert.equal(invalid.status,400);
 });
+
+const ID2 = "55555555-5555-4555-8555-555555555555";
+// A deliberate re-produce is a NEW request reference: the allowance
+// reserves (and charges) it as its own generation, the Story agent runs
+// a fresh draft for it, and completing the first generation never locks
+// the member out of the second.
+function reproduceBinding(reserveStates) {
+  const reserveCalls = [];
+  const completeCalls = [];
+  const draftCalls = [];
+  return {
+    reserveCalls, completeCalls, draftCalls,
+    fetcher: async (url, init) => {
+      const endpoint = String(url);
+      if (endpoint.endsWith("/ifund_ai_content_reserve")) {
+        const body = JSON.parse(init.body);
+        reserveCalls.push(body.p_request_id);
+        return Response.json(reserveStates[reserveCalls.length - 1]);
+      }
+      if (endpoint.endsWith("/ifund_ai_content_complete")) {
+        completeCalls.push(JSON.parse(init.body).p_request_id);
+        return Response.json(true);
+      }
+      throw new Error("Unexpected trial quota RPC: " + endpoint);
+    },
+    env: {
+      SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
+      IFUND_STORY_AGENT: {
+        fetch: async (forwarded) => {
+          const path = new URL(forwarded.url).pathname;
+          if (path.endsWith("/subscription")) return Response.json({ active: true, level: 1 });
+          const body = await forwarded.json();
+          draftCalls.push(body);
+          return Response.json({
+            draft: { id: RECEIPT, payload: { ...copy,
+              story: ("Version for request " + body.request_id + ". ") + copy.story } },
+          }, { status: 201 });
+        },
+      },
+    },
+  };
+}
+
+test("two regenerations in a row each reserve and generate fresh content (no lockout)", async () => {
+  const f = reproduceBinding([
+    { allowed: true, state: "reserved", limit: 15, remaining: 14 },
+    { allowed: true, state: "reserved", limit: 15, remaining: 13 },
+  ]);
+  const first = await campaignPreview(request(input), f.env, f.fetcher);
+  const second = await campaignPreview(request({ ...input, request_id: ID2 }), f.env, f.fetcher);
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  const firstBody = await first.json();
+  const secondBody = await second.json();
+  assert.equal(firstBody.assistance, "assisted");
+  assert.equal(secondBody.assistance, "assisted");
+  assert.match(firstBody.story, new RegExp(ID));
+  assert.match(secondBody.story, new RegExp(ID2));
+  assert.notEqual(firstBody.story, secondBody.story);
+  // Each version was its own allowance reservation and completion.
+  assert.deepEqual(f.reserveCalls, [ID, ID2]);
+  assert.deepEqual(f.completeCalls, [ID, ID2]);
+  assert.deepEqual(f.draftCalls.map(call => call.request_id), [ID, ID2]);
+});
+
+test("a regeneration denied by the allowance keeps the honest denial, not a broken control", async () => {
+  const f = reproduceBinding([
+    { allowed: true, state: "reserved", limit: 15, remaining: 14 },
+    { allowed: false, state: "membership_required", limit: 50 },
+  ]);
+  const first = await campaignPreview(request(input), f.env, f.fetcher);
+  assert.equal(first.status, 200);
+  const second = await campaignPreview(request({ ...input, request_id: ID2 }), f.env, f.fetcher);
+  assert.equal(second.status, 403);
+  const denied = await second.json();
+  assert.equal(denied.code, "membership_required");
+  assert.match(denied.error, /needs a trial or a subscription/);
+  assert.doesNotMatch(denied.error, /could not be verified/);
+  // The denied regeneration never reached the Story agent.
+  assert.equal(f.draftCalls.length, 1);
+
+  const g = reproduceBinding([
+    { allowed: true, state: "reserved", limit: 15, remaining: 1 },
+    { allowed: false, state: "trial_limit", limit: 15, remaining: 0 },
+  ]);
+  await campaignPreview(request(input), g.env, g.fetcher);
+  const limited = await campaignPreview(request({ ...input, request_id: ID2 }), g.env, g.fetcher);
+  assert.equal(limited.status, 429);
+  const limitedBody = await limited.json();
+  assert.equal(limitedBody.code, "trial_limit");
+  assert.match(limitedBody.error, /15 trial AI creations are used/);
+  assert.doesNotMatch(limitedBody.error, /could not be verified/);
+  assert.equal(g.draftCalls.length, 1);
+});
