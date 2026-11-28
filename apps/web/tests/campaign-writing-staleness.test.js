@@ -10,7 +10,7 @@ function harness(kind="section") {
   const state={error:"",proposals:{},suggestions:null,section:-1,suggesting:false};
   const refs={writingLock:{current:false},writingRevision:{current:guard},alive:{current:true},storySectionsRef:{current:["Original section","Second section"]}};
   const names={...refs,privacyDecisionPending:false,regeneratingSection:-1,suggesting:false,busy:false,
-    loadingDraft:false,draftLoadError:"",draftDetails:"Original context",draftBeneficiary:"",draftNeed:"",writingPath:"need",
+    loadingDraft:false,draftLoadError:"",draftDetails:"Original context",draftBeneficiary:"",draftNeed:"",draftAdjustment:"",writingPath:"need",
     form:{category:"community",goal_amount:"100"},writingSuggestion:()=>pending.promise,guidedCampaignDetails:()=>"Original context",
     splitStory:value=>value.split(/\n\s*\n/),setWritingQueued(){},
     setRegeneratingSection:value=>{state.section=value;},setSectionError:value=>{state.error=value;},
@@ -18,8 +18,8 @@ function harness(kind="section") {
     setSuggesting:value=>{state.suggesting=value;},setSuggestionError:value=>{state.error=value;},
     setSuggestions:value=>{state.suggestions=value;},setStorySections:value=>{state.sections=value;}};
   // CreateCampaign.jsx is reindented by upstream tooling; locate by declaration.
-  const start=source.search(kind==="section"?/async function regenerateSection\(index\) \{/:/async function suggestDraft\(\)/);
-  const end=source.indexOf(kind==="section"?"async function suggestDraft()":"useEffect(() => {",start+1);
+  const start=source.search(kind==="section"?/async function regenerateSection\(index/:/async function suggestDraft\(/);
+  const end=source.indexOf(kind==="section"?"async function suggestDraft(":"useEffect(() => {",start+1);
   assert.ok(start>=0&&end>start);
   const body=source.slice(start,end);
   const fn=new Function(...Object.keys(names),body+`;return ${kind==="section"?"regenerateSection":"suggestDraft"};`)(...Object.values(names));
@@ -66,7 +66,7 @@ function sectionEditor(initial) {
     invalidateWriting:()=>{state.invalidations++;},setSaved(){},setBrowserSaved(){},
     setStorySections:value=>{state.sections=value;},setForm:update=>{state.form=update(state.form);}};
   const start=source.indexOf("  function editSection(index, value) {");
-  const end=source.indexOf("\n  async function writingSuggestion(input)",start);
+  const end=source.indexOf("\n  async function writingSuggestion(input",start);
   assert.ok(start>=0&&end>start);
   const edit=new Function(...Object.keys(names),source.slice(start,end)+";return editSection;")(...Object.values(names));
   return {state,storySectionsRef,userEditedDraft,edit};

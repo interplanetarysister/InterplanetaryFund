@@ -276,6 +276,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
 
   const [supportType,setSupportType] = useState(()=>supportNeed(wizard.ai_profile?.writing_brief?.support_type).id);
   const [suggestions, setSuggestions] = useState(null);
+  // Direction for the next AI version only ("shorter", "more urgent",
+  // "emphasize the deadline"). Per-generation: never saved into the wizard
+  // profile and never written into the campaign itself.
+  const [draftAdjustment, setDraftAdjustment] = useState("");
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
   const [writingQueued, setWritingQueued] = useState(false);
@@ -304,10 +308,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     if(!storyEditStarted.current){setWizard(previous=>withStoryVersion(previous,form.story));storyEditStarted.current=true;}
     setForm(previous=>({...previous,story:sections.join("\n\n")}));
   }
-  async function writingSuggestion(input) {
-    input={...input,writing_preferences:{tone:wizard.ai_profile?.tone||"",never_change:wizard.ai_profile?.never_change||""}};
+  async function writingSuggestion(input, fresh = false) {
+    // The version direction rides the existing writing-preferences contract
+    // as its adjustment key; it is stripped from the top-level input so the
+    // draft request itself keeps its established shape.
+    const adjustment = typeof input.adjustment === "string" ? input.adjustment.trim().slice(0, 300) : "";
+    const { adjustment: _direction, ...content } = input;
+    input={...content,writing_preferences:{tone:wizard.ai_profile?.tone||"",never_change:wizard.ai_profile?.never_change||"",...(adjustment?{adjustment}:{})}};
     const linkedCampaignId = ownerId ? (draftId || saved || campaignId.current || null) : null;
     const key = JSON.stringify({ ...makeDraftRequest(input), writing_preferences:input.writing_preferences, section: input.section || null, campaign_id: linkedCampaignId });
+    // A deliberate re-produce retires the retained request reference, so the
+    // server performs — and the allowance charges — a brand-new generation.
+    // A plain retry keeps the reference, so a response lost after the server
+    // finished still resumes the same request instead of charging twice.
+    if (fresh) writingRequests.current.delete(key);
     let id = writingRequests.current.get(key);
     if (!id) {
       if (writingRequests.current.size >= 32) writingRequests.current.delete(writingRequests.current.keys().next().value);
@@ -324,7 +338,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       throw error;
     }
   }
-  async function regenerateSection(index) {
+  async function regenerateSection(index, fresh = false) {
     if (privacyDecisionPending || writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
     const request=writingRevision.current.begin();
     if(!request)return;
@@ -340,7 +354,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         cause: form.category,
         goal: form.goal_amount,
         section: original,
-      });
+      }, fresh);
       if (!alive.current || !writingRevision.current.current(request)) return;
       const proposed = result.story.trim();
       if (!proposed) throw new Error("No replacement section returned.");
@@ -355,7 +369,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
   }
 
-  async function suggestDraft() {
+  async function suggestDraft(fresh = false) {
     if (privacyDecisionPending || writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
     const request=writingRevision.current.begin();
     if(!request)return;
@@ -368,10 +382,14 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         need: draftNeed,
         cause: form.category,
         goal: form.goal_amount,
-      });
+        adjustment: draftAdjustment,
+      }, fresh);
       if (!alive.current || !writingRevision.current.current(request)) return;
       setSuggestions(result);
-      const sections=splitStory(result.story);storySectionsRef.current=sections;setStorySections(sections);
+      // The suggestion is a proposal for review only. The story sections
+      // stay derived from the member's current story text: replacing them
+      // with the suggestion's sections here would make a later section
+      // edit silently overwrite the member's story with unapplied text.
       setSectionProposals({});
     } catch (error) {
       if (alive.current && writingRevision.current.current(request)) { setSuggestionError(error?.message || "Could not prepare your draft."); setWritingQueued(error?.code === "queued"); }
@@ -686,7 +704,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
               <label className="block text-sm font-medium">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={5} value={form.story} onChange={e=>change("story",e.target.value)} placeholder="What should supporters know?" className={fld}/></label>
               <TrialCreationBalance compact />
               <PremiumOpportunity context="creator" compact />
-              <button type="button" onClick={suggestDraft} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"} title="Generate campaign ideas">{suggesting?"Preparing ideas…":"Help me write this with AI"}</button>
+              <label className="block text-sm font-medium">Direction for the next version (optional)<input maxLength={300} value={draftAdjustment} onChange={e=>setDraftAdjustment(e.target.value)} placeholder="e.g. Shorter, more urgent, emphasize the deadline" className={fld}/></label>
+              <button type="button" onClick={()=>suggestDraft(Boolean(suggestions))} disabled={suggesting||busy||loadingDraft||Boolean(draftLoadError)||draftDetails.trim().length<12} className={btn+" w-full"} title="Generate campaign ideas">{suggesting?(suggestions?"Preparing a new version…":"Preparing ideas…"):(suggestions?"Generate a new version":"Help me write this with AI")}</button>
+              {suggestions&&<p className="text-xs text-slate-300">A new version is a fresh AI generation and uses another creation from your allowance. Your story stays exactly as it is until you choose Use suggested story.</p>}
               {suggestionError&&<p role="alert" className="text-sm text-amber-200">{suggestionError} <Link to="/permissions" className="underline">AI permissions</Link></p>}
               {writingQueued&&<Link to="/agents" className="text-sm underline">View queued writing request</Link>}
               {suggestions&&<details open className="border-t border-white/10 pt-3"><summary className="cursor-pointer text-sm text-cyan-100">Review AI suggestions</summary><p className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-sm">{suggestions.story}</p><button type="button" className={btn} onClick={()=>change("story",suggestions.story)}>Use suggested story</button>
@@ -706,7 +726,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
                   <div className="text-slate-900 dark:text-white"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId}/></div>
                   <div className="text-slate-900 dark:text-white"><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId||null} disabled={disabled} onApply={copy=>{applyCampaignFields(copy);setError("");}}/></div>
                   <div className="text-slate-900 dark:text-white"><AgentAdviceReview ownerId={ownerId} campaignId={draftId||null} currentStory={form.story} disabled={disabled} onBusyChange={setHandoffBusy} onApply={text => change("story",text)}/></div>
-                  {storySections.length>0&&<><details aria-label="Story section editor"><summary className="cursor-pointer text-sm">Story sections</summary>{storySections.map((v,i)=><div key={i} className="mt-2"><textarea rows={3} value={v} onChange={e=>editSection(i,e.target.value)} className={fld}/><button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i)}>Suggest revision</button>{sectionProposals[i]&&<button type="button" className={btn} onClick={()=>editSection(i,sectionProposals[i])}>Use revision</button>}</div>)}{sectionError&&<p role="alert">{sectionError}</p>}</details></>}
+                  {storySections.length>0&&<><details aria-label="Story section editor"><summary className="cursor-pointer text-sm">Story sections</summary>{storySections.map((v,i)=><div key={i} className="mt-2"><textarea rows={3} value={v} onChange={e=>editSection(i,e.target.value)} className={fld}/><button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i)}>Suggest revision</button>{sectionProposals[i]&&<button type="button" className={btn} onClick={()=>editSection(i,sectionProposals[i])}>Use revision</button>}{sectionProposals[i]&&<button type="button" className={btn} disabled={regeneratingSection!==-1||suggesting||busy} onClick={()=>regenerateSection(i,true)}>Suggest another revision</button>}</div>)}{sectionError&&<p role="alert">{sectionError}</p>}</details></>}
                   {wizard.story_versions.length>0&&<details><summary>Previous story versions</summary>{wizard.story_versions.map((v,i)=><div key={i} className="mt-2"><p className="max-h-28 overflow-auto whitespace-pre-wrap text-sm">{v.text}</p><button type="button" className={btn} onClick={()=>change("story",v.text)}>Restore</button></div>)}</details>}
                 </div>
               </details>
