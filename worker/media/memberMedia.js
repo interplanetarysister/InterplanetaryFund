@@ -1,7 +1,7 @@
 // Member-only image/audio/video library stored in the existing iFund R2 bucket.
 // No public URLs or client-side service credentials. Metadata cannot be edited
 // by users outside the controlled, owner-authenticated upload/deletion paths.
-import {UUID,fail,supabase,member,boundedBytes,hex,validName} from "./privateDocuments.js";
+import {UUID,fail,supabase,member,boundedBytes,hex,validName,recheckMediaMember,discardPrivateBody} from "./privateDocuments.js";
 const MAX_FILES=50, MAX_TOTAL=268435456, MIME=Object.freeze({
  "image/png":["image","png",5242880],
  "image/jpeg":["image","jpg",5242880],
@@ -114,15 +114,22 @@ async function download(env,fetcher,bucket,actor,id){
  const item=await record(env,fetcher,actor,id);
  if(item.deletion_requested_at)fail(404,"This media file is awaiting removal.");
  const object=await bucket.get(item.object_path);
+ try{
  if(!object||object.size!==item.file_size||object.etag!==item.object_etag||
    object.httpMetadata?.contentType!==item.content_type||
    object.customMetadata?.owner_id!==actor.id||
-   object.customMetadata?.sha256!==item.object_sha256)
+   object.customMetadata?.sha256!==item.object_sha256||!object.body)
     fail(503,"Private media storage receipt could not be verified.");
+ const current=await recheckMediaMember(env,fetcher,actor);
+ const fresh=await record(env,fetcher,current,id);
+ if(fresh.deletion_requested_at)fail(404,"This media file is awaiting removal.");
+ if(["id","owner_id","object_path","content_kind","content_type","file_name","file_size","object_etag","object_sha256"].some(k=>fresh[k]!==item[k]))
+   fail(409,"Private media changed during retrieval. Reload and retry.");
  return new Response(object.body,{status:200,headers:{...noStore,
    "content-type":item.content_type,
    "content-length":String(item.file_size),"content-security-policy":"default-src 'none'; sandbox",
    "x-ifund-media-sha256":item.object_sha256}});
+ }catch(error){await discardPrivateBody(object);throw error;}
 }
 async function remove(env,fetcher,bucket,actor,id){
  let item=await record(env,fetcher,actor,id);
