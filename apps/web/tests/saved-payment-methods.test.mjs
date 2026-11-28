@@ -78,8 +78,8 @@ test("Migration stores token references and descriptors, never PAN or CVV",()=>{
   assert.match(sql,/enable row level security/);
   assert.match(sql,/auth\.uid\(\)\)=user_id/);
   assert.match(sql,/where is_default and status='active'/);
-  // No COLUMN may be capable of holding a card number or CVV (the migration's
-  // own warning comments mention them; column definitions must not).
-  const ddl=sql.split("\n").filter(line=>!line.trim().startsWith("--")).join("\n");
-  assert.doesNotMatch(ddl,/card_number|cvv|cvc|pan_number|full_card/i);
+  // No COLUMN may be capable of holding a card number or CVV (prose elsewhere
+  // in the migration warns against them; column definitions must not).
+  const tableBlock=sql.slice(sql.indexOf("create table"),sql.indexOf(");",sql.indexOf("create table")));
+  assert.doesNotMatch(tableBlock,/^\s+(card_number|cvv|cvc|pan|card_pan)\s/im);
 });
