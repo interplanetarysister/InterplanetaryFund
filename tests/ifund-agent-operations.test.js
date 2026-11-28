@@ -6,7 +6,7 @@ const USER="11111111-1111-4111-8111-111111111111";
 const REQUEST=(question,token="good.token")=>new Request("https://ifund.test/api/agents/ops/analyze",{
  method:"POST",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:JSON.stringify(typeof question==="string"?{question}:question)
 });
-function harness({isAdmin=true,configured=true,agentFailure=false,assignment=null,alreadyReviewed=false}={}){
+function harness({isAdmin=true,configured=true,agentFailure=false,assignment=null,alreadyReviewed=false,teamResult=null}={}){
  const calls=[];
  const fetcher=async(url,options={})=>{
    const path=String(url);calls.push({path,method:options.method||"GET",auth:options.headers?.Authorization});
@@ -28,7 +28,7 @@ function harness({isAdmin=true,configured=true,agentFailure=false,assignment=nul
  const env={SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",
    SUPABASE_PUBLISHABLE_KEY:"public-test",SUPABASE_SECRET_KEY:configured?"private-test":"",IFUND_AGENT_SERVICE:configured?{
      fetch:async()=>agentFailure?Response.json({error:"model error"},{status:503}):
-       Response.json({agent:"nexus",answer:"Prioritize a clear goal and budget.",actions_performed:false,
+       Response.json(teamResult||{agent:"nexus",answer:"Prioritize a clear goal and budget.",actions_performed:false,
          consultations:[{agent:"orbit",status:"completed",kind:"advisory_analysis",summary:"List verified costs."},
            {agent:"story",status:"completed",kind:"advisory_analysis",summary:"Respect beneficiary dignity."}]})
    }:null};
@@ -59,6 +59,28 @@ test("failed inference prevents agent impersonation",async()=>{
  const h=harness({agentFailure:true});
  assert.equal((await routeAgentOperations(REQUEST("Discuss the budget and story"),h.env,h.fetcher)).status,503);
  assert.equal(h.calls.some(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages")),false);
+});
+test("each analysis failure stage names itself instead of one flattened message",async()=>{
+ const notConfigured=harness({configured:false});
+ const configBody=await (await routeAgentOperations(REQUEST("Discuss the budget and story"),notConfigured.env,notConfigured.fetcher)).json();
+ assert.equal(configBody.code,"ops_not_configured");
+ assert.equal(configBody.error,"Private agent analysis is not configured.");
+ const failed=harness({agentFailure:true});
+ const failedResponse=await routeAgentOperations(REQUEST("Discuss the budget and story"),failed.env,failed.fetcher);
+ const failedBody=await failedResponse.json();
+ assert.equal(failedResponse.status,503);
+ assert.equal(failedBody.code,"ops_team_response_invalid");
+ assert.equal(failedBody.error,"The specialists could not complete a verified advisory review.");
+ const tooMany=harness({teamResult:{agent:"nexus",answer:"A bounded synthesis.",actions_performed:false,
+   consultations:["orbit","story","pulse"].map(agent=>({agent,status:"completed",kind:"advisory_analysis",summary:"Finding."}))}});
+ const tooManyResponse=await routeAgentOperations(REQUEST("Discuss the budget and story"),tooMany.env,tooMany.fetcher);
+ const tooManyBody=await tooManyResponse.json();
+ assert.equal(tooManyResponse.status,503);
+ assert.equal(tooManyBody.code,"ops_evidence_invalid");
+ assert.equal(tooMany.calls.some(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages")),false);
+ const longAnswer=harness({teamResult:{agent:"nexus",answer:"x".repeat(6001),actions_performed:false,consultations:[]}});
+ const longBody=await (await routeAgentOperations(REQUEST("Discuss the budget and story"),longAnswer.env,longAnswer.fetcher)).json();
+ assert.equal(longBody.code,"ops_team_response_invalid");
 });
 test("private UI depends on server-verified admin role and never posts as an agent",()=>{
  const component=readFileSync(new URL("../apps/web/src/components/agents/AgentOperationsRoom.jsx",import.meta.url),"utf8");
