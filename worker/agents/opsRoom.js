@@ -16,9 +16,9 @@ async function privateRoomCall(env,key,method,path,payload,fetcher){
    ...(payload?{body:JSON.stringify(payload)}:{}),
    signal:AbortSignal.timeout(12000)
  });
- if(!resp.ok)fail(503,"The verified team conversation could not be saved.");
+ if(!resp.ok)fail(503,"The verified team conversation could not be saved.","ops_persistence_failed");
  const result=await resp.json().catch(()=>null);
- if(!result)fail(503,"Missing team discussion receipt.");
+ if(!result)fail(503,"Missing team discussion receipt.","ops_persistence_receipt");
  return result;
 }
 export async function routeAgentOperations(request,env,fetcher=fetch){
@@ -29,7 +29,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    if((await api.rpc("ifund_current_user_is_verified_admin"))!==true)fail(403,"Administrator access is required.");
    await api.futureInternalAIPermission("analysis");
    if(typeof env.IFUND_AGENT_SERVICE?.fetch!=="function" || !env.SUPABASE_SECRET_KEY)
-     fail(503,"Private agent analysis is not configured.");
+     fail(503,"Private agent analysis is not configured.","ops_not_configured");
    const input=await readJsonBody(request,6000);
    const keys=input&&typeof input==="object"&&!Array.isArray(input)?Object.keys(input):[];
    const byAssignment=keys.length===1 && keys[0]==="message_id";
@@ -51,7 +51,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
        headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+api.jwt},
        signal:AbortSignal.timeout(12000)
      });
-     if(!assignmentResponse.ok)fail(503,"The private assignment could not be verified.");
+     if(!assignmentResponse.ok)fail(503,"The private assignment could not be verified.","ops_assignment_unreachable");
      const rows=await assignmentResponse.json().catch(()=>null);
      if(!Array.isArray(rows)||rows.length!==1 || rows[0].id!==input.message_id ||
        rows[0].speaker_type!=="admin" || rows[0].source_kind!=="admin_post" ||
@@ -70,9 +70,9 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
        headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+api.jwt},
        signal:AbortSignal.timeout(12000)
      });
-     if(!existing.ok)fail(503,"Previous assignment processing could not be checked.");
+     if(!existing.ok)fail(503,"Previous assignment processing could not be checked.","ops_review_check_unreachable");
      const prior=await existing.json().catch(()=>null);
-     if(!Array.isArray(prior))fail(503,"Invalid assignment processing history.");
+     if(!Array.isArray(prior))fail(503,"Invalid assignment processing history.","ops_review_check_invalid");
      if(prior.length)fail(409,"This message has already been reviewed by NEXUS.");
    }
    // Read only the admin's private room under their verified JWT and RLS.
@@ -82,9 +82,9 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
        headers:{apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+api.jwt},
        signal:AbortSignal.timeout(12000)
      });
-   if(!historyResponse.ok)fail(503,"Private agent room history could not be verified.");
+   if(!historyResponse.ok)fail(503,"Private agent room history could not be verified.","ops_history_unreachable");
    const history=await historyResponse.json();
-   if(!Array.isArray(history))fail(503,"Invalid private room history.");
+   if(!Array.isArray(history))fail(503,"Invalid private room history.","ops_history_invalid");
    const context=history.reverse().map(e=>({
      author:e.speaker_type==="agent"&&AGENTS.has(e.agent_id)?e.agent_id:"administrator",
      event:EVENTS.has(e.event_type)?e.event_type:"discussion",
@@ -106,12 +106,12 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    if(!response.ok || !analysis || !AGENTS.has(analysis.agent) ||
      analysis.actions_performed!==false || typeof analysis.answer!=="string" ||
      !analysis.answer.trim() || analysis.answer.length>6000)
-     fail(503,"The specialists could not complete a verified advisory review.");
+     fail(503,"The specialists could not complete a verified advisory review.","ops_team_response_invalid");
    const consultations=Array.isArray(analysis.consultations) ? analysis.consultations : [];
    if(consultations.length>2 || consultations.some(c=>!AGENTS.has(c.agent) ||
      c.agent==="nexus" || c.status!=="completed" ||
      c.kind!=="advisory_analysis" || typeof c.summary!=="string" || !c.summary.trim() ||
-     c.summary.length>1600))fail(503,"Invalid specialist execution evidence.");
+     c.summary.length>1600))fail(503,"Invalid specialist execution evidence.","ops_evidence_invalid");
    const receipt=byAssignment?sourceEvent+"-"+input.message_id:crypto.randomUUID();
    const entries=[...consultations.map(c=>({
      thread_id:ROOM,speaker_type:"agent",agent_id:c.agent,body:c.summary,
@@ -123,14 +123,21 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    }];
    const saved=await privateRoomCall(env,env.SUPABASE_SECRET_KEY,"POST",
      "ifund_agent_operations_messages",entries,fetcher);
-   if(!Array.isArray(saved) || saved.length!==entries.length)fail(503,"Agent discussion persistence was not verified.");
+   if(!Array.isArray(saved) || saved.length!==entries.length)fail(503,"Agent discussion persistence was not verified.","ops_persistence_unverified");
    return reply(200,{saved:saved.length,agents:entries.map(e=>e.agent_id),
      assignment_id:sourceEvent==="assignment"?input.message_id:null,
      discussion_id:sourceEvent==="discussion"?input.message_id:null,
      discussion_receipt:receipt,actions_performed:false});
  }catch(error){
    if(error instanceof BodyError)return reply(error.status||400,{error:"Invalid question body."});
-   const status=Number.isInteger(error?.status)&&error.status>=400&&error.status<=503?error.status:503;
-   return reply(status,{error:status===503?"Private agent analysis is unavailable or was not verified.":String(error.message||"Access denied").slice(0,220)});
+   // Errors raised by fail() carry an authored, user-safe message and a stage
+   // code: surface both so a failure names the stage that failed instead of
+   // collapsing every 503 into one unverifiable sentence. Only unexpected
+   // errors (no authored status) get the generic fallback.
+   const authored=Number.isInteger(error?.status)&&error.status>=400&&error.status<=503&&
+     typeof error?.message==="string"&&error.message.length>0;
+   if(authored)return reply(error.status,{error:error.message.slice(0,220),
+     ...(typeof error.code==="string"?{code:error.code}:{})});
+   return reply(503,{error:"Private agent analysis is unavailable or was not verified.",code:"ops_unavailable"});
  }
 }
