@@ -492,3 +492,13 @@ test("a regeneration denied by the allowance keeps the honest denial, not a brok
   assert.doesNotMatch(limitedBody.error, /could not be verified/);
   assert.equal(g.draftCalls.length, 1);
 });
+test("a stored draft that pleads the organizer's raw needs is never surfaced as campaign copy", async () => {
+  const pleading = {
+    ...copy,
+    story: "I need money for the garden tools and seeds this season. " + copy.story,
+  };
+  const f = binding({ native: { draft: { id: RECEIPT, payload: pleading } } });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 502);
+  assert.match((await response.json()).error, /incomplete suggestion/i);
+});

@@ -1,6 +1,6 @@
 import { BodyError, readJsonBody } from "../bodyLimit.js";
 import { storyOutput } from "../agents/story.js";
-import { freeCopyOutlineOptions } from "../../apps/web/src/lib/campaignCopyQuality.mjs";
+import { freeCopyOutlineOptions, findCampaignCopyDiscretionViolations } from "../../apps/web/src/lib/campaignCopyQuality.mjs";
 import { reserveTrialContent, completeTrialContent, releaseTrialContent } from "../trialAiContent.js";
 import { normalizeWritingPreferences, WritingPreferencesError } from "../agents/writingPreferences.js";
 
@@ -273,6 +273,13 @@ export async function campaignPreview(request, env, fetcher = fetch) {
       { response: result.draft.payload },
       Boolean(input.section),
     );
+    // Public-facing discretion (owner directive 2026-11-28): the Story
+    // Agent enforces this before a draft is stored, but a draft stored
+    // before that enforcement — or by any other writer — must still never
+    // surface the organizer's raw needs or internal goals as public copy.
+    // Fail closed with the incomplete-suggestion error instead.
+    if (findCampaignCopyDiscretionViolations(output, input.details, Boolean(input.section)).length)
+      fail(502, "The writing assistant returned an incomplete suggestion.");
     if(!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher))) fail(503,
       "The AI allowance could not be finalized. Your draft remains unchanged.");
     trialReceipt=null;
