@@ -694,6 +694,9 @@ const failRequest = (id, reason, headers = {}) =>
 
 test("concierge is selected only by the explicit switch and needs its pickup secret, not the AI binding", () => {
   assert.equal(videoProviderId({ IFUND_VIDEO_PROVIDER: "executive-concierge" }), CONCIERGE_PROVIDER_ID);
+  // The short value from the owner's direction selects it too — an
+  // unrecognized value would silently fall back to the default provider.
+  assert.equal(videoProviderId({ IFUND_VIDEO_PROVIDER: "concierge" }), CONCIERGE_PROVIDER_ID);
   const env = conciergeEnv(fakeBucket());
   assert.equal(videoAIReady(env), true);
   assert.equal(videoAIReady({ ...env, CONCIERGE_PICKUP_SECRET: undefined }), false);

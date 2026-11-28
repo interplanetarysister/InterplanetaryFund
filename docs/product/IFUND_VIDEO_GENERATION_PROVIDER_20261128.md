@@ -74,7 +74,8 @@ the Model Studio account itself is the owner's activation step.
 
 Later the same day the owner directed a second route that supersedes
 the Alibaba pilot as the primary one **when selected**:
-`executive-concierge`, chosen with `IFUND_VIDEO_PROVIDER=executive-concierge`.
+`executive-concierge`, chosen with `IFUND_VIDEO_PROVIDER=executive-concierge`
+(the short value `concierge` is accepted as the same selection).
 Nothing was removed — the Model Studio and Workers AI adapters, the
 pilot quota guard and the paid-model gate all stay exactly as they are
 for the provider route. The concierge spends **no provider credits**,
