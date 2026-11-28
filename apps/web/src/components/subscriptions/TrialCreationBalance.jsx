@@ -14,11 +14,17 @@ export default function TrialCreationBalance({ compact = false }) {
     if(info!==null)return;
     let live=true;
     authClient().rpc("ifund_ai_content_status").then(({data,error})=>{
-      if(live && !error && Number.isInteger(data?.remaining) && [15,50].includes(data.limit))setInfo(data);
+      if(live && !error && ((data?.admin===true && data.entitled===true && data.limit===null && data.remaining===null) || (Number.isInteger(data?.remaining) && [15,50].includes(data.limit))))setInfo(data);
     }).catch(()=>{});
     return ()=>{live=false;};
   },[info]);
-  if(!info || (!info.trial && !info.paid))return null;
+  if(!info)return null;
+  if(info.admin===true && info.entitled===true && info.limit===null)
+    return <section aria-label="Administrator AI generation allowance" className="rounded-lg bg-cyan-500/[.055] p-3">
+      <p className="text-sm font-semibold">Administrator AI access: unlimited</p>
+      {!compact&&<p className="mt-1 text-xs text-muted-foreground">No subscription or personal creation credits required. Shared provider capacity and your AI permission still apply.</p>}
+    </section>;
+  if(!info.trial && !info.paid)return null;
   const done=info.remaining<=0;
   const maximum=info.paid?50:15;
   return <section aria-label="Account AI generation allowance"

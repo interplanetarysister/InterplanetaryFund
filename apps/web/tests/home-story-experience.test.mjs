@@ -3,14 +3,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("new public homepage keeps sign in prominent and the prompt launches the original editor", () => {
+test("new public homepage keeps sign in prominent and the prompt launches What If with the original editor as fallback", () => {
   const home = read("../src/pages/Home.jsx");
   const app = read("../src/App.jsx");
   assert.match(home, /to=\{signedIn \? "\/dashboard" : "\/login"\}/);
   assert.match(home, /to="\/register"/);
-  assert.match(home, /navigate\("\/create\?manual=1", \{ state: \{ prompt, source: "home-what-if" \} \}\)/);
+  assert.match(home, /navigate\(whatIfEnabled \? "\/what-if" : "\/create\?manual=1", \{ state: \{ prompt, source: "home-what-if" \} \}\)/);
   assert.match(home, /PromptComposer/);
   assert.match(home, /Your idea stays private until you choose to publish/);
+  assert.match(home, /Start privately\. Fundraising is optional\./);
   assert.match(app, /<Route path="\/our-story" element=\{<OurStory \/>\}/);
 });
 test("Our Story is a standalone story page, not a preserved copy of the old homepage", () => {
