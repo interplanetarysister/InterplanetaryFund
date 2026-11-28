@@ -95,13 +95,19 @@ test("Generator reuses the existing image studio and states video generation hon
   assert.match(page, /onArtworkReady=\{handleArtworkReady\}/);
   assert.match(page, /onArtworkSaved=\{handleArtworkSaved\}/);
   assert.match(page, /onSendToEditor=/);
-  assert.match(page, /Video generation is not connected yet/);
-  assert.match(page, /no video-generation provider wired in/);
-  assert.match(page, /does not pretend to generate a video/);
+  // Video generation is wired through its own component on the same
+  // Workers AI provider; while the owner flag is off it must say so
+  // plainly instead of pretending to generate.
+  assert.match(page, /import AIVideoStudio from "\.\/AIVideoStudio"/);
+  assert.match(page, /<AIVideoStudio/);
+  const video = read("src/pages/AIVideoStudio.jsx");
+  assert.match(video, /not enabled on this deployment yet/);
+  assert.match(video, /does not pretend to generate a video/);
+  assert.match(video, /\/api\/ai\/videos\/status/);
+  assert.match(video, /\/api\/ai\/videos\/generate/);
   // No second image generator may be built inside the Studio.
   assert.doesNotMatch(page, /\/api\/ai\/images\/generate/);
   assert.doesNotMatch(page, /flux-1-schnell/);
-  assert.doesNotMatch(page, /Workers AI.*generate|generate.*Workers AI/i);
   const studio = read("src/pages/AIImageStudio.jsx");
   assert.match(studio, /AIImageStudio\(\{ onArtworkReady, onArtworkSaved, onSendToEditor \}/);
   assert.match(studio, /onArtworkReady\?\.\(\{ file: jpeg, url, kind:/);
