@@ -110,3 +110,23 @@ test("failed R2 deletion keeps the tombstone and metadata for retry",async()=>{
  const hidden=await routeMemberMedia(f.request("/api/media/library/file/"+id),f.env,f.fetcher);
  assert.equal(hidden.status,404);
 });
+
+test("private media delivery rechecks account, deletion and receipt after R2 read",async()=>{
+ for(const [change,expected] of [["account",403],["deletion",404],["receipt",409]]){
+  const s=fixture(),base="/api/media/library";
+  const create=await routeMemberMedia(s.request(base,"POST",{body:PNG,headers:{"content-type":"image/png","x-ifund-file-name":"test.png"}}),s.env,s.fetcher);
+  assert.equal(create.status,201);const {id}=await create.json();
+  const bucket=s.env.IFUND_CAMPAIGN_MEDIA,get=bucket.get;let changed=false,cancelled=false;
+  bucket.get=async key=>{const object=await get(key);changed=true;
+   if(change==="deletion")s.rows.get(id).deletion_requested_at=new Date().toISOString();
+   if(change==="receipt")s.rows.get(id).object_etag="new-etag";
+   return {...object,body:new ReadableStream({cancel(){cancelled=true;}})};
+  };
+  const fetcher=async(url,opts)=>{
+   if(changed&&change==="account"&&url.includes("/ifund_profiles?"))return Response.json([{account_status:"active",account_deletion_pending:true}]);
+   return s.fetcher(url,opts);
+  };
+  const result=await routeMemberMedia(s.request(base+"/file/"+id),s.env,fetcher);
+  assert.equal(result.status,expected);assert.equal(cancelled,true);assert.equal(s.objects.size,1);
+ }
+});
