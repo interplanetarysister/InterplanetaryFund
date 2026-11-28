@@ -20,6 +20,23 @@ returning `{ state: "Completed", result: { video: "<url>" } }`
 is Cloudflare Workers AI and the model is `alibaba/wan-3.0` — no new
 vendor account, no new API key, no second credential vault.
 
+## Generative modes
+
+Both modes are true AI generation — the provider creates new footage;
+nothing here assembles or renders member-supplied clips.
+
+- **Text-to-video** (`alibaba/wan-3.0`): prompt (safety-framed server-side),
+  480P/720P/1080P, ratios adaptive/16:9/9:16/1:1/4:3/3:4, 3–10 seconds
+  in this wiring (model range 1–15).
+- **Image-to-video** (`alibaba/wan-2.7-i2v`, zero data retention):
+  animates a reference image with an optional motion prompt, 720P/1080P
+  only, $0.10/s at 720p and $0.15/s at 1080p. The model takes the image
+  **only as a URL**, so the source is a member-supplied public https
+  link with an explicit rights confirmation recorded on the job.
+  Private library media is deliberately **not** an image source: Phase 1
+  never mints a public URL for a member's library, and this wiring does
+  not break that rule to feed the model.
+
 ## The cost fact that gates activation
 
 Wan 3.0 is **not** priced in Neurons. Cloudflare prices it per generated
@@ -82,7 +99,8 @@ generations a member can consume.
    available to the Worker (already used by the media modules).
 3. Decide the budget posture for per-second billing (above), then set
    `IFUND_VIDEO_AI_ENABLED=enabled`. Optionally set `IFUND_VIDEO_MODEL`
-   to override `alibaba/wan-3.0`.
+   to override `alibaba/wan-3.0` and `IFUND_VIDEO_I2V_MODEL` to override
+   `alibaba/wan-2.7-i2v`.
 4. Deploy through the normal authorized release, then run the frontend
    acceptance pass as a signed-in entitled member (generate, save,
    attach to a post, play) per the repo's acceptance rules — source tests

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   routeVideoGeneration, videoAIReady, validateVideoRequest,
-  normalizeWorkersAiResult, allowanceDenial, VIDEO_MODEL,
+  normalizeWorkersAiResult, allowanceDenial, VIDEO_MODEL, VIDEO_I2V_MODEL,
 } from "../worker/videoGeneration.js";
 
 const API = "https://interplanetaryfund.com";
@@ -172,6 +172,49 @@ test("request validation rejects short prompts, bad references and unknown field
   assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, duration: 30 }));
   const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID });
   assert.deepEqual([ok.resolution, ok.ratio, ok.duration], ["480P", "adaptive", 5]);
+  assert.equal(ok.mode, "text");
+});
+
+test("image-to-video requires a public https image link and a rights confirmation", () => {
+  const image = "https://images.example.org/stall.jpg";
+  // No rights confirmation.
+  assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, image_url: image }));
+  // Non-https, credential-bearing, localhost and literal-IP links are refused.
+  for (const bad of ["http://images.example.org/stall.jpg", "https://user:pass@images.example.org/x.jpg",
+    "https://localhost/x.jpg", "https://192.168.1.5/x.jpg", "not a url"])
+    assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, image_url: bad, rights_confirmed: true }));
+  // 480P is not an I2V resolution.
+  assert.throws(() => validateVideoRequest({
+    prompt: PROMPT, request_id: REQUEST_ID, image_url: image, rights_confirmed: true, resolution: "480P",
+  }), /720P or 1080P/);
+  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, image_url: image, rights_confirmed: true });
+  assert.equal(ok.mode, "image");
+  assert.equal(ok.imageUrl, image);
+  assert.equal(ok.resolution, "720P");
+  assert.equal(ok.rightsConfirmed, true);
+});
+
+test("image-to-video lifecycle runs the I2V model with the image link and stores the result", async () => {
+  const counter = { calls: 0 };
+  const bucket = fakeBucket();
+  const service = fakeServices();
+  const env = baseEnv(bucket, goodAi(counter));
+  const imageRequest = generateRequest({
+    prompt: PROMPT, request_id: REQUEST_ID,
+    image_url: "https://images.example.org/stall.jpg", rights_confirmed: true,
+  });
+  const submitted = await routeVideoGeneration(imageRequest, env, service.fetcher);
+  assert.equal(submitted.status, 202);
+  assert.equal((await submitted.json()).job.mode, "image");
+
+  const advanced = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, service.fetcher);
+  const job = (await advanced.json()).job;
+  assert.equal(job.state, "completed");
+  assert.equal(counter.model, VIDEO_I2V_MODEL);
+  assert.equal(counter.input.image, "https://images.example.org/stall.jpg");
+  assert.equal(counter.input.ratio, undefined);
+  assert.equal(service.media.length, 1);
+  assert.equal(service.media[0].content_kind, "video");
 });
 
 test("allowance denial states map to honest D7 statuses and copy", () => {

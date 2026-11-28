@@ -14,6 +14,12 @@
 //   POST /api/ai/videos/jobs/:id/advance run provider, download, store
 //   GET  /api/ai/videos/jobs/:id         poll the job state
 //   GET  /api/ai/videos/status           public enabled/not-configured flag
+// Two generative modes, both true AI generation (never assembly of member
+// footage): 'text' is text-to-video (Wan 3.0); 'image' is image-to-video
+// (Wan 2.7 I2V) from a member-supplied PUBLIC image URL with a recorded
+// rights confirmation. The I2V model accepts only an image URL, and Phase
+// 1 private library media never gets a public URL, so library images are
+// deliberately not an I2V source.
 // A finished provider generation is never discarded: its result URL is
 // recorded on the job (state provider_completed) BEFORE storage is
 // attempted, and a storage failure leaves the job in that recoverable
@@ -31,12 +37,14 @@ import { UUID, fail, supabase, member } from './media/privateDocuments.js';
 import { storeMemberMediaBytes, memberMediaSignature } from './media/memberMedia.js';
 
 export const VIDEO_MODEL = 'alibaba/wan-3.0';
+export const VIDEO_I2V_MODEL = 'alibaba/wan-2.7-i2v';
 export const VIDEO_PROVIDER_ID = 'cloudflare-workers-ai';
 export const VIDEO_RESOLUTIONS = Object.freeze(['480P', '720P', '1080P']);
-export const VIDEO_RATIOS = Object.freeze(['adaptive', '16:9', '9:16', '1:1']);
+export const VIDEO_I2V_RESOLUTIONS = Object.freeze(['720P', '1080P']);
+export const VIDEO_RATIOS = Object.freeze(['adaptive', '16:9', '9:16', '1:1', '4:3', '3:4']);
 const CANONICAL_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 const JOBS = '/rest/v1/ifund_video_generations';
-const JOB_SELECT = 'owner_id,request_id,provider,model,state,prompt,resolution,ratio,duration_seconds,provider_job_id,provider_video_url,media_id,allowance_tracked,error,created_at,updated_at';
+const JOB_SELECT = 'owner_id,request_id,provider,model,state,prompt,resolution,ratio,duration_seconds,mode,image_url,rights_confirmed,provider_job_id,provider_video_url,media_id,allowance_tracked,error,created_at,updated_at';
 const MAX_VIDEO_BYTES = 41943040; // member-media video cap (memberMedia.js)
 const MIN_VIDEO_BYTES = 1024;
 const RUNNING_STALE_MS = 10 * 60 * 1000;
@@ -49,6 +57,11 @@ export class VideoProviderError extends Error {}
 export function videoModel(env) {
   return typeof env?.IFUND_VIDEO_MODEL === 'string' && env.IFUND_VIDEO_MODEL.trim()
     ? env.IFUND_VIDEO_MODEL.trim() : VIDEO_MODEL;
+}
+
+export function videoI2vModel(env) {
+  return typeof env?.IFUND_VIDEO_I2V_MODEL === 'string' && env.IFUND_VIDEO_I2V_MODEL.trim()
+    ? env.IFUND_VIDEO_I2V_MODEL.trim() : VIDEO_I2V_MODEL;
 }
 
 export function videoAIReady(env) {
@@ -77,13 +90,21 @@ export function videoAIReady(env) {
 export function createVideoProvider(env) {
   if (typeof env?.AI?.run !== 'function') return null;
   const model = videoModel(env);
+  const i2vModel = videoI2vModel(env);
   return {
     id: VIDEO_PROVIDER_ID,
     model,
+    i2vModel,
     async submit(input) {
+      // Image-to-video runs on the provider's I2V model with the image
+      // URL as the reference frame; text-to-video uses the text model.
+      const imageMode = typeof input?.image === 'string' && input.image.length > 0;
+      const payload = imageMode
+        ? { image: input.image, prompt: input.prompt, resolution: input.resolution, duration: input.duration }
+        : input;
       let result;
       try {
-        result = await env.AI.run(model, input);
+        result = await env.AI.run(imageMode ? i2vModel : model, payload);
       } catch {
         throw new VideoProviderError('The video provider could not be reached. No finished video was produced, so this attempt does not count as a completed creation.');
       }
@@ -109,16 +130,42 @@ export function normalizeWorkersAiResult(result) {
   throw new VideoProviderError('The video provider did not return a finished video. No finished video was produced, so this attempt does not count as a completed creation.');
 }
 
+// The I2V model takes its reference image as a URL, so the source must be
+// a public https link the member supplies — never a private library
+// object (Phase 1 mints no public URL for those) and never a local or
+// literal-IP address the provider would fetch server-side.
+function validateImageUrl(value) {
+  if (typeof value !== 'string' || value.length > 2048)
+    throw new BodyError(422, 'Give a public https link to the starting image.');
+  let parsed;
+  try { parsed = new URL(value); } catch {
+    throw new BodyError(422, 'Give a public https link to the starting image.');
+  }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password ||
+      parsed.hostname === 'localhost' || parsed.hostname.endsWith('.local') ||
+      /^\d{1,3}(\.\d{1,3}){3}$/.test(parsed.hostname) || parsed.hostname.includes(':'))
+    throw new BodyError(422, 'Give a public https link to the starting image.');
+  return parsed.toString();
+}
+
 export function validateVideoRequest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
-      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id'].includes(key)))
+      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id', 'image_url', 'rights_confirmed'].includes(key)))
     throw new BodyError(422, 'Describe the video you want to generate.');
   const prompt = typeof input.prompt === 'string' ? input.prompt.trim() : '';
   if (prompt.length < 20 || prompt.length > 900 || /[\u0000-\u001f\u007f]/.test(prompt))
     throw new BodyError(422, 'Describe the video in 20 to 900 characters.');
-  const resolution = input.resolution === undefined ? '480P' : input.resolution;
-  if (!VIDEO_RESOLUTIONS.includes(resolution))
-    throw new BodyError(422, 'Choose a supported video resolution.');
+  const imageUrl = input.image_url === undefined || input.image_url === null || input.image_url === ''
+    ? null : validateImageUrl(input.image_url);
+  const mode = imageUrl ? 'image' : 'text';
+  if (mode === 'image' && input.rights_confirmed !== true)
+    throw new BodyError(422, 'Confirm you have the right to animate that image before generating.');
+  const resolution = input.resolution === undefined
+    ? (mode === 'image' ? '720P' : '480P') : input.resolution;
+  if (!(mode === 'image' ? VIDEO_I2V_RESOLUTIONS : VIDEO_RESOLUTIONS).includes(resolution))
+    throw new BodyError(422, mode === 'image'
+      ? 'Image-to-video generates at 720P or 1080P.'
+      : 'Choose a supported video resolution.');
   const ratio = input.ratio === undefined ? 'adaptive' : input.ratio;
   if (!VIDEO_RATIOS.includes(ratio))
     throw new BodyError(422, 'Choose a supported video format.');
@@ -127,7 +174,10 @@ export function validateVideoRequest(input) {
     throw new BodyError(422, 'Choose a video length between 3 and 10 seconds.');
   if (typeof input.request_id !== 'string' || !UUID.test(input.request_id))
     throw new BodyError(422, 'A valid generation request reference is required.');
-  return { prompt, resolution, ratio, duration, requestId: input.request_id.toLowerCase() };
+  return {
+    prompt, resolution, ratio, duration, requestId: input.request_id.toLowerCase(),
+    mode, imageUrl, rightsConfirmed: input.rights_confirmed === true,
+  };
 }
 
 // Honest per-state allowance denials (D7): expected account states are not
@@ -144,7 +194,7 @@ function publicJob(job) {
   if (!job) return null;
   return {
     request_id: job.request_id, state: job.state, provider: job.provider,
-    model: job.model, resolution: job.resolution, ratio: job.ratio,
+    model: job.model, mode: job.mode ?? 'text', resolution: job.resolution, ratio: job.ratio,
     duration_seconds: job.duration_seconds, media_id: job.media_id ?? null,
     error: job.error ?? null, created_at: job.created_at, updated_at: job.updated_at,
   };
@@ -171,7 +221,7 @@ async function patchJob(env, fetcher, actor, requestId, fields, filter = '') {
 async function submitJob(request, env, fetcher) {
   if (!videoAIReady(env))
     return response(503, { error: 'AI video generation is not currently available.' });
-  const input = validateVideoRequest(await readJsonBody(request, 3000));
+  const input = validateVideoRequest(await readJsonBody(request, 6000));
   const actor = await member(request, env, fetcher);
   const aiConsent = await verifyOwnerAIConsent(env, { uid: actor.id, jwt: actor.jwt }, fetcher);
   if (!aiConsent.allowed) return response(aiConsent.status, {
@@ -199,9 +249,12 @@ async function submitJob(request, env, fetcher) {
     method: 'POST', admin: true, prefer: 'return=representation',
     body: {
       owner_id: actor.id, request_id: input.requestId, provider: VIDEO_PROVIDER_ID,
-      model: videoModel(env), state: 'submitted', prompt: input.prompt,
+      model: input.mode === 'image' ? videoI2vModel(env) : videoModel(env),
+      state: 'submitted', prompt: input.prompt,
       resolution: input.resolution, ratio: input.ratio,
-      duration_seconds: input.duration, allowance_tracked: receipt.tracked === true,
+      duration_seconds: input.duration, mode: input.mode,
+      image_url: input.imageUrl, rights_confirmed: input.rightsConfirmed,
+      allowance_tracked: receipt.tracked === true,
       created_at: now, updated_at: now,
     },
   });
@@ -288,6 +341,7 @@ async function advanceJob(request, env, fetcher, requestId) {
       outcome = await provider.submit({
         prompt: PROMPT_PREFIX + job.prompt, resolution: job.resolution,
         ratio: job.ratio, duration: job.duration_seconds,
+        image: job.mode === 'image' ? job.image_url : undefined,
       });
     } catch (error) {
       if (error instanceof VideoProviderError) {
@@ -351,7 +405,7 @@ export async function routeVideoGeneration(request, env, fetcher = fetch) {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, {
         videoGeneration: videoAIReady(env) ? 'enabled' : 'not_configured',
-        provider: VIDEO_PROVIDER_ID, model: videoModel(env),
+        provider: VIDEO_PROVIDER_ID, model: videoModel(env), imageModel: videoI2vModel(env),
       });
     }
     if (path === '/api/ai/videos/generate') {

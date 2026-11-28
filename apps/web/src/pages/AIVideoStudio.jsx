@@ -17,6 +17,8 @@ const RATIOS = [
   ["9:16", "Vertical 9:16 (Shorts/Reels)"],
   ["16:9", "Wide 16:9"],
   ["1:1", "Square 1:1"],
+  ["4:3", "Classic 4:3"],
+  ["3:4", "Portrait 3:4"],
 ];
 const ACTIVE_STATES = new Set(["submitted", "running", "provider_pending"]);
 
@@ -33,6 +35,8 @@ const ACTIVE_STATES = new Set(["submitted", "running", "provider_pending"]);
 export default function AIVideoStudio({ onSendToEditor } = {}) {
   const [availability, setAvailability] = useState("checking");
   const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [resolution, setResolution] = useState("480P");
   const [ratio, setRatio] = useState("adaptive");
   const [duration, setDuration] = useState(5);
@@ -70,11 +74,17 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
   }
 
   async function call(path, token, method = "GET") {
+    const imageMode = imageUrl.trim().length > 0;
+    const effectiveResolution = imageMode && resolution === "480P" ? "720P" : resolution;
     const response = await fetch(path, {
       method,
       headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
       ...(method === "POST" && path.endsWith("/generate")
-        ? { body: JSON.stringify({ prompt: prompt.trim(), resolution, ratio, duration, request_id: requestId.current }) }
+        ? { body: JSON.stringify({
+            prompt: prompt.trim(), resolution: effectiveResolution, ratio, duration,
+            request_id: requestId.current,
+            ...(imageMode ? { image_url: imageUrl.trim(), rights_confirmed: rightsConfirmed } : {}),
+          }) }
         : {}),
     });
     const result = await response.json().catch(() => null);
@@ -121,6 +131,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
     if (busy) return;
     if (prompt.trim().length < 20 || prompt.trim().length > 900) {
       setError("Describe the video in 20 to 900 characters.");
+      return;
+    }
+    if (imageUrl.trim() && !rightsConfirmed) {
+      setError("Confirm you have the right to animate that image before generating.");
       return;
     }
     setBusy("generate"); setError(""); setMessage(""); setJob(null);
@@ -207,10 +221,31 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="A slow sunrise over a community garden, volunteers setting up a free book stall, warm morning light" />
         </label>
+        <label className="block text-sm font-medium">Starting image link (optional — image-to-video)
+          <input className={field} type="url" inputMode="url" maxLength={2048}
+            value={imageUrl} disabled={Boolean(busy)}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://… a public link to an image you have the right to animate" />
+        </label>
+        {imageUrl.trim() && (
+          <div className="space-y-2">
+            <label className="flex min-h-11 items-start gap-3 text-sm">
+              <input type="checkbox" className="mt-1 size-5 shrink-0" checked={rightsConfirmed}
+                disabled={Boolean(busy)} onChange={(e) => setRightsConfirmed(e.target.checked)} />
+              <span>I confirm this image is mine or I have the right to animate it, and I understand the
+                provider receives the image link to generate the video.</span>
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Image-to-video generates at 720p or 1080p. Images from your private media library cannot be
+              used as a starting image: your library is never given a public link, by design.
+            </p>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="block text-sm font-medium">Resolution
-            <select className={field} value={resolution} disabled={Boolean(busy)} onChange={(e) => setResolution(e.target.value)}>
-              {RESOLUTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            <select className={field} value={imageUrl.trim() && resolution === "480P" ? "720P" : resolution} disabled={Boolean(busy)} onChange={(e) => setResolution(e.target.value)}>
+              {RESOLUTIONS.filter(([value]) => !imageUrl.trim() || value !== "480P")
+                .map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label className="block text-sm font-medium">Format

@@ -21,8 +21,15 @@ create table if not exists public.ifund_video_generations (
    ('submitted','running','provider_pending','provider_completed','completed','failed')),
  prompt text not null check(char_length(prompt) between 20 and 900),
  resolution text not null check(resolution in ('480P','720P','1080P')),
- ratio text not null check(ratio in ('adaptive','16:9','9:16','1:1')),
+ ratio text not null check(ratio in ('adaptive','16:9','9:16','1:1','4:3','3:4')),
  duration_seconds integer not null check(duration_seconds between 3 and 10),
+ -- Generation mode: 'text' is text-to-video (Wan 3.0); 'image' is
+ -- image-to-video (Wan 2.7 I2V) from a member-supplied PUBLIC image URL
+ -- with a recorded rights confirmation. Private library media is never
+ -- an image source: Phase 1 mints no public URL for it.
+ mode text not null default 'text' check(mode in ('text','image')),
+ image_url text,
+ rights_confirmed boolean not null default false,
  provider_job_id text,
  provider_video_url text,
  media_id uuid references public.ifund_member_media(id) on delete set null,

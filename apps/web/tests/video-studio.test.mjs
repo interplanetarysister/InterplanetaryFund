@@ -26,6 +26,13 @@ test("video studio component drives the real job lifecycle and never fakes a res
   assert.match(component, /TrialCreationBalance/);
   // No provider URL is ever rendered as the member's video.
   assert.doesNotMatch(component, /provider_video_url/);
+  // Image-to-video: a member-supplied public image link plus an explicit
+  // rights confirmation; private library images are never offered as a
+  // starting image because the library has no public links.
+  assert.match(component, /image_url: imageUrl\.trim\(\)/);
+  assert.match(component, /rights_confirmed: rightsConfirmed/);
+  assert.match(component, /I confirm this image is mine or I have the right to animate it/);
+  assert.match(component, /private media library cannot be/);
 });
 
 test("videos Pages Function only forwards the canonical video routes", async () => {
@@ -57,4 +64,6 @@ test("migration for the jobs table is source-only and service-role-only", () => 
   assert.match(sql, /create table if not exists public\.ifund_video_generations/);
   assert.match(sql, /revoke all on public\.ifund_video_generations from public,anon,authenticated/);
   assert.match(sql, /provider_completed/);
+  assert.match(sql, /mode text not null default 'text' check\(mode in \('text','image'\)\)/);
+  assert.match(sql, /rights_confirmed boolean not null default false/);
 });
