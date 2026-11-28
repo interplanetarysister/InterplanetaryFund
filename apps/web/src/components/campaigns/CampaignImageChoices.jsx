@@ -25,7 +25,10 @@ export default function CampaignImageChoices({title,description,onApply,disabled
   id.current++;if(urlRef.current)URL.revokeObjectURL(urlRef.current);
   urlRef.current="";setPreview("");setFile(null);setError("");setMessage("");
  }
- useEffect(()=>{clear();},[title,description,style]);
+ // While a generation or upload is in flight, editor prop churn must not
+ // invalidate its request token: the server may already have charged the
+ // trial allowance for a result the user would then never see (D8).
+ useEffect(()=>{if(!busy.current)clear();},[title,description,style]);
  async function generate(){
   if(busy.current||disabled)return;
   if(title.trim().length<4||!description.trim()||description.trim().length<20){
@@ -52,7 +55,8 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    const candidate=await overlayExactArtworkCaption(raw,caption);
    const after=await client.auth.getUser();
    if(after.error||after.data?.user?.id!==owner.id)throw Error("Your account changed. Artwork was not applied.");
-   if(!alive.current||token!==id.current)return;
+   if(!alive.current)return;
+   if(token!==id.current){setMessage("Your artwork finished, but the image settings changed while it was being created, so that result was discarded. Generate again to use the current text.");return;}
    const url=URL.createObjectURL(candidate);
    urlRef.current=url;setFile(candidate);setPreview(url);
    setMessage("Original iFund illustration generated. Review it; it is not a documentary photograph or an uploaded campaign cover.");
@@ -65,7 +69,8 @@ export default function CampaignImageChoices({title,description,onApply,disabled
   const token=id.current;
   try{
    const url=await uploadCampaignCover(authClient(),file);
-   if(!alive.current||token!==id.current)return;
+   if(!alive.current)return;
+   if(token!==id.current){setMessage("The illustration uploaded, but the campaign changed while it was saving, so it was not applied.");return;}
    onApply(url,{cover_image_is_ai:true});
    setMessage("Illustration uploaded to your public cover storage and selected in this draft. Save your campaign to retain it.");
   }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Could not upload illustration.");}
