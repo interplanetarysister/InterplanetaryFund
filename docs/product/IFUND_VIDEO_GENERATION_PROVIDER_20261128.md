@@ -70,6 +70,103 @@ paid floor later.** Accordingly:
 Nothing was signed up for and no spend was committed by this wiring;
 the Model Studio account itself is the owner's activation step.
 
+## The concierge provider (owner decision 2026-11-28)
+
+Later the same day the owner directed a second route that supersedes
+the Alibaba pilot as the primary one **when selected**:
+`executive-concierge`, chosen with `IFUND_VIDEO_PROVIDER=executive-concierge`.
+Nothing was removed — the Model Studio and Workers AI adapters, the
+pilot quota guard and the paid-model gate all stay exactly as they are
+for the provider route. The concierge spends **no provider credits**,
+so the pilot quota guard and paid-model gate never apply to its jobs;
+the shared allowance reserve/complete applies unchanged.
+
+**How it works.** A member picks one of their campaigns in the Studio
+and describes the video. On `POST /api/ai/videos/generate` the Worker
+reserves one shared AI creation (kind `video`, same RPC and idempotency
+semantics as every other route), verifies the campaign belongs to the
+member, and builds the **generation brief** server-side from the
+campaign's own context — title, summary, story excerpt, category,
+funding goal (recorded as scale context, never as an appeal), cover
+image reference — plus the member's direction and the requested format
+(duration, ratio, resolution). The brief passes through the PR #404
+public-facing discretion scan (`campaignCopyQuality`): pleading,
+raw-need echoes and internal objectives are stripped sentence by
+sentence, the result is re-scanned, and any residual violation fails
+closed. The job is then recorded in the pickup-ready state
+**`awaiting_concierge`** with the brief on the job row. There is no
+synchronous adapter: Advance is a no-op for these jobs and the Studio
+shows the honest queued state ("the site AI is preparing your video").
+
+**Pickup and return.** The external concierge agent (Executive Agent
+Muse) works the queue through three Worker endpoints, authenticated
+by the `x-concierge-secret` header against the Worker secret
+**`CONCIERGE_PICKUP_SECRET`** (constant-time comparison; unset secret →
+503 fail-closed, missing/wrong secret → 401):
+
+- `GET /api/ai/videos/concierge/pending` — up to 20 queued jobs, oldest
+  first: request id, campaign reference, brief, and the output
+  constraints (mode, starting image if any, resolution, ratio,
+  duration).
+- `POST /api/ai/videos/concierge/jobs/:id/complete` — the finished
+  video as the raw request body (`Content-Type: video/mp4` or
+  `video/webm`, ≤ 40 MB). The bytes pass the **same** verification as a
+  provider download (bounded size, MP4/WebM signature) and the **same**
+  Phase 1 private storage path, and only then is the allowance
+  completed and the job marked `completed` with its media id.
+  Completion is idempotent: a repeat return for a finished job reports
+  the recorded result without storing or completing twice. A storage
+  failure leaves the job in `awaiting_concierge` with the reason
+  recorded, so the agent can return the video again.
+- `POST /api/ai/videos/concierge/jobs/:id/fail` — `{ reason }` fails
+  the job with that member-visible reason. Failure semantics are the
+  existing ones: the allowance is never completed for a failed
+  generation and the reservation lapses under the usual rules.
+
+**Allowance completion without a member JWT.** The existing completion
+RPCs read the owner from `auth.uid()`; the concierge return path is
+secret-authenticated and holds no member JWT, so migration
+`20261128010000_ifund_video_concierge.sql` adds
+`ifund_ai_content_complete_for_owner` — the same completion logic with
+the owner supplied by the trusted caller, granted to the **service
+role only**. The Worker calls it only after the job row (read with the
+service role) proved which owner the request reference belongs to.
+Ordering is identical to the provider path: the receipt finalizes only
+after verified storage, and only while the reservation is live — the
+same 30-minute reservation semantics as every other route, so the
+runner should return finished videos promptly; a late return still
+delivers the video and records the finalize note on the job.
+
+**Latency.** Concierge generation is queued, not instant: the member
+sees the queued state immediately, the Studio polls for about two
+minutes in-session, and the finished video lands in the member's Saved
+media whenever the runner returns it (minutes-scale, bounded by the
+runner's poll cadence and the generating agent's own throughput — this
+is a pilot-scale route, with the shared allowance gating demand).
+
+**Activation checklist (concierge).**
+
+1. Apply `supabase/migrations/20261128010000_ifund_video_concierge.sql`
+   (source-only until applied) to the production Supabase project.
+   Without it the concierge routes fail closed — the base table's state
+   check rejects `awaiting_concierge` and the brief/campaign columns do
+   not exist. Provider routes are unaffected either way.
+2. Set the Worker secret `CONCIERGE_PICKUP_SECRET` (at least 16
+   characters; set at deploy time under the owner's standing env-var
+   authorization) and share it with the agent-side runner through the
+   same secure channel — it is the only credential the pickup API
+   accepts, and it never appears in the repo.
+3. Set `IFUND_VIDEO_PROVIDER=executive-concierge` and
+   `IFUND_VIDEO_AI_ENABLED=enabled`. No Alibaba key, AI binding or
+   pilot start date is needed for this route.
+4. Run the agent-side runner: poll `GET /api/ai/videos/concierge/pending`
+   with the secret header, generate each brief, and return the video
+   (or a failure reason) per job. One runner at a time; completion is
+   idempotent, so a re-return after a dropped connection is safe.
+5. Deploy through the normal authorized release, then run the frontend
+   acceptance pass as a signed-in entitled member (queue a video for a
+   real campaign, watch it land in Saved media, attach and play it).
+
 ## Generative modes
 
 Both modes are true AI generation — the provider creates new footage;
@@ -135,14 +232,30 @@ generations a member can consume.
   that resumes after a dropped connection, retry-save state, and an
   integrity-checked library preview with Send to Editor / Download.
 - `supabase/migrations/20261128000000_ifund_video_generation_jobs.sql` —
-  **source only, not applied**. Service-role-only table, like the paid
-  generation ledger.
+  service-role-only jobs table, like the paid generation ledger.
+  **Applied to production 2026-11-28** (verified live: table present,
+  RLS on, browser access revoked).
+- Concierge provider (later the same day, see its section above):
+  campaign-verified brief construction with the PR #404 discretion
+  scan, the `awaiting_concierge` queue state, the secret-authenticated
+  pickup/completion/failure endpoints, and shared verified storage via
+  a refactored `storeVerifiedVideo` (the provider download path and the
+  concierge return path run the same byte verification, storage and
+  completion ordering). `worker/trialAiContent.js` gained the trusted
+  service-role completion used by the return path. The Studio gained
+  the campaign picker and the queued state.
+  `supabase/migrations/20261128010000_ifund_video_concierge.sql` —
+  **source only, not applied**: brief + campaign columns, the
+  `awaiting_concierge` state, the pickup-queue index, and the
+  service-role-only owner completion function.
 
 ## Activation steps (owner, in order)
 
-1. Apply `20261128000000_ifund_video_generation_jobs.sql` to the
+1. ~~Apply `20261128000000_ifund_video_generation_jobs.sql` to the
    production Supabase project (SQL editor), as with earlier source-only
-   migrations.
+   migrations.~~ **Done 2026-11-28** — applied live and verified. (For
+   the concierge route, also apply `20261128010000_ifund_video_concierge.sql`
+   and follow the concierge activation checklist in its section above.)
 2. Confirm the Pages/Worker environment has the R2 media binding with
    `IFUND_CAMPAIGN_MEDIA_ENABLED` (already required by the live media
    library) plus `SUPABASE_SECRET_KEY` available to the Worker (already
@@ -202,6 +315,12 @@ exact text is rendered onto artwork.
   (Cloudflare's documented binding contract), so this adapter's `submit`
   completes synchronously inside Advance; the adapter interface and job
   states (`provider_pending`) already support a future async provider.
+- The concierge route assumes a single agent-side runner. Completion is
+  idempotent and the job's completion transition is state-guarded, but
+  two runners returning different videos for the same job concurrently
+  is not a supported shape — the first recorded completion wins and the
+  second return is answered with the recorded result only when it
+  arrives after the job is already `completed`.
 - Editing/optimizing generated videos (the Studio Editor's viewing
   controls, frame stills) works on the stored file like any upload;
   provider-side video editing is out of scope for this wiring.

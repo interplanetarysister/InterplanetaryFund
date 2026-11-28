@@ -84,7 +84,7 @@ export default {
     if (pathname === '/api/public/help/index') return routePublicHelpIndex(request, env);
     if (pathname === '/api/ai/images/generate') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageStudio(request, env);
     if (pathname === '/api/ai/images/improve') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageImprove(request, env);
-    if (pathname === '/api/ai/videos/status' || pathname === '/api/ai/videos/generate' || pathname.startsWith('/api/ai/videos/jobs/')) return routeVideoGeneration(request, env);
+    if (pathname === '/api/ai/videos/status' || pathname === '/api/ai/videos/generate' || pathname.startsWith('/api/ai/videos/jobs/') || pathname.startsWith('/api/ai/videos/concierge/')) return routeVideoGeneration(request, env);
     if (pathname === '/api/ai/captions/status' || pathname === '/api/ai/captions/generate') return routeCaptionGeneration(request, env);
     if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);

@@ -7,6 +7,17 @@
 //   - 'alibaba-model-studio': Wan direct via the DashScope async API,
 //     whose new-account free quotas are the only real free API seconds
 //     for video (one-time, ~90 days — provider research 2026-11-28).
+//   - 'executive-concierge': no synchronous adapter at all. The Worker
+//     builds a generation brief from the member's own campaign context,
+//     leaves the durable job in the pickup-ready state
+//     'awaiting_concierge', and an external agent (Executive Agent Muse)
+//     picks the job up through secret-authenticated endpoints, generates
+//     the video off-platform, and returns the finished bytes, which land
+//     through the same verified storage path as a provider result.
+//     Selected with IFUND_VIDEO_PROVIDER=executive-concierge (owner
+//     decision 2026-11-28). No provider credits are spent, so the pilot
+//     quota guard never applies to concierge jobs; the shared allowance
+//     reserve/complete still does, unchanged.
 // The feature stays behind IFUND_VIDEO_AI_ENABLED (default off) because
 // every route to a video model is billed per generated second — none is
 // covered by the free daily Neuron allocation that covers the text/image
@@ -20,6 +31,10 @@
 //   POST /api/ai/videos/jobs/:id/advance run provider, download, store
 //   GET  /api/ai/videos/jobs/:id         poll the job state
 //   GET  /api/ai/videos/status           public enabled/not-configured flag
+// Concierge-only routes (shared-secret header, never member JWTs):
+//   GET  /api/ai/videos/concierge/pending            queued briefs
+//   POST /api/ai/videos/concierge/jobs/:id/complete  return finished bytes
+//   POST /api/ai/videos/concierge/jobs/:id/fail      report a failed job
 // Two generative modes, both true AI generation (never assembly of member
 // footage): 'text' is text-to-video (Wan 3.0); 'image' is image-to-video
 // (Wan 2.7 I2V) from a member-supplied PUBLIC image URL with a recorded
@@ -37,15 +52,18 @@
 // exactly like an uploaded video.
 import { response } from './reads.js';
 import { verifyOwnerAIConsent } from './aiConsent.js';
-import { reserveTrialContent, completeTrialContent } from './trialAiContent.js';
+import { reserveTrialContent, completeTrialContent, completeTrialContentForOwner } from './trialAiContent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
 import { UUID, fail, supabase, member } from './media/privateDocuments.js';
 import { storeMemberMediaBytes, memberMediaSignature } from './media/memberMedia.js';
+import { findPublicFacingViolations, stripPublicFacingViolations } from '../apps/web/src/lib/campaignCopyQuality.mjs';
 
 export const VIDEO_MODEL = 'alibaba/wan-3.0';
 export const VIDEO_I2V_MODEL = 'alibaba/wan-2.7-i2v';
 export const VIDEO_PROVIDER_ID = 'cloudflare-workers-ai';
 export const MODEL_STUDIO_PROVIDER_ID = 'alibaba-model-studio';
+export const CONCIERGE_PROVIDER_ID = 'executive-concierge';
+export const CONCIERGE_MODEL = 'executive-concierge';
 export const MODEL_STUDIO_T2V_MODEL = 'wan2.7-t2v';
 export const MODEL_STUDIO_I2V_MODEL = 'wan2.5-i2v-preview';
 export const MODEL_STUDIO_DEFAULT_BASE_URL = 'https://dashscope-intl.aliyuncs.com';
@@ -55,6 +73,15 @@ export const VIDEO_RATIOS = Object.freeze(['adaptive', '16:9', '9:16', '1:1', '4
 const CANONICAL_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 const JOBS = '/rest/v1/ifund_video_generations';
 const JOB_SELECT = 'owner_id,request_id,provider,model,state,prompt,resolution,ratio,duration_seconds,mode,image_url,rights_confirmed,provider_job_id,provider_video_url,media_id,allowance_tracked,error,created_at,updated_at';
+// Concierge reads additionally carry the campaign reference and the
+// brief. The member routes keep the original select on purpose: the
+// brief is generator-facing material and is never exposed through the
+// member job API.
+const CONCIERGE_JOB_SELECT = JOB_SELECT + ',campaign_id,brief';
+const CAMPAIGNS = '/rest/v1/ifund_campaigns';
+const CAMPAIGN_SELECT = 'id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status';
+const MAX_BRIEF_CHARS = 4000; // matches the brief column check (migration 20261128010000)
+const CONCIERGE_PENDING_LIMIT = 20;
 const MAX_VIDEO_BYTES = 41943040; // member-media video cap (memberMedia.js)
 const MIN_VIDEO_BYTES = 1024;
 const RUNNING_STALE_MS = 10 * 60 * 1000;
@@ -83,6 +110,7 @@ export function videoI2vModel(env) {
 // ever an explicit selection, and no code path falls back between
 // providers or spills into paid generation (see the pilot guard below).
 export function videoProviderId(env) {
+  if (env?.IFUND_VIDEO_PROVIDER === CONCIERGE_PROVIDER_ID) return CONCIERGE_PROVIDER_ID;
   return env?.IFUND_VIDEO_PROVIDER === VIDEO_PROVIDER_ID
     ? VIDEO_PROVIDER_ID : MODEL_STUDIO_PROVIDER_ID;
 }
@@ -120,6 +148,9 @@ export function pilotExpiresAt(env) {
 }
 
 export function providerModel(env, providerId, mode) {
+  // The concierge has no provider model: generation happens off-platform
+  // and the job records the concierge label as its model.
+  if (providerId === CONCIERGE_PROVIDER_ID) return CONCIERGE_MODEL;
   // IFUND_VIDEO_MODEL / IFUND_VIDEO_I2V_MODEL override the model for
   // whichever provider is active; defaults are per provider and mode.
   const override = mode === 'image' ? env?.IFUND_VIDEO_I2V_MODEL : env?.IFUND_VIDEO_MODEL;
@@ -141,8 +172,18 @@ function modelStudioBaseUrl(env) {
   return base.replace(/\/$/, '');
 }
 
-export function videoAIReady(env) {
-  const common = env?.IFUND_VIDEO_AI_ENABLED === 'enabled' &&
+function conciergeSecret(env) {
+  return typeof env?.CONCIERGE_PICKUP_SECRET === 'string'
+    ? env.CONCIERGE_PICKUP_SECRET.trim() : '';
+}
+
+// The readiness every provider shares: the feature flag, the canonical
+// project, both Supabase keys and the private media pipeline. The
+// concierge storage path gates on this directly, because completing a
+// queued job must stay possible for a job whose provider was selected
+// when it was created.
+function videoCommonReady(env) {
+  return env?.IFUND_VIDEO_AI_ENABLED === 'enabled' &&
     env.SUPABASE_URL === CANONICAL_URL &&
     typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' &&
     env.SUPABASE_PUBLISHABLE_KEY.length >= 10 &&
@@ -153,7 +194,15 @@ export function videoAIReady(env) {
     typeof env.IFUND_CAMPAIGN_MEDIA?.get === 'function' &&
     typeof env.IFUND_CAMPAIGN_MEDIA?.head === 'function' &&
     typeof env.IFUND_CAMPAIGN_MEDIA?.delete === 'function';
-  if (!common) return false;
+}
+
+export function videoAIReady(env) {
+  if (!videoCommonReady(env)) return false;
+  // The concierge's credential is the pickup secret: without it nobody
+  // could ever collect a queued job, so the feature reports itself
+  // unconfigured rather than accepting jobs that can never be served.
+  if (videoProviderId(env) === CONCIERGE_PROVIDER_ID)
+    return conciergeSecret(env).length >= 16;
   // Provider-specific credential: the Model Studio API key, or the
   // Workers AI binding. Without the selected provider's credential the
   // feature reports itself unconfigured rather than faking success.
@@ -184,6 +233,12 @@ export function videoAIReady(env) {
  * provider when one is recorded, otherwise the configured provider.
  */
 export function createVideoProvider(env, fetcher = fetch, providerId = videoProviderId(env)) {
+  // The concierge provider has no synchronous adapter: its jobs wait in
+  // awaiting_concierge for the external agent and return through the
+  // pickup/completion endpoints. Advance never calls an adapter for
+  // them; returning null keeps any unexpected Advance an honest
+  // not-available instead of a wrong provider call.
+  if (providerId === CONCIERGE_PROVIDER_ID) return null;
   if (providerId === MODEL_STUDIO_PROVIDER_ID) {
     const key = modelStudioKey(env);
     if (!key) return null;
@@ -331,7 +386,7 @@ function validateImageUrl(value) {
 
 export function validateVideoRequest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
-      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id', 'image_url', 'rights_confirmed'].includes(key)))
+      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id', 'image_url', 'rights_confirmed', 'campaign_id'].includes(key)))
     throw new BodyError(422, 'Describe the video you want to generate.');
   const prompt = typeof input.prompt === 'string' ? input.prompt.trim() : '';
   if (prompt.length < 20 || prompt.length > 900 || /[\u0000-\u001f\u007f]/.test(prompt))
@@ -355,10 +410,77 @@ export function validateVideoRequest(input) {
     throw new BodyError(422, 'Choose a video length between 3 and 10 seconds.');
   if (typeof input.request_id !== 'string' || !UUID.test(input.request_id))
     throw new BodyError(422, 'A valid generation request reference is required.');
+  // Optional campaign the video is for. Ownership is verified against
+  // the member's own campaigns before any brief is built from it.
+  let campaignId = null;
+  if (input.campaign_id !== undefined && input.campaign_id !== null && input.campaign_id !== '') {
+    if (typeof input.campaign_id !== 'string' || !UUID.test(input.campaign_id))
+      throw new BodyError(422, 'Choose one of your campaigns for this video, or leave the campaign out.');
+    campaignId = input.campaign_id.toLowerCase();
+  }
   return {
     prompt, resolution, ratio, duration, requestId: input.request_id.toLowerCase(),
-    mode, imageUrl, rightsConfirmed: input.rights_confirmed === true,
+    mode, imageUrl, rightsConfirmed: input.rights_confirmed === true, campaignId,
   };
+}
+
+// The campaign a brief is built from is read with the service role but
+// filtered to the requesting member: a campaign id that is not theirs
+// (or does not exist) is a client error, never another member's context.
+async function readOwnCampaign(env, fetcher, actor, campaignId) {
+  const rows = await supabase(env, fetcher,
+    CAMPAIGNS + '?select=' + CAMPAIGN_SELECT + '&id=eq.' + campaignId +
+    '&owner_id=eq.' + actor.id + '&limit=1', { admin: true });
+  if (!Array.isArray(rows) || rows.length !== 1)
+    fail(422, 'Choose one of your own campaigns for this video.');
+  return rows[0];
+}
+
+/**
+ * The concierge generation brief: assembled server-side from the
+ * campaign's own context (title, summary, story, category, goal, cover
+ * image) plus the member's direction, with the output constraints the
+ * Studio asked for. Before it is stored on the job it passes through
+ * the PR #404 public-facing discretion scan with the raw campaign text
+ * and the member's direction as the source: pleading, raw-need echoes
+ * and internal objectives are stripped sentence by sentence, so nothing
+ * private or pleading reaches the generator. The cleaned brief is
+ * re-scanned; any residual violation fails closed instead of shipping.
+ */
+export function buildConciergeBrief({ campaign = null, prompt, mode = 'text',
+  imageUrl = null, resolution, ratio, duration }) {
+  const source = [campaign?.title, campaign?.summary, campaign?.story, prompt]
+    .filter(Boolean).join('\n');
+  const lines = [
+    'Original short promotional video for a personal fundraiser campaign on Interplanetary Fund.',
+    'Hard rules: no text, letters, logos or watermarks anywhere in the video; ' +
+      'do not depict real people, claimed donations, or fundraising totals; illustrative scenes only.',
+    'Format: ' + duration + ' seconds, ' +
+      (ratio === 'adaptive' ? 'adaptive aspect' : ratio + ' aspect') + ', ' + resolution + '.',
+  ];
+  if (campaign) {
+    lines.push('Campaign: ' + campaign.title);
+    if (campaign.category)
+      lines.push('Category: ' + String(campaign.category).replace(/_/g, ' '));
+    if (campaign.summary)
+      lines.push('What this campaign is about: ' + campaign.summary);
+    if (campaign.story)
+      lines.push("Campaign story, in the organizer's own words, for subject and setting:\n" +
+        String(campaign.story).slice(0, 1400));
+    if (campaign.goal_amount)
+      lines.push('Funding goal, recorded as context for scale only — never plead amounts in the video: $' +
+        Number(campaign.goal_amount).toLocaleString('en-US'));
+    if (campaign.cover_image_url)
+      lines.push('Campaign cover image, as a subject and setting reference: ' + campaign.cover_image_url);
+  }
+  if (mode === 'image' && imageUrl)
+    lines.push('Starting image supplied by the organizer, with rights confirmed: ' + imageUrl);
+  lines.push("Organizer's direction for this video: " + prompt);
+  const cleaned = stripPublicFacingViolations(lines.join('\n\n'), source);
+  if (!cleaned || findPublicFacingViolations(cleaned, source).length > 0)
+    fail(503, 'A video brief could not be prepared from this campaign wording. ' +
+      'Remove direct appeals from the campaign text and the video description, then try again.');
+  return cleaned.slice(0, MAX_BRIEF_CHARS);
 }
 
 // Honest per-state allowance denials (D7): expected account states are not
@@ -377,6 +499,7 @@ function publicJob(job) {
     request_id: job.request_id, state: job.state, provider: job.provider,
     model: job.model, mode: job.mode ?? 'text', resolution: job.resolution, ratio: job.ratio,
     duration_seconds: job.duration_seconds, media_id: job.media_id ?? null,
+    campaign_id: job.campaign_id ?? null,
     error: job.error ?? null, created_at: job.created_at, updated_at: job.updated_at,
   };
 }
@@ -452,19 +575,42 @@ async function submitJob(request, env, fetcher) {
 
   const existing = await readJob(env, fetcher, actor, input.requestId);
   if (existing) return response(200, { job: publicJob(existing) });
+
+  // A campaign reference is verified against the member's own campaigns
+  // before anything is built from it. For the concierge provider the
+  // brief is assembled now, server-side, from that campaign's context —
+  // the job then waits for pickup instead of calling an external API,
+  // and no pilot quota or paid-model gate applies (no provider credits
+  // exist to spend); the allowance reservation above is the only gate.
+  const campaign = input.campaignId
+    ? await readOwnCampaign(env, fetcher, actor, input.campaignId) : null;
+  const brief = providerId === CONCIERGE_PROVIDER_ID
+    ? buildConciergeBrief({
+        campaign, prompt: input.prompt, mode: input.mode, imageUrl: input.imageUrl,
+        resolution: input.resolution, ratio: input.ratio, duration: input.duration,
+      })
+    : null;
+
   const now = new Date().toISOString();
-  const inserted = await supabase(env, fetcher, JOBS + '?select=' + JOB_SELECT, {
-    method: 'POST', admin: true, prefer: 'return=representation',
-    body: {
-      owner_id: actor.id, request_id: input.requestId, provider: providerId,
-      model: providerModel(env, providerId, input.mode),
-      state: 'submitted', prompt: input.prompt,
-      resolution: input.resolution, ratio: input.ratio,
-      duration_seconds: input.duration, mode: input.mode,
-      image_url: input.imageUrl, rights_confirmed: input.rightsConfirmed,
-      allowance_tracked: receipt.tracked === true,
-      created_at: now, updated_at: now,
-    },
+  const body = {
+    owner_id: actor.id, request_id: input.requestId, provider: providerId,
+    model: providerModel(env, providerId, input.mode),
+    state: 'submitted', prompt: input.prompt,
+    resolution: input.resolution, ratio: input.ratio,
+    duration_seconds: input.duration, mode: input.mode,
+    image_url: input.imageUrl, rights_confirmed: input.rightsConfirmed,
+    allowance_tracked: receipt.tracked === true,
+    created_at: now, updated_at: now,
+  };
+  let select = JOB_SELECT;
+  if (input.campaignId) { body.campaign_id = input.campaignId; select = CONCIERGE_JOB_SELECT; }
+  if (brief !== null) {
+    body.state = 'awaiting_concierge';
+    body.brief = brief;
+    select = CONCIERGE_JOB_SELECT;
+  }
+  const inserted = await supabase(env, fetcher, JOBS + '?select=' + select, {
+    method: 'POST', admin: true, prefer: 'return=representation', body,
   });
   if (!Array.isArray(inserted) || inserted.length !== 1)
     fail(503, 'Video generation job could not be recorded.');
@@ -483,6 +629,19 @@ async function claimJob(env, fetcher, actor, job) {
   return null;
 }
 
+// The one byte-verification every finished video passes before storage,
+// wherever the bytes came from (a provider download or a concierge
+// return): bounded size and a real MP4/WebM signature for the declared
+// type. Anything else is never stored and never completes an allowance.
+function verifyVideoBytes(bytes, headerType) {
+  if (bytes.length < MIN_VIDEO_BYTES || bytes.length > MAX_VIDEO_BYTES)
+    fail(503, 'The generated video could not be verified for saving. Retry to finish saving it — the generation will not be repeated.');
+  const type = headerType === 'video/webm' ? 'video/webm' : 'video/mp4';
+  if (!memberMediaSignature(bytes, type))
+    fail(503, 'The generated file is not a valid ' + (type === 'video/webm' ? 'WebM' : 'MP4') + ' video, so it was not saved.');
+  return type;
+}
+
 async function downloadProviderVideo(fetcher, videoUrl) {
   let result;
   try {
@@ -496,34 +655,42 @@ async function downloadProviderVideo(fetcher, videoUrl) {
   if (declared > MAX_VIDEO_BYTES)
     fail(503, 'The generated video is larger than the 40 MB private library limit, so it cannot be saved.');
   const bytes = new Uint8Array(await result.arrayBuffer());
-  if (bytes.length < MIN_VIDEO_BYTES || bytes.length > MAX_VIDEO_BYTES)
-    fail(503, 'The generated video could not be verified for saving. Retry to finish saving it — the generation will not be repeated.');
   const headerType = String(result.headers?.get?.('content-type') || '').split(';')[0].trim().toLowerCase();
-  const type = headerType === 'video/webm' ? 'video/webm' : 'video/mp4';
-  if (!memberMediaSignature(bytes, type))
-    fail(503, 'The generated file is not a valid ' + (type === 'video/webm' ? 'WebM' : 'MP4') + ' video, so it was not saved.');
+  const type = verifyVideoBytes(bytes, headerType);
   return { bytes, type };
 }
 
-async function storeFinishedVideo(env, fetcher, actor, job) {
-  const { bytes, type } = await downloadProviderVideo(fetcher, job.provider_video_url);
+// Store already-verified bytes through the Phase 1 pipeline, complete
+// the allowance (only ever after the verified store), and mark the job
+// completed. completeAllowance is the caller's own completion call —
+// the member-JWT completion on the provider path, the trusted
+// service-role completion on the concierge return path — so both paths
+// share identical storage and ordering semantics.
+async function storeVerifiedVideo(env, fetcher, actor, job, bytes, type,
+  completeAllowance, patchFilter = '') {
   const bucket = env.IFUND_CAMPAIGN_MEDIA;
   const stored = await storeMemberMediaBytes(env, fetcher, bucket, actor, {
     bytes, type, name: 'AI-generated video.' + (type === 'video/webm' ? 'webm' : 'mp4'),
   });
   let finalizeNote = null;
   try {
-    const done = await completeTrialContent(env, actor.jwt, {
-      tracked: job.allowance_tracked === true, requestId: job.request_id, kind: 'video',
-    }, fetcher);
+    const done = await completeAllowance();
     if (done !== true) finalizeNote = 'The video is saved, but its allowance receipt could not be finalized.';
   } catch {
     finalizeNote = 'The video is saved, but its allowance receipt could not be finalized.';
   }
   const completed = await patchJob(env, fetcher, actor, job.request_id, {
     state: 'completed', media_id: stored.id, error: finalizeNote,
-  });
+  }, patchFilter);
   return completed ?? { ...job, state: 'completed', media_id: stored.id, error: finalizeNote };
+}
+
+async function storeFinishedVideo(env, fetcher, actor, job) {
+  const { bytes, type } = await downloadProviderVideo(fetcher, job.provider_video_url);
+  return storeVerifiedVideo(env, fetcher, actor, job, bytes, type,
+    () => completeTrialContent(env, actor.jwt, {
+      tracked: job.allowance_tracked === true, requestId: job.request_id, kind: 'video',
+    }, fetcher));
 }
 
 async function advanceJob(request, env, fetcher, requestId) {
@@ -610,6 +777,169 @@ async function advanceJob(request, env, fetcher, requestId) {
   return response(200, { job: publicJob(job) });
 }
 
+// --- Concierge pickup API -------------------------------------------------
+// Authenticated by the CONCIERGE_PICKUP_SECRET Worker secret in the
+// x-concierge-secret header — never by a member JWT, because the caller
+// is the external concierge agent, not the member. An unset secret fails
+// closed (503); a missing or wrong one is a 401. The secret is compared
+// in constant time over its full length.
+
+function conciergeAuth(request, env) {
+  const secret = conciergeSecret(env);
+  if (secret.length < 16) return 'unconfigured';
+  const presented = request.headers.get('x-concierge-secret') || '';
+  if (presented.length !== secret.length) return 'denied';
+  let diff = 0;
+  for (let i = 0; i < secret.length; i++)
+    diff |= presented.charCodeAt(i) ^ secret.charCodeAt(i);
+  return diff === 0 ? 'ok' : 'denied';
+}
+
+function conciergeGate(request, env) {
+  const auth = conciergeAuth(request, env);
+  if (auth === 'unconfigured')
+    return response(503, { error: 'Concierge pickup is not configured.' });
+  if (auth !== 'ok')
+    return response(401, { error: 'Concierge pickup is not authorized.' });
+  return null;
+}
+
+async function readConciergeJob(env, fetcher, requestId) {
+  const rows = await supabase(env, fetcher,
+    JOBS + '?select=' + CONCIERGE_JOB_SELECT + '&request_id=eq.' + requestId +
+    '&limit=1', { admin: true });
+  if (!Array.isArray(rows) || rows.length > 1)
+    fail(503, 'Video generation job could not be verified.');
+  return rows.length === 1 ? rows[0] : null;
+}
+
+async function patchConciergeJob(env, fetcher, job, fields, filter = '') {
+  const rows = await supabase(env, fetcher,
+    JOBS + '?owner_id=eq.' + job.owner_id + '&request_id=eq.' + job.request_id +
+    filter + '&select=' + CONCIERGE_JOB_SELECT,
+    { method: 'PATCH', admin: true, prefer: 'return=representation',
+      body: { ...fields, updated_at: new Date().toISOString() } });
+  if (!Array.isArray(rows) || rows.length > 1)
+    fail(503, 'Video generation job update could not be verified.');
+  return rows.length === 1 ? rows[0] : null;
+}
+
+function conciergeJobView(job) {
+  return {
+    request_id: job.request_id, state: job.state,
+    campaign_id: job.campaign_id ?? null, media_id: job.media_id ?? null,
+    error: job.error ?? null, created_at: job.created_at, updated_at: job.updated_at,
+  };
+}
+
+function conciergePendingView(job) {
+  return {
+    request_id: job.request_id, campaign_id: job.campaign_id ?? null,
+    brief: job.brief ?? null, prompt: job.prompt, mode: job.mode ?? 'text',
+    image_url: job.image_url ?? null, resolution: job.resolution,
+    ratio: job.ratio, duration_seconds: job.duration_seconds,
+    created_at: job.created_at,
+  };
+}
+
+async function conciergePending(request, env, fetcher) {
+  const gate = conciergeGate(request, env);
+  if (gate) return gate;
+  const rows = await supabase(env, fetcher,
+    JOBS + '?select=' + CONCIERGE_JOB_SELECT +
+    '&provider=eq.' + CONCIERGE_PROVIDER_ID + '&state=eq.awaiting_concierge' +
+    '&order=created_at.asc&limit=' + CONCIERGE_PENDING_LIMIT, { admin: true });
+  if (!Array.isArray(rows)) fail(503, 'Concierge queue could not be verified.');
+  return response(200, { jobs: rows.map(conciergePendingView) });
+}
+
+async function readConciergeVideoBody(request) {
+  const declared = Number(request.headers.get('content-length') || 0);
+  if (declared > MAX_VIDEO_BYTES)
+    fail(413, 'The generated video is larger than the 40 MB private library limit, so it cannot be saved.');
+  let bytes;
+  try {
+    bytes = new Uint8Array(await request.arrayBuffer());
+  } catch {
+    fail(400, 'The generated video bytes could not be read.');
+  }
+  if (!bytes.length) fail(400, 'The generated video bytes could not be read.');
+  const headerType = String(request.headers.get('content-type') || '')
+    .split(';')[0].trim().toLowerCase();
+  return { bytes, type: verifyVideoBytes(bytes, headerType) };
+}
+
+async function conciergeComplete(request, env, fetcher, requestId) {
+  const gate = conciergeGate(request, env);
+  if (gate) return gate;
+  if (!videoCommonReady(env))
+    return response(503, { error: 'AI video generation is not currently available.' });
+  const job = await readConciergeJob(env, fetcher, requestId);
+  if (!job || job.provider !== CONCIERGE_PROVIDER_ID)
+    return response(404, { error: 'Concierge job not found.' });
+  // Idempotent return: a repeated completion for a finished job reports
+  // the recorded result — nothing is stored or completed a second time.
+  if (job.state === 'completed')
+    return response(200, { job: conciergeJobView(job) });
+  if (job.state !== 'awaiting_concierge')
+    return response(409, {
+      error: 'This concierge job is ' + job.state + ' and cannot accept a returned video.',
+      job: conciergeJobView(job),
+    });
+  const { bytes, type } = await readConciergeVideoBody(request);
+  const actor = { id: job.owner_id };
+  let completed;
+  try {
+    completed = await storeVerifiedVideo(env, fetcher, actor, job, bytes, type,
+      () => completeTrialContentForOwner(env, job.owner_id, {
+        tracked: job.allowance_tracked === true, requestId: job.request_id, kind: 'video',
+      }, fetcher),
+      '&state=eq.awaiting_concierge');
+  } catch (error) {
+    // Storage failed: the job stays pickup-ready so the agent can return
+    // the video again; the reason is recorded on the job, and no
+    // allowance was completed.
+    const message = error instanceof Error ? String(error.message).slice(0, 240)
+      : 'Your video was generated but could not be saved.';
+    await patchConciergeJob(env, fetcher, job, { error: message }).catch(() => null);
+    throw error;
+  }
+  if (!completed) {
+    // The completion transition is state-guarded; if it matched no row
+    // the job changed under us — report the recorded state, not a guess.
+    const current = await readConciergeJob(env, fetcher, requestId);
+    return response(200, { job: conciergeJobView(current ?? job) });
+  }
+  return response(200, { job: conciergeJobView({ ...job, ...completed }) });
+}
+
+async function conciergeFail(request, env, fetcher, requestId) {
+  const gate = conciergeGate(request, env);
+  if (gate) return gate;
+  const job = await readConciergeJob(env, fetcher, requestId);
+  if (!job || job.provider !== CONCIERGE_PROVIDER_ID)
+    return response(404, { error: 'Concierge job not found.' });
+  if (job.state === 'completed' || job.state === 'failed')
+    return response(200, { job: conciergeJobView(job) });
+  if (job.state !== 'awaiting_concierge')
+    return response(409, {
+      error: 'This concierge job is ' + job.state + ' and cannot be failed.',
+      job: conciergeJobView(job),
+    });
+  const body = await readJsonBody(request, 2000);
+  const reason = typeof body?.reason === 'string'
+    ? body.reason.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 240) : '';
+  const error = reason ||
+    'The concierge could not finish this generation. This attempt does not count as a completed creation.';
+  // Existing failure semantics: the allowance is never completed for a
+  // failed generation; the reservation lapses under the usual rules.
+  const failed = await patchConciergeJob(env, fetcher, job,
+    { state: 'failed', error }, '&state=eq.awaiting_concierge');
+  return response(200, {
+    job: conciergeJobView(failed ?? { ...job, state: 'failed', error }),
+  });
+}
+
 export async function routeVideoGeneration(request, env, fetcher = fetch) {
   const path = new URL(request.url).pathname;
   try {
@@ -645,6 +975,18 @@ export async function routeVideoGeneration(request, env, fetcher = fetch) {
     if (path === '/api/ai/videos/generate') {
       if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
       return await submitJob(request, env, fetcher);
+    }
+    if (path === '/api/ai/videos/concierge/pending') {
+      if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+      return await conciergePending(request, env, fetcher);
+    }
+    const conciergeMatch = /^\/api\/ai\/videos\/concierge\/jobs\/([0-9a-f-]{36})\/(complete|fail)$/i.exec(path);
+    if (conciergeMatch && UUID.test(conciergeMatch[1])) {
+      if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
+      const requestId = conciergeMatch[1].toLowerCase();
+      return conciergeMatch[2] === 'complete'
+        ? await conciergeComplete(request, env, fetcher, requestId)
+        : await conciergeFail(request, env, fetcher, requestId);
     }
     const jobMatch = /^\/api\/ai\/videos\/jobs\/([0-9a-f-]{36})(\/advance)?$/i.exec(path);
     if (jobMatch && UUID.test(jobMatch[1])) {

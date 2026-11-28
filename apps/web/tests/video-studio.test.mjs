@@ -71,3 +71,50 @@ test("migration for the jobs table is source-only and service-role-only", () => 
   assert.match(sql, /mode text not null default 'text' check\(mode in \('text','image'\)\)/);
   assert.match(sql, /rights_confirmed boolean not null default false/);
 });
+
+test("video studio component carries the concierge queue honestly", () => {
+  const component = read("../src/pages/AIVideoStudio.jsx");
+  // Campaign-scoped brief: the member picks one of their own campaigns
+  // and its id rides the generate request.
+  assert.match(component, /listOwnerCampaigns/);
+  assert.match(component, /campaign_id: campaignId/);
+  assert.match(component, /Campaign this video is for/);
+  // Queued is a first-class state: the site AI is preparing the video —
+  // never an instant fake completion.
+  assert.match(component, /awaiting_concierge/);
+  assert.match(component, /site AI is preparing/);
+  assert.match(component, /Your video is queued/);
+});
+
+test("videos Pages Function forwards the concierge pickup routes to the handler", async () => {
+  const env = {}; // no pickup secret configured: the handler fails closed, not 404
+  const pending = await onRequest({
+    request: new Request("https://interplanetaryfund.com/api/ai/videos/concierge/pending"),
+    env,
+  });
+  assert.equal(pending.status, 503);
+
+  const complete = await onRequest({
+    request: new Request("https://interplanetaryfund.com/api/ai/videos/concierge/jobs/33333333-3333-4333-8333-333333333333/complete", { method: "POST" }),
+    env,
+  });
+  assert.equal(complete.status, 503);
+
+  const foreign = await onRequest({
+    request: new Request("https://interplanetaryfund.com/api/ai/videos/concierge/anything-else"),
+    env,
+  });
+  assert.equal(foreign.status, 404);
+});
+
+test("concierge migration is source-only, additive and service-role-only where it must be", () => {
+  const sql = read("../../../supabase/migrations/20261128010000_ifund_video_concierge.sql");
+  assert.match(sql, /SOURCE ONLY/);
+  assert.match(sql, /NOT applied to production/);
+  assert.match(sql, /add column if not exists campaign_id/);
+  assert.match(sql, /add column if not exists brief/);
+  assert.match(sql, /awaiting_concierge/);
+  assert.match(sql, /ifund_ai_content_complete_for_owner/);
+  assert.match(sql, /revoke all on function public\.ifund_ai_content_complete_for_owner\(uuid,uuid,text\)/);
+  assert.match(sql, /to service_role/);
+});

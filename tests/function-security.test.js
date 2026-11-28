@@ -193,6 +193,17 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_ai_content_reserve",
   "public.ifund_ai_content_complete",
   "public.ifund_ai_content_status",
+  // Trusted service-role counterpart of ifund_ai_content_complete for the
+  // concierge video return (migration 20261128010000, reviewed 2026-11-28).
+  // The completion logic is identical and owner-scoped, but the owner is a
+  // parameter because the secret-authenticated return path holds no member
+  // JWT. EXECUTE is revoked from public/anon/authenticated and granted to
+  // service_role ONLY; the sole caller is the Worker, after the pickup
+  // secret verified the returning agent and the service-role job row proved
+  // which owner the request reference belongs to. It can only transition
+  // that owner's own reserved generation rows to completed — no reserve, no
+  // cross-user, ledger, payout or refund authority.
+  "public.ifund_ai_content_complete_for_owner",
   // Provider-confirmed Premium entitlement trigger (migration 20261122152000).
   // Fires only after signed service-role intent updates, requires verified
   // merchant control and an unrefunded live $4.99 ledger receipt for the exact
