@@ -197,9 +197,9 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
           {availability === "checking"
             ? "Checking whether video generation is enabled on this deployment…"
             : <>Video generation is wired to the Alibaba Wan video models — the flagship open
-              video family, reachable through the platform's AI provider — but it is not enabled on this
-              deployment yet. Video models are billed per generated second rather than from the free
-              daily allowance, so it stays off until the owner enables it;
+              video family, reachable through the platform's AI provider — but it is
+              not enabled on this deployment yet. Video models are billed per generated
+              second rather than from the free daily allowance, so it stays off until the owner enables it;
               this Studio does not pretend to generate a video meanwhile. Upload a video you already have in
               the Editor tab to frame it, adjust how it looks, and download a frame still.</>}
         </p>
