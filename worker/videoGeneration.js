@@ -179,7 +179,14 @@ async function submitJob(request, env, fetcher) {
       ? 'Turn on AI Assistance in My Account to use AI video generation.'
       : 'AI permission could not be verified.' });
 
-  const receipt = await reserveTrialContent(env, actor.jwt, 'video', input.requestId, fetcher);
+  let receipt;
+  try {
+    receipt = await reserveTrialContent(env, actor.jwt, 'video', input.requestId, fetcher);
+  } catch {
+    // A genuine allowance-check failure (the reserve RPC itself failed) is
+    // the only state that may say "could not be verified" (PR #402 / D7).
+    return response(503, { error: 'Your AI generation allowance could not be verified.' });
+  }
   if (!receipt.allowed) {
     const [status, error] = allowanceDenial(receipt);
     return response(status, { error });
