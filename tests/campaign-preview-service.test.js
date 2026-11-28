@@ -6,6 +6,7 @@ import {
   basicCampaignOutline,
 } from "../worker/services/campaign-preview.js";
 import { serviceGateway } from "../worker/services/gateway.js";
+import { reserveTrialContent } from "../worker/trialAiContent.js";
 
 const ID = "33333333-3333-4333-8333-333333333333";
 const RECEIPT = "44444444-4444-4444-8444-444444444444";
@@ -41,6 +42,8 @@ function binding({
   nativeStatus = 201,
   native = { draft: { id: RECEIPT, payload: copy } },
   throws = false,
+  reserve = {allowed:true,state:"reserved",limit:15,remaining:14},
+  reserveStatus = 200,
 } = {}) {
   const calls = [];
   return {
@@ -49,7 +52,7 @@ function binding({
       const endpoint=String(url);
       assert.equal(init?.headers?.Authorization,"Bearer own.test.jwt");
       if(endpoint.endsWith("/ifund_ai_content_reserve"))
-        return Response.json({allowed:true,state:"reserved",limit:15,remaining:14});
+        return Response.json(reserve,{status:reserveStatus});
       if(endpoint.endsWith("/ifund_ai_content_complete"))
         return Response.json(true);
       if(endpoint.endsWith("/ifund_trial_ai_generation_release"))
@@ -304,6 +307,85 @@ test("malformed inputs and non-JSON service replies fail closed", async () => {
   const response = await campaignPreview(request(), env);
   assert.equal(response.status, 503);
   assert.doesNotMatch(await response.text(), /private-provider-credential/);
+});
+
+test("a retry holding an already-reserved allowance for the same request still reaches generation", async () => {
+  // Regression (allowance state drift): both reserve RPCs answer a repeated
+  // request reference with already_reserved while the reservation is live.
+  // The /create flow reuses the reference per input, so a member whose first
+  // attempt failed downstream retried into "Your AI generation allowance
+  // could not be verified." The allowance HAS verified; generation proceeds.
+  const f = binding({ reserve: { allowed: false, state: "already_reserved", limit: 15 } });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.assistance, "assisted");
+  assert.equal(result.ai_inference, true);
+  assert.equal(result.story, copy.story);
+  assert.equal(f.calls.length, 2);
+});
+
+test("a retry after the allowance was already completed replays the generation", async () => {
+  const f = binding({ reserve: { allowed: false, state: "already_completed", limit: 50 } });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.assistance, "assisted");
+  assert.equal(result.ai_inference, true);
+});
+
+test("a genuine allowance RPC failure fails closed as unverifiable, never as a denial or outline", async () => {
+  const f = binding({ reserve: { message: "upstream exploded" }, reserveStatus: 500 });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, "unavailable");
+  assert.match(body.error, /could not be verified/);
+  // Generation was never attempted: only the subscription check ran.
+  assert.equal(f.calls.length, 1);
+});
+
+test("a membership denial keeps the denial path, not the unverifiable one", async () => {
+  const f = binding({ reserve: { allowed: false, state: "membership_required", limit: 50 } });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 403);
+  const body = await response.json();
+  assert.equal(body.code, "membership_required");
+  assert.match(body.error, /needs a trial or a subscription/);
+  assert.doesNotMatch(body.error, /could not be verified/);
+  assert.equal(f.calls.length, 1);
+});
+
+test("a trial limit keeps its 429 denial path through the service", async () => {
+  const f = binding({ reserve: { allowed: false, state: "trial_limit", limit: 15, remaining: 0 } });
+  const response = await campaignPreview(request(), f.env, f.fetcher);
+  assert.equal(response.status, 429);
+  const body = await response.json();
+  assert.equal(body.code, "trial_limit");
+  assert.doesNotMatch(body.error, /could not be verified/);
+  assert.equal(f.calls.length, 1);
+});
+
+test("reserveTrialContent maps every reserve RPC state to the right allowance state", async () => {
+  const env = { SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co", SUPABASE_PUBLISHABLE_KEY: "k" };
+  const rpc = (payload, status = 200) => async () => Response.json(payload, { status });
+  // Verified allowances.
+  assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: true, state: "reserved", remaining: 3 }))).tracked, true);
+  assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: true, state: "admin_exempt" }))).allowed, true);
+  assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: true, state: "paid_or_admin_exempt" }))).allowed, true);
+  // Idempotent retries: the allowance verified for this very request.
+  const held = await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: false, state: "already_reserved" }));
+  assert.deepEqual([held.allowed, held.tracked], [true, true]);
+  const spent = await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: false, state: "already_completed" }));
+  assert.deepEqual([spent.allowed, spent.tracked], [true, false]);
+  // Denials stay denials.
+  for (const state of ["trial_limit", "monthly_limit", "membership_required"])
+    assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: false, state }))).code, state);
+  // Unrecognized shapes stay unverifiable, and a failing RPC throws so the
+  // caller can fail closed in the same unverifiable state.
+  assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({ allowed: false, state: "surprise" }))).code, "unavailable");
+  assert.equal((await reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({}))).code, "unavailable");
+  await assert.rejects(reserveTrialContent(env, "jwt", "campaign_story", ID, rpc({}, 500)), /could not be verified/);
 });
 
 test("saved campaign reference is forwarded to owner-verified Story and invalid IDs are rejected",async()=>{

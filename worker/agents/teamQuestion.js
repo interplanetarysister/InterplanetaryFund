@@ -12,7 +12,9 @@ import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/l
 import { planAgentConsultations, validateConsultation, nexusSynthesisMessages, frontDeskSynthesisMessages } from "./teamOrchestration.js";
 import { buildDispatch, dispatchEventKey } from "./chiefOfStaffDispatch.js";
 import { detectRefineKnowledgeIntent, buildGoalKnowledgePlan, refineEventKey,
-  classifyMemberAccess, extractGoalKnowledgeFromHistory, goalKnowledgeApplicationSummary } from "./goalKnowledge.js";
+  classifyMemberAccess, parseGoalKnowledgePlans, resolveDiscussionSubject,
+  selectGoalKnowledgeForDiscussion, goalSubjectLabel,
+  goalKnowledgeApplicationSummary } from "./goalKnowledge.js";
 import { verifiedTeamHistoryBrief, specialistSkillBoundary } from "./sharedSkillCatalog.mjs";
 import { routeAgentPracticeTask } from "./teamPracticeTask.mjs";
 import { runSpecialistPractice } from "./agentPracticalSkills.mjs";
@@ -31,17 +33,30 @@ const validQuestion = value => typeof value === "string" &&
   !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value);
 const noStore = (status, body) => reply(status, body);
 
+const validGoalTitle = value => typeof value === "string" &&
+  value.trim().length >= 1 && value.trim().length <= 120 &&
+  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value);
 export function validateTeamQuestion(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw) ||
-      Object.keys(raw).some(key => !["question", "agent", "request_id"].includes(key)) ||
+      Object.keys(raw).some(key => !["question", "agent", "request_id", "campaign_id", "goal_title"].includes(key)) ||
       !validQuestion(raw.question) || !UUID.test(raw.request_id || "") ||
+      (raw.campaign_id !== undefined && raw.campaign_id !== null && !UUID.test(raw.campaign_id)) ||
+      (raw.goal_title !== undefined && raw.goal_title !== null && !validGoalTitle(raw.goal_title)) ||
       (raw.agent !== undefined && raw.agent !== "auto" &&
         !Object.hasOwn(SPECIALISTS, raw.agent)))
     fail(400, "Enter a message of 1–2,000 characters and choose a valid team member.");
   const question = raw.question.trim();
   const recommendation = recommendAgent(question);
   const selected = raw.agent && raw.agent !== "auto" ? raw.agent : recommendation.target;
-  return {question,selected,recommendation,requestId:raw.request_id,manual:raw.agent !== undefined && raw.agent !== "auto"};
+  // Optional subject context (context-isolation repair): when the client is
+  // discussing one specific campaign/goal it may say which one, so refined
+  // knowledge and history are scoped to that subject. Ownership of a named
+  // campaign is never trusted from the client — the team-context RPCs
+  // enforce it server-side, exactly as before.
+  return {question,selected,recommendation,requestId:raw.request_id,
+    campaignId:raw.campaign_id || null,
+    goalTitle:raw.goal_title ? raw.goal_title.trim() : null,
+    manual:raw.agent !== undefined && raw.agent !== "auto"};
 }
 
 export function teamQuestionMessages({question, selected, recommendation, history = [], approvedSkills = []}) {
@@ -54,6 +69,7 @@ export function teamQuestionMessages({question, selected, recommendation, histor
     "You are " + SPECIALISTS[selected] + ", an Interplanetary Fund specialist. Respond to this person's specific question directly and usefully.",
     "Specialty: " + role.skill + ". " + role.lesson,
     specialistSkillBoundary(selected,{memoryVerified:history.length>0}),
+    "Previous team messages are labelled with their subject (campaign_id / subject_scope): a fact from a message scoped to a different campaign, or to the general team stream, belongs to that subject — never present it as a fact about the campaign or goal in the current question unless the member's own words connect them.",
     "Professional training framework " + WORKFORCE_TRAINING_VERSION + ": act as an ethical " + practicum.humanRole + ". Aim to produce " + practicum.deliverable + " when relevant.",
     "Professional quality requirements: " + practicum.success.join("; ") + ". Critical risk: " + practicum.risk + ".",
     "You may answer about the IFund platform itself, fundraising education, and authorized account-scoped guidance regardless of specialty. Mixed-topic coordination is NEXUS's advisory role.",
@@ -183,12 +199,13 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       let subscription=null;
       try { subscription=await api.rpc("ifund_story_subscription",{}); } catch { subscription=null; }
       const access=classifyMemberAccess(subscription);
-      const plan=buildGoalKnowledgePlan({question:input.question,origin:"chat"});
+      const plan=buildGoalKnowledgePlan({question:input.question,origin:"chat",
+        campaignId:input.campaignId,goalTitle:input.goalTitle});
       goalKnowledge=access.eligible
         ? {...plan,access}
         : {...plan,status:"subscriber_required",research_questions:[],access};
     }
-    const hashData=JSON.stringify({question:input.question,agent:input.selected});
+    const hashData=JSON.stringify({question:input.question,agent:input.selected,campaign_id:input.campaignId});
     const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(hashData));
     const sha=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
     // Quota RPCs enforce the same nine-backend allowlist as team context,
@@ -214,11 +231,11 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       fail(503,"Your AI question allowance could not be verified.");
     let history=[];
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
-      const context=await readTeamContext({env,jwt:api.jwt,campaignId:null,limit:8,fetcher});
+      const context=await readTeamContext({env,jwt:api.jwt,campaignId:input.campaignId,limit:8,fetcher});
       if(context.state!=="ready") fail(503,"Your private agent history could not be verified.");
       history=Array.isArray(context.events)?context.events:[];
       await appendTeamContext({env,jwt:api.jwt,eventKey:input.requestId,
-        agentId:contextAgentId,content:input.question,speaker:"user",fetcher});
+        agentId:contextAgentId,content:input.question,campaignId:input.campaignId,speaker:"user",fetcher});
     }
     // Record the prepared dispatch in shared team context so the owning
     // specialist sees the member's exact brief when they launch it. A failed
@@ -243,27 +260,37 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
         try {
           await appendTeamContext({env,jwt:api.jwt,eventKey:refineEventKey(input.requestId),
             agentId:contextAgentId,content:JSON.stringify({goal_knowledge_refinement:goalKnowledge}),
-            speaker:"agent",fetcher});
+            campaignId:input.campaignId,speaker:"agent",fetcher});
           goalKnowledge.context_saved=true;
         } catch { /* prepared locally; the card still carries the plan */ }
       }
     }
-    // Learned-knowledge reference: if an earlier refinement is on file in
-    // this member's team context, every later answer must be able to find
-    // it and apply it (see the application message pushed below). The
+    // Learned-knowledge reference, scoped to the subject under discussion
+    // (context-isolation repair): knowledge refined for one of the member's
+    // goals must never be silently applied to a discussion about another.
+    // Resolve the subject first, then select only the knowledge that is
+    // attributable to it (see the application messages pushed below). The
     // conversation window above is only the last few exchanges — each one
     // adds up to three events — so a plan would silently fall out of reach
-    // after a couple of chats. When the shallow window has no plan, do one
-    // deeper extraction-only read; the model's history brief is unchanged.
-    let learnedKnowledge = goalKnowledge?.status === "prepared"
-      ? goalKnowledge
-      : extractGoalKnowledgeFromHistory(history);
-    if (!learnedKnowledge && env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
-      try {
-        const deeper = await readTeamContext({env,jwt:api.jwt,campaignId:null,limit:40,fetcher});
-        if (deeper.state === "ready")
-          learnedKnowledge = extractGoalKnowledgeFromHistory(deeper.events);
-      } catch { /* no plan reachable; answers proceed without it */ }
+    // after a couple of chats. When the shallow window holds no plan at
+    // all, do one deeper extraction-only read; the model's history brief
+    // is unchanged.
+    let knowledgeSelection = null;
+    if (goalKnowledge?.status !== "prepared") {
+      let candidateEvents = history;
+      if (!parseGoalKnowledgePlans(candidateEvents).length &&
+          env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+        try {
+          const deeper = await readTeamContext({env,jwt:api.jwt,campaignId:input.campaignId,limit:40,fetcher});
+          if (deeper.state === "ready") candidateEvents = deeper.events;
+        } catch { /* no plan reachable; answers proceed without it */ }
+      }
+      const resolution = resolveDiscussionSubject({
+        campaignId: input.campaignId, goalTitle: input.goalTitle,
+        question: input.question, plans: parseGoalKnowledgePlans(candidateEvents),
+      });
+      knowledgeSelection = selectGoalKnowledgeForDiscussion(candidateEvents,
+        resolution.resolved ? resolution.subject : null);
     }
     // Read *only* previously evaluated and verified super-admin-approved skills
     // through the signed-in member's existing RLS/authorization context.
@@ -362,12 +389,28 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
           instruction:"Tell the member plainly, in one or two sentences, that you have prepared a 'Refine Knowledge About Your Goal' research plan for their kind of goal, that it gives the team a couple of minutes to research the fastest and easiest paths and the best practices for that category, and that the whole team will work from what it finds. Do not claim the research is already done or invent findings."
         })});
     }
-    if (learnedKnowledge && goalKnowledge?.status !== "prepared") {
-      const summary = goalKnowledgeApplicationSummary(learnedKnowledge);
+    if (knowledgeSelection?.state === "match") {
+      const summary = goalKnowledgeApplicationSummary(knowledgeSelection.plan,
+        { eventCampaignId: knowledgeSelection.entry?.event_campaign_id });
       if (summary) {
         messages.push({role:"user",content:JSON.stringify({
           goal_knowledge_on_file:summary,
-          instruction:"This member has refined goal knowledge on file from an earlier 'Refine Knowledge About Your Goal' plan, saved in their team context. Apply it in this answer wherever it fits the current topic: favour its fastest and easiest paths, use its category best practices, benchmarks, and story and influence angles, and turn them into concrete next steps for what the member is discussing now. Mention briefly when you are drawing on it (for example, 'Using what we refined for your medical goal…'). Treat it as the member's own saved guidance, not externally verified facts, and do not invent findings beyond it."
+          instruction:"This is the refined goal knowledge on file for the goal the member is discussing now (" + goalSubjectLabel(knowledgeSelection.subject) + "), from an earlier 'Refine Knowledge About Your Goal' plan in their team context. Apply it in this answer: favour its fastest and easiest paths, use its category best practices, benchmarks, and story and influence angles, and turn them into concrete next steps for this goal. Mention briefly when you are drawing on it (for example, 'Using what we refined for this goal…'). Treat it as the member's own saved guidance, not externally verified facts, and do not invent findings beyond it."
+        })});
+      }
+    } else if (knowledgeSelection?.state === "none_for_subject") {
+      messages.push({role:"user",content:JSON.stringify({
+        goal_knowledge_on_file:null,
+        no_refined_knowledge_for_current_goal:{goal:goalSubjectLabel(knowledgeSelection.subject)},
+        instruction:"There is NO refined goal knowledge on file for the goal the member is discussing now (" + goalSubjectLabel(knowledgeSelection.subject) + "). Refined knowledge for the member's OTHER goals exists in their team context; do not apply it to this discussion and do not present any of it as belonging to this goal. Answer from the member's current message and general guidance, and if it would help, let them know they can refine knowledge for this goal too."
+      })});
+    } else if (knowledgeSelection?.state === "unresolved" && knowledgeSelection.plan) {
+      const summary = goalKnowledgeApplicationSummary(knowledgeSelection.plan,
+        { eventCampaignId: knowledgeSelection.entry?.event_campaign_id });
+      if (summary) {
+        messages.push({role:"user",content:JSON.stringify({
+          goal_knowledge_on_file:summary,
+          instruction:"Attribution required: this refined goal knowledge belongs to the member's goal " + goalSubjectLabel(summary.for_goal) + " (see for_goal in the summary). It has NOT been established that the member is discussing that goal now. Use it only if the member's message shows they are discussing that same goal; when you draw on it, name the goal it belongs to (for example, 'Using what we refined for your " + (summary.for_goal.title || summary.for_goal.category + " goal") + "…'). Never present its paths, benchmarks or angles as knowledge about a different goal the member may be discussing; if the member is discussing a different goal, answer without it."
         })});
       }
     }
@@ -378,7 +421,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     const answer=validateTeamAnswer(result,input.selected);
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
-        agentId:contextAgentId,content:answer.answer,speaker:"agent",fetcher});
+        agentId:contextAgentId,content:answer.answer,campaignId:input.campaignId,speaker:"agent",fetcher});
     }
     const completed = await api.rpc("ifund_complete_agent_question", quotaReservation);
     if (completed !== true)

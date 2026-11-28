@@ -34,8 +34,8 @@ export default function AgentAdviceReview({ownerId,campaignId=null,currentStory=
     try{
       const current=await authClient().auth.getUser();
       if(current.error||current.data?.user?.id!==ownerId||
-        current.data.user.is_anonymous===true||!current.data.user.email_confirmed_at)
-        throw new AgentAdviceHandoffError("Sign in with the same verified account before using this answer.");
+        current.data.user.is_anonymous===true)
+        throw new AgentAdviceHandoffError("Sign in with the same account before using this answer.");
       if(scopeRef.current!==scope)throw new AgentAdviceHandoffError("Your editor changed. Reopen the saved answer.");
       const refreshed=readAgentAdvice(sessionStorage,{ownerId,id,campaignId});
       if(!refreshed||refreshed.answer!==advice.answer)

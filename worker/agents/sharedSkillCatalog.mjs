@@ -43,6 +43,15 @@ export function verifiedTeamHistoryBrief(events,{trustedOwnerRead=false,maxEvent
     speaker:event.speaker,
     time:event.recorded_at,
     source:"authenticated_owner_team_rpc",
+    // Subject attribution (context-isolation repair): the shared stream
+    // interleaves every campaign and goal the member has discussed. Each
+    // entry keeps its campaign association — or an explicit team_general
+    // scope when it belongs to no single campaign — so interleaved history
+    // can never read as one campaign's facts.
+    campaign_id:typeof event.campaign_id==="string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.campaign_id)
+      ? event.campaign_id : null,
+    subject_scope:event.campaign_id ? "campaign" : "team_general",
     content:redactTeamCredentials(event.content).slice(0,450),
   }));
 }

@@ -40,9 +40,9 @@ export default function CampaignImageChoices({title,description,onApply,disabled
    const client=authClient(),{data:identity,error:identityError}=await client.auth.getUser();
    const {data:session,error:sessionError}=await client.auth.getSession();
    const owner=identity?.user;
-   if(identityError||sessionError||!owner?.email_confirmed_at||owner.is_anonymous||
+   if(identityError||sessionError||!owner?.id||owner.is_anonymous||
       session?.session?.user?.id!==owner.id||!session.session.access_token)
-     throw Error("Sign in with a verified account to generate a campaign illustration.");
+     throw Error("Sign in to generate a campaign illustration.");
    const response=await fetch("/api/ai/images/generate",{
     method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.session.access_token},
     body:JSON.stringify({title:title.trim().slice(0,150),description:description.trim().slice(0,900),style}),

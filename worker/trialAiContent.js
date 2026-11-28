@@ -25,8 +25,25 @@ export async function reserveTrialContent(env,jwt,kind,requestId,fetcher=fetch) 
   if (data?.state==="trial_limit") return {allowed:false,code:"trial_limit",remaining:0};
   if (data?.state==="monthly_limit") return {allowed:false,code:"monthly_limit",remaining:0};
   if (data?.state==="membership_required") return {allowed:false,code:"membership_required"};
+  // Idempotency states (both reserve RPCs): this same request reference
+  // already holds a live reservation, or already consumed its allowance for
+  // a completed generation. The allowance HAS verified — the reservation
+  // belongs to this exact request — so generation proceeds and the
+  // downstream begin/complete calls, themselves idempotent on the request
+  // reference, replay or finish it. These states previously fell through to
+  // "unavailable", so a member whose first attempt failed downstream (a
+  // provider error, a timeout) and who retried with the same reference —
+  // the /create flow deliberately reuses it per input — was told their
+  // allowance "could not be verified" for up to the 30-minute reservation
+  // lifetime despite a perfectly verifiable allowance.
+  if (data?.allowed===false && data?.state==="already_reserved")
+    return {allowed:true,tracked:true,kind,requestId,
+      remaining:data.remaining??null,already_reserved:true};
+  if (data?.allowed===false && data?.state==="already_completed")
+    return {allowed:true,tracked:false,kind,requestId,
+      remaining:data.remaining??null,already_completed:true};
   if (data?.allowed!==true ||
-      !["reserved","admin_exempt"].includes(data.state))
+      !["reserved","admin_exempt","paid_or_admin_exempt"].includes(data.state))
     return {allowed:false,code:"unavailable"};
   return {allowed:true,tracked:data.state==="reserved",kind,requestId,remaining:data.remaining??null};
 }

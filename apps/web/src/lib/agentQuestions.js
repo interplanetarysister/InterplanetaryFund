@@ -3,7 +3,7 @@
 import { memberIdentity } from "./guestAccess.js";
 
 export const TEAM_QUESTION_LIMIT=2000;
-export async function askIFundAgent(client,{question,agent="auto",ownerId,fetcher=fetch,signal}){
+export async function askIFundAgent(client,{question,agent="auto",ownerId,campaignId=null,goalTitle=null,fetcher=fetch,signal}){
   if(typeof question!=="string" || question.trim().length<1 ||
      question.length>TEAM_QUESTION_LIMIT)
     throw Error("Enter a message of 1–2,000 characters.");
@@ -19,7 +19,12 @@ export async function askIFundAgent(client,{question,agent="auto",ownerId,fetche
     method:"POST",
     headers:{"Content-Type":"application/json",
       Authorization:"Bearer "+session.data.session.access_token},
-    body:JSON.stringify({request_id:crypto.randomUUID(),question:question.trim(),agent}),signal,
+    body:JSON.stringify({request_id:crypto.randomUUID(),question:question.trim(),agent,
+      // Optional subject context: when the surface is discussing one
+      // campaign/goal, naming it lets the team scope refined knowledge and
+      // history to that subject instead of the member's latest activity.
+      ...(campaignId?{campaign_id:campaignId}:{}),
+      ...(typeof goalTitle==="string"&&goalTitle.trim()?{goal_title:goalTitle.trim().slice(0,120)}:{})}),signal,
   });
   const result=await response.json().catch(()=>null);
   const again=await client.auth.getUser();

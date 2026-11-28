@@ -32,7 +32,9 @@ test("signup offers one AI Assistance switch without allowing outside actions", 
   assert.match(signup, /allow_future_internal_ai_assistance:event.target.checked/);
   assert.match(onboarding, /turn iFund AI help on or off anytime/);
   assert.match(ai, /What does this include\?/);
-  assert.match(ai, /email_confirmed_at/);
+  // Owner directive 2026-11-27: managing AI Assistance does not require a
+  // confirmed email (verification is a withdrawals/payouts requirement).
+  assert.doesNotMatch(ai, /email_confirmed_at/);
   assert.match(ai, /identity\?\.user/);
   assert.match(ai, /upsert\(payload/);
   assert.match(ai, /It does not automatically post to other websites/);

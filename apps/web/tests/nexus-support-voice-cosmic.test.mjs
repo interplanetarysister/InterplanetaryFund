@@ -69,7 +69,8 @@ test("real artwork is quota-gated and must be uploaded and applied by the owner"
  assert.match(art,/\/api\/ai\/images\/generate/);
  assert.match(art,/decodeGeneratedArtwork/);
  assert.match(art,/uploadCampaignCover/);
- assert.match(art,/Sign in with a verified account/);
+ assert.match(art,/Sign in to generate a campaign illustration/);
+ assert.doesNotMatch(art,/email_confirmed_at/);
  assert.match(art,/not a documentary photograph/);
  assert.doesNotMatch(art,/publishCampaign|sendExternal/);
 });

@@ -189,7 +189,16 @@ export async function campaignPreview(request, env, fetcher = fetch) {
       return json(200, basicCampaignOutline(input));
     }
     trialJwt=bearer.slice(7);
-    trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id,fetcher);
+    try {
+      trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id,fetcher);
+    } catch {
+      // The allowance RPC itself failed (non-200, transport, malformed
+      // reply): the member's allowance is genuinely UNVERIFIABLE. That is a
+      // system error state with its own copy — never the denial copy, and
+      // never a silent outline (D7 three-state distinction).
+      return json(503,{code:"unavailable",
+        error:"Your AI generation allowance could not be verified. Your current text is unchanged."});
+    }
     if(!trialReceipt.allowed){
       // Each denial state gets its own status and explanation. Only a genuine
       // verification failure (unavailable) may say "could not be verified";

@@ -131,7 +131,7 @@ export default function AgentsTeam() {
         if(!active)return;
         const verifiedUser=identity?.data?.user;
         const matching=verifiedUser?.id===owner &&
-          Boolean(verifiedUser.email_confirmed_at) && verifiedUser.is_anonymous!==true;
+          verifiedUser.is_anonymous!==true;
         const allowed=canAskAgentWithSavedPermission({
           user:verifiedUser,ownerId:owner,preferences:data,
         });
@@ -156,7 +156,7 @@ export default function AgentsTeam() {
     if(questionBusy || agentQuestion.trim().length<1) return;
     if(!aiPermissionGranted){setQuestionError("Private AI help is switched off for your account. Use the AI Assistance switch just above the Ask button to turn it on, then ask again.");return;}
     const owner=user?.id;
-    if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
+    if(!owner){setQuestionError("Sign in to ask a specialist.");return;}
     requestRef.current.controller?.abort();
     const controller=new AbortController();
     const generation=++requestRef.current.generation;
@@ -185,8 +185,8 @@ export default function AgentsTeam() {
       const client=authClient();
       const identity=await client.auth.getUser();
       const verified=identity.data?.user;
-      if(identity.error||verified?.id!==user.id||!verified.email_confirmed_at||verified.is_anonymous===true)
-        throw Error("Sign in to the same verified account to use this answer.");
+      if(identity.error||verified?.id!==user.id||verified.is_anonymous===true)
+        throw Error("Sign in to the same account to use this answer.");
       const target=selection.campaignId||null;
       // A campaign-specific link is checked again by the owner editor before any changes.
       const handoff=rememberAgentAdvice(sessionStorage,{
@@ -300,7 +300,7 @@ export default function AgentsTeam() {
         <button type="button" onClick={reviewAnswerInCampaign} className="ifund-agents-action">Review this answer in a campaign editor</button>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Agent chat is available to verified members, including free accounts, with saved AI assistance permission and available service capacity. Replies are advisory; changing a preference never authorizes outside posting or financial actions.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Agent chat is available to signed-in members, including free accounts, with saved AI assistance permission and available service capacity. Replies are advisory; changing a preference never authorizes outside posting or financial actions.</p>
       <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">Optional premium features</Link><Link to="/permissions?section=ai" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
       <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
@@ -332,7 +332,7 @@ export default function AgentsTeam() {
     {user && <TeamConversationHistory />}
     <section className="ifund-agents-writing">
       <h2 className="text-lg font-semibold">Campaign writing studio</h2>
-      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require a verified sign-in and saved AI permission; a paid plan is not required.</p>
+      <p className="mt-2 text-sm text-muted-foreground">The Story Agent can prepare private campaign writing suggestions. Direct specialist answers require sign-in and saved AI permission; a paid plan is not required.</p>
       <button type="button" disabled={!user} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
       {!user && <p className="mt-2 text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to use private writing tools.</p>}
       {user && showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
