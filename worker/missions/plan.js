@@ -15,7 +15,7 @@ function normalizePlan(raw){
   const steps=raw.steps.map((s,i)=>{
     const title=typeof s?.title==="string"?s.title.trim():"";
     const detail=typeof s?.detail==="string"?s.detail.trim():"";
-    if(!title||title.length>240||detail.length>1400)throw Error("A plan step was incomplete.");
+    if(!title||title.length>240||!detail||detail.length>1400)throw Error("A plan step was incomplete.");
     return {id:"step-"+(i+1),title,detail,agent:AGENTS.has(s.agent)?s.agent:"nexus",state:"suggested",verification:"not_checked"};
   });
   const fundraising=raw.fundraising===true;
@@ -86,7 +86,7 @@ export async function routeMissionPlan(request,env={},fetcher=fetch){
     });
     if(!response.ok)fail(503,"Private Mission could not be loaded.");
     const records=await response.json();
-    if(!Array.isArray(records)||records.length!==1||records[0].owner_id!==api.user.id)
+    if(!Array.isArray(records)||records.length!==1||records[0].owner_id!==api.user.id||records[0].id!==raw.mission_id)
       fail(404,"That private Mission is unavailable.");
     const mission=records[0];
     if(mission.revision!==raw.revision || mission.status==="archived")
@@ -103,6 +103,20 @@ export async function routeMissionPlan(request,env={},fetcher=fetch){
     reserved={p_request_id:raw.request_id,p_input_sha256:sha,p_agent_id:"nexus"};
     const model=await env.AI.run(MODEL,{messages:promptFor(mission),max_tokens:1450,temperature:0.25});
     const plan=parseMissionPlan(model);
+    if((await api.rpc("ifund_current_account_is_active"))!==true||
+       (await api.rpc("ifund_current_user_has_current_terms"))!==true||
+       !await api.futureInternalAIPermission("recommendation",false))
+      fail(403,"Account verification or AI permission changed. No plan was saved.");
+    const latest=await fetcher(SUPABASE_ORIGIN+path,{
+      headers:{authorization:"Bearer "+api.jwt,apikey:env.SUPABASE_PUBLISHABLE_KEY},
+      signal:AbortSignal.timeout(12000)
+    });
+    if(!latest.ok)fail(503,"Private Mission could not be rechecked.");
+    const current=await latest.json();
+    if(!Array.isArray(current)||current.length!==1||current[0]?.id!==mission.id||
+       current[0]?.owner_id!==api.user.id||current[0]?.revision!==mission.revision||
+       current[0]?.status==="archived")
+      fail(409,"Mission changed; reload its latest version.");
     const done=await api.rpc("ifund_complete_agent_question",reserved);
     if(done!==true)fail(503,"AI usage could not be finalized. Please retry without saving this result.");
     completed=true;

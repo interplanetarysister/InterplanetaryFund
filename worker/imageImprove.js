@@ -57,10 +57,14 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
     if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
     trialReceipt = await reserveTrialContent(env,account.jwt,"image_edit",crypto.randomUUID(),fetcher);
     if (!trialReceipt.allowed) return response(
-      trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
+      ["trial_limit","monthly_limit"].includes(trialReceipt.code)?429:trialReceipt.code==="membership_required"?403:503,
       {error:trialReceipt.code==="trial_limit"
         ?"Your 15 trial AI creations are used. Subscribe to keep creating, or use manual campaign tools for free."
-        :"Your trial generation allowance is unavailable. Manual uploads and editing remain available."});
+        :trialReceipt.code==="monthly_limit"
+        ?"Your verified paid AI creation allowance is used. Manual uploads and editing remain available."
+        :trialReceipt.code==="membership_required"
+        ?"An active trial or verified membership is required for AI artwork. Manual uploads remain free."
+        :"Your AI generation allowance is unavailable. Manual uploads and editing remain available."});
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
@@ -82,6 +86,8 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
     const image = generated?.image;
     if (!validImageBase64(image))
       return response(502, { error: 'Improved artwork could not be verified.' });
+    const currentConsent = await verifyOwnerAIConsent(env, account, fetcher);
+    if (!currentConsent.allowed) return response(currentConsent.status, {error: "AI permission could not be verified after generation. No campaign was changed."});
     if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
       return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
     trialReceipt = null;

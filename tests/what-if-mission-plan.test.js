@@ -125,3 +125,29 @@ test("daily AI quota exhaustion and invalid model data fail closed with rollback
  assert.equal(invalid.observed.completed,0);
  assert.equal(invalid.observed.released,1);
 });
+
+test("Mission changed after inference never returns stale plan",async()=>{
+ const qa=mockMemberBackend();let reads=0;
+ const fetcher=async(url,opts)=>{
+   const response=await qa.fetcher(url,opts);
+   if(new URL(url).pathname==="/rest/v1/ifund_missions"&&++reads===2){
+     const rows=await response.json();return Response.json([{...rows[0],revision:2}]);
+   }
+   return response;
+ };
+ const result=await routeMissionPlan(request("Bearer qa-user-token"),qa.env,fetcher);
+ assert.equal(result.status,409);
+ assert.equal(qa.observed.completed,0);assert.equal(qa.observed.released,1);
+});
+test("owner cannot receive plan for a different Mission ID",async()=>{
+ const qa=mockMemberBackend();
+ const fetcher=async(url,opts)=>{
+   const response=await qa.fetcher(url,opts);
+   if(new URL(url).pathname==="/rest/v1/ifund_missions"){
+     const rows=await response.json();return Response.json([{...rows[0],id:"11111111-1111-4111-8111-111111111111"}]);
+   }
+   return response;
+ };
+ const result=await routeMissionPlan(request("Bearer qa-user-token"),qa.env,fetcher);
+ assert.equal(result.status,404);assert.equal(qa.observed.modelCalls,0);
+});

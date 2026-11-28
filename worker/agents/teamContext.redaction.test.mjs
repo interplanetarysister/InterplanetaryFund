@@ -123,3 +123,13 @@ test('private document brief purpose is redacted while ordinary purpose survives
     else assert.match(result.briefs[0].purpose,/\[redacted\]/);
   }
 });
+
+test("raw platform credentials and financial identifiers are not retained in team memory",()=>{
+ for(const input of ["cfat_SYNTHETIC0123456789012345","cfk_SYNTHETIC0123456789012345",
+   "sb_secret_SYNTHETIC0123456789012345","github_pat_SYNTHETIC0123456789012345",
+   "4111 1111 1111 1111","CVV: 123","bank account: 123456789",
+   "verification code: 123456"]){
+    assert.ok(!redactTeamCredentials(input).includes(input),"synthetic credential survived redaction");
+ }
+ assert.equal(redactTeamCredentials("Raise $1,200 for twelve volunteers."),"Raise $1,200 for twelve volunteers.");
+});
