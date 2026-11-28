@@ -286,6 +286,19 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_ops_bot_claim",
   "public.ifund_ops_bot_complete",
   "public.ifund_ops_bot_fail",
+  // Disaster-response Phase 1 (migration 20261126190000). The answer RPC
+  // derives the caller from auth.uid(), only touches the caller's own
+  // pending check-in, and on 'yes' sets the campaign's disaster_relief flag
+  // plus one promotion-draft review row; re-answering is a no-op. The
+  // authorize function is volatile plpgsql only because the vault lookup
+  // must be dynamic SQL so the migration applies where vault is absent
+  // (PGlite); it reads one vault secret, writes nothing, and executes for
+  // service_role only. The revoke RPC is verified-super-admin only: it
+  // clears the flag and deletes not-yet-posted disaster promotion drafts.
+  // disaster-response-db.test.js covers all three.
+  "public.ifund_disaster_authorize",
+  "public.ifund_disaster_checkin_answer",
+  "public.ifund_disaster_revoke_relief",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */

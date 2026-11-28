@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
+import CampaignCard, { categoryLabels, sortDisasterReliefFirst } from "@/components/campaigns/CampaignCard";
 import { listActiveCampaigns } from "@/api/publicData";
 import { Search, LifeBuoy, Globe2, Clapperboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,13 @@ export const DISCOVER_TABS = Object.freeze([
   { id: "discover", label: "Discover" },
   { id: "globe", label: "Globe" },
 ]);
+
+// Disaster-relief campaigns rank first in Discover. The sort is stable:
+// flagged campaigns keep their existing relative order, and so do the rest.
+// (Defined in CampaignCard.jsx so the web test harness can import it
+// without pulling in publicData.js, whose import.meta.env read is
+// undefined under Node.)
+export { sortDisasterReliefFirst } from "@/components/campaigns/CampaignCard";
 
 // Tab state lives in the URL (?tab=globe) so Discover tabs are deep-linkable.
 // Unknown or missing values fall back to Discover.
@@ -134,8 +141,13 @@ export default function Discover() {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">{header}{tabList}<CampaignGridSkeleton count={6} /></div>;
   }
 
-  const filtered = (category === "all" ? campaigns : campaigns.filter((c) => c.category === category))
-    .filter((c) => !search || `${c.title} ${c.summary || ""}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered = sortDisasterReliefFirst(
+    (category === "all" ? campaigns : campaigns.filter((c) => c.category === category))
+      .filter((c) => !search || `${c.title} ${c.summary || ""}`.toLowerCase().includes(search.toLowerCase())));
+  // Flagged campaigns are already first in `filtered` (see
+  // sortDisasterReliefFirst); the section below names them so a visitor can
+  // reach them directly, and the grid keeps them in the same order.
+  const reliefCampaigns = filtered.filter((c) => c.disaster_relief === true);
   const categories = ["all", ...Object.keys(categoryLabels)];
   const compared = compareIds.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean);
   const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 ? [...current, id] : current);
@@ -175,6 +187,23 @@ export default function Discover() {
           <section className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm" aria-label="Campaign comparison">
             <div className="flex items-center justify-between gap-3 mb-3"><div><h2 className="font-display text-xl text-foreground">Compare campaigns</h2><p className="text-xs text-muted-foreground">Choose up to three. Comparison is informational; you decide where to support.</p></div><button type="button" onClick={() => setCompareIds([])} className="text-sm text-primary hover:underline">Clear</button></div>
             <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-sm"><thead><tr className="text-left text-muted-foreground"><th className="py-2 pr-3">Campaign</th><th className="py-2 px-3">Category</th><th className="py-2 px-3">Raised</th><th className="py-2 px-3">Goal</th><th className="py-2 pl-3">Supporters</th></tr></thead><tbody>{compared.map((campaign) => <tr key={campaign.id} className="border-t border-border"><td className="py-3 pr-3 font-medium text-foreground">{campaign.title}</td><td className="py-3 px-3">{categoryLabels[campaign.category] || "Other"}</td><td className="py-3 px-3">{money(campaign.raised_amount)}</td><td className="py-3 px-3">{money(campaign.goal_amount)}</td><td className="py-3 pl-3">{count(campaign.donor_count)}</td></tr>)}</tbody></table></div>
+          </section>
+        )}
+
+        {reliefCampaigns.length > 0 && (
+          <section className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-4 sm:p-5" aria-label="Disaster relief campaigns">
+            <h2 className="font-display text-xl text-foreground">Disaster relief — verified area</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              These campaigns are in areas matched to an authoritative disaster alert, and their owners confirmed they need emergency assistance. They appear first in the list below. The area is verified; the need described is each campaign owner&rsquo;s own statement, not independently verified.
+            </p>
+            <ul className="mt-3 space-y-1">
+              {reliefCampaigns.map((c) => (
+                <li key={c.id}>
+                  <Link to={`/campaign/${c.id}`} className="text-sm font-semibold text-primary underline underline-offset-2">{c.title}</Link>
+                  {c.location ? <span className="text-sm text-muted-foreground"> · {c.location}</span> : null}
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
