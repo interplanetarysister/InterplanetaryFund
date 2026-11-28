@@ -9,7 +9,7 @@ import { redactTeamCredentials, readTeamContext, appendTeamContext, replyEventKe
 import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES, FRONT_DESK_BACKENDS, isFrontDeskAgent, frontAgentForSpecialist } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 import { ROLE_PRACTICUM, WORKFORCE_TRAINING_VERSION } from "../../apps/web/src/lib/agentWorkforceTraining.mjs";
-import { planAgentConsultations, validateConsultation, nexusSynthesisMessages, frontDeskSynthesisMessages } from "./teamOrchestration.js";
+import { planAgentConsultations, validateConsultation, clampAdvisoryText, nexusSynthesisMessages, frontDeskSynthesisMessages } from "./teamOrchestration.js";
 import { buildDispatch, dispatchEventKey } from "./chiefOfStaffDispatch.js";
 import { detectRefineKnowledgeIntent, buildGoalKnowledgePlan, refineEventKey,
   classifyMemberAccess, parseGoalKnowledgePlans, resolveDiscussionSubject,
@@ -132,11 +132,17 @@ export function reachMessages({question, history = []}) {
   return messages;
 }
 
+export const MAX_TEAM_ANSWER_CHARS = 6000;
 export function validateTeamAnswer(raw,selected) {
   const response=typeof raw === "string" ? raw : raw?.response;
-  if (typeof response !== "string" || !response.trim() || response.trim().length > 6000)
+  if (typeof response !== "string" || !response.trim())
     fail(503,"The selected agent did not return a usable answer.");
-  return {agent:selected,agent_name:SPECIALISTS[selected],answer:redactTeamCredentials(response.trim()).slice(0,6000),type:"advisory",actions_performed:false};
+  // Same D1 lesson as validateConsultation: an over-long answer is clamped
+  // to the bound at a clean boundary, never rejected — the whole question
+  // must not fail because the model wrote too much. (The final slice keeps
+  // the 6,000-char invariant even if credential redaction changes length.)
+  const bounded=clampAdvisoryText(response.trim(),MAX_TEAM_ANSWER_CHARS);
+  return {agent:selected,agent_name:SPECIALISTS[selected],answer:redactTeamCredentials(bounded.text).slice(0,MAX_TEAM_ANSWER_CHARS),type:"advisory",actions_performed:false};
 }
 
 export async function routeTeamQuestion(request, env, fetcher=fetch) {

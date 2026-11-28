@@ -28,6 +28,12 @@
 //
 // Lifecycle (durable job row per request, table ifund_video_generations):
 //   POST /api/ai/videos/generate        reserve allowance + create job
+// Every generation is anchored to a selected subject (owner media-anchor
+// rule, 2026-11-28): one of the member's own campaigns (campaign_id,
+// ownership-verified, its story is the context) or a named goal/plan
+// (goal_title + goal_category, recorded as the PR #402 fingerprint). A
+// request with neither is refused with an honest 422 before any allowance
+// is reserved — there is no context-free generation on either route.
 //   POST /api/ai/videos/jobs/:id/advance run provider, download, store
 //   GET  /api/ai/videos/jobs/:id         poll the job state
 //   GET  /api/ai/videos/status           public enabled/not-configured flag
@@ -57,6 +63,7 @@ import { readJsonBody, BodyError } from './bodyLimit.js';
 import { UUID, fail, supabase, member } from './media/privateDocuments.js';
 import { storeMemberMediaBytes, memberMediaSignature } from './media/memberMedia.js';
 import { findPublicFacingViolations, stripPublicFacingViolations } from '../apps/web/src/lib/campaignCopyQuality.mjs';
+import { goalFingerprint } from './agents/goalKnowledge.js';
 
 export const VIDEO_MODEL = 'alibaba/wan-3.0';
 export const VIDEO_I2V_MODEL = 'alibaba/wan-2.7-i2v';
@@ -78,6 +85,9 @@ const JOB_SELECT = 'owner_id,request_id,provider,model,state,prompt,resolution,r
 // brief is generator-facing material and is never exposed through the
 // member job API.
 const CONCIERGE_JOB_SELECT = JOB_SELECT + ',campaign_id,brief';
+// Goal-subject reads additionally carry the goal/plan anchor (migration
+// 20261128020000, source-only until the release that applies it).
+const SUBJECT_JOB_SELECT = CONCIERGE_JOB_SELECT + ',goal_title,goal_category';
 const CAMPAIGNS = '/rest/v1/ifund_campaigns';
 const CAMPAIGN_SELECT = 'id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status';
 const MAX_BRIEF_CHARS = 4000; // matches the brief column check (migration 20261128010000)
@@ -392,7 +402,7 @@ function validateImageUrl(value) {
 
 export function validateVideoRequest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
-      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id', 'image_url', 'rights_confirmed', 'campaign_id'].includes(key)))
+      Object.keys(input).some(key => !['prompt', 'resolution', 'ratio', 'duration', 'request_id', 'image_url', 'rights_confirmed', 'campaign_id', 'goal_title', 'goal_category'].includes(key)))
     throw new BodyError(422, 'Describe the video you want to generate.');
   const prompt = typeof input.prompt === 'string' ? input.prompt.trim() : '';
   if (prompt.length < 20 || prompt.length > 900 || /[\u0000-\u001f\u007f]/.test(prompt))
@@ -421,12 +431,44 @@ export function validateVideoRequest(input) {
   let campaignId = null;
   if (input.campaign_id !== undefined && input.campaign_id !== null && input.campaign_id !== '') {
     if (typeof input.campaign_id !== 'string' || !UUID.test(input.campaign_id))
-      throw new BodyError(422, 'Choose one of your campaigns for this video, or leave the campaign out.');
+      throw new BodyError(422, 'Choose one of your campaigns for this video, or name the goal or plan it promotes instead.');
     campaignId = input.campaign_id.toLowerCase();
   }
+  // A goal/plan subject is the alternative anchor when the video promotes
+  // a goal or plan rather than a fundraising campaign (members also make
+  // plans they want help promoting, with no money goal). It carries the
+  // PR #402 subject shape: the goal's title plus its category, recorded
+  // as a fingerprint so the generation is attributable to that subject.
+  let goalTitle = null, goalCategory = null, goalSubject = null;
+  if (input.goal_title !== undefined && input.goal_title !== null && input.goal_title !== '') {
+    if (typeof input.goal_title !== 'string')
+      throw new BodyError(422, 'Name the goal or plan this video promotes, or choose one of your campaigns.');
+    const title = input.goal_title.trim();
+    if (title.length < 1 || title.length > 120 || /[\u0000-\u001f\u007f]/.test(title))
+      throw new BodyError(422, 'Name the goal or plan this video promotes (1 to 120 characters), or choose one of your campaigns.');
+    goalTitle = title;
+    if (input.goal_category !== undefined && input.goal_category !== null && input.goal_category !== '') {
+      if (typeof input.goal_category !== 'string' || input.goal_category.trim().length > 60 ||
+          /[\u0000-\u001f\u007f]/.test(input.goal_category))
+        throw new BodyError(422, 'The goal or plan category is too long.');
+      goalCategory = input.goal_category.trim();
+    }
+    goalSubject = goalFingerprint(goalTitle, goalCategory || undefined);
+    if (!goalSubject)
+      throw new BodyError(422, 'Name the goal or plan this video promotes, or choose one of your campaigns.');
+  }
+  // The media-anchor rule (owner directive, 2026-11-28): every generated
+  // video is attached to a selected subject — one of the member's own
+  // campaigns, or a named goal/plan — and is prepared from that subject's
+  // context (the campaign's story, or the plan's context). A description
+  // alone is not a subject, so a request with neither is refused before
+  // any allowance is reserved.
+  if (!campaignId && !goalSubject)
+    throw new BodyError(422, 'Choose what this video is for first: pick one of your campaigns, or name the goal or plan it promotes. Videos are prepared from that subject\u2019s story and context \u2014 a description alone is not enough.');
   return {
     prompt, resolution, ratio, duration, requestId: input.request_id.toLowerCase(),
     mode, imageUrl, rightsConfirmed: input.rights_confirmed === true, campaignId,
+    goalTitle, goalCategory, goalSubject,
   };
 }
 
@@ -453,17 +495,28 @@ async function readOwnCampaign(env, fetcher, actor, campaignId) {
  * private or pleading reaches the generator. The cleaned brief is
  * re-scanned; any residual violation fails closed instead of shipping.
  */
-export function buildConciergeBrief({ campaign = null, prompt, mode = 'text',
+export function buildConciergeBrief({ campaign = null, goal = null, prompt, mode = 'text',
   imageUrl = null, resolution, ratio, duration }) {
-  const source = [campaign?.title, campaign?.summary, campaign?.story, prompt]
+  const source = [campaign?.title, campaign?.summary, campaign?.story, goal?.title, prompt]
     .filter(Boolean).join('\n');
   const lines = [
-    'Original short promotional video for a personal fundraiser campaign on Interplanetary Fund.',
+    goal && !campaign
+      ? 'Original short promotional video for a personal goal or plan on Interplanetary Fund.'
+      : 'Original short promotional video for a personal fundraiser campaign on Interplanetary Fund.',
     'Hard rules: no text, letters, logos or watermarks anywhere in the video; ' +
       'do not depict real people, claimed donations, or fundraising totals; illustrative scenes only.',
     'Format: ' + duration + ' seconds, ' +
       (ratio === 'adaptive' ? 'adaptive aspect' : ratio + ' aspect') + ', ' + resolution + '.',
   ];
+  if (goal && !campaign) {
+    // The goal/plan subject: the video is prepared from the plan's own
+    // context (its name and category), the same way a campaign subject
+    // contributes its story below. The assembled brief passes through
+    // the same discretion strip and re-scan as campaign briefs.
+    lines.push('Goal or plan this video promotes: ' + goal.title);
+    if (goal.category)
+      lines.push('Category: ' + String(goal.category).replace(/_/g, ' '));
+  }
   if (campaign) {
     lines.push('Campaign: ' + campaign.title);
     if (campaign.category)
@@ -506,6 +559,7 @@ function publicJob(job) {
     model: job.model, mode: job.mode ?? 'text', resolution: job.resolution, ratio: job.ratio,
     duration_seconds: job.duration_seconds, media_id: job.media_id ?? null,
     campaign_id: job.campaign_id ?? null,
+    goal_title: job.goal_title ?? null,
     error: job.error ?? null, created_at: job.created_at, updated_at: job.updated_at,
   };
 }
@@ -592,7 +646,10 @@ async function submitJob(request, env, fetcher) {
     ? await readOwnCampaign(env, fetcher, actor, input.campaignId) : null;
   const brief = providerId === CONCIERGE_PROVIDER_ID
     ? buildConciergeBrief({
-        campaign, prompt: input.prompt, mode: input.mode, imageUrl: input.imageUrl,
+        campaign,
+        goal: !campaign && input.goalSubject
+          ? { title: input.goalTitle, category: input.goalCategory } : null,
+        prompt: input.prompt, mode: input.mode, imageUrl: input.imageUrl,
         resolution: input.resolution, ratio: input.ratio, duration: input.duration,
       })
     : null;
@@ -610,10 +667,17 @@ async function submitJob(request, env, fetcher) {
   };
   let select = JOB_SELECT;
   if (input.campaignId) { body.campaign_id = input.campaignId; select = CONCIERGE_JOB_SELECT; }
+  if (!input.campaignId && input.goalSubject) {
+    // The goal/plan anchor is recorded on the job (migration
+    // 20261128020000) so the generation stays attributable to its subject.
+    body.goal_title = input.goalTitle;
+    body.goal_category = input.goalCategory;
+    select = SUBJECT_JOB_SELECT;
+  }
   if (brief !== null) {
     body.state = 'awaiting_concierge';
     body.brief = brief;
-    select = CONCIERGE_JOB_SELECT;
+    if (select === JOB_SELECT) select = CONCIERGE_JOB_SELECT;
   }
   const inserted = await supabase(env, fetcher, JOBS + '?select=' + select, {
     method: 'POST', admin: true, prefer: 'return=representation', body,
