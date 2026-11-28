@@ -13,8 +13,21 @@ export const categoryLabels = {
   creative: "Creative", environment: "Planet & Environment", other: "Other",
 };
 
+export const DISASTER_RELIEF_BADGE = "Disaster relief — verified area";
+
+// Disaster-relief campaigns rank first in Discover. The sort is stable:
+// flagged campaigns keep their existing relative order, and so do the rest.
+export function sortDisasterReliefFirst(campaigns) {
+  return [...campaigns].sort((a, b) => Number(b.disaster_relief === true) - Number(a.disaster_relief === true));
+}
+
 export default function CampaignCard({ campaign }) {
   const isDraft = campaign.status === "draft";
+  // Disaster-relief flag (boolean), not the "disaster_relief" category: the
+  // campaign's area matched an authoritative disaster alert after the owner
+  // confirmed they need emergency assistance. The need itself is the
+  // owner's statement, not independently verified.
+  const isDisasterRelief = campaign.disaster_relief === true;
   // A paused campaign is hidden from Discover and the public detail page only
   // serves active campaigns, so its card must lead the owner back to management
   // rather than to a dead public link.
@@ -35,6 +48,7 @@ export default function CampaignCard({ campaign }) {
       </div>
       <div className="p-5">
         <div className="flex items-center justify-between gap-2 mb-1.5"><p className="text-[11px] font-medium uppercase tracking-wider text-primary">{categoryLabels[campaign.category] || "Other"}</p>{campaign.donor_count !== null && campaign.donor_count !== undefined && Number.isFinite(Number(campaign.donor_count)) ? <TrustBadge donorCount={Number(campaign.donor_count)} /> : null}</div>
+        {isDisasterRelief && <p className="mb-2 inline-flex rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200">{DISASTER_RELIEF_BADGE}</p>}
         <h3 className="font-display text-lg text-foreground leading-snug mb-2 line-clamp-2">{campaign.title || "Untitled draft"}</h3>
         {isDraft ? (
           <p className="text-sm text-muted-foreground">Private draft · Tap to continue where you left off</p>

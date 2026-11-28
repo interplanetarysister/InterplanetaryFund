@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Compass, LogIn, Sparkles } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -6,6 +6,7 @@ import PromptComposer from "@/components/prompt/PromptComposer";
 import LegalFooter from "@/components/LegalFooter";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import QuickActions from "@/components/QuickActions";
+import { listActiveCampaigns } from "@/api/publicData";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 // Public entry is deliberately focused. The full story lives at /our-story
@@ -14,6 +15,19 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuthSession();
   const signedIn = Boolean(user && !user.is_anonymous);
+  // Disaster-relief section (Phase 1): flagged campaigns appear on the
+  // homepage, per the disaster-response spec. The fetch is opportunistic —
+  // the section renders only when flagged campaigns exist, and a failed or
+  // unconfigured public-data read must never break or shift the homepage,
+  // so failures resolve silently to an empty section.
+  const [reliefCampaigns, setReliefCampaigns] = useState([]);
+  useEffect(() => {
+    let active = true;
+    listActiveCampaigns({ limit: 100 })
+      .then((items) => { if (active) setReliefCampaigns(items.filter((c) => c.disaster_relief === true).slice(0, 5)); })
+      .catch(() => { if (active) setReliefCampaigns([]); });
+    return () => { active = false; };
+  }, []);
   function begin(prompt) {
     navigate("/create?manual=1", { state: { prompt, source: "home-what-if" } });
   }
@@ -60,6 +74,25 @@ export default function Home() {
         {!signedIn && <p className="mt-8 text-sm text-slate-300">Already a member? <Link to="/login" className="font-semibold text-cyan-200 underline underline-offset-4">Log in</Link> · <Link to="/register" className="font-semibold text-cyan-200 underline underline-offset-4">Create a free account</Link></p>}
       </main>
     </div>
+    {reliefCampaigns.length > 0 && (
+      <section className="mx-auto max-w-6xl px-5 pb-2 pt-2 sm:px-8" aria-label="Disaster relief campaigns">
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 sm:p-6">
+          <h2 className="text-xl font-semibold text-white">Disaster relief — verified area</h2>
+          <p className="mt-1 text-sm leading-relaxed text-slate-300">
+            These campaigns are in areas matched to an authoritative disaster alert, and their owners confirmed they need emergency assistance. The area is verified; the need described is each campaign owner&rsquo;s own statement, not independently verified.
+          </p>
+          <ul className="mt-3 space-y-1">
+            {reliefCampaigns.map((c) => (
+              <li key={c.id}>
+                <Link to={`/campaign/${c.id}`} className="text-sm font-semibold text-cyan-200 underline underline-offset-2 hover:text-white">{c.title}</Link>
+                {c.location ? <span className="text-sm text-slate-300"> · {c.location}</span> : null}
+              </li>
+            ))}
+          </ul>
+          <Link to="/discover" className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cyan-200 underline underline-offset-4 hover:text-white">See all disaster-relief campaigns <ArrowRight className="h-4 w-4" /></Link>
+        </div>
+      </section>
+    )}
     <section className="mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-3 sm:px-8" aria-label="How IFund helps">
       {[
         ["01", "Start with an idea", "Tell us what matters to you. No technical setup required."],

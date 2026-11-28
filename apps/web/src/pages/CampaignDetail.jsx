@@ -112,7 +112,13 @@ export default function CampaignDetail() {
               {campaign.location && <Badge variant="outline" className="border-stone-200 text-stone-600"><MapPin className="w-3 h-3 mr-1" />{campaign.location}</Badge>}
               {campaign.status && campaign.status !== "active" && <Badge variant="outline" className="capitalize">{campaign.status}</Badge>}
               {campaign.preview_only && <Badge variant="outline" className="border-amber-300 text-amber-800">Preview</Badge>}
+              {campaign.disaster_relief === true && <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-800 dark:text-amber-200">Disaster relief — verified area</Badge>}
             </div>
+            {campaign.disaster_relief === true && (
+              <p className="mb-2 text-sm text-muted-foreground">
+                This campaign&rsquo;s area was verified against an authoritative disaster alert, and the owner confirmed they need emergency assistance because of it. The need described here is the owner&rsquo;s own statement — it has not been independently verified.
+              </p>
+            )}
             <div className="flex items-start justify-between gap-3">
               <h1 dir={textDirection} className="font-display text-3xl sm:text-4xl font-black text-slate-950 leading-tight drop-shadow-[0_1px_0_rgba(255,255,255,.75)]">{displayed.title}</h1>
             </div>

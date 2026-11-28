@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadNotifications, acknowledgeNotification,
   acknowledgeAllNotifications, verifyInAppNotificationDelivery } from "@/lib/notifications";
+import { loadMyDisasterCheckins } from "@/lib/disasterCheckins";
+import DisasterCheckinCard from "@/components/notifications/DisasterCheckinCard";
 import { safeNoticeDestination } from "@/lib/notifications";
 import { Bell, CheckCheck, ChevronRight, ShieldCheck } from "lucide-react";
 import InAppReminders from "@/components/notifications/InAppReminders";
@@ -23,17 +25,24 @@ export default function Notifications(){
   const requestId=useRef(0);
   const actionLock=useRef(false);
   const [items,setItems]=useState([]);
+  const [checkins,setCheckins]=useState([]);
+  const [checkinError,setCheckinError]=useState("");
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
   const [busy,setBusy]=useState("");
   const [deliveryResult,setDeliveryResult]=useState("");
   const load=useCallback(async()=>{
     const generation=++requestId.current;
-    setPhase("loading");setError("");
+    setPhase("loading");setError("");setCheckinError("");
     try {
       const result=await loadNotifications(authClient());
+      // Disaster check-ins load alongside notifications, but a check-in
+      // failure must not hide the notification list.
+      let pending=[];
+      try { pending=await loadMyDisasterCheckins(authClient()); }
+      catch(cause) { if(alive.current&&generation===requestId.current) setCheckinError(cause?.message||"Disaster check-ins could not be loaded."); }
       if(alive.current&&generation===requestId.current){
-        setItems(result);setPhase("ready");
+        setItems(result);setCheckins(pending);setPhase("ready");
       }
     } catch(cause) {
       if(alive.current&&generation===requestId.current){
@@ -114,6 +123,14 @@ export default function Notifications(){
     </div>
     {tab==="notifications"&&<section role="tabpanel" id="notifications-panel-notifications"
       aria-labelledby="notifications-tab-notifications" className="space-y-3">
+    {phase==="ready"&&checkinError&&<p role="alert" className="rounded-lg border border-destructive/40 p-3 text-sm text-destructive">{checkinError}</p>}
+    {phase==="ready"&&checkins.length>0&&<section aria-label="Disaster check-ins" className="space-y-3">
+      <h2 className="font-semibold">Disaster check-ins</h2>
+      {checkins.map(checkin=>(
+        <DisasterCheckinCard key={checkin.checkin_id} checkin={checkin} client={authClient()}
+          onAnswered={(answered)=>setCheckins(current=>current.filter(item=>item.checkin_id!==answered.checkin_id))} />
+      ))}
+    </section>}
     {phase==="loading"&&<p role="status">Loading notifications…</p>}
     {phase==="error"&&<section className="rounded-xl border border-border bg-card p-5">
       <p>The independent notification service is not available or your session could not be verified. No sample notices are displayed.</p>

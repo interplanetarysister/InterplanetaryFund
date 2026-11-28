@@ -72,6 +72,9 @@ const PENDING = [
   "supabase/migrations/20261113080000_ifund_member_connections_hub.sql",
   "supabase/migrations/20261126064000_ifund_private_member_media_r2.sql",
   "supabase/migrations/20261126200000_ifund_social_post_media_attach.sql",
+  // Disaster-response Phase 1: disaster_relief columns on ifund_campaigns
+  // (selected by the Discover/homepage slices once they land).
+  "supabase/migrations/20261126190000_ifund_disaster_response.sql",
 ];
 
 const PGlite = await loadPGlite();

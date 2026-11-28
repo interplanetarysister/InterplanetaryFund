@@ -7,7 +7,7 @@ import { coverImageUrl, coverIsAI } from "../lib/campaignLifecycle.js";
 const PROJECT_REF = "ssibsfmtodgximseeqsv";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
+const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude,disaster_relief,disaster_relief_since";
 
 let client = null;
 export function isPublicDataConfigured() {
@@ -51,6 +51,12 @@ export function mapCampaign(row = {}) {
     latitude: row.map_opt_in === true && row.map_latitude !== null ? numOrNull(row.map_latitude) : null,
     longitude: row.map_opt_in === true && row.map_longitude !== null ? numOrNull(row.map_longitude) : null,
     status: row.status || "active",
+    // Disaster relief is a priority flag set only when a campaign owner
+    // answers "yes" to a disaster check-in (see disasterCheckins.js). It is
+    // distinct from the "disaster_relief" category: the flag means the
+    // campaign's area matched an authoritative disaster alert.
+    disaster_relief: row.disaster_relief === true,
+    disaster_relief_since: row.disaster_relief_since || null,
     preview_only: false,
     raised_amount: null,
     goal_amount: numOrNull(row.goal_amount),
