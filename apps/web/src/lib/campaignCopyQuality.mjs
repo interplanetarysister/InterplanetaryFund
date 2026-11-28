@@ -69,6 +69,111 @@ function nearSame(a,b) {
   // slogans share too little evidence to judge on word overlap alone.
   return min>=4 && (common/union>=.70 || (common/min>=.85 && common/max>=.70));
 }
+/**
+ * Public-facing discretion (owner directive 2026-11-28): the organizer's
+ * stated needs, goals and asks are INPUT INTELLIGENCE for the writer, never
+ * public copy. A member saying "I need users for iFund", "I need money" or
+ * "buy myself a car" is telling the agent what the campaign must accomplish;
+ * the public text must interpret that need — the obstacle behind it, the
+ * change the campaign creates, the reader's role in that change — and never
+ * restate the raw need as the appeal. These rules bind the generation
+ * prompts and the deterministic output check below.
+ */
+export const PUBLIC_FACING_DISCRETION_RULES = [
+  "Public-facing discretion: the organizer's needs and wants — money, users, signups, customers, a car — are private input intelligence, never public wording; public copy never states a need or goal as the appeal.",
+  "Turn each need into the obstacle behind it, the change the campaign creates and the reader's role in that change, written in the beneficiary's world: a car is what it enables (work, appointments, independence); a platform, who it connects and helps.",
+  "Never plead in the first person ('I need money', 'help me raise $10,000', 'buy myself a car'); amounts belong to the goal field, never pleaded in prose — prose says what they do. Beneficiary first-person storytelling is not pleading and stays.",
+].join(" ");
+/**
+ * Deterministic public-facing discretion check, in the same spirit as
+ * findEchoedSentences: scans generated public copy for the banned framings
+ * above. Deliberately conservative, high-precision patterns — the ban
+ * targets pleading, need-as-appeal and internal-objective leakage, NOT
+ * personal narrative: past-tense or situational first-person storytelling
+ * ("After my accident I couldn't get to work", "I needed help learning to
+ * walk again"), third-person beneficiary needs ("Maria needs a van to
+ * reach her appointments"), legitimate volunteer asks and impact-per-amount
+ * statements ("Your $25 covers a week of meals") all pass.
+ */
+const DISCRETION_PATTERNS = [
+  // First-person pleading and raw-need statements.
+  ["pleading", /\bhelp me (?:raise|rise|reach|get|fund|pay|buy|collect|hit)\b/i],
+  ["pleading", /\b(?:please )?(?:donate|give|send|contribute) to me\b/i],
+  ["pleading", /\b(?:give|send) me (?:money|cash|funds|donations)\b/i],
+  ["pleading", /\bi (?:really )?(?:need|want) (?:money|cash|funds|donations|financial (?:help|assistance|support))\b/i],
+  ["pleading", /\bi(?:'m| am) (?:begging|pleading) for\b/i],
+  // Internal objectives (platform/business growth) stated as public copy.
+  ["internal_objective", /\b(?:i|we) (?:really )?(?:need|want|seek|am seeking|are seeking|am looking for|are looking for) (?:more )?(?:users|sign-?ups|customers|subscribers|followers|downloads|app installs)\b/i],
+  ["internal_objective", /\bneeds? (?:more )?users\b/i],
+  ["internal_objective", /\brecruit(?:ing|s|ed)? (?:more )?(?:users|sign-?ups|customers|subscribers)\b/i],
+  // Goal amounts pleaded in prose instead of explained by what they do.
+  ["amount_pleading", /\b(?:i|we) (?:need|want) to raise\b/i],
+  ["amount_pleading", /\braise (?:\$|usd )?\s?\d[\d,]*\s?\$?\s+for me\b/i],
+  // Acquiring something for oneself stated as the appeal.
+  ["self_purchase", /\bbuy (?:myself|me)\b/i],
+  ["self_purchase", /\bpurchase (?:myself|for myself)\b/i],
+  ["self_purchase", /\bget myself (?:a|an|the)\b/i],
+];
+// "Help us raise …" is pleading only when money is the object — raising
+// awareness is a legitimate public appeal and is never flagged.
+const HELP_US_RAISE = /\bhelp us (?:raise|reach|collect|hit)\b/i;
+const MONEY_OBJECT = /(?:\$|money|funds|goal|target)/i;
+// A raw-need statement in the organizer's own input: the shape of a need
+// being declared, as opposed to background facts about the situation.
+const RAW_NEED_STATEMENT = /\b(?:i|we) (?:really )?(?:need|want|am looking for|are looking for)\b|\bhelp me\b|\bbuy (?:myself|me)\b|\bplease donate\b/i;
+const copyUnits = value => String(value || "").split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+const rawNeedUnits = source => copyUnits(source).filter(unit => RAW_NEED_STATEMENT.test(unit));
+export function findPublicFacingViolations(text, source) {
+  const violations = [];
+  const seen = new Set();
+  const flag = (sentence, rule) => {
+    const key = rule + "|" + sentence;
+    if (!seen.has(key)) { seen.add(key); violations.push({ sentence, rule }); }
+  };
+  const needs = rawNeedUnits(source);
+  for (const unit of copyUnits(text)) {
+    for (const [rule, pattern] of DISCRETION_PATTERNS)
+      if (pattern.test(unit)) flag(unit, rule);
+    if (HELP_US_RAISE.test(unit) && MONEY_OBJECT.test(unit)) flag(unit, "amount_pleading");
+    // Raw-need echo: the generated line restates a need the organizer
+    // declared, whatever words it wears — the need itself is the leak.
+    if (needs.length && RAW_NEED_STATEMENT.test(unit) &&
+        needs.some(need => nearSame(unit, need)))
+      flag(unit, "need_echo");
+  }
+  return violations;
+}
+/**
+ * Scan a whole generated draft (or a single section) and return every
+ * discretion violation tagged with the field it appears in, so the caller
+ * can correct, strip or fail closed field by field.
+ */
+export function findCampaignCopyDiscretionViolations(output, source, section = false) {
+  if (section)
+    return findPublicFacingViolations(output?.section, source)
+      .map(v => ({ field: "section", ...v }));
+  const found = [];
+  (Array.isArray(output?.titles) ? output.titles : []).forEach((title, index) =>
+    findPublicFacingViolations(title, source).forEach(v => found.push({ field: "titles", index, ...v })));
+  (Array.isArray(output?.summaries) ? output.summaries : []).forEach((summary, index) =>
+    findPublicFacingViolations(summary, source).forEach(v => found.push({ field: "summaries", index, ...v })));
+  findPublicFacingViolations(output?.story, source)
+    .forEach(v => found.push({ field: "story", ...v }));
+  return found;
+}
+/**
+ * Remove violating sentences from long-form copy (story or section),
+ * paragraph by paragraph. Short fields (titles, summaries) cannot be
+ * stripped without breaking their shape; callers fail closed on those
+ * instead of shipping a banned line.
+ */
+export function stripPublicFacingViolations(text, source) {
+  return String(text || "").split(/\n{2,}/).map(paragraph => {
+    const kept = copyUnits(paragraph)
+      .filter(unit => findPublicFacingViolations(unit, source).length === 0);
+    return kept.join(" ");
+  }).filter(Boolean).join("\n\n");
+}
 export function findRedundantCampaignOptions(options) {
   if (!Array.isArray(options)) throw new TypeError("Campaign copy options must be an array");
   const conflicts=[];
