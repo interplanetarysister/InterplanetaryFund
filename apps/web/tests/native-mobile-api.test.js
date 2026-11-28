@@ -94,11 +94,11 @@ test("native-only scoped installation intercepts /api but leaves Supabase and as
   assert.equal(success, true);
   assert.deepEqual(await (await target.fetch("/api/health")).json(), { live: true });
   await target.fetch("https://ssibsfmtodgximseeqsv.supabase.co/rest/v1/ifund_campaigns");
-  await target.fetch("/icon-192.jpg");
+  await target.fetch("/icon-192.png");
   assert.deepEqual(intercepted, [IFUND_API_ORIGIN + "/api/health"]);
   assert.deepEqual(seen, [
     "https://ssibsfmtodgximseeqsv.supabase.co/rest/v1/ifund_campaigns",
-    "/icon-192.jpg",
+    "/icon-192.png",
   ]);
 });
 
