@@ -225,8 +225,8 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     };
     // A verified unlimited entitlement intentionally has no remaining count.
     // The former integer-only check rejected every admin/unlimited answer.
-    const unlimited = quota.unlimited === true && quota.remaining === null;
-    const metered = Number.isInteger(quota.remaining) && quota.remaining >= 0;
+    const unlimited = quota.unlimited === true && quota.remaining === null && quota.limit === null;
+    const metered = quota.unlimited !== true && Number.isSafeInteger(quota.remaining) && quota.remaining >= 0;
     if (!unlimited && !metered)
       fail(503,"Your AI question allowance could not be verified.");
     let history=[];
@@ -419,6 +419,13 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     // personable wording; internal consultation summaries above stay low.
     const result=await env.AI.run(MODEL,{messages,max_tokens:1100,temperature:0.6});
     const answer=validateTeamAnswer(result,input.selected);
+    // A slow inference must not return private advice or append a reply
+    // after the account or unified consent has been revoked.
+    const currentActive=await api.rpc("ifund_current_account_is_active");
+    if(currentActive!==true)fail(403,"Your account access changed during this request.");
+    const currentCampaignAI=await api.aiPermission("campaign",false);
+    const currentInternalAI=await api.futureInternalAIPermission("recommendation",false);
+    if(!currentCampaignAI&&!currentInternalAI)fail(403,"Your AI permission changed. Enable private AI assistance before retrying.");
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
         agentId:contextAgentId,content:answer.answer,campaignId:input.campaignId,speaker:"agent",fetcher});
@@ -433,7 +440,8 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:frontAgentForSpecialist(input.recommendation.target),
       coordination_needed:input.recommendation.requiresCoordination,
-      questions_remaining_today:quota.remaining,
+      questions_remaining_today:unlimited?null:quota.remaining,
+      questions_unlimited:unlimited,
       inference_completed:true});
   } catch(error) {
     if (api && quotaReservation && !quotaCompleted) {
