@@ -7,6 +7,7 @@ import { serviceGateway } from './services/gateway.js';
 import { routeImageStudio } from './imageStudio.js';
 import { routeImageImprove } from './imageImprove.js';
 import { routeVideoGeneration } from './videoGeneration.js';
+import { routeCaptionGeneration } from './captionGeneration.js';
 import { routeGeocodeCity } from './geocodeCity.js';
 import { strategyRoute } from './agents/strategy.js';
 import { routeTeamQuestion } from './agents/teamQuestion.js';
@@ -84,6 +85,7 @@ export default {
     if (pathname === '/api/ai/images/generate') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageStudio(request, env);
     if (pathname === '/api/ai/images/improve') return env.IFUND_IMAGE_STUDIO?.fetch ? env.IFUND_IMAGE_STUDIO.fetch(request) : routeImageImprove(request, env);
     if (pathname === '/api/ai/videos/status' || pathname === '/api/ai/videos/generate' || pathname.startsWith('/api/ai/videos/jobs/')) return routeVideoGeneration(request, env);
+    if (pathname === '/api/ai/captions/status' || pathname === '/api/ai/captions/generate') return routeCaptionGeneration(request, env);
     if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
     if (pathname === '/api/studio/generate') return env.IFUND_STUDIO_AI_SERVICE?.fetch ? env.IFUND_STUDIO_AI_SERVICE.fetch(request) : routeStudioGenerateRequest(request, env);
