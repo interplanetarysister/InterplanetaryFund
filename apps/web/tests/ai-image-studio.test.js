@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { routeImageStudio, validateImageRequest, IMAGE_MODEL } from "../../../worker/imageStudio.js";
+import { IMAGE_TEXT_MODEL } from "../../../worker/imageTextCheck.js";
 
 const API = "https://interplanetaryfund.com/api/ai/images/generate";
 const OWNER = "11111111-1111-4111-8111-111111111111";
@@ -58,7 +59,9 @@ test("validated image prompt has four approved styles, capped length, no custom 
 test("enabled image generation verifies owner, consumes quota before AI, and returns JPEG only", async () => {
   const service = fakeServices();
   let aiCalls = 0;
+  let visionCalls = 0;
   const env = { ...baseEnv, AI: { run: async (model, options) => {
+    if (model === IMAGE_TEXT_MODEL) { visionCalls++; return { response: "NONE" }; }
     aiCalls++;
     assert.equal(model, IMAGE_MODEL);
     assert.equal(options.steps, 4);
@@ -74,7 +77,9 @@ test("enabled image generation verifies owner, consumes quota before AI, and ret
   assert.equal(json.mime_type, "image/jpeg");
   assert.equal(json.image_base64, validImage);
   assert.equal(json.generated, true);
+  assert.equal(json.lettering_check, "passed");
   assert.equal(aiCalls, 1);
+  assert.equal(visionCalls, 1, "the render must be read back for lettering before it is returned");
   assert.equal(service.calls.length, 5);
   assert.ok(!JSON.stringify(json).includes(OWNER), "owner identities must not be returned");
 });
