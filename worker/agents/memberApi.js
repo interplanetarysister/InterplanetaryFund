@@ -73,8 +73,15 @@ export async function memberApi(request, env, fetcher = fetch) {
     return data;
   }
   const user = await upstream("/auth/v1/user");
-  if (!UUID.test(user?.id || "") || !user.email_confirmed_at || user.is_anonymous === true)
-    fail(401, "Confirm your email before continuing.");
+  // Owner directive 2026-11-27: email confirmation is NOT required to use
+  // the agent features. Account verification stays required exactly where
+  // it protects money movement (withdrawals/payouts), enforced on those
+  // surfaces — not here, in the helper every agent service shares.
+  // Anonymous sessions are still rejected: agent data is keyed to a
+  // durable member account, and a guest session is not one. The
+  // account-active recheck below (suspension/deletion) is unchanged.
+  if (!UUID.test(user?.id || "") || user.is_anonymous === true)
+    fail(401, "Sign in with a member account to continue.");
   // A valid JWT can outlive account suspension/deletion. Always recheck
   // server-side account status before giving an agent any account services.
   const active = await upstream("/rest/v1/rpc/ifund_current_account_is_active", {});

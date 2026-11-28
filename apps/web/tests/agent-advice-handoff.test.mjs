@@ -34,13 +34,17 @@ test("invalid or oversized inference cannot enter a campaign editor",()=>{
  }
  assert.equal(s.size(),0);
 });
-test("only verified account UI, explicit click, and normal save can apply advice",()=>{
+test("only same-account UI, explicit click, and normal save can apply advice",()=>{
  const team=readFileSync(new URL("../src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
  const review=readFileSync(new URL("../src/components/agents/AgentAdviceReview.jsx",import.meta.url),"utf8");
  const create=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
  const workspace=readFileSync(new URL("../src/pages/CampaignWorkspace.jsx",import.meta.url),"utf8");
  assert.match(team,/onClick=\{reviewAnswerInCampaign\}/);
- assert.match(team,/verified\.email_confirmed_at/);
+ // Owner directive 2026-11-27: applying agent advice requires the SAME
+ // account, not a verified email.
+ assert.match(team,/verified\?\.id!==user\.id/);
+ assert.doesNotMatch(team,/email_confirmed_at/);
+ assert.doesNotMatch(review,/email_confirmed_at/);
  assert.match(review,/current\.data\?\.user\?\.id!==ownerId/);
  assert.match(review,/onClick=\{accept\}/);
  assert.match(review,/onClick=\{dismiss\}/);

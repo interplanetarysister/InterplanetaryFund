@@ -112,15 +112,20 @@ test("disabled or wrong-project agent never calls auth or AI", async () => {
   );
   assert.equal(res.status, 503);
 });
-test("unauthenticated and unconfirmed requests cannot infer", async () => {
+test("unauthenticated requests cannot infer; unconfirmed members are not the gate", async () => {
   const req = new Request("https://preview.test/api/agents/story/drafts", {
     method: "POST",
   });
   assert.equal((await storyRoute(req, env, () => assert.fail())).status, 401);
+  // Owner directive 2026-11-27: a signed-in member whose email is not yet
+  // confirmed passes the identity check (the degenerate stub below then
+  // fails the separate account-active recheck, proving the request got
+  // past identity). Full unconfirmed-member generation is covered in
+  // tests/agent-verification-gate.test.js.
   const res = await storyRoute(request(), env, async () =>
     Response.json({ id: uid }),
   );
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
 });
 test("server rejects missing or revoked AI drafting permission", async () => {
   for (const rows of [[],[{allow_ai_campaign_drafts:false}]]) {

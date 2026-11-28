@@ -13,13 +13,15 @@ test("agent availability mirrors one AI switch, never a partial legacy grant",()
   for (const field of ["allow_ai_campaign_drafts","allow_ai_outreach_drafts","allow_future_internal_ai_assistance"])
     assert.equal(eligible(user,{...enabled,[field]:false}),false,field);
 });
-test("agent availability is account-scoped and fails closed on unverified identity",()=>{
+test("agent availability is account-scoped; anonymous fails closed, unconfirmed email does not",()=>{
   assert.equal(eligible({...user,is_anonymous:true}),false);
-  assert.equal(eligible({...user,email_confirmed_at:null}),false);
+  // Owner directive 2026-11-27: agent features do not require email
+  // confirmation (withdrawals/payouts still do, on their own surfaces).
+  assert.equal(eligible({...user,email_confirmed_at:null}),true);
   assert.equal(eligible(user,{...enabled,owner_id:"22222222-2222-4222-8222-222222222222"}),false);
   assert.equal(canAskAgentWithSavedPermission({user,ownerId:"33333333-3333-4333-8333-333333333333",preferences:enabled}),false);
 });
-test("agent team checks verified owner and all AI flags",()=>{
+test("agent team checks the account owner and all AI flags",()=>{
   const source=readFileSync(new URL("../src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
   assert.match(source,/\.select\("owner_id,allow_ai_campaign_drafts,allow_ai_outreach_drafts,allow_future_internal_ai_assistance"\)/);
   assert.match(source,/\.eq\("owner_id",owner\)\.maybeSingle\(\)/);

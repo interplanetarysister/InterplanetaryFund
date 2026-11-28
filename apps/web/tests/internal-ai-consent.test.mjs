@@ -18,9 +18,11 @@ test("verified owner may use only explicitly allowed private AI features",()=>{
   assert.equal(isHighImpactAIAction("withdraw"),true);
 });
 
-test("revocation, unverified and different account deny future AI",()=>{
+test("revocation, anonymous and different account deny future AI; unconfirmed email does not",()=>{
   assert.equal(mayUseFutureInternalAI({user,preferences:{...preferences,allow_future_internal_ai_assistance:false},capability:"draft"}),false);
-  assert.equal(mayUseFutureInternalAI({user:{...user,email_confirmed_at:null},preferences,capability:"draft"}),false);
+  // Owner directive 2026-11-27: email confirmation is not required for
+  // agent features (it remains required for withdrawals/payouts only).
+  assert.equal(mayUseFutureInternalAI({user:{...user,email_confirmed_at:null},preferences,capability:"draft"}),true);
   assert.equal(mayUseFutureInternalAI({user:{...user,is_anonymous:true},preferences,capability:"draft"}),false);
   assert.equal(mayUseFutureInternalAI({user:{...user,id:"another"},preferences,capability:"draft"}),false);
 });

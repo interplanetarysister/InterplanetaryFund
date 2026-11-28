@@ -24,8 +24,8 @@ export default function AIPermissionPreferences() {
       const client = authClient();
       const { data: identity, error: identityError } = await client.auth.getUser();
       const user = identity?.user;
-      if (identityError || !user?.id || user.is_anonymous || !user.email_confirmed_at)
-        throw Error("Sign in with a verified account to manage AI.");
+      if (identityError || !user?.id || user.is_anonymous)
+        throw Error("Sign in to manage AI.");
       const { data, error: readError } = await client.from("ifund_ai_permission_preferences")
         .select(COLUMNS).eq("owner_id", user.id).maybeSingle();
       if (readError || (data && data.owner_id !== user.id)) throw Error("Unable to load your saved AI setting.");
@@ -59,8 +59,8 @@ export default function AIPermissionPreferences() {
       const client = authClient();
       const {data: identity, error: identityError} = await client.auth.getUser();
       const user = identity?.user;
-      if (identityError || !user?.id || user.is_anonymous || !user.email_confirmed_at)
-        throw Error("Sign in with a verified account to save this setting.");
+      if (identityError || !user?.id || user.is_anonymous)
+        throw Error("Sign in to save this setting.");
       const payload = {
         owner_id: user.id,
         // Save ALL legacy authorization flags as a single setting. A disabled AI
