@@ -153,7 +153,7 @@ test("Audio tab mixes real uploaded layers with the Web Audio API", () => {
   // A/B listen must keep its indicator while playback starts; unmount must
   // stop the tone's source, not call .stop() on the { source, gain } holder.
   assert.match(page, /A failed decode mid-mix must not leave earlier layers playing/);
-  assert.match(page, /stopSources\(\);\n\s*setPlaying\(false\);/);
+  assert.match(page, /stopSources\(\);\r?\n\s*setPlaying\(false\);/);
   assert.match(page, /playMix\(\{ keepSnapshot = false \} = \{\}\)/);
   assert.match(page, /void playMix\(\{ keepSnapshot: true \}\)/);
   assert.match(page, /engine\.tone\.source\.stop\(\)/);
