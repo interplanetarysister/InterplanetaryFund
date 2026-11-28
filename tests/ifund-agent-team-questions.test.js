@@ -80,6 +80,7 @@ test("unlimited administrator can receive an agent answer with no numeric quota"
   assert.equal(response.status,200);
   const body=await response.json();
   assert.equal(body.questions_remaining_today,null);
+  assert.equal(body.questions_unlimited,true);
   assert.equal(body.actions_performed,false);
   assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
 });
@@ -262,4 +263,20 @@ test("client accepts REACH answers and passes prepared-work cards through saniti
   const bad = { ...payload, dispatch: { kind: "chief_of_staff_dispatch", status: "completed", specialist: "story", tool: "x", workspace_path: "https://evil.example", actions_performed: true } };
   const dropped = await askIFundAgent(client, { question: "q", agent: "reach", ownerId: UID, fetcher: async () => Response.json(bad) });
   assert.equal(dropped.dispatch, null);
+});
+
+test("account or unified AI consent revoked during inference prevents reply and releases reservation",async()=>{
+ for(const revoke of ["account","consent"]){
+  let revoked=false;
+  const backend=mockBackend();
+  const fetcher=async(url,options)=>{
+   if(revoked&&revoke==="account"&&url.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(false);
+   if(revoked&&revoke==="consent"&&url.includes("/ifund_ai_permission_preferences?"))return Response.json([{owner_id:UID,allow_ai_campaign_drafts:false,allow_ai_outreach_drafts:false,allow_future_internal_ai_assistance:false}]);
+   return backend.fetcher(url,options);
+  };
+  const response=await routeTeamQuestion(request("Help with my story",{agent:"story"}),{...env,AI:{run:async()=>{revoked=true;return {response:"Prepare an outline first."};}}},fetcher);
+  assert.equal(response.status,403);
+  assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_release_agent_question")));
+  assert.ok(!backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
+ }
 });
