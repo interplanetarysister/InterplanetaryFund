@@ -3,9 +3,17 @@ import { verifyOwnerAIConsent } from './aiConsent.js';
 import { reserveTrialContent, completeTrialContent, releaseTrialContent } from './trialAiContent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
 import { imageAIReady, consumeImageQuota, validateImageRequest, validImageBase64 } from './imageStudio.js';
+import { verifyImageLettering, MAX_IMAGE_GENERATIONS } from './imageTextCheck.js';
 
 export const IMAGE_EDIT_MODEL = '@cf/black-forest-labs/flux-2-klein-4b';
 const MAX_REFERENCE_BASE64 = 1_050_000;
+// Appended when an enhanced render keeps or invents lettering: the retry
+// must erase every trace of it, not redraw it more carefully.
+const CORRECTIVE_REMOVE_LETTERING =
+  ' IMPORTANT: the previous attempt kept or invented lettering. Remove ' +
+  'every letter, word, number and logo completely in this attempt; leave ' +
+  'clean blank surfaces where they were and do not draw any letter-like ' +
+  'marks anywhere in the image.';
 
 // The browser downscales user-selected images to 480px maximum before sending
 // to this endpoint; the model requires reference images smaller than 512px.
@@ -64,31 +72,50 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
-    const form = new FormData();
-    form.append('prompt',
-      ('Create an illustrated enhancement using input_image_0 as the reference. ' +
+    // The edit model redraws existing lettering as often as it removes it,
+    // and what it redraws is frequently misspelled, so every render is read
+    // back with the Workers AI vision model before it can be presented:
+    // lettering triggers a corrective regeneration (bounded), and an
+    // unverifiable render is never finalized against the member's allowance.
+    const baseInstruction =
+      'Create an illustrated enhancement using input_image_0 as the reference. ' +
       'Preserve the meaningful content, do not imply a manufactured event or actual beneficiary photograph. ' +
-      'Remove existing text or logos rather than inventing them. ' + prompt).slice(0,2048));
-    form.append('input_image_0', new Blob([jpeg], {type: 'image/jpeg'}), 'reference.jpg');
-    form.append('width', '768');
-    form.append('height', '768');
-    const wrapped = new Response(form);
-    const generated = await env.AI.run(IMAGE_EDIT_MODEL, {
-      multipart: {
-        body: wrapped.body,
-        contentType: wrapped.headers.get('content-type'),
-      },
-    });
-    const image = generated?.image;
-    if (!validImageBase64(image))
-      return response(502, { error: 'Improved artwork could not be verified.' });
-    if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
-      return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
-    trialReceipt = null;
-    return response(200, {
-      mime_type: 'image/jpeg', image_base64: image,
-      style, generated: true, improved: true, model: IMAGE_EDIT_MODEL,
-    });
+      'Remove all existing text, letters, numbers and logos completely rather than redrawing or inventing them; ' +
+      'leave those areas as clean blank surfaces. ';
+    let letteringFailure = false;
+    for (let attempt = 0; attempt < MAX_IMAGE_GENERATIONS; attempt++) {
+      const form = new FormData();
+      form.append('prompt',
+        (baseInstruction + prompt + (attempt === 0 ? '' : CORRECTIVE_REMOVE_LETTERING)).slice(0,2048));
+      form.append('input_image_0', new Blob([jpeg], {type: 'image/jpeg'}), 'reference.jpg');
+      form.append('width', '768');
+      form.append('height', '768');
+      const wrapped = new Response(form);
+      const generated = await env.AI.run(IMAGE_EDIT_MODEL, {
+        multipart: {
+          body: wrapped.body,
+          contentType: wrapped.headers.get('content-type'),
+        },
+      });
+      const image = generated?.image;
+      if (!validImageBase64(image))
+        return response(502, { error: 'Improved artwork could not be verified.' });
+      const lettering = await verifyImageLettering(env, image, '');
+      if (lettering.state === 'unavailable')
+        return response(503, { error: 'Improved artwork could not be verified. Please try later.' });
+      if (lettering.state === 'problems') { letteringFailure = true; continue; }
+      if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
+        return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
+      trialReceipt = null;
+      return response(200, {
+        mime_type: 'image/jpeg', image_base64: image,
+        style, generated: true, improved: true, model: IMAGE_EDIT_MODEL,
+        lettering_check: 'passed',
+      });
+    }
+    return response(502, { error: letteringFailure
+      ? 'The image editor kept producing misspelled lettering, so no image was accepted and your creation was not finalized. Please try again.'
+      : 'Improved artwork could not be verified.' });
   } catch (cause) {
     if (cause instanceof BodyError) return response(cause.status, { error: cause.message });
     return response(503, { error: 'Image improvement could not be completed. Please try later.' });
