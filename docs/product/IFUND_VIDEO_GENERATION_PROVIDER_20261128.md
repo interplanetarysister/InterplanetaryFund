@@ -150,7 +150,17 @@ generations a member can consume.
    binding.
 3. Configure the pilot (the default route):
    - Create the Alibaba Model Studio account (Singapore region) — the
-     owner's step; note the workspace domain if using one.
+     owner's step; note the workspace domain if using one. The free
+     quota follows the identity-verified account: re-registration under
+     the same identity is explicitly ineligible, so assume **exactly one
+     quota bucket per model** (which is what the tracking above does).
+   - **Enable "Free Quota Only" in the Model Studio console immediately
+     at activation, before the first generation call.** On the
+     international site this setting is OFF by default, and with it off
+     an exhausted free quota rolls automatically into pay-as-you-go
+     billing. Turning it on is what makes the pilot incapable of
+     generating a bill at the provider; iFund's own capacity gate is
+     the second, independent layer on top of it.
    - Set the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`, optionally
      `ALIBABA_MODEL_STUDIO_BASE_URL`, and `IFUND_VIDEO_PILOT_STARTED_AT`
      to the account activation date (drives the 90-day expiry display).
