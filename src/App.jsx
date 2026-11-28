@@ -18,6 +18,8 @@ import BlogArticle from "./pages/BlogArticle";
 import MyBlog from "./pages/MyBlog";
 import AdminStudio from "./pages/AdminStudio";
 import StudioPublishedPage from "./pages/StudioPublishedPage";
+import ExecutiveCommandCenter from "./pages/ExecutiveCommandCenter";
+import InvestorMeetingRoom from "./pages/InvestorMeetingRoom";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
@@ -91,6 +93,7 @@ function App() {
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
           {studioAccess === true && <NavLink to="/admin/studio">Studio</NavLink>}
+          {studioAccess === true && <NavLink to="/admin/executive">Executive Office</NavLink>}
         </nav>
         <div className="actions top-actions">
           <button
@@ -200,6 +203,31 @@ function App() {
                 </main>
               )
             }
+          />
+          <Route
+            path="/admin/executive"
+            element={
+              !user ? (
+                <main>
+                  <h1>Administrator sign-in required</h1>
+                  <Link to={loginPath}>Sign in</Link>
+                </main>
+              ) : studioAccess === null ? (
+                <Loading />
+              ) : studioAccess === true ? (
+                <ExecutiveCommandCenter user={user} />
+              ) : (
+                <main>
+                  <h1>Verified super-administrator access required</h1>
+                  <p>This area is restricted to verified IFund super-administrator accounts.</p>
+                  <Link to="/">Return home</Link>
+                </main>
+              )
+            }
+          />
+          <Route
+            path="/investor-meeting"
+            element={<InvestorMeetingRoom user={user} />}
           />
           <Route
             path="*"

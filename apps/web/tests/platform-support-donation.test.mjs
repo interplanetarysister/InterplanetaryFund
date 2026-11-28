@@ -117,7 +117,7 @@ test("guest sends no Authorization header; signed-in sends the Supabase Bearer J
   assert.match(dialog, /session && !session\.user\?\.is_anonymous/);
   assert.match(dialog, /"authorization": "Bearer " \+ accessToken/);
   assert.match(dialog, /headers: accessToken \? \{ "authorization": "Bearer " \+ accessToken \} : \{\}/);
-  assert.match(dialog, /A missing\n    \/\/ authenticated session remains an anonymous guest contribution/);
+  assert.match(dialog, /A missing\r?\n    \/\/ authenticated session remains an anonymous guest contribution/);
   assert.doesNotMatch(dialog, /donor_id:/);
 });
 
