@@ -15,6 +15,7 @@ import { routeAgentOperations } from './agents/opsRoom.js';
 import { growthRoute } from './agents/growth.js';
 import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
+import { routeExecutiveRequest } from './agents/michelle.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest, routePublicHelpIndex } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
@@ -41,6 +42,9 @@ export default {
       return routeMissionPlan(request, env);
     }
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
+    if (pathname.startsWith('/api/executive/') || pathname.startsWith('/api/investor-meeting/')) {
+      return routeExecutiveRequest(request, env);
+    }
     if (pathname === '/api/agents/ops/analyze') return routeAgentOperations(request, env);
     if (pathname === '/api/agents/team/status' || pathname === '/api/agents/team/question') {
       // Prefer the isolated Workers AI service when Cloudflare Pages binds it.
