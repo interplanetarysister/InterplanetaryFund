@@ -363,6 +363,101 @@ Deno.serve(async req=>{
       }
       return fail("Unknown non-recurring Premium operation",400);
     }
+    // Saved payment methods: PayPal Vault v3 token references and display
+    // descriptors only. A raw card number (PAN) or CVV never reaches this
+    // broker: card details exist only inside PayPal-hosted fields, and the
+    // Worker exchanges the one-time setup token with PayPal server-to-server
+    // before calling saved_method_record with the resulting payment token.
+    if(body.op?.startsWith("saved_method_")){
+      const p=body.data||{};
+      const tokenId=/^[A-Za-z0-9_-]{6,100}$/;
+      const descriptor=row=>({
+        id:row.id,brand:row.brand,last4:row.last4,
+        expiry_month:row.expiry_month,expiry_year:row.expiry_year,
+        cardholder_name:row.cardholder_name,is_default:row.is_default===true,
+        status:row.status,created_at:row.created_at
+      });
+      const owner=await resolveVerifiedDonor(p.member_access_token);
+      if(!owner)return fail("Verified member required",401);
+      if(body.op==="saved_method_record"){
+        const brand=typeof p.brand==="string"?p.brand.trim().toUpperCase():"";
+        const name=p.cardholder_name===null||p.cardholder_name===undefined?null:String(p.cardholder_name).trim();
+        const nowDate=new Date();
+        if(!tokenId.test(p.payment_token_id||"")
+          ||(p.paypal_customer_id!==null&&p.paypal_customer_id!==undefined
+             &&!/^[A-Za-z0-9_-]{4,100}$/.test(p.paypal_customer_id))
+          ||!/^[A-Z0-9][A-Z0-9 _-]{0,39}$/.test(brand)
+          ||!/^[0-9]{4}$/.test(p.last4||"")
+          ||!Number.isSafeInteger(p.expiry_month)||p.expiry_month<1||p.expiry_month>12
+          ||!Number.isSafeInteger(p.expiry_year)||p.expiry_year<2024||p.expiry_year>2100
+          ||p.expiry_year*12+p.expiry_month<nowDate.getUTCFullYear()*12+nowDate.getUTCMonth()+1
+          ||(name!==null&&(name.length<1||name.length>140)))
+          return fail("Invalid saved payment method descriptors");
+        const existing=await findOne("ifund_saved_payment_methods?select=*&paypal_payment_token_id=eq."
+          +encodeURIComponent(p.payment_token_id));
+        if(existing){
+          if(existing.user_id!==owner)return fail("Payment token already saved to another account",409);
+          return Response.json({ok:true,method:descriptor(existing),duplicate:true});
+        }
+        const active=await db("ifund_saved_payment_methods?select=id&user_id=eq."+owner+"&status=eq.active&limit=1");
+        let created;
+        try{
+          created=await db("ifund_saved_payment_methods","POST",{
+            user_id:owner,paypal_payment_token_id:p.payment_token_id,
+            paypal_customer_id:p.paypal_customer_id??null,brand,last4:p.last4,
+            expiry_month:p.expiry_month,expiry_year:p.expiry_year,
+            cardholder_name:name,is_default:active.length===0,status:"active"
+          });
+        }catch(error){
+          if(error.status===409){
+            const raced=await findOne("ifund_saved_payment_methods?select=*&paypal_payment_token_id=eq."
+              +encodeURIComponent(p.payment_token_id));
+            if(raced&&raced.user_id===owner)
+              return Response.json({ok:true,method:descriptor(raced),duplicate:true});
+          }
+          throw error;
+        }
+        if(!created[0])return fail("Saved payment method could not be recorded",503);
+        return Response.json({ok:true,method:descriptor(created[0])});
+      }
+      if(body.op==="saved_method_list"){
+        const rows=await db("ifund_saved_payment_methods?select=id,brand,last4,expiry_month,expiry_year,cardholder_name,is_default,status,created_at&user_id=eq."
+          +owner+"&status=eq.active&order=is_default.desc,created_at.desc");
+        return Response.json({ok:true,methods:rows.map(descriptor)});
+      }
+      if(body.op==="saved_method_delete"){
+        if(!patternId.test(p.saved_method_id||""))return fail("Invalid saved payment method reference");
+        const row=await findOne("ifund_saved_payment_methods?select=*&id=eq."+p.saved_method_id);
+        if(!row||row.user_id!==owner)return fail("Saved payment method not found",404);
+        if(row.status!=="removed"){
+          await db("ifund_saved_payment_methods?id=eq."+p.saved_method_id,"PATCH",
+            {status:"removed",is_default:false,updated_at:new Date().toISOString()});
+          if(row.is_default===true){
+            const next=await db("ifund_saved_payment_methods?select=id&user_id=eq."+owner
+              +"&status=eq.active&order=created_at.desc&limit=1");
+            if(next.length)await db("ifund_saved_payment_methods?id=eq."+next[0].id,"PATCH",
+              {is_default:true,updated_at:new Date().toISOString()});
+          }
+        }
+        // The payment token id returns only over this signed broker channel so
+        // the Worker can ask PayPal to delete the vaulted token. It is never
+        // included in member-facing list/record responses.
+        return Response.json({ok:true,removed:true,payment_token_id:row.paypal_payment_token_id});
+      }
+      if(body.op==="saved_method_set_default"){
+        if(!patternId.test(p.saved_method_id||""))return fail("Invalid saved payment method reference");
+        const row=await findOne("ifund_saved_payment_methods?select=*&id=eq."+p.saved_method_id);
+        if(!row||row.user_id!==owner||row.status!=="active")
+          return fail("Saved payment method not found",404);
+        await db("ifund_saved_payment_methods?user_id=eq."+owner+"&status=eq.active&is_default=eq.true","PATCH",
+          {is_default:false,updated_at:new Date().toISOString()});
+        const updated=await db("ifund_saved_payment_methods?id=eq."+p.saved_method_id,"PATCH",
+          {is_default:true,updated_at:new Date().toISOString()});
+        if(!updated[0])return fail("Saved payment method could not be updated",503);
+        return Response.json({ok:true,method:descriptor(updated[0])});
+      }
+      return fail("Unknown saved payment method operation",400);
+    }
     // Standalone platform-support donations. No campaign ID is accepted,
     // stored, or attributed; no row ever enters campaign donations, campaign
     // totals, or owner withdrawals. Only signed Worker messages reach here.

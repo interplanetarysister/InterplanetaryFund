@@ -5,6 +5,7 @@ import { isNativeBundle } from "@/lib/nativeApi";
 import { canStartVerifiedSubscription, verifiedSubscriptionPrice } from "@/lib/subscriptionEnrollment.mjs";
 import { Check, Loader2, ShieldCheck, RefreshCw } from "lucide-react";
 import CampaignEmailAddon from "@/components/subscriptions/CampaignEmailAddon";
+import SavedPaymentMethods from "@/components/subscriptions/SavedPaymentMethods";
 import PremiumBillingChoices from "@/components/subscriptions/PremiumBillingChoices";
 
 const PLAN_NAMES={
@@ -197,6 +198,8 @@ export default function Subscriptions(){
     </section>
 
     <div id="campaign-email" className="scroll-mt-24"><CampaignEmailAddon /></div>
+
+    <SavedPaymentMethods />
 
     {!adminEntitlement && <section className="grid gap-4 sm:grid-cols-2">
       {plans.map(plan=>{

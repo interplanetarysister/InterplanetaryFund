@@ -451,6 +451,94 @@ async function subscriptionStatus(req,env) {
     return asJson({ok:true,subscription:stored.subscription,provider_verified:false});
   }
 }
+// Saved payment methods (PayPal Vault v3). Card details are entered ONLY in
+// PayPal-hosted card fields in the browser; this Worker never receives, logs,
+// or forwards a card number or CVV. It creates a one-time vault setup token,
+// exchanges it server-to-server for a reusable PayPal payment token, and
+// stores only that token reference plus display descriptors through the
+// signed ledger broker.
+const VAULT_TOKEN_ID = /^[A-Za-z0-9_-]{6,100}$/;
+function savedMethodFailure(error) {
+  // Forward only stable reason categories. Never reflect provider payloads,
+  // payment details, or member identities in a public error.
+  if(error?.message==="ledger_rejected"){
+    if(error.status===401)return asError("sign_in_required",401);
+    if(error.status===403)return asError("saved_method_forbidden",403);
+    if(error.status===404)return asError("saved_method_not_found",404);
+    if(error.status===409)return asError("saved_method_conflict",409);
+  }
+  if(error?.message==="paypal_request_failed")return asError("paypal_vault_unavailable",502);
+  return asError("saved_method_unavailable",503);
+}
+async function savedMethodSetupToken(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  // Prove the caller is a verified member before asking PayPal to vault a card.
+  await signLedger(env,"saved_method_list",{member_access_token:token});
+  const created=await paypal(env,"/v3/vault/setup-tokens","POST",{
+    payment_source:{card:{}}
+  });
+  if(!VAULT_TOKEN_ID.test(created?.id||""))return asError("vault_setup_unavailable",502);
+  return asJson({ok:true,setup_token_id:created.id});
+}
+async function savedMethodExchange(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const body=await readBody(req);
+  if(!VAULT_TOKEN_ID.test(body.setup_token_id||""))return asError("invalid_setup_token");
+  const vaulted=await paypal(env,"/v3/vault/payment-tokens","POST",{
+    payment_source:{token:{id:body.setup_token_id,type:"SETUP_TOKEN"}}
+  });
+  const card=vaulted?.payment_source?.card;
+  const expiry=typeof card?.expiry==="string"?card.expiry.match(/^(\d{4})-(\d{2})$/):null;
+  if(!VAULT_TOKEN_ID.test(vaulted?.id||"")||!card
+    ||!/^[0-9]{4}$/.test(card.last_digits||"")||!expiry
+    ||typeof card.brand!=="string"||!card.brand)
+    return asError("vault_exchange_unverified",502);
+  const recorded=await signLedger(env,"saved_method_record",{
+    member_access_token:token,payment_token_id:vaulted.id,
+    paypal_customer_id:typeof vaulted?.customer?.id==="string"?vaulted.customer.id:null,
+    brand:card.brand.toUpperCase(),last4:card.last_digits,
+    expiry_month:Number(expiry[2]),expiry_year:Number(expiry[1]),
+    cardholder_name:typeof card.name==="string"?card.name:null
+  });
+  // Descriptors only: the payment token id never leaves the server.
+  return asJson({ok:true,method:recorded.method});
+}
+async function savedMethodList(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const result=await signLedger(env,"saved_method_list",{member_access_token:token});
+  return asJson({ok:true,methods:result.methods||[]});
+}
+async function savedMethodDelete(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const body=await readBody(req);
+  if(!UUID.test(body.saved_method_id||""))return asError("invalid_saved_method_reference");
+  // Ledger first: once the broker marks the method removed, iFund can never
+  // reference the token again. The PayPal-side token deletion that follows is
+  // best-effort cleanup; its failure leaves an orphaned provider token that
+  // nothing in iFund can reach or charge.
+  const result=await signLedger(env,"saved_method_delete",{
+    member_access_token:token,saved_method_id:body.saved_method_id
+  });
+  if(result.payment_token_id){
+    try{await paypal(env,"/v3/vault/payment-tokens/"+encodeURIComponent(result.payment_token_id),"DELETE")}
+    catch(_){/* best-effort provider cleanup; the ledger removal is authoritative */}
+  }
+  return asJson({ok:true,removed:true});
+}
+async function savedMethodSetDefault(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const body=await readBody(req);
+  if(!UUID.test(body.saved_method_id||""))return asError("invalid_saved_method_reference");
+  const result=await signLedger(env,"saved_method_set_default",{
+    member_access_token:token,saved_method_id:body.saved_method_id
+  });
+  return asJson({ok:true,method:result.method});
+}
 async function cancelSubscription(req,env) {
   if(!(await subscriptionAtomicReadiness(env)).ready)return asError("subscription_atomic_ledger_unavailable",503);
   const token=memberToken(req);
@@ -1174,6 +1262,28 @@ export default {
       if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       try{const response=await cancelSubscription(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"subscription_cancellation_unavailable"},503,cors)}
+    }
+    if(path.startsWith("/api/payments/saved-methods")){
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
+      if(request.method==="POST"&&!permitted.includes(origin))
+        return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{
+        let response=null;
+        if(path==="/api/payments/saved-methods"&&request.method==="GET")
+          response=await savedMethodList(request,env);
+        else if(path==="/api/payments/saved-methods/setup-token"&&request.method==="POST")
+          response=await savedMethodSetupToken(request,env);
+        else if(path==="/api/payments/saved-methods/exchange"&&request.method==="POST")
+          response=await savedMethodExchange(request,env);
+        else if(path==="/api/payments/saved-methods/delete"&&request.method==="POST")
+          response=await savedMethodDelete(request,env);
+        else if(path==="/api/payments/saved-methods/default"&&request.method==="POST")
+          response=await savedMethodSetDefault(request,env);
+        if(!response)return asJson({ok:false,error:"not_found"},404,cors);
+        for(const [k,v] of Object.entries(cors))response.headers.set(k,v);
+        return response;
+      }catch(error){const response=savedMethodFailure(error);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
     }
     if(path==="/api/payments/webhook"&&request.method==="POST") {
       // This provider client uses LIVE endpoints; reject sandbox/live mismatch.
