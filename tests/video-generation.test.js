@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   routeVideoGeneration, videoAIReady, validateVideoRequest,
   normalizeWorkersAiResult, normalizeModelStudioTask, allowanceDenial,
+  videoProviderId, pilotUsedSeconds, PILOT_CAPACITY_MESSAGE,
   VIDEO_MODEL, VIDEO_I2V_MODEL,
 } from "../worker/videoGeneration.js";
 
@@ -75,6 +76,16 @@ function fakeServices({
     }
     if (url.includes("/rest/v1/ifund_video_generations")) {
       const parsed = new URL(url);
+      // Pilot usage aggregate: no owner filter; sum finished generations
+      // for one provider + model across all owners.
+      if (options.method !== "POST" && options.method !== "PATCH" &&
+          !parsed.searchParams.get("owner_id")) {
+        const provider = parsed.searchParams.get("provider")?.slice(3);
+        const model = parsed.searchParams.get("model")?.slice(3);
+        const states = parsed.searchParams.get("state")?.replace(/^in\.\(|\)$/g, "").split(",");
+        return Response.json([...jobs.values()].filter((row) =>
+          row.provider === provider && row.model === model && states.includes(row.state)));
+      }
       const owner = parsed.searchParams.get("owner_id")?.slice(3);
       const requestId = parsed.searchParams.get("request_id")?.slice(3);
       if (options.method === "POST") {
@@ -118,6 +129,7 @@ function fakeServices({
 function baseEnv(bucket, ai) {
   return {
     IFUND_VIDEO_AI_ENABLED: "enabled",
+    IFUND_VIDEO_PROVIDER: "cloudflare-workers-ai",
     SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
     SUPABASE_PUBLISHABLE_KEY: "sb_publishable_mock_public",
     SUPABASE_SECRET_KEY: "sb_secret_mock_service",
@@ -525,4 +537,91 @@ test("model studio task failure fails the job without completing allowance", asy
   assert.equal(job.state, "failed");
   assert.equal(service.state.completeCalls, 0);
   assert.equal(service.media.length, 0);
+});
+
+function seedPilotUsage(service, model, seconds, state = "completed") {
+  service.jobs.set(OWNER + "/seed-" + model + "-" + state, {
+    owner_id: OWNER, request_id: "seed-" + model, provider: "alibaba-model-studio",
+    model, state, duration_seconds: seconds, prompt: PROMPT,
+    resolution: "720P", ratio: "adaptive", provider_job_id: null,
+    provider_video_url: null, media_id: null, allowance_tracked: true,
+    error: null, created_at: "2026-11-28T00:00:00Z", updated_at: "2026-11-28T00:00:00Z",
+  });
+}
+
+test("pilot is the default: model studio is selected unless the metered route is explicit", () => {
+  const env = modelStudioEnv(fakeBucket());
+  delete env.IFUND_VIDEO_PROVIDER;
+  assert.equal(videoProviderId(env), "alibaba-model-studio");
+  assert.equal(videoAIReady(env), true);
+  assert.equal(videoProviderId({ IFUND_VIDEO_PROVIDER: "cloudflare-workers-ai" }), "cloudflare-workers-ai");
+});
+
+test("no paid spillover: a paid-only model selection fails closed during the pilot", () => {
+  const env = modelStudioEnv(fakeBucket());
+  assert.equal(videoAIReady({ ...env, IFUND_VIDEO_MODEL: "wan2.2-t2v-plus" }), false);
+  assert.equal(videoAIReady({ ...env, IFUND_VIDEO_I2V_MODEL: "wan2.2-i2v-plus" }), false);
+  // Only an explicit owner switch re-opens paid models.
+  assert.equal(videoAIReady({
+    ...env, IFUND_VIDEO_MODEL: "wan2.2-t2v-plus", IFUND_VIDEO_ALLOW_PAID_MODELS: "enabled",
+  }), true);
+});
+
+test("pilot capacity: a request past the free quota fails closed before reserving allowance", async () => {
+  const service = fakeServices();
+  seedPilotUsage(service, "wan3.0-video", 28);
+  const env = { ...modelStudioEnv(fakeBucket()), IFUND_VIDEO_MODEL: "wan3.0-video" };
+  const refused = await routeVideoGeneration(generateRequest(), env, service.fetcher);
+  assert.equal(refused.status, 429);
+  const body = await refused.json();
+  assert.equal(body.code, "pilot_capacity");
+  assert.equal(body.error, PILOT_CAPACITY_MESSAGE);
+  assert.deepEqual(service.state.reserveKinds, []);
+  assert.equal(service.jobs.size, 1, "only the seeded usage row exists");
+
+  // Boundary: exactly filling the quota is still allowed.
+  const service2 = fakeServices();
+  seedPilotUsage(service2, "wan3.0-video", 25);
+  const allowed = await routeVideoGeneration(generateRequest(), env, service2.fetcher);
+  assert.equal(allowed.status, 202);
+});
+
+test("pilot usage counts finished generations account-wide, not per member", async () => {
+  const service = fakeServices();
+  seedPilotUsage(service, "wan2.7-t2v", 10);
+  seedPilotUsage(service, "wan2.7-t2v", 5, "provider_completed");
+  seedPilotUsage(service, "wan2.7-t2v", 7, "failed");
+  seedPilotUsage(service, "wan3.0-video", 30);
+  assert.equal(await pilotUsedSeconds(modelStudioEnv(fakeBucket()), service.fetcher, "wan2.7-t2v"), 15);
+});
+
+test("status reports the pilot burn and expiry while the pilot runs", async () => {
+  const service = fakeServices();
+  seedPilotUsage(service, "wan2.7-t2v", 10);
+  const env = { ...modelStudioEnv(fakeBucket()), IFUND_VIDEO_PILOT_STARTED_AT: "2026-11-28T00:00:00Z" };
+  const status = await routeVideoGeneration(new Request(API + "/api/ai/videos/status"), env, service.fetcher);
+  const body = await status.json();
+  assert.equal(body.provider, "alibaba-model-studio");
+  const t2v = body.pilot.find((entry) => entry.model === "wan2.7-t2v");
+  assert.deepEqual(
+    [t2v.quota_seconds, t2v.used_seconds, t2v.remaining_seconds], [50, 10, 40]);
+  assert.equal(body.pilot_expires_at, "2027-02-26T00:00:00.000Z");
+});
+
+test("a provider quota refusal lands as the pilot-capacity state, never a paid retry", async () => {
+  const service = fakeServices();
+  const fetcher = async (url, options = {}) => {
+    if (String(url).endsWith("/video-synthesis"))
+      return Response.json(
+        { code: "QuotaExceeded", message: "The free quota has been exhausted" },
+        { status: 403 });
+    return service.fetcher(url, options);
+  };
+  const env = modelStudioEnv(fakeBucket());
+  await routeVideoGeneration(generateRequest(), env, fetcher);
+  const advanced = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  const job = (await advanced.json()).job;
+  assert.equal(job.state, "failed");
+  assert.equal(job.error, PILOT_CAPACITY_MESSAGE);
+  assert.equal(service.state.completeCalls, 0);
 });

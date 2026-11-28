@@ -76,14 +76,47 @@ export function videoI2vModel(env) {
 
 // The adapter is provider-swappable: IFUND_VIDEO_PROVIDER selects which
 // concrete adapter serves generation. Both adapters target the Alibaba
-// Wan family — via the Workers AI binding, or directly against Alibaba
-// Model Studio (DashScope), whose new-account free quotas are the only
-// real free API seconds found for video (one-time, ~90 days; see
-// docs/product/IFUND_VIDEO_GENERATION_PROVIDER_20261128.md). The standing
-// provider after those quotas is an owner decision, not a code default.
+// Wan family — directly against Alibaba Model Studio (DashScope), or via
+// the Workers AI binding. Owner decision (2026-11-28): pilot on the free
+// quotas, decide the paid floor later — so Model Studio is the DEFAULT
+// adapter, the Workers AI route (metered from the first second) is only
+// ever an explicit selection, and no code path falls back between
+// providers or spills into paid generation (see the pilot guard below).
 export function videoProviderId(env) {
-  return env?.IFUND_VIDEO_PROVIDER === MODEL_STUDIO_PROVIDER_ID
-    ? MODEL_STUDIO_PROVIDER_ID : VIDEO_PROVIDER_ID;
+  return env?.IFUND_VIDEO_PROVIDER === VIDEO_PROVIDER_ID
+    ? VIDEO_PROVIDER_ID : MODEL_STUDIO_PROVIDER_ID;
+}
+
+// Known one-time free quotas on Alibaba Model Studio, in seconds per
+// model (provider research, 2026-11-28; ~90-day expiry from account
+// activation). During the pilot the Model Studio adapter may only run
+// models with a free bucket: a model outside this map is a paid model,
+// and selecting one fails closed (not_configured) unless the owner later
+// enables paid models explicitly with IFUND_VIDEO_ALLOW_PAID_MODELS.
+export const FREE_QUOTA_SECONDS = Object.freeze({
+  'wanx2.1-t2v-turbo': 200,
+  'wanx2.1-t2v-plus': 200,
+  'wan2.5-t2v-preview': 50,
+  'wan2.5-i2v-preview': 50,
+  'wan2.6-t2v': 50,
+  'wan2.7-t2v': 50,
+  'wan3.0-video': 30,
+  'wan3.0-video-prime': 30,
+});
+
+export const PILOT_CAPACITY_MESSAGE =
+  'AI video generation has reached the free pilot capacity for now. ' +
+  'The pilot runs on a limited free quota, and generation pauses when it ' +
+  'is used up rather than switching to paid generation. You can still ' +
+  'upload videos you already have for free.';
+
+export class PilotCapacityError extends VideoProviderError {}
+
+export function pilotExpiresAt(env) {
+  const started = typeof env?.IFUND_VIDEO_PILOT_STARTED_AT === 'string'
+    ? Date.parse(env.IFUND_VIDEO_PILOT_STARTED_AT) : NaN;
+  if (!Number.isFinite(started)) return null;
+  return new Date(started + 90 * 24 * 60 * 60 * 1000).toISOString();
 }
 
 export function providerModel(env, providerId, mode) {
@@ -121,12 +154,23 @@ export function videoAIReady(env) {
     typeof env.IFUND_CAMPAIGN_MEDIA?.head === 'function' &&
     typeof env.IFUND_CAMPAIGN_MEDIA?.delete === 'function';
   if (!common) return false;
-  // Provider-specific credential: the Workers AI binding, or the Model
-  // Studio API key. Without the selected provider's credential the
+  // Provider-specific credential: the Model Studio API key, or the
+  // Workers AI binding. Without the selected provider's credential the
   // feature reports itself unconfigured rather than faking success.
-  return videoProviderId(env) === MODEL_STUDIO_PROVIDER_ID
-    ? modelStudioKey(env).length >= 10
-    : typeof env?.AI?.run === 'function';
+  if (videoProviderId(env) === MODEL_STUDIO_PROVIDER_ID) {
+    if (modelStudioKey(env).length < 10) return false;
+    // HARD RULE — no paid spillover: during the pilot, both active
+    // models must carry a known free quota. A paid-only model selection
+    // fails closed here instead of ever reaching metered generation,
+    // unless the owner explicitly enables paid models later.
+    if (env?.IFUND_VIDEO_ALLOW_PAID_MODELS !== 'enabled') {
+      for (const mode of ['text', 'image'])
+        if (!(providerModel(env, MODEL_STUDIO_PROVIDER_ID, mode) in FREE_QUOTA_SECONDS))
+          return false;
+    }
+    return true;
+  }
+  return typeof env?.AI?.run === 'function';
 }
 
 /**
@@ -167,16 +211,22 @@ export function createVideoProvider(env, fetcher = fetch, providerId = videoProv
             watermark: false,
           },
         };
-        let data;
+        let res, data;
         try {
-          const res = await fetcher(base + '/api/v1/services/aigc/video-generation/video-synthesis', {
+          res = await fetcher(base + '/api/v1/services/aigc/video-generation/video-synthesis', {
             method: 'POST',
             headers: { ...headers, 'X-DashScope-Async': 'enable' },
             body: JSON.stringify(body),
           });
           data = await res.json().catch(() => null);
-          if (!res.ok) throw new Error('provider http ' + res.status);
         } catch {
+          throw new VideoProviderError('The video provider could not be reached. No finished video was produced, so this attempt does not count as a completed creation.');
+        }
+        if (!res.ok) {
+          // A quota refusal is the pilot ending, not a generic outage:
+          // surface it as the pilot-capacity state (and never retry into
+          // a paid path — there is none in this adapter).
+          if (isQuotaSignal(data)) throw new PilotCapacityError(PILOT_CAPACITY_MESSAGE);
           throw new VideoProviderError('The video provider could not be reached. No finished video was produced, so this attempt does not count as a completed creation.');
         }
         return normalizeModelStudioTask(data);
@@ -228,6 +278,12 @@ export function createVideoProvider(env, fetcher = fetch, providerId = videoProv
   };
 }
 
+function isQuotaSignal(data) {
+  const text = String(data?.code || '') + ' ' + String(data?.message || '') +
+    ' ' + String(data?.output?.code || '') + ' ' + String(data?.output?.message || '');
+  return /quota|exhaust/i.test(text);
+}
+
 export function normalizeModelStudioTask(data) {
   const output = data?.output;
   const status = typeof output?.task_status === 'string' ? output.task_status : '';
@@ -235,7 +291,11 @@ export function normalizeModelStudioTask(data) {
       typeof output?.video_url === 'string' && /^https:\/\/[^\s]+$/i.test(output.video_url))
     return { status: 'completed', videoUrl: output.video_url };
   if (status === 'FAILED' || status === 'CANCELED' || status === 'UNKNOWN')
-    return { status: 'failed', error: 'The video provider could not finish this generation. This attempt does not count as a completed creation.' };
+    return {
+      status: 'failed',
+      error: isQuotaSignal(data) ? PILOT_CAPACITY_MESSAGE
+        : 'The video provider could not finish this generation. This attempt does not count as a completed creation.',
+    };
   if ((status === 'PENDING' || status === 'RUNNING') && output?.task_id)
     return { status: 'pending', providerJobId: String(output.task_id) };
   throw new VideoProviderError('The video provider did not return a finished video. No finished video was produced, so this attempt does not count as a completed creation.');
@@ -321,8 +381,20 @@ function publicJob(job) {
   };
 }
 
-async function readJob(env, fetcher, actor, requestId) {
+// Pilot burn, account-wide: the free quota belongs to the platform's
+// Model Studio account, not to a member, so usage sums every finished
+// generation recorded for the provider + model. Failed generations do
+// not consume quota at the provider, so only finished states count.
+export async function pilotUsedSeconds(env, fetcher, model) {
   const rows = await supabase(env, fetcher,
+    JOBS + '?select=duration_seconds&provider=eq.' + MODEL_STUDIO_PROVIDER_ID +
+    '&model=eq.' + encodeURIComponent(model) + '&state=in.(completed,provider_completed)',
+    { admin: true });
+  if (!Array.isArray(rows)) fail(503, 'Video generation usage could not be verified.');
+  return rows.reduce((sum, row) => sum + (Number(row.duration_seconds) || 0), 0);
+}
+
+async function readJob(env, fetcher, actor, requestId) {  const rows = await supabase(env, fetcher,
     JOBS + '?select=' + JOB_SELECT + '&owner_id=eq.' + actor.id +
     '&request_id=eq.' + requestId + '&limit=1', { admin: true });
   if (!Array.isArray(rows) || rows.length > 1) fail(503, 'Video generation job could not be verified.');
@@ -350,6 +422,21 @@ async function submitJob(request, env, fetcher) {
       ? 'Turn on AI Assistance in My Account to use AI video generation.'
       : 'AI permission could not be verified.' });
 
+  // Pilot capacity gate (checked before any allowance is reserved): on
+  // the Model Studio pilot, a request that would pass the model's known
+  // free quota fails closed with the pilot-capacity state. There is no
+  // paid fallback behind this gate.
+  const providerId = videoProviderId(env);
+  if (providerId === MODEL_STUDIO_PROVIDER_ID && env.IFUND_VIDEO_ALLOW_PAID_MODELS !== 'enabled') {
+    const model = providerModel(env, providerId, input.mode);
+    const quota = FREE_QUOTA_SECONDS[model];
+    if (quota !== undefined) {
+      const used = await pilotUsedSeconds(env, fetcher, model);
+      if (used + input.duration > quota)
+        return response(429, { error: PILOT_CAPACITY_MESSAGE, code: 'pilot_capacity' });
+    }
+  }
+
   let receipt;
   try {
     receipt = await reserveTrialContent(env, actor.jwt, 'video', input.requestId, fetcher);
@@ -369,8 +456,8 @@ async function submitJob(request, env, fetcher) {
   const inserted = await supabase(env, fetcher, JOBS + '?select=' + JOB_SELECT, {
     method: 'POST', admin: true, prefer: 'return=representation',
     body: {
-      owner_id: actor.id, request_id: input.requestId, provider: videoProviderId(env),
-      model: providerModel(env, videoProviderId(env), input.mode),
+      owner_id: actor.id, request_id: input.requestId, provider: providerId,
+      model: providerModel(env, providerId, input.mode),
       state: 'submitted', prompt: input.prompt,
       resolution: input.resolution, ratio: input.ratio,
       duration_seconds: input.duration, mode: input.mode,
@@ -528,12 +615,32 @@ export async function routeVideoGeneration(request, env, fetcher = fetch) {
   try {
     if (path === '/api/ai/videos/status') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
-      return response(200, {
+      const providerId = videoProviderId(env);
+      const body = {
         videoGeneration: videoAIReady(env) ? 'enabled' : 'not_configured',
-        provider: videoProviderId(env),
-        model: providerModel(env, videoProviderId(env), 'text'),
-        imageModel: providerModel(env, videoProviderId(env), 'image'),
-      });
+        provider: providerId,
+        model: providerModel(env, providerId, 'text'),
+        imageModel: providerModel(env, providerId, 'image'),
+      };
+      // Pilot visibility: while the Model Studio pilot runs, the status
+      // reports the free-quota burn per active model so the remaining
+      // capacity is visible before it runs out.
+      if (body.videoGeneration === 'enabled' && providerId === MODEL_STUDIO_PROVIDER_ID &&
+          env.IFUND_VIDEO_ALLOW_PAID_MODELS !== 'enabled') {
+        const models = [...new Set([body.model, body.imageModel])];
+        body.pilot = [];
+        for (const model of models) {
+          const quota = FREE_QUOTA_SECONDS[model];
+          if (quota === undefined) continue;
+          const used = await pilotUsedSeconds(env, fetcher, model);
+          body.pilot.push({
+            model, quota_seconds: quota, used_seconds: used,
+            remaining_seconds: Math.max(0, quota - used),
+          });
+        }
+        body.pilot_expires_at = pilotExpiresAt(env);
+      }
+      return response(200, body);
     }
     if (path === '/api/ai/videos/generate') {
       if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });

@@ -34,6 +34,7 @@ const ACTIVE_STATES = new Set(["submitted", "running", "provider_pending"]);
  */
 export default function AIVideoStudio({ onSendToEditor } = {}) {
   const [availability, setAvailability] = useState("checking");
+  const [pilot, setPilot] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
@@ -54,7 +55,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
     mounted.current = true;
     fetch("/api/ai/videos/status")
       .then((r) => r.json())
-      .then((data) => { if (mounted.current) setAvailability(data?.videoGeneration === "enabled" ? "enabled" : "not_configured"); })
+      .then((data) => { if (mounted.current) {
+        setAvailability(data?.videoGeneration === "enabled" ? "enabled" : "not_configured");
+        if (Array.isArray(data?.pilot)) setPilot({ entries: data.pilot, expiresAt: data.pilot_expires_at || null });
+      } })
       .catch(() => { if (mounted.current) setAvailability("not_configured"); });
     return () => {
       mounted.current = false;
@@ -215,6 +219,14 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       </div>
       <TrialCreationBalance />
       <PremiumOpportunity context="video" />
+      {pilot && pilot.entries.length > 0 && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Free pilot: {pilot.entries.map((entry) =>
+            `${entry.remaining_seconds} of ${entry.quota_seconds} seconds left (${entry.model})`).join(" · ")}
+          {pilot.expiresAt ? ` · pilot ends ${new Date(pilot.expiresAt).toLocaleDateString()}` : ""}.
+          When the pilot fills, generation pauses — it never switches to paid generation on its own.
+        </p>
+      )}
       <form onSubmit={generate} className="space-y-4">
         <label className="block text-sm font-medium">Describe the video
           <textarea className={field} rows={3} minLength={20} maxLength={900} required

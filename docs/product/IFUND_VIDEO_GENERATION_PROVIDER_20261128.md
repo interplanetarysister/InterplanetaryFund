@@ -32,27 +32,43 @@ free buckets are one-time and expiring — **Alibaba Model Studio's Wan
 quotas (~600–700 seconds stacked across models, 90 days, Singapore
 region)** and the Google Cloud $300/90-day trial toward Vertex Veo. The
 cheapest paid floor afterwards is aggregator pricing around
-$0.03–$0.10/second (fal.ai ≈ $3–$6/month at pilot volume).
+$0.03–$0.10/second (fal.ai ≈ $30–$50/month for 50 users generating one
+5-second clip a week at $0.03–$0.05/s — corrected arithmetic).
 
-Accordingly the wiring implements **two concrete adapters behind one
-interface**, both targeting the Wan family, selected by
-`IFUND_VIDEO_PROVIDER`:
+**Owner decision (2026-11-28): pilot on the free quotas, decide the
+paid floor later.** Accordingly:
 
-- `cloudflare-workers-ai` (default): Wan via the existing `AI` binding
-  (`alibaba/wan-3.0` / `alibaba/wan-2.7-i2v`), dollar-billed per second
-  through AI Gateway Unified Billing.
-- `alibaba-model-studio`: Wan direct via the DashScope async API
-  (create task → poll → result URL; contract verified against Alibaba's
-  Wan API reference, 2026-11-28), defaults `wan2.7-t2v` /
-  `wan2.5-i2v-preview` — the models carrying the free-quota seconds.
-  Requires the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`; optional
-  `ALIBABA_MODEL_STUDIO_BASE_URL` for a workspace/regional domain
-  (default `https://dashscope-intl.aliyuncs.com`).
+- `alibaba-model-studio` is the **default** adapter: Wan direct via the
+  DashScope async API (create task → poll → result URL; contract
+  verified against Alibaba's Wan API reference, 2026-11-28), defaults
+  `wan2.7-t2v` / `wan2.5-i2v-preview` — models carrying free-quota
+  seconds. Requires the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`;
+  optional `ALIBABA_MODEL_STUDIO_BASE_URL` for a workspace/regional
+  domain (default `https://dashscope-intl.aliyuncs.com`).
+- `cloudflare-workers-ai` (explicit `IFUND_VIDEO_PROVIDER` selection
+  only): Wan via the existing `AI` binding (`alibaba/wan-3.0` /
+  `alibaba/wan-2.7-i2v`), dollar-billed per second through AI Gateway
+  Unified Billing. It is never a fallback.
+- **Pilot quota tracking:** the known free buckets (seconds per model:
+  wanx2.1-t2v-turbo/plus 200 each; wan2.5/2.6/2.7 families 50 each;
+  wan3.0-video/prime 30 each) live in `FREE_QUOTA_SECONDS` in
+  `worker/videoGeneration.js`. Finished generations are summed
+  account-wide from the job records; `GET /api/ai/videos/status`
+  reports used/remaining seconds per active model plus the pilot expiry
+  (`IFUND_VIDEO_PILOT_STARTED_AT` + 90 days), and the Studio shows the
+  remaining pilot seconds to members.
+- **HARD RULE — no paid spillover:** before reserving allowance, a
+  Model Studio request that would exceed its model's free bucket fails
+  closed with a 429 "pilot capacity reached" state; a provider quota
+  refusal maps to the same state; and during the pilot both active
+  models must carry a free bucket — selecting a paid-only model makes
+  the feature report not_configured. The only way paid models open is
+  the explicit future owner switch `IFUND_VIDEO_ALLOW_PAID_MODELS`.
+  No code path falls back between providers: each job records its
+  provider and Advance always uses that job's adapter.
 
-**The standing provider after the free quotas expire is the owner's
-decision** (paid aggregator floor vs leaving the feature off); the code
-does not choose it. Nothing was signed up for and no spend was committed
-by this wiring.
+Nothing was signed up for and no spend was committed by this wiring;
+the Model Studio account itself is the owner's activation step.
 
 ## Generative modes
 
@@ -132,20 +148,24 @@ generations a member can consume.
    library) plus `SUPABASE_SECRET_KEY` available to the Worker (already
    used by the media modules), and — for the default provider — the `AI`
    binding.
-3. Choose the provider and budget posture:
-   - **Free-quota pilot (recommended first):** create the Alibaba Model
-     Studio account (Singapore region), note the workspace domain if
-     using one, set the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`,
-     optionally `ALIBABA_MODEL_STUDIO_BASE_URL`, and set
-     `IFUND_VIDEO_PROVIDER=alibaba-model-studio`. Verify the current
-     model names and the image-to-video input field in the Model Studio
-     console at activation (the survey found region wording conflicts
-     between sources). Quotas expire ~90 days after account creation.
-   - **Workers AI route:** leave `IFUND_VIDEO_PROVIDER` unset; Wan is
-     billed per second from the first generation ($0.05–$0.20/s).
+3. Configure the pilot (the default route):
+   - Create the Alibaba Model Studio account (Singapore region) — the
+     owner's step; note the workspace domain if using one.
+   - Set the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`, optionally
+     `ALIBABA_MODEL_STUDIO_BASE_URL`, and `IFUND_VIDEO_PILOT_STARTED_AT`
+     to the account activation date (drives the 90-day expiry display).
+   - Verify the current model names and the image-to-video input field
+     in the Model Studio console at activation (the survey found region
+     wording conflicts between sources). Quotas expire ~90 days after
+     account creation; when they end, generation pauses at the pilot
+     capacity state — it does not start billing.
+   - The metered Workers AI route stays off unless deliberately chosen
+     later with `IFUND_VIDEO_PROVIDER=cloudflare-workers-ai` plus the
+     `AI` binding (Wan billed $0.05–$0.20/s from the first generation).
    Then set `IFUND_VIDEO_AI_ENABLED=enabled`. Optionally set
    `IFUND_VIDEO_MODEL` / `IFUND_VIDEO_I2V_MODEL` to override the active
-   provider's models.
+   provider's models (during the pilot they must stay within the free
+   quota map or the feature fails closed by design).
 4. Deploy through the normal authorized release, then run the frontend
    acceptance pass as a signed-in entitled member (generate, save,
    attach to a post, play) per the repo's acceptance rules — source tests

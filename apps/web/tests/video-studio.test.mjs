@@ -20,6 +20,10 @@ test("video studio component drives the real job lifecycle and never fakes a res
   assert.match(component, /provider_completed/);
   assert.match(component, /Retry saving the finished video/);
   assert.match(component, /will not be repeated/);
+  // Pilot visibility: remaining free seconds are shown, with the
+  // no-paid-spillover promise stated in plain words.
+  assert.match(component, /Free pilot:/);
+  assert.match(component, /never switches to paid generation/);
   // Honest states: failed jobs surface the provider's reason; the shared
   // creation balance is shown like the image studio shows it.
   assert.match(component, /finished\.state === "failed"/);
