@@ -61,3 +61,52 @@ test("model context labels style preferences as untrusted and excludes credentia
   assert.equal(user.organizer_writing_preferences.tone, "Warm");
   assert.equal(messages.filter(item => item.role === "system").length, 1);
 });
+test("a version direction (adjustment) is optional, trimmed, and absent when not supplied", () => {
+  // Requests without a direction keep the exact pre-adjustment shape, so
+  // their Story input hash and replay behavior are unchanged.
+  assert.deepEqual(normalizeWritingPreferences({ tone: "Warm" }), { tone: "Warm", never_change: "" });
+  assert.equal(normalizeWritingPreferences({ adjustment: "   " }), undefined);
+  assert.deepEqual(normalizeWritingPreferences({ adjustment: " Make it shorter and more urgent. " }),
+    { tone: "", never_change: "", adjustment: "Make it shorter and more urgent." });
+  assert.equal("adjustment" in storyInput(base), false);
+  assert.equal(storyInput({ ...base, writing_preferences: { adjustment: "Emphasize the deadline." } })
+    .writing_preferences.adjustment, "Emphasize the deadline.");
+  assert.equal(campaignPreviewInput({ ...base, writing_preferences: { adjustment: "Shorter." } })
+    .writing_preferences.adjustment, "Shorter.");
+});
+test("a version direction rejects overlong values, nonstrings and control characters", () => {
+  for (const writing_preferences of [{ adjustment: "x".repeat(301) }, { adjustment: 42 },
+    { adjustment: "bad\u0000value" }, { adjustment: "fine", role: "admin" }]) {
+    assert.throws(() => storyInput({ ...base, writing_preferences }), error => error.status === 400);
+    assert.throws(() => campaignPreviewInput({ ...base, writing_preferences }), error => error.status === 400);
+  }
+});
+test("a version direction reaches native Story through the preview unchanged", async () => {
+  const calls = [];
+  const request = new Request("https://ifund.test/api/services/story_agent/campaign-preview", {
+    method: "POST", headers: { authorization: "Bearer test.jwt", "content-type": "application/json" },
+    body: JSON.stringify({ ...base, writing_preferences: { adjustment: "Shorter, and emphasize the Friday deadline." } }),
+  });
+  const response = await campaignPreview(request, { SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_PUBLISHABLE_KEY:"mock-key",IFUND_STORY_AGENT: { fetch: async forwarded => {
+    if (forwarded.method === "GET") return Response.json({ active: true, level: 1 });
+    calls.push(await forwarded.json());
+    return Response.json({ draft: { id, payload: { titles: ["One","Two","Three","Four","Five"], summaries: ["First","Second"],
+      story: "A truthful garden story with enough detail to pass the minimum length contract for AI drafts. ".repeat(12).trim(),
+      image_prompt: "A symbolic garden." } } }, { status: 201 });
+  } } }, (url) => {
+    if(String(url).endsWith("/ifund_ai_content_reserve"))
+      return Promise.resolve(Response.json({allowed:true,state:"reserved",remaining:14}));
+    if(String(url).endsWith("/ifund_ai_content_complete"))
+      return Promise.resolve(Response.json(true));
+    if(String(url).endsWith("/ifund_trial_ai_generation_release"))
+      return Promise.resolve(Response.json(true));
+    throw Error("Unexpected quota service request");
+  });
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].writing_preferences.adjustment, "Shorter, and emphasize the Friday deadline.");
+  // The Story prompt carries the direction as organizer style data.
+  const messages = storyMessages(storyInput(calls[0]), {});
+  const user = JSON.parse(messages.find(item => item.role === "user").content);
+  assert.equal(user.organizer_writing_preferences.adjustment, "Shorter, and emphasize the Friday deadline.");
+});
