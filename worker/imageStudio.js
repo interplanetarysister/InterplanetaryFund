@@ -2,6 +2,7 @@ import { authenticatedUser, response } from './reads.js';
 import { verifyOwnerAIConsent } from './aiConsent.js';
 import { reserveTrialContent, completeTrialContent, releaseTrialContent } from './trialAiContent.js';
 import { readJsonBody, BodyError } from './bodyLimit.js';
+import { verifyImageLettering, MAX_IMAGE_GENERATIONS } from './imageTextCheck.js';
 
 export const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
 export const IMAGE_STYLES = Object.freeze({
@@ -12,6 +13,13 @@ export const IMAGE_STYLES = Object.freeze({
 });
 const CANONICAL_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+// Appended when a render comes back with lettering: the retry must remove
+// every trace of text-like marks, not merely try the same prompt again.
+const CORRECTIVE_NO_LETTERING =
+  ' IMPORTANT: the previous attempt contained letters or word-like marks. ' +
+  'This attempt must contain absolutely no letters, words, numbers, signs, ' +
+  'labels, typography or letter-like shapes anywhere; every surface that ' +
+  'could hold text must be blank and smooth.';
 
 export function imageAIReady(env) {
   return env?.IFUND_IMAGE_AI_ENABLED === 'enabled' &&
@@ -52,7 +60,7 @@ export function validateImageRequest(input) {
     throw new BodyError(422, 'Provide a valid campaign title, description and illustration style.');
   const prompt = [
     'Original non-photorealistic editorial artwork for a personal fundraiser.',
-    'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. No invented names, no portraits of real people, no claimed donations. The application applies optional user-approved wording separately after generation.',
+    'Illustration only: NO TEXT. Do not depict typography, letters, words, writing, signs, labels, numbers, logos, watermarks, or fake captions anywhere in the image. Any sign, label, book, screen or other surface that might naturally hold words must be rendered blank and smooth, with no letter-like marks on it. No invented names, no portraits of real people, no claimed donations. The application applies optional user-approved wording separately after generation.',
     'Visual style: ' + IMAGE_STYLES[input.style] + '.',
     'Campaign title for visual context: ' + title + '.',
     'What the fundraiser is about: ' + description + '.',
@@ -103,17 +111,34 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
 
     // Cloudflare returns a JPEG base64 image. The inference call is not proof
     // of a saved campaign cover. Saving is a separate authenticated action.
-    const generated = await env.AI.run(IMAGE_MODEL, { prompt, steps: 4 });
-    const image = generated?.image;
-    if (!validImageBase64(image))
-      return response(502, { error: 'The generated artwork could not be verified.' });
-    if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
-      return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
-    trialReceipt = null;
-    return response(200, {
-      mime_type: 'image/jpeg', image_base64: image, style, generated: true,
-      model: IMAGE_MODEL,
-    });
+    // The image model routinely bakes lettering into scenes despite the
+    // no-text prompt, often misspelled, so every render is read back with
+    // the Workers AI vision model before it can be presented: a render with
+    // lettering is regenerated with corrective direction (bounded), and a
+    // render whose lettering cannot be verified is never finalized against
+    // the member's creation allowance.
+    let letteringFailure = false;
+    for (let attempt = 0; attempt < MAX_IMAGE_GENERATIONS; attempt++) {
+      const attemptPrompt = attempt === 0 ? prompt : prompt + CORRECTIVE_NO_LETTERING;
+      const generated = await env.AI.run(IMAGE_MODEL, { prompt: attemptPrompt, steps: 4 });
+      const image = generated?.image;
+      if (!validImageBase64(image))
+        return response(502, { error: 'The generated artwork could not be verified.' });
+      const lettering = await verifyImageLettering(env, image, '');
+      if (lettering.state === 'unavailable')
+        return response(503, { error: 'The generated artwork could not be verified. Please try later.' });
+      if (lettering.state === 'problems') { letteringFailure = true; continue; }
+      if (!(await completeTrialContent(env,trialJwt,trialReceipt,fetcher)))
+        return response(503,{error:"Your generated artwork could not be finalized. No campaign was changed."});
+      trialReceipt = null;
+      return response(200, {
+        mime_type: 'image/jpeg', image_base64: image, style, generated: true,
+        model: IMAGE_MODEL, lettering_check: 'passed',
+      });
+    }
+    return response(502, { error: letteringFailure
+      ? 'The artwork generator kept adding misspelled lettering, so no image was accepted and your creation was not finalized. Please try again.'
+      : 'The generated artwork could not be verified.' });
   } catch (cause) {
     if (cause instanceof BodyError)
       return response(cause.status, { error: cause.message });
