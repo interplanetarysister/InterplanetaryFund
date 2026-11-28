@@ -44,7 +44,9 @@ export async function supabase(env,fetcher,path,{method="GET",jwt=null,body,admi
 export async function member(request,env,fetcher){
  const bearer=request.headers.get("authorization")||"";
  if(!/^Bearer [A-Za-z0-9._~-]{20,8192}$/.test(bearer))fail(401,"Sign in to manage private media.");
- const jwt=bearer.slice(7);
+ return verifiedMediaMember(bearer.slice(7),env,fetcher);
+}
+async function verifiedMediaMember(jwt,env,fetcher){
  const user=await supabase(env,fetcher,"/auth/v1/user",{jwt});
  if(!UUID.test(user?.id||"")||user?.is_anonymous===true||!user?.email_confirmed_at)
    fail(401,"A verified member account is required.");
@@ -52,6 +54,14 @@ export async function member(request,env,fetcher){
  if(!Array.isArray(profiles)||profiles.length!==1||profiles[0].account_status!=="active"||profiles[0].account_deletion_pending!==false)
    fail(403,"Your iFund account must be active.");
  return {id:user.id,jwt};
+}
+export async function recheckMediaMember(env,fetcher,actor){
+ const current=await verifiedMediaMember(actor.jwt,env,fetcher);
+ if(current.id!==actor.id)fail(403,"Your account changed before private media delivery.");
+ return current;
+}
+export async function discardPrivateBody(object){
+ try{if(typeof object?.body?.cancel==="function")await object.body.cancel();}catch{/* No bytes are returned. */}
 }
 async function ownCampaign(env,fetcher,actor,campaign,{upload=false}={}){
  const rows=await supabase(env,fetcher,"/rest/v1/ifund_campaigns?select=id,owner_id&id=eq."+campaign+"&owner_id=eq."+actor.id+"&limit=1",{jwt:actor.jwt});
@@ -175,16 +185,25 @@ async function download(env,fetcher,bucket,actor,campaign,id){
  const doc=await readDoc(env,fetcher,actor,campaign,id);
  if(doc.deletion_requested_at)fail(404,"Private document is awaiting deletion.");
  const object=await bucket.get(doc.storage_path);
+ try{
  if(!object||object.size!==doc.file_size||object.etag!==doc.object_etag||
     object.httpMetadata?.contentType!==doc.media_type||
     object.customMetadata?.sha256!==doc.object_sha256||
-    object.customMetadata?.owner_id!==actor.id)
+    object.customMetadata?.owner_id!==actor.id||object.customMetadata?.campaign_id!==campaign||!object.body)
    fail(503,"The private document object could not be verified.");
+ // Revalidate after R2 I/O; do not stream private bytes based on a stale receipt.
+ const current=await recheckMediaMember(env,fetcher,actor);
+ await ownCampaign(env,fetcher,current,campaign);
+ const fresh=await readDoc(env,fetcher,current,campaign,id);
+ if(fresh.deletion_requested_at)fail(404,"Private document is awaiting deletion.");
+ if(["id","owner_id","campaign_id","storage_path","file_name","media_type","file_size","object_etag","object_sha256"].some(k=>fresh[k]!==doc[k]))
+   fail(409,"Private document changed during retrieval. Reload and retry.");
  const name=doc.file_name.replace(/[^A-Za-z0-9._ -]/g,"_").replace(/"/g,"_");
  return new Response(object.body,{status:200,headers:{...noCache,
   "content-type":doc.media_type,"content-length":String(doc.file_size),
   "content-disposition":'attachment; filename="'+name+'"',"content-security-policy":"default-src 'none'; sandbox",
   "x-ifund-document-sha256":doc.object_sha256}});
+ }catch(error){await discardPrivateBody(object);throw error;}
 }
 async function remove(env,fetcher,bucket,actor,campaign,id){
  await ownCampaign(env,fetcher,actor,campaign);
