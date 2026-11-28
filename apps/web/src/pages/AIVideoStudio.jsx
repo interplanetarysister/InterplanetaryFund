@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/api/auth";
 import { listMyMedia, downloadMyMedia } from "@/api/memberMedia";
+import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import PremiumOpportunity from "@/components/subscriptions/PremiumOpportunity";
 import TrialCreationBalance from "@/components/subscriptions/TrialCreationBalance";
 
@@ -23,10 +24,14 @@ const RATIOS = [
 const ACTIVE_STATES = new Set(["submitted", "running", "provider_pending"]);
 
 /**
- * AI video generation through the allowance-gated Worker (Cloudflare
- * Workers AI). Generation is a durable job: submit reserves one shared AI
- * creation, Advance runs the provider and stores the finished video in the
+ * AI video generation through the allowance-gated Worker (provider-
+ * swappable: Alibaba Wan adapters, or the executive-concierge queue).
+ * Generation is a durable job: submit reserves one shared AI creation,
+ * Advance runs the provider and stores the finished video in the
  * member's private media library through the same pipeline as an upload.
+ * Concierge jobs are queued instead — the site AI prepares the video
+ * from the chosen campaign and it lands in the library when ready; the
+ * queued state says so plainly and never fakes an instant result.
  * A generated video is never discarded because saving failed — the job
  * keeps the finished generation and Advance retries only the save. When
  * the deployment has not enabled the provider flag, this section says so
@@ -34,7 +39,10 @@ const ACTIVE_STATES = new Set(["submitted", "running", "provider_pending"]);
  */
 export default function AIVideoStudio({ onSendToEditor } = {}) {
   const [availability, setAvailability] = useState("checking");
+  const [provider, setProvider] = useState(null);
   const [pilot, setPilot] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignId, setCampaignId] = useState("");
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
@@ -57,9 +65,17 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       .then((r) => r.json())
       .then((data) => { if (mounted.current) {
         setAvailability(data?.videoGeneration === "enabled" ? "enabled" : "not_configured");
+        setProvider(typeof data?.provider === "string" ? data.provider : null);
         if (Array.isArray(data?.pilot)) setPilot({ entries: data.pilot, expiresAt: data.pilot_expires_at || null });
       } })
       .catch(() => { if (mounted.current) setAvailability("not_configured"); });
+    // The concierge provider builds its brief from a campaign, so offer
+    // the member's own campaigns as the video's subject. A load failure
+    // simply leaves the picker empty — generation from a description
+    // alone still works.
+    listOwnerCampaigns(authClient())
+      .then((rows) => { if (mounted.current) setCampaigns(Array.isArray(rows) ? rows : []); })
+      .catch(() => { if (mounted.current) setCampaigns([]); });
     return () => {
       mounted.current = false;
       if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
@@ -87,6 +103,7 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         ? { body: JSON.stringify({
             prompt: prompt.trim(), resolution: effectiveResolution, ratio, duration,
             request_id: requestId.current,
+            ...(campaignId ? { campaign_id: campaignId } : {}),
             ...(imageMode ? { image_url: imageUrl.trim(), rights_confirmed: rightsConfirmed } : {}),
           }) }
         : {}),
@@ -112,6 +129,18 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
   async function runJob(token) {
     let current = await call("/api/ai/videos/generate", token, "POST");
     if (mounted.current) setJob(current);
+    // Concierge jobs are queued, not run by Advance: the site AI picks
+    // the job up and prepares the video off-platform. Poll the job
+    // itself for a bounded while so a quick return lands in this
+    // session; after that the member checks Saved media — the job is
+    // durable either way and nothing about it is faked as instant.
+    for (let step = 0; step < 24 && current?.state === "awaiting_concierge"; step += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      if (!mounted.current) return null;
+      current = await call(`/api/ai/videos/jobs/${current.request_id}`, token);
+      if (mounted.current) setJob(current);
+    }
+    if (current?.state === "awaiting_concierge") return current;
     // Advance performs the provider call and the save. If the connection
     // drops mid-generation the job survives server-side; polling plus a
     // fresh Advance resumes it without repeating the provider call.
@@ -141,6 +170,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       setError("Confirm you have the right to animate that image before generating.");
       return;
     }
+    if (provider === "executive-concierge" && campaigns.length > 0 && !campaignId) {
+      setError("Choose the campaign this video is for — its story is what the video is prepared from.");
+      return;
+    }
     setBusy("generate"); setError(""); setMessage(""); setJob(null);
     setPreviewUrl(""); setPreviewFile(null);
     if (!requestId.current) requestId.current = crypto.randomUUID();
@@ -150,6 +183,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       if (!mounted.current || !finished) return;
       if (finished.state === "failed")
         setError(finished.error || "The video provider could not finish this generation.");
+      else if (finished.state === "awaiting_concierge")
+        setMessage("Your video is queued — the site AI is preparing it from your campaign. " +
+          "That takes a little while, not seconds; when it is ready it will be saved to your " +
+          "private media library below, exactly like an upload.");
       else if (finished.state === "provider_completed")
         setError(finished.error || "Your video was generated but could not be saved yet. Retry saving — the generation will not be repeated.");
       else if (finished.state === "completed") {
@@ -196,7 +233,12 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         <p className="text-sm text-muted-foreground">
           {availability === "checking"
             ? "Checking whether video generation is enabled on this deployment…"
-            : <>Video generation is wired to the Alibaba Wan video models — the flagship open
+            : provider === "executive-concierge"
+              ? <>Video generation is wired to the site's AI concierge, which prepares a video
+                from your campaign's own story and your direction — but it is
+                not enabled on this deployment yet. This Studio does not pretend to generate a video meanwhile. Upload a video you already have in
+                the Editor tab to frame it, adjust how it looks, and download a frame still.</>
+              : <>Video generation is wired to the Alibaba Wan video models — the flagship open
               video family, reachable through the platform's AI provider — but it is
               not enabled on this deployment yet. Video models are billed per generated
               second rather than from the free daily allowance, so it stays off until the owner enables it;
@@ -212,9 +254,15 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Video generation</h2>
         <p className="text-sm text-muted-foreground">
-          Generate a short original video with AI (Alibaba Wan models). One generation uses one of your shared
-          AI creations. The finished video is saved to your private media library — never to a public link —
-          and can be attached to a social post or opened in the Editor, exactly like an upload.
+          {provider === "executive-concierge"
+            ? <>Generate a short original video for one of your campaigns. The site AI prepares it
+              from that campaign's own story plus your direction below, and the finished video is saved
+              to your private media library — never to a public link — exactly like an upload.
+              One generation uses one of your shared AI creations. Preparation is queued, not instant:
+              it takes a little while, and the finished video appears in your library when it is ready.</>
+            : <>Generate a short original video with AI (Alibaba Wan models). One generation uses one of your shared
+              AI creations. The finished video is saved to your private media library — never to a public link —
+              and can be attached to a social post or opened in the Editor, exactly like an upload.</>}
         </p>
       </div>
       <TrialCreationBalance />
@@ -228,6 +276,20 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         </p>
       )}
       <form onSubmit={generate} className="space-y-4">
+        {provider === "executive-concierge" && campaigns.length > 0 && (
+          <label className="block text-sm font-medium">Campaign this video is for
+            <select className={field} value={campaignId} disabled={Boolean(busy)}
+              onChange={(e) => setCampaignId(e.target.value)}>
+              <option value="">Choose a campaign…</option>
+              {campaigns.map((campaign) => (
+                <option key={campaign.id} value={campaign.id}>{campaign.title || "Untitled campaign"}</option>
+              ))}
+            </select>
+            <span className="mt-1 block text-xs font-normal text-muted-foreground">
+              The video is prepared from this campaign's story, goal and cover image, plus your direction below.
+            </span>
+          </label>
+        )}
         <label className="block text-sm font-medium">Describe the video
           <textarea className={field} rows={3} minLength={20} maxLength={900} required
             value={prompt} disabled={Boolean(busy)}
@@ -284,6 +346,13 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         <p role="status" className="text-sm text-muted-foreground">
           Generation in progress ({job.state.replace("_", " ")}). Keep this tab open; if the connection drops,
           the job is saved and generating again with the same description resumes it.
+        </p>
+      )}
+      {job?.state === "awaiting_concierge" && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Queued — the site AI is preparing your video{job.campaign_id ? " from your campaign" : ""}.
+          This takes a little while, not seconds. When it is ready, the finished video will be saved
+          to your private media library below, exactly like an upload.
         </p>
       )}
       {job?.state === "provider_completed" && (

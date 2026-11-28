@@ -52,6 +52,33 @@ export async function completeTrialContent(env,jwt,receipt,fetcher=fetch) {
   return invoke(env,jwt,"ifund_ai_content_complete",
     {p_request_id:receipt.requestId,p_kind:receipt.kind},fetcher);
 }
+/** Trusted server-side completion for a delivery that holds no member JWT
+ * when the finished item arrives (the concierge video return path). The
+ * caller must already have verified, from a service-role job record, that
+ * the request reference belongs to this owner; the RPC
+ * (ifund_ai_content_complete_for_owner, migration 20261128010000) is
+ * granted to the service role only and mirrors ifund_ai_content_complete
+ * exactly, with the owner supplied instead of read from auth.uid().
+ * Untracked receipts (admin-exempt / already-completed) complete
+ * trivially, exactly like completeTrialContent. */
+export async function completeTrialContentForOwner(env,ownerId,receipt,fetcher=fetch) {
+  if(!receipt?.tracked)return true;
+  if(typeof env?.SUPABASE_URL!=="string" ||
+     typeof env?.SUPABASE_SECRET_KEY!=="string" || !ownerId)
+    throw new Error("Verified AI allowance service unavailable.");
+  const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_ai_content_complete_for_owner",{
+    method:"POST",
+    headers:{
+      "apikey":env.SUPABASE_SECRET_KEY,
+      "Authorization":"Bearer "+env.SUPABASE_SECRET_KEY,
+      "Content-Type":"application/json",
+      "Accept":"application/json",
+    },
+    body:JSON.stringify({p_owner_id:ownerId,p_request_id:receipt.requestId,p_kind:receipt.kind}),
+  });
+  if(!response.ok) throw new Error("Your AI allowance could not be verified.");
+  return response.json();
+}
 export async function releaseTrialContent(_env,_jwt,_receipt,_fetcher=fetch) {
   // Authenticated users cannot delete active reservations: that would let
   // forged browser calls remove in-flight usage and defeat the shared cap.

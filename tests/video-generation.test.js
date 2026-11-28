@@ -4,8 +4,9 @@ import {
   routeVideoGeneration, videoAIReady, validateVideoRequest,
   normalizeWorkersAiResult, normalizeModelStudioTask, allowanceDenial,
   videoProviderId, pilotUsedSeconds, PILOT_CAPACITY_MESSAGE,
-  VIDEO_MODEL, VIDEO_I2V_MODEL,
+  VIDEO_MODEL, VIDEO_I2V_MODEL, CONCIERGE_PROVIDER_ID, buildConciergeBrief,
 } from "../worker/videoGeneration.js";
+import { findPublicFacingViolations } from "../apps/web/src/lib/campaignCopyQuality.mjs";
 
 const API = "https://interplanetaryfund.com";
 const OWNER = "11111111-1111-4111-8111-111111111111";
@@ -48,12 +49,12 @@ function fakeBucket() {
 
 function fakeServices({
   consent = true, reserve = { allowed: true, state: "reserved", remaining: 14 },
-  reserveFails = false, userId = OWNER, mediaRows = [],
+  reserveFails = false, userId = OWNER, mediaRows = [], campaigns = [],
 } = {}) {
   const calls = [];
   const jobs = new Map();
   const media = [];
-  const state = { failMediaInsert: false, completeCalls: 0, reserveKinds: [] };
+  const state = { failMediaInsert: false, completeCalls: 0, reserveKinds: [], ownerCompleteCalls: 0, ownerCompleteBodies: [] };
   const key = (owner, request) => owner + "/" + request;
   const fetcher = async (url, options = {}) => {
     calls.push({ url, options });
@@ -74,8 +75,35 @@ function fakeServices({
       state.completeCalls++;
       return Response.json(true);
     }
+    if (url.endsWith("/rpc/ifund_ai_content_complete_for_owner")) {
+      state.ownerCompleteCalls++;
+      state.ownerCompleteBodies.push(JSON.parse(options.body));
+      return Response.json(true);
+    }
+    if (url.includes("/rest/v1/ifund_campaigns")) {
+      const parsed = new URL(url);
+      const id = parsed.searchParams.get("id")?.slice(3);
+      const owner = parsed.searchParams.get("owner_id")?.slice(3);
+      return Response.json(campaigns.filter((row) => row.id === id && row.owner_id === owner));
+    }
     if (url.includes("/rest/v1/ifund_video_generations")) {
       const parsed = new URL(url);
+      // Concierge reads carry no owner filter: a single job by request
+      // reference, or the pickup queue by provider + state.
+      if (options.method !== "POST" && options.method !== "PATCH" &&
+          !parsed.searchParams.get("owner_id")) {
+        const requestIdParam = parsed.searchParams.get("request_id")?.slice(3);
+        if (requestIdParam) {
+          const job = [...jobs.values()].find((row) => row.request_id === requestIdParam);
+          return Response.json(job ? [job] : []);
+        }
+        if (!parsed.searchParams.get("model")) {
+          const providerWanted = parsed.searchParams.get("provider")?.slice(3);
+          const stateWanted = parsed.searchParams.get("state")?.slice(3);
+          return Response.json([...jobs.values()].filter((row) =>
+            row.provider === providerWanted && row.state === stateWanted));
+        }
+      }
       // Pilot usage aggregate: no owner filter; sum finished generations
       // for one provider + model across all owners.
       if (options.method !== "POST" && options.method !== "PATCH" &&
@@ -624,4 +652,343 @@ test("a provider quota refusal lands as the pilot-capacity state, never a paid r
   assert.equal(job.state, "failed");
   assert.equal(job.error, PILOT_CAPACITY_MESSAGE);
   assert.equal(service.state.completeCalls, 0);
+});
+
+// --- Executive concierge provider -------------------------------------------
+
+const CONCIERGE_SECRET = "concierge-test-secret-0123456789";
+const CAMPAIGN_ID = "44444444-4444-4444-8444-444444444444";
+const REQUEST_ID_2 = "55555555-5555-4555-8555-555555555555";
+const CAMPAIGN = {
+  id: CAMPAIGN_ID, owner_id: OWNER, title: "Community Garden Book Stall",
+  summary: "A free book stall and seed library run by volunteers in our neighborhood garden.",
+  story: "Our garden has lent tools for years. This spring we are adding a book stall so neighbors can swap stories and seeds.",
+  category: "community", goal_amount: 2500,
+  cover_image_url: "https://cdn.example/garden-cover.jpg", status: "active",
+};
+
+function conciergeEnv(bucket) {
+  return {
+    ...baseEnv(bucket, undefined),
+    AI: undefined,
+    IFUND_VIDEO_PROVIDER: "executive-concierge",
+    CONCIERGE_PICKUP_SECRET: CONCIERGE_SECRET,
+  };
+}
+
+const conciergeHeaders = (secret = CONCIERGE_SECRET) => ({ "x-concierge-secret": secret });
+const pendingRequest = (headers = conciergeHeaders()) =>
+  new Request(API + "/api/ai/videos/concierge/pending", { headers });
+const completeRequest = (id, bytes, headers = {}) =>
+  new Request(API + "/api/ai/videos/concierge/jobs/" + id + "/complete", {
+    method: "POST",
+    headers: { "Content-Type": "video/mp4", ...conciergeHeaders(), ...headers },
+    body: bytes,
+  });
+const failRequest = (id, reason, headers = {}) =>
+  new Request(API + "/api/ai/videos/concierge/jobs/" + id + "/fail", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...conciergeHeaders(), ...headers },
+    body: JSON.stringify(reason === undefined ? {} : { reason }),
+  });
+
+test("concierge is selected only by the explicit switch and needs its pickup secret, not the AI binding", () => {
+  assert.equal(videoProviderId({ IFUND_VIDEO_PROVIDER: "executive-concierge" }), CONCIERGE_PROVIDER_ID);
+  const env = conciergeEnv(fakeBucket());
+  assert.equal(videoAIReady(env), true);
+  assert.equal(videoAIReady({ ...env, CONCIERGE_PICKUP_SECRET: undefined }), false);
+  assert.equal(videoAIReady({ ...env, CONCIERGE_PICKUP_SECRET: "too-short" }), false);
+  // No pilot quota applies to concierge jobs: a paid-only Wan model
+  // selection elsewhere never makes the concierge unready.
+  assert.equal(videoAIReady({ ...env, IFUND_VIDEO_MODEL: "wan2.2-t2v-plus" }), true);
+});
+
+test("campaign reference validation accepts a UUID campaign and rejects a malformed one", () => {
+  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID });
+  assert.equal(ok.campaignId, CAMPAIGN_ID);
+  assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: "not-a-uuid" }));
+});
+
+test("concierge submit builds the brief from the member's campaign and queues the job", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  const submitted = await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  assert.equal(submitted.status, 202);
+  const job = (await submitted.json()).job;
+  assert.equal(job.state, "awaiting_concierge");
+  assert.equal(job.provider, "executive-concierge");
+  assert.equal(job.campaign_id, CAMPAIGN_ID);
+  // The member-facing job never carries the brief itself.
+  assert.equal(job.brief, undefined);
+  // The allowance was reserved exactly like any other generation.
+  assert.deepEqual(service.state.reserveKinds, ["video"]);
+
+  const stored = service.jobs.get(OWNER + "/" + REQUEST_ID);
+  assert.equal(stored.state, "awaiting_concierge");
+  assert.match(stored.brief, /Community Garden Book Stall/);
+  assert.match(stored.brief, /Category: community/);
+  assert.match(stored.brief, /\$2,500/);
+  assert.match(stored.brief, /garden-cover\.jpg/);
+  assert.ok(stored.brief.includes(PROMPT));
+  assert.match(stored.brief, /5 seconds/);
+  assert.match(stored.brief, /no text, letters, logos or watermarks/);
+  assert.ok(stored.brief.length <= 4000);
+});
+
+test("concierge brief strips pleading and raw needs from campaign text and member direction", async () => {
+  const dirty = {
+    ...CAMPAIGN,
+    title: "Help Me Raise Money For The Garden",
+    story: "I need money for seeds and tools. The garden lends tools to forty families on our block.",
+  };
+  const service = fakeServices({ campaigns: [dirty] });
+  const env = conciergeEnv(fakeBucket());
+  const pleadingPrompt = "Please help me raise $2500 — I need money to buy myself new tools";
+  const submitted = await routeVideoGeneration(
+    generateRequest({ prompt: pleadingPrompt, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  assert.equal(submitted.status, 202);
+  const stored = service.jobs.get(OWNER + "/" + REQUEST_ID);
+  assert.doesNotMatch(stored.brief, /help me raise/i);
+  assert.doesNotMatch(stored.brief, /i need money/i);
+  assert.doesNotMatch(stored.brief, /buy myself/i);
+  // Clean campaign facts survive the scan.
+  assert.match(stored.brief, /forty families/);
+  assert.match(stored.brief, /Category: community/);
+  // And the stored brief is verifiably clean under the same scan.
+  const source = [dirty.title, dirty.summary, dirty.story, pleadingPrompt].join("\n");
+  assert.deepEqual(findPublicFacingViolations(stored.brief, source), []);
+});
+
+test("concierge brief builder carries the output constraints and the image reference", () => {
+  const brief = buildConciergeBrief({
+    campaign: CAMPAIGN, prompt: PROMPT, mode: "image",
+    imageUrl: "https://images.example.org/stall.jpg",
+    resolution: "720P", ratio: "9:16", duration: 7,
+  });
+  assert.match(brief, /7 seconds, 9:16 aspect, 720P/);
+  assert.match(brief, /Starting image supplied by the organizer/);
+  assert.match(brief, /images\.example\.org\/stall\.jpg/);
+  const bare = buildConciergeBrief({ prompt: PROMPT, resolution: "480P", ratio: "adaptive", duration: 5 });
+  assert.match(bare, /adaptive aspect/);
+  assert.ok(!bare.includes("Campaign:"));
+});
+
+test("a campaign that is not the member's own is refused and creates no job", async () => {
+  const foreign = { ...CAMPAIGN, owner_id: OTHER };
+  const service = fakeServices({ campaigns: [foreign] });
+  const env = conciergeEnv(fakeBucket());
+  const refused = await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  assert.equal(refused.status, 422);
+  assert.match((await refused.json()).error, /one of your own campaigns/);
+  assert.equal(service.jobs.size, 0);
+});
+
+test("concierge endpoints fail closed: unset secret is 503, missing or wrong secret is 401", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+
+  const missing = await routeVideoGeneration(pendingRequest({}), env, service.fetcher);
+  assert.equal(missing.status, 401);
+  const wrong = await routeVideoGeneration(
+    pendingRequest(conciergeHeaders("concierge-test-secret-9999999999")), env, service.fetcher);
+  assert.equal(wrong.status, 401);
+  const wrongComplete = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes(), conciergeHeaders("concierge-test-secret-9999999999")),
+    env, service.fetcher);
+  assert.equal(wrongComplete.status, 401);
+
+  const unconfigured = { ...env, CONCIERGE_PICKUP_SECRET: undefined };
+  const noSecret = await routeVideoGeneration(pendingRequest(), unconfigured, service.fetcher);
+  assert.equal(noSecret.status, 503);
+  const noSecretFail = await routeVideoGeneration(failRequest(REQUEST_ID, "x"), unconfigured, service.fetcher);
+  assert.equal(noSecretFail.status, 503);
+  // The job was never touched by any of the refused calls.
+  assert.equal(service.jobs.get(OWNER + "/" + REQUEST_ID).state, "awaiting_concierge");
+});
+
+test("pickup lists only queued concierge jobs, with briefs and output constraints", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID_2 }),
+    env, service.fetcher);
+  // A provider-route job in the same store is not part of the queue.
+  await routeVideoGeneration(generateRequest({
+    prompt: PROMPT, request_id: "66666666-6666-4666-8666-666666666666",
+  }), modelStudioEnv(fakeBucket()), service.fetcher);
+
+  const listed = await routeVideoGeneration(pendingRequest(), env, service.fetcher);
+  assert.equal(listed.status, 200);
+  const { jobs } = await listed.json();
+  assert.equal(jobs.length, 2);
+  const first = jobs.find((entry) => entry.request_id === REQUEST_ID);
+  assert.equal(first.campaign_id, CAMPAIGN_ID);
+  assert.match(first.brief, /Community Garden Book Stall/);
+  assert.deepEqual([first.resolution, first.ratio, first.duration_seconds], ["480P", "adaptive", 5]);
+  const second = jobs.find((entry) => entry.request_id === REQUEST_ID_2);
+  assert.equal(second.campaign_id, null);
+  assert.ok(second.brief.includes(PROMPT));
+});
+
+test("concierge lifecycle: pickup, return bytes, verified storage, allowance completed exactly once", async () => {
+  const bucket = fakeBucket();
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(bucket);
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+
+  const completed = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  assert.equal(completed.status, 200);
+  const job = (await completed.json()).job;
+  assert.equal(job.state, "completed");
+  assert.ok(job.media_id);
+  assert.equal(job.campaign_id, CAMPAIGN_ID);
+
+  // Stored exactly like an upload, for the job's owner.
+  assert.equal(service.media.length, 1);
+  const row = service.media[0];
+  assert.equal(row.id, job.media_id);
+  assert.equal(row.owner_id, OWNER);
+  assert.equal(row.content_kind, "video");
+  assert.equal(row.object_path, `private/member-media/${OWNER}/${job.media_id}.mp4`);
+  assert.equal(bucket.store.get(row.object_path)?.size, row.file_size);
+
+  // The allowance was completed through the trusted owner completion —
+  // never the member-JWT completion, which this path does not hold.
+  assert.equal(service.state.ownerCompleteCalls, 1);
+  assert.deepEqual(service.state.ownerCompleteBodies[0], {
+    p_owner_id: OWNER, p_request_id: REQUEST_ID, p_kind: "video",
+  });
+  assert.equal(service.state.completeCalls, 0);
+
+  // The member sees the finished video through the normal job API, and
+  // the queue is empty again.
+  const polled = await routeVideoGeneration(jobRequest(REQUEST_ID), env, service.fetcher);
+  const polledJob = (await polled.json()).job;
+  assert.equal(polledJob.state, "completed");
+  assert.equal(polledJob.media_id, job.media_id);
+  assert.ok(!JSON.stringify(polledJob).includes("brief"));
+  const listed = await routeVideoGeneration(pendingRequest(), env, service.fetcher);
+  assert.equal((await listed.json()).jobs.length, 0);
+});
+
+test("repeated concierge completion returns the recorded result without storing or completing twice", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  const first = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  const firstJob = (await first.json()).job;
+  const second = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes(4096)), env, service.fetcher);
+  assert.equal(second.status, 200);
+  const secondJob = (await second.json()).job;
+  assert.equal(secondJob.state, "completed");
+  assert.equal(secondJob.media_id, firstJob.media_id);
+  assert.equal(service.media.length, 1);
+  assert.equal(service.state.ownerCompleteCalls, 1);
+});
+
+test("invalid returned bytes are rejected, the job stays queued, and a retry can still complete it", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  const badBytes = new TextEncoder().encode("not a video at all, just text. ".repeat(80));
+  const rejected = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, badBytes), env, service.fetcher);
+  assert.equal(rejected.status, 503);
+  assert.match((await rejected.json()).error, /not a valid MP4/);
+  assert.equal(service.jobs.get(OWNER + "/" + REQUEST_ID).state, "awaiting_concierge");
+  assert.equal(service.media.length, 0);
+  assert.equal(service.state.ownerCompleteCalls, 0);
+
+  const retried = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  assert.equal((await retried.json()).job.state, "completed");
+  assert.equal(service.state.ownerCompleteCalls, 1);
+});
+
+test("concierge failure marks the job failed with the reason and completes no allowance", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  const failed = await routeVideoGeneration(
+    failRequest(REQUEST_ID, "The campaign photos were not usable for this video."),
+    env, service.fetcher);
+  assert.equal(failed.status, 200);
+  const job = (await failed.json()).job;
+  assert.equal(job.state, "failed");
+  assert.match(job.error, /photos were not usable/);
+  assert.equal(service.state.ownerCompleteCalls, 0);
+  assert.equal(service.state.completeCalls, 0);
+  assert.equal(service.media.length, 0);
+
+  // The member sees the same honest failure through the job API.
+  const polled = await routeVideoGeneration(jobRequest(REQUEST_ID), env, service.fetcher);
+  assert.equal((await polled.json()).job.state, "failed");
+
+  // Failing again is a no-op report; completing a failed job is refused.
+  const again = await routeVideoGeneration(
+    failRequest(REQUEST_ID, "a different reason"), env, service.fetcher);
+  assert.equal((await again.json()).job.error, job.error);
+  const lateComplete = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  assert.equal(lateComplete.status, 409);
+});
+
+test("member advance never runs a provider for a queued concierge job", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
+    env, service.fetcher);
+  const advanced = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, service.fetcher);
+  assert.equal(advanced.status, 200);
+  assert.equal((await advanced.json()).job.state, "awaiting_concierge");
+  assert.equal(service.jobs.get(OWNER + "/" + REQUEST_ID).state, "awaiting_concierge");
+});
+
+test("concierge completion for an unknown job or another provider's job is not found", async () => {
+  const service = fakeServices();
+  const env = conciergeEnv(fakeBucket());
+  const unknown = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  assert.equal(unknown.status, 404);
+  await routeVideoGeneration(generateRequest(), modelStudioEnv(fakeBucket()), service.fetcher);
+  const foreign = await routeVideoGeneration(
+    completeRequest(REQUEST_ID, mp4Bytes()), env, service.fetcher);
+  assert.equal(foreign.status, 404);
+  const foreignFail = await routeVideoGeneration(
+    failRequest(REQUEST_ID, "not yours"), env, service.fetcher);
+  assert.equal(foreignFail.status, 404);
+});
+
+test("status reports the concierge provider with no pilot data", async () => {
+  const service = fakeServices();
+  const status = await routeVideoGeneration(
+    new Request(API + "/api/ai/videos/status"), conciergeEnv(fakeBucket()), service.fetcher);
+  const body = await status.json();
+  assert.equal(body.videoGeneration, "enabled");
+  assert.equal(body.provider, "executive-concierge");
+  assert.equal(body.model, "executive-concierge");
+  assert.equal(body.pilot, undefined);
 });
