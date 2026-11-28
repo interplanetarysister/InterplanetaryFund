@@ -110,7 +110,13 @@ export function videoI2vModel(env) {
 // ever an explicit selection, and no code path falls back between
 // providers or spills into paid generation (see the pilot guard below).
 export function videoProviderId(env) {
-  if (env?.IFUND_VIDEO_PROVIDER === CONCIERGE_PROVIDER_ID) return CONCIERGE_PROVIDER_ID;
+  // Both the full provider id and the short 'concierge' value select the
+  // concierge: the owner's direction named the short form, and an
+  // unrecognized value silently falling back to the default provider
+  // would route member jobs to the wrong service without any error.
+  if (env?.IFUND_VIDEO_PROVIDER === CONCIERGE_PROVIDER_ID ||
+      env?.IFUND_VIDEO_PROVIDER === 'concierge')
+    return CONCIERGE_PROVIDER_ID;
   return env?.IFUND_VIDEO_PROVIDER === VIDEO_PROVIDER_ID
     ? VIDEO_PROVIDER_ID : MODEL_STUDIO_PROVIDER_ID;
 }
