@@ -110,7 +110,66 @@ export function refineEventKey(requestId) {
     bits.slice(12, 16).join("") + "-" + bits.slice(16, 20).join("") + "-" + changed;
 }
 
-export function buildGoalKnowledgePlan({ question = "", category = null, origin = "chat" } = {}) {
+// Subject identity (context-isolation repair, owner report 2026-11-27):
+// a member can refine SEVERAL goals, and knowledge refined for one goal
+// must never be silently applied to a discussion about another. Every plan
+// therefore records which campaign/goal it belongs to: the campaign id
+// when the flow knows it, otherwise a goal fingerprint (normalized goal
+// title + category) captured when the plan is prepared. The title comes
+// from the request when supplied, else from the member's own naming of the
+// goal in the refine request ("Deep research my goal: surgery bills").
+// Extraction is deliberately conservative: no explicit naming, no title —
+// an unattributed plan may still be offered later, but only labelled as
+// belonging to an earlier goal, never as the current topic's knowledge.
+const TITLE_PATTERNS = Object.freeze([
+  /(?:deep\s+research|research|refine(?:\s+knowledge)?(?:\s+about)?)\s+(?:my|this|the)\s+(?:goal|campaign|plan|fundraiser)\s*[:\-–—]\s*(.+)$/i,
+  /(?:my|this)\s+(?:goal|campaign|plan|fundraiser)\s*[:\-–—]\s*(.+)$/i,
+  /(?:goal|campaign|plan)\s*[:\-–—]\s*(.+)$/i,
+]);
+export function extractGoalTitle(text) {
+  const raw = String(text || "");
+  for (const pattern of TITLE_PATTERNS) {
+    const match = raw.match(pattern);
+    if (!match) continue;
+    const cleaned = match[1].replace(/\s+/g, " ").replace(/[\s.?!…]+$/u, "").trim().slice(0, 120);
+    const normalized = normalize(cleaned);
+    if (normalized.length >= 3 && !/^(it|this|that|my goal|my campaign|my plan)$/.test(normalized))
+      return cleaned;
+  }
+  return null;
+}
+
+export function goalFingerprint(goalTitle, category) {
+  const title = normalize(goalTitle || "");
+  return title ? title + "|" + (category || "general") : null;
+}
+
+// The subject block recorded on every new plan. Legacy plans (prepared
+// before this repair) have no subject block: they are attributable only
+// through their team-context event's campaign_id, if any.
+export function buildGoalSubject({ question = "", category = "general", campaignId = null, goalTitle = null } = {}) {
+  const explicit = typeof goalTitle === "string" && goalTitle.trim()
+    ? goalTitle.replace(/\s+/g, " ").trim().slice(0, 120) : null;
+  const title = explicit || extractGoalTitle(question);
+  return {
+    campaign_id: UUID.test(campaignId || "") ? campaignId : null,
+    goal_title: title,
+    category,
+    fingerprint: goalFingerprint(title, category),
+  };
+}
+
+export function goalSubjectLabel(subject) {
+  if (!subject) return "an earlier goal";
+  const title = subject.goal_title || subject.title;
+  if (typeof title === "string" && title.trim()) return '"' + title.trim() + '"';
+  const category = subject.category;
+  return category && category !== "general" && category !== "other"
+    ? `a ${String(category).replace(/_/g, " ")} goal`
+    : "an earlier goal";
+}
+
+export function buildGoalKnowledgePlan({ question = "", category = null, origin = "chat", campaignId = null, goalTitle = null } = {}) {
   const resolvedCategory = category || detectGoalCategory(question);
   const subject = resolvedCategory === "general" ? "this kind of goal" : `a ${resolvedCategory.replace(/_/g, " ")} goal`;
   return {
@@ -120,6 +179,7 @@ export function buildGoalKnowledgePlan({ question = "", category = null, origin 
     status: "prepared",
     origin,
     category: resolvedCategory,
+    subject: buildGoalSubject({ question, category: resolvedCategory, campaignId, goalTitle }),
     // Category-level questions only: the member's personal story and
     // circumstances are never part of what gets researched externally.
     research_questions: [
@@ -197,15 +257,135 @@ export function extractGoalKnowledgeFromHistory(events) {
   return best;
 }
 
+// Every prepared plan in a history window, newest first, with the team
+// event's own campaign association kept beside it: a plan recorded before
+// subject blocks existed can still be attributed through its event.
+export function parseGoalKnowledgePlans(events) {
+  if (!Array.isArray(events)) return [];
+  const found = [];
+  events.forEach((event, index) => {
+    const content = event?.content;
+    if (typeof content !== "string" || !content.includes("goal_knowledge_refinement")) return;
+    try {
+      const parsed = JSON.parse(content);
+      const plan = parsed?.goal_knowledge_refinement;
+      if (!plan || plan.kind !== "goal_knowledge_refinement" || plan.status !== "prepared") return;
+      const time = Date.parse(event.recorded_at || "");
+      found.push({ plan, recorded_at: event.recorded_at || null,
+        event_campaign_id: UUID.test(event.campaign_id || "") ? event.campaign_id : null,
+        stamp: Number.isFinite(time) ? time : 0, index });
+    } catch { /* not a plan record; keep scanning */ }
+  });
+  // Newest first; on identical stamps the later event in the window wins,
+  // mirroring extractGoalKnowledgeFromHistory's tie behaviour.
+  return found.sort((a, b) => (b.stamp - a.stamp) || (b.index - a.index));
+}
+
+const categoryCompatible = (a, b) =>
+  !a || !b || a === "general" || b === "general" || a === "other" || b === "other" || a === b;
+
+// Does this on-file plan belong to the subject under discussion? Campaign
+// identity wins outright; otherwise the goal fingerprint (normalized title,
+// category-compatible) must match. A plan that cannot be attributed to the
+// subject never matches it — that is the isolation guarantee.
+export function goalKnowledgeMatchesSubject(entry, subject) {
+  if (!entry?.plan || !subject) return false;
+  const planSubject = entry.plan.subject || {};
+  if (subject.campaign_id &&
+      (planSubject.campaign_id === subject.campaign_id ||
+       entry.event_campaign_id === subject.campaign_id)) return true;
+  const subjectTitle = normalize(subject.goal_title || "");
+  const planTitle = normalize(planSubject.goal_title || "");
+  if (!subjectTitle || !planTitle || subjectTitle !== planTitle) return false;
+  return categoryCompatible(subject.category || null,
+    planSubject.category || entry.plan.category || null);
+}
+
+const TITLE_STOPWORDS = new Set([
+  "the", "a", "an", "my", "this", "that", "for", "to", "of", "and", "or",
+  "with", "help", "please", "how", "should", "i", "we", "our", "your",
+  "goal", "campaign", "plan", "fundraiser", "fundraising", "raise",
+  "raising", "money", "support", "about", "what", "when", "first", "next",
+  "update", "updates", "post", "posts", "share", "write", "make", "get",
+]);
+const titleTokens = text => new Set(normalize(text || "").split(" ")
+  .filter(token => token.length >= 3 && !TITLE_STOPWORDS.has(token)));
+
+// Resolve which campaign/goal a discussion is about, strongest evidence
+// first: (a) an explicit campaign/goal identifier supplied with the
+// request; (b) the goal the member names in their own message, or the one
+// on-file goal their message demonstrably mentions; (c) none — the caller
+// must then label any fallback knowledge with the goal it belongs to.
+export function resolveDiscussionSubject({ campaignId = null, goalTitle = null, category = null, question = "", plans = [] } = {}) {
+  if (UUID.test(campaignId || ""))
+    return { resolved: true, via: "explicit_campaign",
+      subject: { campaign_id: campaignId, goal_title: goalTitle || null, category: category || null } };
+  const named = (typeof goalTitle === "string" && goalTitle.trim())
+    ? goalTitle.replace(/\s+/g, " ").trim().slice(0, 120) : extractGoalTitle(question);
+  if (named)
+    return { resolved: true, via: goalTitle ? "explicit_goal" : "question_title",
+      subject: { campaign_id: null, goal_title: named, category: category || detectGoalCategory(question) } };
+  const questionTokens = titleTokens(question);
+  if (questionTokens.size && Array.isArray(plans) && plans.length) {
+    const scored = plans
+      .map(entry => ({ entry, score: [...titleTokens(entry.plan.subject?.goal_title || "")]
+        .filter(token => questionTokens.has(token)).length }))
+      .filter(candidate => candidate.score > 0);
+    if (scored.length) {
+      const best = Math.max(...scored.map(candidate => candidate.score));
+      const winners = scored.filter(candidate => candidate.score === best);
+      if (winners.length === 1) {
+        const planSubject = winners[0].entry.plan.subject || {};
+        return { resolved: true, via: "question_mentions_goal",
+          subject: { campaign_id: planSubject.campaign_id || winners[0].entry.event_campaign_id || null,
+            goal_title: planSubject.goal_title || null,
+            category: planSubject.category || winners[0].entry.plan.category || null } };
+      }
+    }
+  }
+  return { resolved: false, via: null, subject: null };
+}
+
+// Scoped cross-referencing: pick the on-file knowledge FOR the resolved
+// subject. Outcomes:
+// - "match": a plan attributable to the subject (newest such plan).
+// - "none_for_subject": a subject is resolved but no plan belongs to it —
+//   the caller must say so and must not substitute another goal's plan.
+// - "unresolved": no subject could be resolved; the newest plan may be
+//   offered ONLY with its ownership label attached (see the summary's
+//   for_goal), never as the current topic's knowledge.
+// - "none_on_file": no prepared plan exists at all.
+export function selectGoalKnowledgeForDiscussion(events, subject) {
+  const plans = parseGoalKnowledgePlans(events);
+  if (!plans.length) return { state: "none_on_file", plan: null, entry: null, subject: subject || null };
+  if (!subject) return { state: "unresolved", plan: plans[0].plan, entry: plans[0], subject: null };
+  const match = plans.find(entry => goalKnowledgeMatchesSubject(entry, subject));
+  return match
+    ? { state: "match", plan: match.plan, entry: match, subject }
+    : { state: "none_for_subject", plan: null, entry: null, subject };
+}
+
 // Compact form of an on-file plan for a model message: enough for any agent
 // to apply the learned knowledge in discussion — the paths to favour, the
 // category practices, the questions the research set out to answer — without
 // re-sending the member's private wording.
-export function goalKnowledgeApplicationSummary(plan) {
+export function goalKnowledgeApplicationSummary(plan, { eventCampaignId = null } = {}) {
   if (!plan || plan.kind !== "goal_knowledge_refinement") return null;
   return {
     label: GOAL_KNOWLEDGE_LABEL,
     category: typeof plan.category === "string" ? plan.category : "general",
+    // Attribution: the goal this knowledge was refined for. Consumers must
+    // name it when they draw on the knowledge and must never present it as
+    // belonging to a different goal under discussion. A plan prepared
+    // before subject blocks existed is attributed through the campaign its
+    // team event was recorded under, when there is one.
+    for_goal: {
+      title: typeof plan.subject?.goal_title === "string" ? plan.subject.goal_title : null,
+      category: typeof plan.subject?.category === "string" ? plan.subject.category
+        : (typeof plan.category === "string" ? plan.category : "general"),
+      campaign_id: UUID.test(plan.subject?.campaign_id || "") ? plan.subject.campaign_id
+        : (UUID.test(eventCampaignId || "") ? eventCampaignId : null),
+    },
     knowledge_areas: Array.isArray(plan.knowledge_areas) ? plan.knowledge_areas.slice(0, 10) : [],
     brief_sections: Array.isArray(plan.brief_sections) ? plan.brief_sections.slice(0, 9) : [],
     research_questions: Array.isArray(plan.research_questions)
