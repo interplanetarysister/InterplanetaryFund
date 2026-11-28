@@ -205,7 +205,7 @@ export async function campaignPreview(request, env, fetcher = fetch) {
       // membership_required and the limits are expected account states, not
       // errors (D7). Copy mirrors the trial_limit branch and imageStudio.js.
       const denial={
-        trial_limit:[429,"Your 15 trial AI creations are used. View subscription plans for more AI, or write and publish manually for free."],
+        trial_limit:[429,"Your 15 free AI creations for this week are used. They refresh on a rolling 7-day cycle. View subscription plans for more AI, or write and publish manually for free."],
         membership_required:[403,"AI writing help needs a trial or a subscription with AI included. View subscription plans for more AI, or write and publish manually for free. Your current text is unchanged."],
         monthly_limit:[429,"You have reached this month's AI creation limit for your plan. Your current text is unchanged."],
       }[trialReceipt.code]||[503,"Your AI generation allowance could not be verified. Your current text is unchanged."];

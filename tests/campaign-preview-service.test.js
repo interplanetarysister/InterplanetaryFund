@@ -488,7 +488,7 @@ test("a regeneration denied by the allowance keeps the honest denial, not a brok
   assert.equal(limited.status, 429);
   const limitedBody = await limited.json();
   assert.equal(limitedBody.code, "trial_limit");
-  assert.match(limitedBody.error, /15 trial AI creations are used/);
+  assert.match(limitedBody.error, /15 free AI creations for this week are used/);
   assert.doesNotMatch(limitedBody.error, /could not be verified/);
   assert.equal(g.draftCalls.length, 1);
 });

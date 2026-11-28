@@ -16,9 +16,11 @@ async function invoke(env, jwt, name, payload, fetcher = fetch) {
   if (!response.ok) throw new Error("Your AI allowance could not be verified.");
   return response.json();
 }
-/** Account-level trial use is reserved before inference, completed only for
- * a validated generated item, and released on provider failures. Paid members
- * preserve their separately verified per-feature limits. */
+/** Account-level allowance use is reserved before inference, completed only
+ * for a validated generated item, and released on provider failures.
+ * Non-subscribers share the free weekly pool (15 generations per rolling
+ * 7 days across all generation kinds); paid members preserve their
+ * separately verified per-feature limits. */
 export async function reserveTrialContent(env,jwt,kind,requestId,fetcher=fetch) {
   const data=await invoke(env,jwt,"ifund_ai_content_reserve",
     {p_request_id:requestId,p_kind:kind},fetcher);
