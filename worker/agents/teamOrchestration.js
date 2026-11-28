@@ -23,12 +23,39 @@ export function planAgentConsultations({question,selected,recommendation}){
   }
   return [];
 }
+export const MAX_CONSULTATION_ANALYSIS_CHARS=3000;
+export const MAX_CONSULTATION_SUMMARY_CHARS=1600;
+// Clamp advisory text to a character bound instead of discarding it
+// (defect D1: model-output length variance must never fail a whole
+// consultation). The cut prefers the last sentence end in the latter half
+// of the window, then the last word boundary, and only cuts mid-word when
+// the text offers neither. Returns the (possibly shortened) text plus a
+// clamped flag so callers can mark the record.
+export function clampAdvisoryText(text,limit){
+  if(typeof text!=="string" || text.length<=limit) return {text,clamped:false};
+  const head=text.slice(0,limit);
+  const halfway=Math.floor(limit/2);
+  let cut=-1;
+  for(const match of head.matchAll(/[.!?](?=\s|$)/g)){
+    if(match.index+1>=halfway) cut=match.index+1;
+  }
+  if(cut<0){
+    const word=head.lastIndexOf(" ");
+    cut=word>=halfway?word:limit;
+  }
+  return {text:head.slice(0,cut).trimEnd(),clamped:true};
+}
 export function validateConsultation(raw,agent){
   if(!Object.hasOwn(TRAINING_ROLES,agent)) throw Error("Unknown specialist consultation.");
   const text=typeof raw==="string"?raw:raw?.response;
-  if(typeof text!=="string" || !text.trim() || text.trim().length>3000)
+  if(typeof text!=="string" || !text.trim())
     throw Error("The specialist did not return a valid advisory analysis.");
-  return {agent,status:"completed",kind:"advisory_analysis",summary:redactTeamCredentials(text.trim()).slice(0,1600)};
+  // An over-long analysis is clamped to the bound and marked, never thrown:
+  // the consultation completes with the clamped text (defect D1).
+  const bounded=clampAdvisoryText(text.trim(),MAX_CONSULTATION_ANALYSIS_CHARS);
+  return {agent,status:"completed",kind:"advisory_analysis",
+    summary:redactTeamCredentials(bounded.text).slice(0,MAX_CONSULTATION_SUMMARY_CHARS),
+    ...(bounded.clamped?{clamped:true}:{})};
 }
 export function nexusSynthesisMessages({question,consultations,history=[]}){
   if(!Array.isArray(consultations) || consultations.length<1 ||

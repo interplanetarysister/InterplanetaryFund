@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {planAgentConsultations,validateConsultation,nexusSynthesisMessages,MAX_NEXUS_SPECIALISTS} from "../worker/agents/teamOrchestration.js";
+import {planAgentConsultations,validateConsultation,clampAdvisoryText,nexusSynthesisMessages,MAX_NEXUS_SPECIALISTS} from "../worker/agents/teamOrchestration.js";
 import {routeTeamQuestion,validateTeamQuestion} from "../worker/agents/teamQuestion.js";
 const UID="11111111-1111-4111-8111-111111111111";
 const KEY="22222222-2222-4222-8222-222222222222";
@@ -9,7 +9,7 @@ const request=(question,agent="auto")=>new Request("https://ifund.test/api/agent
   method:"POST",headers:{authorization:"Bearer good.token","content-type":"application/json"},
   body:JSON.stringify({request_id:KEY,question,agent})
 });
-function harness({failure=false}={}){
+function harness({failure=false,longFirst=false}={}){
  const rpc=[],inferences=[];
  const fetcher=async(url)=>{
   if(url.endsWith("/auth/v1/user"))return Response.json({id:UID,email_confirmed_at:"2026-11-01T00:00:00Z",is_anonymous:false});
@@ -27,6 +27,8 @@ function harness({failure=false}={}){
    AI:{run:async(model,params)=>{
      inferences.push(params.messages);
      if(failure&&inferences.length===2)throw Error("Simulated specialist failure");
+     if(longFirst&&inferences.length===1)
+       return {response:"Verified evidence should be checked carefully before any claim is made. ".repeat(60)};
      return {response:"Verified costs and beneficiary story should be clearly separated from assumptions."};
    }}};
  return {fetcher,env,rpc,inferences};
@@ -76,10 +78,54 @@ test("failed consultation cannot be displayed as completed; quota released",asyn
 test("untrusted specialist text is bounded before NEXUS synthesis",()=>{
  const item=validateConsultation({response:"Evidence-based recommendations."},"story");
  assert.equal(item.status,"completed");
- assert.throws(()=>validateConsultation({response:"X".repeat(3001)},"story"),/valid advisory/);
+ assert.equal(item.clamped,undefined);
+ // D1 clamp: over-bound output completes, marked clamped — it no longer throws.
+ const over=validateConsultation({response:"X".repeat(3001)},"story");
+ assert.equal(over.status,"completed");
+ assert.equal(over.clamped,true);
+ assert.ok(over.summary.length<=1600);
+ // Exactly at the bound passes untouched and unmarked.
+ const exact=validateConsultation({response:"X".repeat(3000)},"story");
+ assert.equal(exact.status,"completed");
+ assert.equal(exact.clamped,undefined);
+ // Genuine failures still throw: empty output and unknown specialists.
+ assert.throws(()=>validateConsultation({response:""},"story"),/valid advisory/);
  assert.throws(()=>validateConsultation({response:"hello"},"unknown"),/Unknown/);
  assert.match(nexusSynthesisMessages({question:"x",consultations:[item]})[1].content,/story/);
  assert.throws(()=>nexusSynthesisMessages({question:"x",consultations:[]}),/Verified specialist/);
+});
+test("clamp cuts at sentence, then word, boundaries before ever cutting mid-word",()=>{
+ const sentence="Verified evidence should be checked carefully before any claim is made. ";
+ const raw=sentence.repeat(60).trim();
+ assert.ok(raw.length>3000);
+ const bounded=clampAdvisoryText(raw,3000);
+ assert.equal(bounded.clamped,true);
+ assert.ok(bounded.text.length<=3000);
+ assert.ok(bounded.text.endsWith("."),"sentence boundary preferred");
+ const words=clampAdvisoryText("aaaa bbbb cccc dddd eeee ffff",10);
+ assert.equal(words.text,"aaaa bbbb");
+ assert.equal(words.clamped,true);
+ const hard=clampAdvisoryText("x".repeat(50),10);
+ assert.equal(hard.text.length,10);
+ assert.equal(hard.clamped,true);
+ const atBound=clampAdvisoryText("x".repeat(3000),3000);
+ assert.equal(atBound.clamped,false);
+ assert.equal(atBound.text.length,3000);
+ const item=validateConsultation({response:raw},"orbit");
+ assert.equal(item.status,"completed");
+ assert.equal(item.clamped,true);
+});
+test("over-long specialist output completes the whole NEXUS question (D1 regression)",async()=>{
+ const h=harness({longFirst:true});
+ const response=await routeTeamQuestion(request("Please improve the campaign story and budget"),h.env,h.fetcher);
+ assert.equal(response.status,200);
+ const body=await response.json();
+ assert.deepEqual(h.rpc,["reserve","complete"]);
+ assert.equal(body.consultations.length,2);
+ assert.equal(body.consultations[0].agent,"orbit");
+ assert.equal(body.consultations[0].status,"completed");
+ assert.equal(body.consultations[0].clamped,true);
+ assert.equal(body.consultations[1].clamped,undefined);
 });
 test("agent interfaces render genuine service receipts with their governed icons",()=>{
  const trail=readFileSync(new URL("../apps/web/src/components/agents/AgentConsultationTrail.jsx",import.meta.url),"utf8");

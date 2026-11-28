@@ -9,7 +9,7 @@ const REQUEST=(question,token="good.token")=>new Request("https://ifund.test/api
 function harness({isAdmin=true,configured=true,agentFailure=false,assignment=null,alreadyReviewed=false,teamResult=null}={}){
  const calls=[];
  const fetcher=async(url,options={})=>{
-   const path=String(url);calls.push({path,method:options.method||"GET",auth:options.headers?.Authorization});
+   const path=String(url);calls.push({path,method:options.method||"GET",auth:options.headers?.Authorization,body:options.body});
    if(path.endsWith("/auth/v1/user"))return Response.json({id:USER,email_confirmed_at:"2026-11-01",is_anonymous:false});
    if(path.endsWith("/rpc/ifund_current_account_is_active"))return Response.json(true);
    if(path.endsWith("/rpc/ifund_current_user_is_verified_admin"))return Response.json(isAdmin);
@@ -78,9 +78,21 @@ test("each analysis failure stage names itself instead of one flattened message"
  assert.equal(tooManyResponse.status,503);
  assert.equal(tooManyBody.code,"ops_evidence_invalid");
  assert.equal(tooMany.calls.some(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages")),false);
+ // D1 clamp: an over-long NEXUS answer is clamped and the review completes
+ // and is stored — length variance no longer fails the whole review.
  const longAnswer=harness({teamResult:{agent:"nexus",answer:"x".repeat(6001),actions_performed:false,consultations:[]}});
- const longBody=await (await routeAgentOperations(REQUEST("Discuss the budget and story"),longAnswer.env,longAnswer.fetcher)).json();
- assert.equal(longBody.code,"ops_team_response_invalid");
+ const longResponse=await routeAgentOperations(REQUEST("Discuss the budget and story"),longAnswer.env,longAnswer.fetcher);
+ const longBody=await longResponse.json();
+ assert.equal(longResponse.status,200);
+ assert.equal(longBody.saved,1);
+ const storedPost=longAnswer.calls.find(c=>c.method==="POST"&&c.path.endsWith("/ifund_agent_operations_messages"));
+ assert.ok(storedPost);
+ const storedRecords=JSON.parse(storedPost.body);
+ assert.equal(storedRecords.length,1);
+ assert.ok(storedRecords[0].body.length<=4000);
+ // Exactly at the bound also passes.
+ const atBound=harness({teamResult:{agent:"nexus",answer:"y".repeat(6000),actions_performed:false,consultations:[]}});
+ assert.equal((await routeAgentOperations(REQUEST("Discuss the budget and story"),atBound.env,atBound.fetcher)).status,200);
 });
 test("private UI depends on server-verified admin role and never posts as an agent",()=>{
  const component=readFileSync(new URL("../apps/web/src/components/agents/AgentOperationsRoom.jsx",import.meta.url),"utf8");

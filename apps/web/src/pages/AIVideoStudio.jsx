@@ -43,6 +43,8 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
   const [pilot, setPilot] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [campaignId, setCampaignId] = useState("");
+  const [goalTitle, setGoalTitle] = useState("");
+  const [goalCategory, setGoalCategory] = useState("");
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
@@ -69,10 +71,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         if (Array.isArray(data?.pilot)) setPilot({ entries: data.pilot, expiresAt: data.pilot_expires_at || null });
       } })
       .catch(() => { if (mounted.current) setAvailability("not_configured"); });
-    // The concierge provider builds its brief from a campaign, so offer
-    // the member's own campaigns as the video's subject. A load failure
-    // simply leaves the picker empty — generation from a description
-    // alone still works.
+    // Every video is anchored to a subject: offer the member's own
+    // campaigns as that subject. A load failure simply leaves the picker
+    // empty — the member can still name a goal or plan as the subject,
+    // but a description alone is never enough to generate.
     listOwnerCampaigns(authClient())
       .then((rows) => { if (mounted.current) setCampaigns(Array.isArray(rows) ? rows : []); })
       .catch(() => { if (mounted.current) setCampaigns([]); });
@@ -103,7 +105,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         ? { body: JSON.stringify({
             prompt: prompt.trim(), resolution: effectiveResolution, ratio, duration,
             request_id: requestId.current,
-            ...(campaignId ? { campaign_id: campaignId } : {}),
+            ...(campaignId ? { campaign_id: campaignId } : goalTitle.trim()
+              ? { goal_title: goalTitle.trim(),
+                  ...(goalCategory.trim() ? { goal_category: goalCategory.trim() } : {}) }
+              : {}),
             ...(imageMode ? { image_url: imageUrl.trim(), rights_confirmed: rightsConfirmed } : {}),
           }) }
         : {}),
@@ -170,8 +175,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       setError("Confirm you have the right to animate that image before generating.");
       return;
     }
-    if (provider === "executive-concierge" && campaigns.length > 0 && !campaignId) {
-      setError("Choose the campaign this video is for — its story is what the video is prepared from.");
+    if (!campaignId && !goalTitle.trim()) {
+      setError(campaigns.length > 0
+        ? "Choose what this video is for — pick one of your campaigns, or name the goal or plan it promotes below."
+        : "Name the goal or plan this video promotes — videos are prepared from a campaign's story or your plan's context, never from a description alone.");
       return;
     }
     setBusy("generate"); setError(""); setMessage(""); setJob(null);
@@ -184,7 +191,7 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       if (finished.state === "failed")
         setError(finished.error || "The video provider could not finish this generation.");
       else if (finished.state === "awaiting_concierge")
-        setMessage("Your video is queued — the site AI is preparing it from your campaign. " +
+        setMessage("Your video is queued — the site AI is preparing it from your campaign or plan. " +
           "That takes a little while, not seconds; when it is ready it will be saved to your " +
           "private media library below, exactly like an upload.");
       else if (finished.state === "provider_completed")
@@ -255,12 +262,14 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         <h2 className="text-xl font-semibold">Video generation</h2>
         <p className="text-sm text-muted-foreground">
           {provider === "executive-concierge"
-            ? <>Generate a short original video for one of your campaigns. The site AI prepares it
-              from that campaign's own story plus your direction below, and the finished video is saved
+            ? <>Generate a short original video for one of your campaigns, or for a goal or plan you are
+              working on. The site AI prepares it
+              from that campaign's own story — or from your plan's name and category — plus your direction below, and the finished video is saved
               to your private media library — never to a public link — exactly like an upload.
               One generation uses one of your shared AI creations. Preparation is queued, not instant:
               it takes a little while, and the finished video appears in your library when it is ready.</>
-            : <>Generate a short original video with AI (Alibaba Wan models). One generation uses one of your shared
+            : <>Generate a short original video with AI (Alibaba Wan models) for one of your campaigns, or for a
+              goal or plan you name below. One generation uses one of your shared
               AI creations. The finished video is saved to your private media library — never to a public link —
               and can be attached to a social post or opened in the Editor, exactly like an upload.</>}
         </p>
@@ -276,7 +285,7 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         </p>
       )}
       <form onSubmit={generate} className="space-y-4">
-        {provider === "executive-concierge" && campaigns.length > 0 && (
+        {campaigns.length > 0 && (
           <label className="block text-sm font-medium">Campaign this video is for
             <select className={field} value={campaignId} disabled={Boolean(busy)}
               onChange={(e) => setCampaignId(e.target.value)}>
@@ -289,6 +298,26 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
               The video is prepared from this campaign's story, goal and cover image, plus your direction below.
             </span>
           </label>
+        )}
+        {!campaignId && (
+          <>
+            <label className="block text-sm font-medium">Goal or plan this video promotes
+              <input className={field} type="text" maxLength={120}
+                value={goalTitle} disabled={Boolean(busy)}
+                onChange={(e) => setGoalTitle(e.target.value)}
+                placeholder="e.g. A tools library for our neighborhood" />
+              <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                No campaign? Name the goal or plan instead — the video is prepared from its name
+                and category, plus your direction below. Every video needs a subject: a description alone is not enough.
+              </span>
+            </label>
+            <label className="block text-sm font-medium">Goal category (optional)
+              <input className={field} type="text" maxLength={60}
+                value={goalCategory} disabled={Boolean(busy)}
+                onChange={(e) => setGoalCategory(e.target.value)}
+                placeholder="e.g. community" />
+            </label>
+          </>
         )}
         <label className="block text-sm font-medium">Describe the video
           <textarea className={field} rows={3} minLength={20} maxLength={900} required

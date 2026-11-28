@@ -66,6 +66,13 @@ test("prompt is source-agnostic, advisory and redacts pasted credentials",()=>{
   assert.doesNotMatch(JSON.stringify(messages),/secret1234567890/);
   assert.equal(validateTeamAnswer({response:"Prepare a short outline first."},"story").actions_performed,false);
   assert.throws(()=>validateTeamAnswer({response:""},"story"));
+  // D1 clamp: an over-long answer is clamped to the 6,000-char bound and
+  // returned, never thrown away; exactly-at-bound passes untouched.
+  assert.equal(validateTeamAnswer({response:"x".repeat(6001)},"story").answer.length,6000);
+  assert.equal(validateTeamAnswer({response:"y".repeat(6000)},"story").answer.length,6000);
+  const sentenced=validateTeamAnswer({response:"A complete thought lands here. ".repeat(300)},"story");
+  assert.ok(sentenced.answer.length<=6000);
+  assert.ok(sentenced.answer.endsWith("."),"clamped answer keeps a sentence boundary");
 });
 test("a verified member can send a short greeting to an agent",async()=>{
   const backend=mockBackend();

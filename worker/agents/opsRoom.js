@@ -105,8 +105,12 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
    const analysis=await response.json().catch(()=>null);
    if(!response.ok || !analysis || !AGENTS.has(analysis.agent) ||
      analysis.actions_performed!==false || typeof analysis.answer!=="string" ||
-     !analysis.answer.trim() || analysis.answer.length>6000)
+     !analysis.answer.trim())
      fail(503,"The specialists could not complete a verified advisory review.","ops_team_response_invalid");
+   // An over-long NEXUS answer is clamped to the same 6,000-char bound the
+   // question endpoint enforces (defect D1: length variance is not a failed
+   // review), never a reason to discard a completed, verified review.
+   const teamAnswer=analysis.answer.trim().slice(0,6000);
    const consultations=Array.isArray(analysis.consultations) ? analysis.consultations : [];
    if(consultations.length>2 || consultations.some(c=>!AGENTS.has(c.agent) ||
      c.agent==="nexus" || c.status!=="completed" ||
@@ -118,7 +122,7 @@ export async function routeAgentOperations(request,env,fetcher=fetch){
      event_type:"analysis",source_kind:"verified_agent_runtime",source_receipt:receipt+":"+c.agent
    })),{
      thread_id:ROOM,speaker_type:"agent",agent_id:analysis.agent,
-     body:analysis.answer.trim().slice(0,4000),event_type:"result",
+     body:teamAnswer.slice(0,4000),event_type:"result",
      source_kind:"verified_agent_runtime",source_receipt:receipt+":"+analysis.agent
    }];
    const saved=await privateRoomCall(env,env.SUPABASE_SECRET_KEY,"POST",

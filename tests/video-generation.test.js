@@ -7,6 +7,7 @@ import {
   VIDEO_MODEL, VIDEO_I2V_MODEL, CONCIERGE_PROVIDER_ID, buildConciergeBrief,
 } from "../worker/videoGeneration.js";
 import { findPublicFacingViolations } from "../apps/web/src/lib/campaignCopyQuality.mjs";
+import { goalFingerprint } from "../worker/agents/goalKnowledge.js";
 
 const API = "https://interplanetaryfund.com";
 const OWNER = "11111111-1111-4111-8111-111111111111";
@@ -14,6 +15,7 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const JWT = "header.payload.signature-0123456789abcdef";
 const REQUEST_ID = "33333333-3333-4333-8333-333333333333";
 const PROMPT = "A slow sunrise over a community garden book stall";
+const GOAL_TITLE = "Community garden tools library plan";
 
 function mp4Bytes(size = 2048) {
   const bytes = new Uint8Array(size);
@@ -167,7 +169,10 @@ function baseEnv(bucket, ai) {
   };
 }
 
-const generateRequest = (body = { prompt: PROMPT, request_id: REQUEST_ID }, headers = {}) =>
+// The default request carries a goal/plan subject: since the media-anchor
+// rule, every generation must name its subject (a campaign, or a goal or
+// plan). Tests that exercise the anchor itself pass explicit bodies.
+const generateRequest = (body = { prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE }, headers = {}) =>
   new Request(API + "/api/ai/videos/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + JWT, ...headers },
@@ -211,9 +216,11 @@ test("request validation rejects short prompts, bad references and unknown field
   assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, provider: "other" }));
   assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, resolution: "4K" }));
   assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, duration: 30 }));
-  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID });
+  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE });
   assert.deepEqual([ok.resolution, ok.ratio, ok.duration], ["480P", "adaptive", 5]);
   assert.equal(ok.mode, "text");
+  assert.equal(ok.goalTitle, GOAL_TITLE);
+  assert.equal(ok.goalSubject, goalFingerprint(GOAL_TITLE, undefined));
 });
 
 test("image-to-video requires a public https image link and a rights confirmation", () => {
@@ -228,7 +235,7 @@ test("image-to-video requires a public https image link and a rights confirmatio
   assert.throws(() => validateVideoRequest({
     prompt: PROMPT, request_id: REQUEST_ID, image_url: image, rights_confirmed: true, resolution: "480P",
   }), /720P or 1080P/);
-  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, image_url: image, rights_confirmed: true });
+  const ok = validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE, image_url: image, rights_confirmed: true });
   assert.equal(ok.mode, "image");
   assert.equal(ok.imageUrl, image);
   assert.equal(ok.resolution, "720P");
@@ -241,7 +248,7 @@ test("image-to-video lifecycle runs the I2V model with the image link and stores
   const service = fakeServices();
   const env = baseEnv(bucket, goodAi(counter));
   const imageRequest = generateRequest({
-    prompt: PROMPT, request_id: REQUEST_ID,
+    prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE,
     image_url: "https://images.example.org/stall.jpg", rights_confirmed: true,
   });
   const submitted = await routeVideoGeneration(imageRequest, env, service.fetcher);
@@ -274,7 +281,7 @@ test("unauthenticated and consent-denied submits never reach the allowance or pr
   const anonymous = await routeVideoGeneration(
     new Request(API + "/api/ai/videos/generate", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: PROMPT, request_id: REQUEST_ID }),
+      body: JSON.stringify({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE }),
     }),
     env, service.fetcher);
   assert.equal(anonymous.status, 401);
@@ -712,6 +719,75 @@ test("campaign reference validation accepts a UUID campaign and rejects a malfor
   assert.throws(() => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: "not-a-uuid" }));
 });
 
+test("subject anchor: a video request with no campaign and no goal subject is refused", () => {
+  // The media-anchor rule (owner directive, 2026-11-28): generation is
+  // always attached to a selected subject — a campaign, or a named goal
+  // or plan — and prepared from that subject's context. A description
+  // alone is not a subject.
+  assert.throws(
+    () => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID }),
+    /Choose what this video is for first/);
+  assert.throws(
+    () => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: "   " }),
+    /Name the goal or plan this video promotes/);
+  assert.throws(
+    () => validateVideoRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: "x".repeat(121) }),
+    /Name the goal or plan this video promotes/);
+  // A goal subject carries the PR #402 fingerprint shape.
+  const goal = validateVideoRequest({
+    prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE, goal_category: "community",
+  });
+  assert.equal(goal.goalSubject, goalFingerprint(GOAL_TITLE, "community"));
+  assert.equal(goal.campaignId, null);
+});
+
+test("subject anchor: a subject-less submit is refused before any allowance is reserved", async () => {
+  const service = fakeServices({ campaigns: [CAMPAIGN] });
+  const env = conciergeEnv(fakeBucket());
+  const refused = await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID }),
+    env, service.fetcher);
+  assert.equal(refused.status, 422);
+  assert.match((await refused.json()).error, /Choose what this video is for first/);
+  assert.deepEqual(service.state.reserveKinds, []);
+  assert.equal(service.jobs.size, 0);
+});
+
+test("concierge submit with a goal subject builds the brief from the plan and queues the job", async () => {
+  const service = fakeServices();
+  const env = conciergeEnv(fakeBucket());
+  const submitted = await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE, goal_category: "community" }),
+    env, service.fetcher);
+  assert.equal(submitted.status, 202);
+  const job = (await submitted.json()).job;
+  assert.equal(job.state, "awaiting_concierge");
+  assert.equal(job.campaign_id, null);
+  assert.equal(job.goal_title, GOAL_TITLE);
+  const stored = service.jobs.get(OWNER + "/" + REQUEST_ID);
+  assert.equal(stored.goal_title, GOAL_TITLE);
+  assert.equal(stored.goal_category, "community");
+  assert.match(stored.brief, /personal goal or plan on Interplanetary Fund/);
+  assert.match(stored.brief, new RegExp("Goal or plan this video promotes: " + GOAL_TITLE));
+  assert.match(stored.brief, /Category: community/);
+  assert.ok(stored.brief.includes(PROMPT));
+  assert.deepEqual(service.state.reserveKinds, ["video"]);
+});
+
+test("provider submit with a goal subject records the anchor on the job", async () => {
+  const counter = { calls: 0 };
+  const service = fakeServices();
+  const env = baseEnv(fakeBucket(), goodAi(counter));
+  const submitted = await routeVideoGeneration(
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, goal_title: GOAL_TITLE }),
+    env, service.fetcher);
+  assert.equal(submitted.status, 202);
+  const stored = service.jobs.get(OWNER + "/" + REQUEST_ID);
+  assert.equal(stored.state, "submitted");
+  assert.equal(stored.goal_title, GOAL_TITLE);
+  assert.equal(stored.campaign_id, undefined);
+});
+
 test("concierge submit builds the brief from the member's campaign and queues the job", async () => {
   const service = fakeServices({ campaigns: [CAMPAIGN] });
   const env = conciergeEnv(fakeBucket());
@@ -824,11 +900,11 @@ test("pickup lists only queued concierge jobs, with briefs and output constraint
     generateRequest({ prompt: PROMPT, request_id: REQUEST_ID, campaign_id: CAMPAIGN_ID }),
     env, service.fetcher);
   await routeVideoGeneration(
-    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID_2 }),
+    generateRequest({ prompt: PROMPT, request_id: REQUEST_ID_2, goal_title: GOAL_TITLE }),
     env, service.fetcher);
   // A provider-route job in the same store is not part of the queue.
   await routeVideoGeneration(generateRequest({
-    prompt: PROMPT, request_id: "66666666-6666-4666-8666-666666666666",
+    prompt: PROMPT, request_id: "66666666-6666-4666-8666-666666666666", goal_title: GOAL_TITLE,
   }), modelStudioEnv(fakeBucket()), service.fetcher);
 
   const listed = await routeVideoGeneration(pendingRequest(), env, service.fetcher);
@@ -841,6 +917,7 @@ test("pickup lists only queued concierge jobs, with briefs and output constraint
   assert.deepEqual([first.resolution, first.ratio, first.duration_seconds], ["480P", "adaptive", 5]);
   const second = jobs.find((entry) => entry.request_id === REQUEST_ID_2);
   assert.equal(second.campaign_id, null);
+  assert.match(second.brief, /Goal or plan this video promotes/);
   assert.ok(second.brief.includes(PROMPT));
 });
 

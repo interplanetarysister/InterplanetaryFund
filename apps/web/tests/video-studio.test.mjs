@@ -86,6 +86,17 @@ test("video studio component carries the concierge queue honestly", () => {
   assert.match(component, /Your video is queued/);
 });
 
+test("video studio requires a subject: a campaign, or a named goal or plan", () => {
+  const component = read("../src/pages/AIVideoStudio.jsx");
+  // The media-anchor rule on the client: with no campaign chosen, the
+  // goal/plan subject fields are offered and ride the generate request;
+  // the generate guard refuses a description alone for every provider.
+  assert.match(component, /Goal or plan this video promotes/);
+  assert.match(component, /goal_title: goalTitle/);
+  assert.match(component, /Choose what this video is for/);
+  assert.match(component, /never from a description alone/);
+});
+
 test("videos Pages Function forwards the concierge pickup routes to the handler", async () => {
   const env = {}; // no pickup secret configured: the handler fails closed, not 404
   const pending = await onRequest({
