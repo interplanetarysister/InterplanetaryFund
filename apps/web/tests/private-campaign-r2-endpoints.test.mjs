@@ -153,3 +153,24 @@ test("unsigned or foreign-origin upload/deletion is fail-closed before R2 writes
  }),s.env,s.fetcher);
  assert.equal(wrongOrigin.status,403);assert.equal(s.objects.size,0);
 });
+
+test("private document delivery rechecks account, campaign, deletion and receipt after R2 read",async()=>{
+ for(const [change,expected] of [["account",403],["campaign",404],["deletion",404],["receipt",409]]){
+  const s=fixture(),base="/api/media/documents/"+CAMPAIGN;
+  const create=await routePrivateDocuments(s.request(base,"POST",{body:PDF,headers:{"content-type":"application/pdf","x-ifund-document-meta":encodeURIComponent(JSON.stringify({file_name:"budget.pdf",purpose:"general",summary:"",owner_excerpt:"",allow_agent_use:false}))}}),s.env,s.fetcher);
+  assert.equal(create.status,201);const {id}=await create.json();
+  const bucket=s.env.IFUND_CAMPAIGN_MEDIA,get=bucket.get;let changed=false,cancelled=false;
+  bucket.get=async key=>{const object=await get(key);changed=true;
+   if(change==="deletion")s.rows.get(id).deletion_requested_at=new Date().toISOString();
+   if(change==="receipt")s.rows.get(id).object_etag="new-etag";
+   return {...object,body:new ReadableStream({cancel(){cancelled=true;}})};
+  };
+  const fetcher=async(url,opts)=>{
+   if(changed&&change==="account"&&url.includes("/ifund_profiles?"))return Response.json([{account_status:"active",account_deletion_pending:true}]);
+   if(changed&&change==="campaign"&&url.includes("/ifund_campaigns?"))return Response.json([]);
+   return s.fetcher(url,opts);
+  };
+  const result=await routePrivateDocuments(s.request(base+"/"+id),s.env,fetcher);
+  assert.equal(result.status,expected);assert.equal(cancelled,true);assert.equal(s.objects.size,1);
+ }
+});
