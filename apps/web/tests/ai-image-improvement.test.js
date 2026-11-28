@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { routeImageImprove, IMAGE_EDIT_MODEL } from "../../../worker/imageImprove.js";
+import { IMAGE_TEXT_MODEL } from "../../../worker/imageTextCheck.js";
 import { decodeGeneratedArtwork } from "../src/lib/imageArtwork.mjs";
 
 const owner="11111111-1111-4111-8111-111111111111";
@@ -33,6 +34,7 @@ function services(quota=true,verified=true,aiAllowed=true) {
 test("a real member's explicitly approved small reference photo reaches the configured Workers AI model only after quota",async()=>{
  const svc=services();
  const enabled={...env,AI:{run:async (model,args)=>{
+  if(model===IMAGE_TEXT_MODEL) return {response:"NONE"};
   assert.equal(model,IMAGE_EDIT_MODEL);
   assert.equal(args.multipart.contentType.startsWith("multipart/form-data; boundary="),true);
   assert.equal(svc.calls.length,4,"verified member, consent and both generation quotas must precede inference");
