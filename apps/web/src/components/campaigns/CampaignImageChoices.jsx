@@ -3,6 +3,7 @@ import {authClient} from "@/api/auth";
 import {decodeGeneratedArtwork} from "@/lib/imageArtwork.mjs";
 import {overlayExactArtworkCaption} from "@/lib/exactArtworkCaption.mjs";
 import {uploadCampaignCover} from "@/api/campaignCovers";
+import {suggestCaption} from "@/api/captionSuggestions";
 
 const STYLES=[["interstellar","Interstellar"],["futuristic","Futuristic"],["cyberpunk","Cyberpunk"],["comic","Comic illustration"]];
 export default function CampaignImageChoices({title,description,onApply,disabled=false,initialStyle="interstellar",initialCaption="",onSettingsChange}){
@@ -63,6 +64,21 @@ export default function CampaignImageChoices({title,description,onApply,disabled
   }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Could not generate artwork.");}
   finally{busy.current=false;if(alive.current)setStatus("idle");}
  }
+ async function suggestWording(){
+  if(busy.current||disabled||status!=="idle")return;
+  if(title.trim().length<4){setError("Add your campaign title first, then ask AI for caption wording.");return;}
+  busy.current=true;setStatus("caption");setError("");setMessage("");
+  const token=++id.current;
+  try{
+   const result=await suggestCaption({title,description,kind:"image"});
+   if(!alive.current||token!==id.current)return;
+   updateCaption(result.caption.slice(0,100));clear();
+   setMessage(result.source==="fallback"
+    ?"AI wording was not usable, so your campaign title was filled in instead. Edit it freely — only the exact text in the box is ever printed."
+    :"AI drafted the wording in the box. Suggestions are checked for real words and public-facing wording. Review and edit before creating your artwork.");
+  }catch(cause){if(alive.current&&token===id.current)setError(cause?.message||"Caption suggestions are currently unavailable.");}
+  finally{busy.current=false;if(alive.current)setStatus("idle");}
+ }
  async function apply(){
   if(busy.current||disabled||!file)return;
   busy.current=true;setStatus("uploading");setError("");
@@ -85,10 +101,11 @@ export default function CampaignImageChoices({title,description,onApply,disabled
     </select>
    </label>
    <label className="mt-3 block text-sm font-medium">Image words (optional, exact spelling)
-     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{updateCaption(e.target.value);clear();}} placeholder="Approved words only; no AI lettering" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
+     <input value={caption} maxLength={100} spellCheck={true} disabled={disabled||status!=="idle"} onChange={e=>{updateCaption(e.target.value);clear();}} placeholder="Your exact words, or an AI suggestion you approve" className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
    </label>
    <button type="button" disabled={disabled||status!=="idle"} onClick={()=>{const value=title.slice(0,100);updateCaption(value);clear();}} className="mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">Use campaign title exactly</button>
-   <p className="mt-2 text-xs text-muted-foreground">The image model draws without lettering; iFund adds these exact words using a regular font after generation. You can correct the phrase before creating your artwork.</p>
+   <button type="button" disabled={disabled||status!=="idle"} onClick={suggestWording} className="ml-2 mt-2 min-h-11 rounded-lg border border-border px-3 text-sm">{status==="caption"?"Asking AI…":"Suggest wording with AI"}</button>
+   <p className="mt-2 text-xs text-muted-foreground">The image model draws without lettering; iFund adds the approved words using a regular font after generation. Type your own phrase, use the title, or let AI draft wording — every AI suggestion is checked to contain only real words, and you approve the final phrase before creating your artwork.</p>
    <button type="button" onClick={generate} disabled={disabled||status!=="idle"} className="mt-3 min-h-11 rounded-xl bg-cyan-600 px-4 font-semibold text-white disabled:opacity-50">
      {status==="generating"?"Creating illustration…":"Generate illustration"}
    </button>

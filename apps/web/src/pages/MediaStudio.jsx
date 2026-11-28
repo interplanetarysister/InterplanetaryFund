@@ -6,6 +6,7 @@ import {deleteCampaignCover} from "@/api/campaignMedia.js";
 import PrivateMediaLibrary from "@/components/media/PrivateMediaLibrary";
 import StoredCoverLibrary from "@/components/media/StoredCoverLibrary";
 import AIImageStudio from "./AIImageStudio";
+import AIVideoStudio from "./AIVideoStudio";
 import {
   AUDIO_LAYERS,
   AUDIO_PRESETS,
@@ -90,9 +91,13 @@ function downloadBlob(blob, filename) {
  * social posts, campaigns and marketing. Generator and Editor are separate
  * tabs; generated or uploaded items move into the Editor. Image generation
  * reuses the existing AI Image Studio — no second generator is built here.
- * Video generation has no provider wired into iFund, so the Generator says
- * so instead of faking it. Audio is mixed in this browser with the Web
- * Audio API; there is no audio backend. Viewing controls under the video
+ * Video generation is wired to Cloudflare Workers AI behind the owner's
+ * enable flag (the video model is billed per second, unlike the free
+ * Neuron allocation), and the Generator reports the real state — enabled,
+ * generating, saved, or not enabled — instead of faking it. Generated
+ * videos are stored in the member's private media library. Audio is mixed
+ * in this browser with the Web Audio API; there is no audio backend.
+ * Viewing controls under the video
  * change the live preview the moment they move.
  */
 export default function MediaStudio() {
@@ -570,15 +575,12 @@ export default function MediaStudio() {
               sendToEditor(item);
             }}
           />
-          <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Video generation status">
-            <h2 className="text-xl font-semibold">Video generation</h2>
-            <p className="text-sm text-muted-foreground">
-              Video generation is not connected yet. iFund has no video-generation provider wired in — image
-              generation above is live through Cloudflare Workers AI, but there is no video model to call, so
-              this Studio does not pretend to generate a video. Upload a video you already have in the Editor
-              tab to frame it, adjust how it looks, and download a frame still.
-            </p>
-          </section>
+          <AIVideoStudio
+            onSendToEditor={({ file, url }) => {
+              const item = addItem({ file, url, name: file?.name || "Generated video", kind: "video", source: "generated" });
+              sendToEditor(item);
+            }}
+          />
         </div>
       )}
 
