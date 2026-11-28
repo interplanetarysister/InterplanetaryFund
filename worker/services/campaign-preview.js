@@ -190,11 +190,18 @@ export async function campaignPreview(request, env, fetcher = fetch) {
     }
     trialJwt=bearer.slice(7);
     trialReceipt=await reserveTrialContent(env,trialJwt,"campaign_story",input.request_id,fetcher);
-    if(!trialReceipt.allowed) return json(
-      trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
-      {code:trialReceipt.code,error:trialReceipt.code==="trial_limit"
-        ?"Your 15 trial AI creations are used. View subscription plans for more AI, or write and publish manually for free."
-        :"Your AI generation allowance could not be verified. Your current text is unchanged."});
+    if(!trialReceipt.allowed){
+      // Each denial state gets its own status and explanation. Only a genuine
+      // verification failure (unavailable) may say "could not be verified";
+      // membership_required and the limits are expected account states, not
+      // errors (D7). Copy mirrors the trial_limit branch and imageStudio.js.
+      const denial={
+        trial_limit:[429,"Your 15 trial AI creations are used. View subscription plans for more AI, or write and publish manually for free."],
+        membership_required:[403,"AI writing help needs a trial or a subscription with AI included. View subscription plans for more AI, or write and publish manually for free. Your current text is unchanged."],
+        monthly_limit:[429,"You have reached this month's AI creation limit for your plan. Your current text is unchanged."],
+      }[trialReceipt.code]||[503,"Your AI generation allowance could not be verified. Your current text is unchanged."];
+      return json(denial[0],{code:trialReceipt.code,error:denial[1]});
+    }
     url.pathname = "/api/agents/story/drafts";
     const response = await env.IFUND_STORY_AGENT.fetch(
       new Request(url, {
