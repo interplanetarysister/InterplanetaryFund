@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { isNativeBundle } from "@/lib/nativeApi";
+import { authClient } from "@/api/auth";
 
 const PLAN_NAMES = {
   basic: "Interplanetary Fund Premium",
@@ -20,6 +21,17 @@ function price(plan) {
 export default function PublicSubscriptionPlans() {
   const [state, setState] = useState({ phase: "loading", plans: [], error: "" });
   const [retry, setRetry] = useState(0);
+  // The catalog stays public, but the enrollment CTA must respect the
+  // visitor's session: a signed-in member goes straight to /subscriptions,
+  // never back through /login. null = not resolved yet (render the guest CTA).
+  const [signedIn, setSignedIn] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    authClient().auth.getSession()
+      .then(({ data, error }) => { if (!cancelled) setSignedIn(!error && Boolean(data?.session)); })
+      .catch(() => { if (!cancelled) setSignedIn(false); });
+    return () => { cancelled = true; };
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     setState({ phase: "loading", plans: [], error: "" });
@@ -61,7 +73,9 @@ export default function PublicSubscriptionPlans() {
             <p className="text-2xl font-bold">{price(plan)}</p>
             <p className="text-sm">{available ? "PayPal billing verified for enrollment" : "Enrollment unavailable — provider verification pending"}</p>
             {plan.tier==="basic"&&<p className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3 text-sm">Optional campaign email: <strong>+$1/month</strong>. Requires a verified paid Basic subscription and a separate email add-on payment. Addresses are inactive until the provider and routing are verified.</p>}
-            {available && !native ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>
+            {available && !native ? (signedIn
+              ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to="/subscriptions">Subscribe</Link>
+              : <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>)
               : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground">Not accepting enrollment</span>}
           </article>;
         })}
