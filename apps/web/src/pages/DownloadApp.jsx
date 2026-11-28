@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, Smartphone, MonitorDown, ArrowLeft } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -9,6 +9,7 @@ export default function DownloadApp() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
   const [message, setMessage] = useState("");
+  const instructionsRef = useRef(null);
 
   useEffect(() => {
     const isInstalled = window.matchMedia("(display-mode: standalone)").matches
@@ -32,7 +33,20 @@ export default function DownloadApp() {
   }, []);
 
   const requestInstall = async () => {
-    if (!installPrompt) return;
+    if (!installPrompt) {
+      // No deferred prompt: Safari never fires beforeinstallprompt, and
+      // Chrome/Edge only fire it when the install criteria are met, so the
+      // button stays visible and points at the per-device steps instead of
+      // disappearing. It never claims an install happened.
+      const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || "");
+      setMessage(
+        isIOS
+          ? "On iPhone or iPad, use Safari's Share menu, then Add to Home Screen — the steps are below."
+          : "Your browser doesn't offer a one-tap install here yet — use its menu to install IFund. The steps for your device are below.",
+      );
+      instructionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     try {
       await installPrompt.prompt();
       const choice = await installPrompt.userChoice;
@@ -56,19 +70,15 @@ export default function DownloadApp() {
         <h2 className="mt-3 text-xl font-semibold">Install the web app</h2>
         {installed ? (
           <p className="mt-3 text-sm text-muted-foreground" role="status">IFund is already installed on this device.</p>
-        ) : installPrompt ? (
+        ) : (
           <button type="button" onClick={requestInstall}
             className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground hover:opacity-90">
             <Download className="h-5 w-5" /> Install IFund
           </button>
-        ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Open this page in Chrome, Edge, or Safari and follow the steps below to add IFund.
-          </p>
         )}
         {message && <p className="mt-3 text-sm" role="status">{message}</p>}
       </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div ref={instructionsRef} className="mt-8 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-border p-5">
           <Smartphone className="h-6 w-6 text-primary" aria-hidden="true" />
           <h2 className="mt-3 text-lg font-semibold">Phone or tablet</h2>
