@@ -5,6 +5,8 @@ import {
   freeCopyOutlineOptions, findRedundantCampaignOptions,
   requireDistinctCampaignOptions, findEchoedSentences,
   EXPERT_CAMPAIGN_WRITER_METHOD, ANTI_ECHO_RULES,
+  PUBLIC_FACING_DISCRETION_RULES, findPublicFacingViolations,
+  findCampaignCopyDiscretionViolations, stripPublicFacingViolations,
 } from "../apps/web/src/lib/campaignCopyQuality.mjs";
 import { storyMessages, storyOutput } from "../worker/agents/story.js";
 import { campaignPreviewInput,basicCampaignOutline } from "../worker/services/campaign-preview.js";
@@ -103,4 +105,65 @@ test("echo detection flags organizer sentences restated in generated copy",()=>{
  const messages=storyMessages({details,section:null},{research:null});
  assert.match(messages[0].content,/UNDERSTAND/);
  assert.match(messages[0].content,/Do not reuse the organizer's sentences/);
+});
+test("public-facing discretion catches pleading, internal objectives, amount begging and self-purchase framing",()=>{
+ const cases=[
+  ["I need money to keep the lights on this winter.",/pleading/],
+  ["We need users for Interplanetary Fund to keep growing.",/internal_objective/],
+  ["Help me raise $10,000 for the youth center roof.",/pleading/],
+  ["Please donate to me so I can fix my truck.",/pleading/],
+  ["Your gift will buy myself a car for the commute.",/self_purchase/],
+  ["We need to raise $5,000 for the van repairs.",/amount_pleading/],
+  ["Help us raise $2,000 for the shelter this month.",/amount_pleading/],
+  ["Give me money and I will put it to good use.",/pleading/],
+  ["The platform needs users before it can expand.",/internal_objective/],
+ ];
+ for(const [text] of cases)
+  assert.ok(findPublicFacingViolations(text,"").length>=1,text);
+ assert.equal(findPublicFacingViolations("Help me raise $10,000 for the youth center roof.","")[0].rule,"pleading");
+ assert.equal(findPublicFacingViolations("Your gift will buy myself a car for the commute.","")[0].rule,"self_purchase");
+});
+test("public-facing discretion passes honest narrative, beneficiary needs and impact framing",()=>{
+ const passing=[
+  "After my accident I couldn't get to work, and the bus does not run to the warehouse district.",
+  "I needed help learning to walk again, and the county clinic guided every step of my recovery.",
+  "Maria needs a wheelchair-accessible van to reach her dialysis appointments three times a week.",
+  "We need volunteers to staff the food bank on Saturdays and sort donations on Sundays.",
+  "Your $25 covers a week of groceries for one family in the neighborhood.",
+  "Help us raise awareness for childhood cancer screening in rural clinics.",
+  "The contractor quoted $10,000: materials, labor and repair of the water damage underneath.",
+  "Together we can raise the roof fund one bundle of shingles at a time.",
+  "When the goal is met, every kid in the program gets a safe ride home after practice.",
+ ];
+ for(const text of passing)
+  assert.deepEqual(findPublicFacingViolations(text,""),[],text);
+});
+test("raw-need echoes of the organizer's own declared needs are caught in new words",()=>{
+ const source="I want a bigger venue for the fundraiser dinner. The hall holds eighty people today.";
+ const echoed="We want a bigger venue for the fundraiser dinner this spring.";
+ assert.ok(findPublicFacingViolations(echoed,source).some(v=>v.rule==="need_echo"));
+ const reframed="A larger hall would seat every family that comes to the fundraiser dinner, with room for the kids' art display.";
+ assert.deepEqual(findPublicFacingViolations(reframed,source),[]);
+});
+test("discretion scan tags the field each violation appears in and stripping removes only violating sentences",()=>{
+ const output={
+  titles:["A fresh start for the community kitchen","Second distinct title here","Third title with its own hook","Fourth title about the people","Fifth title looking ahead"],
+  summaries:["A clear summary of the plan and the people it serves.","Another summary with a different angle on the effort."],
+  story:"The kitchen serves forty families every week. I need money to keep it running. Every dollar restocks the shelves with fresh food."
+ };
+ const found=findCampaignCopyDiscretionViolations(output,"");
+ assert.deepEqual(found.map(v=>v.field),["story"]);
+ assert.equal(found[0].rule,"pleading");
+ const cleaned=stripPublicFacingViolations(output.story,"");
+ assert.doesNotMatch(cleaned,/need money/i);
+ assert.match(cleaned,/forty families/);
+ assert.match(cleaned,/restocks the shelves/);
+});
+test("story prompts carry the public-facing discretion rules",()=>{
+ assert.match(PUBLIC_FACING_DISCRETION_RULES,/input intelligence/i);
+ assert.match(PUBLIC_FACING_DISCRETION_RULES,/never plead/i);
+ assert.match(PUBLIC_FACING_DISCRETION_RULES,/goal field/i);
+ const messages=storyMessages({details:"I need users for Interplanetary Fund to grow the platform.",section:null},{research:null});
+ assert.match(messages[0].content,/Public-facing discretion/);
+ assert.match(messages[0].content,/never public wording/i);
 });
