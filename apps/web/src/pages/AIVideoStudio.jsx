@@ -192,9 +192,10 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
         <p className="text-sm text-muted-foreground">
           {availability === "checking"
             ? "Checking whether video generation is enabled on this deployment…"
-            : <>Video generation is wired to Cloudflare Workers AI — the same provider as image generation
-              above — but it is not enabled on this deployment yet. The video model is billed per generated
-              second rather than from the free daily allowance, so it stays off until the owner enables it;
+            : <>Video generation is wired to the Alibaba Wan video models — the flagship open
+              video family, reachable through the platform's AI provider — but it is not enabled on this
+              deployment yet. Video models are billed per generated second rather than from the free
+              daily allowance, so it stays off until the owner enables it;
               this Studio does not pretend to generate a video meanwhile. Upload a video you already have in
               the Editor tab to frame it, adjust how it looks, and download a frame still.</>}
         </p>
@@ -207,7 +208,7 @@ export default function AIVideoStudio({ onSendToEditor } = {}) {
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Video generation</h2>
         <p className="text-sm text-muted-foreground">
-          Generate a short original video with Cloudflare Workers AI. One generation uses one of your shared
+          Generate a short original video with AI (Alibaba Wan models). One generation uses one of your shared
           AI creations. The finished video is saved to your private media library — never to a public link —
           and can be attached to a social post or opened in the Editor, exactly like an upload.
         </p>

@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   routeVideoGeneration, videoAIReady, validateVideoRequest,
-  normalizeWorkersAiResult, allowanceDenial, VIDEO_MODEL, VIDEO_I2V_MODEL,
+  normalizeWorkersAiResult, normalizeModelStudioTask, allowanceDenial,
+  VIDEO_MODEL, VIDEO_I2V_MODEL,
 } from "../worker/videoGeneration.js";
 
 const API = "https://interplanetaryfund.com";
@@ -428,4 +429,100 @@ test("provider result normalization accepts documented shapes and rejects empty 
     { status: "pending", providerJobId: "t1" });
   assert.throws(() => normalizeWorkersAiResult({ state: "Completed", result: {} }));
   assert.throws(() => normalizeWorkersAiResult(null));
+});
+
+test("model studio task normalization maps the documented task states", () => {
+  assert.deepEqual(normalizeModelStudioTask({ output: { task_id: "t", task_status: "PENDING" } }),
+    { status: "pending", providerJobId: "t" });
+  assert.deepEqual(normalizeModelStudioTask({ output: { task_status: "SUCCEEDED", video_url: "https://cdn.example/v.mp4" } }),
+    { status: "completed", videoUrl: "https://cdn.example/v.mp4" });
+  assert.equal(normalizeModelStudioTask({ output: { task_status: "FAILED" } }).status, "failed");
+  assert.throws(() => normalizeModelStudioTask({ output: {} }));
+  assert.throws(() => normalizeModelStudioTask(null));
+});
+
+function modelStudioEnv(bucket) {
+  return {
+    ...baseEnv(bucket, undefined),
+    AI: undefined,
+    IFUND_VIDEO_PROVIDER: "alibaba-model-studio",
+    ALIBABA_MODEL_STUDIO_API_KEY: "sk-model-studio-test-key",
+  };
+}
+
+test("model studio readiness needs its API key, not the AI binding", () => {
+  const env = modelStudioEnv(fakeBucket());
+  assert.equal(videoAIReady(env), true);
+  assert.equal(videoAIReady({ ...env, ALIBABA_MODEL_STUDIO_API_KEY: "" }), false);
+  assert.equal(videoAIReady({ ...env, ALIBABA_MODEL_STUDIO_API_KEY: undefined }), false);
+});
+
+test("model studio lifecycle: create task, poll to completion, store like an upload", async () => {
+  const service = fakeServices();
+  const taskStates = ["RUNNING", "SUCCEEDED"];
+  const seen = [];
+  const fetcher = async (url, options = {}) => {
+    const u = String(url);
+    if (u.includes("dashscope-intl.aliyuncs.com")) {
+      seen.push({ u, options });
+      if (u.endsWith("/video-synthesis"))
+        return Response.json({ output: { task_id: "task-123", task_status: "PENDING" }, request_id: "r1" });
+      if (u.includes("/api/v1/tasks/")) {
+        const status = taskStates.shift() ?? "SUCCEEDED";
+        return Response.json({ output: status === "SUCCEEDED"
+          ? { task_id: "task-123", task_status: "SUCCEEDED", video_url: "https://provider.example/clip.mp4" }
+          : { task_id: "task-123", task_status: status } });
+      }
+    }
+    return service.fetcher(url, options);
+  };
+  const env = modelStudioEnv(fakeBucket());
+
+  const submitted = await routeVideoGeneration(generateRequest(), env, fetcher);
+  assert.equal(submitted.status, 202);
+  const submittedJob = (await submitted.json()).job;
+  assert.equal(submittedJob.provider, "alibaba-model-studio");
+  assert.equal(submittedJob.model, "wan2.7-t2v");
+
+  const first = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  assert.equal((await first.json()).job.state, "provider_pending");
+  const create = seen.find((call) => call.u.endsWith("/video-synthesis"));
+  assert.equal(create.options.headers.Authorization, "Bearer sk-model-studio-test-key");
+  assert.equal(create.options.headers["X-DashScope-Async"], "enable");
+  const createBody = JSON.parse(create.options.body);
+  assert.equal(createBody.model, "wan2.7-t2v");
+  assert.equal(createBody.parameters.watermark, false);
+  assert.equal(createBody.parameters.ratio, undefined, "adaptive ratio is omitted for the DashScope contract");
+  assert.equal(service.state.completeCalls, 0);
+
+  const second = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  assert.equal((await second.json()).job.state, "provider_pending");
+
+  const third = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  const job = (await third.json()).job;
+  assert.equal(job.state, "completed");
+  assert.ok(job.media_id);
+  assert.equal(service.media.length, 1);
+  assert.equal(service.media[0].content_kind, "video");
+  assert.equal(service.state.completeCalls, 1);
+});
+
+test("model studio task failure fails the job without completing allowance", async () => {
+  const service = fakeServices();
+  const fetcher = async (url, options = {}) => {
+    const u = String(url);
+    if (u.endsWith("/video-synthesis"))
+      return Response.json({ output: { task_id: "task-9", task_status: "PENDING" } });
+    if (u.includes("/api/v1/tasks/"))
+      return Response.json({ output: { task_id: "task-9", task_status: "FAILED" } });
+    return service.fetcher(url, options);
+  };
+  const env = modelStudioEnv(fakeBucket());
+  await routeVideoGeneration(generateRequest(), env, fetcher);
+  await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  const polled = await routeVideoGeneration(jobRequest(REQUEST_ID, "POST"), env, fetcher);
+  const job = (await polled.json()).job;
+  assert.equal(job.state, "failed");
+  assert.equal(service.state.completeCalls, 0);
+  assert.equal(service.media.length, 0);
 });

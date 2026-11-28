@@ -1,13 +1,19 @@
-// AI video generation for the Media Studio, wired to the one AI provider
-// iFund uses everywhere else: Cloudflare Workers AI (the `AI` binding).
-// The repo names no external video provider and no second credential vault
-// exists; the video model is the catalog text-to-video model below. The
-// feature stays behind IFUND_VIDEO_AI_ENABLED (default off) because the
-// model is billed per generated second by Cloudflare — it is NOT part of
-// the free daily Neuron allocation that covers the text/image models — so
-// enabling it is an explicit owner budget decision, exactly like the image
-// studio's flag. While disabled or incompletely configured every route
-// reports an honest not-configured state instead of faking a generation.
+// AI video generation for the Media Studio. The repo names no external
+// video provider and no second credential vault exists; the platform's AI
+// provider everywhere else is Cloudflare Workers AI, whose catalog carries
+// the Alibaba Wan text-to-video model — so Wan is the wired model family,
+// behind a provider-swappable adapter (see createVideoProvider):
+//   - 'cloudflare-workers-ai' (default): Wan via the existing AI binding.
+//   - 'alibaba-model-studio': Wan direct via the DashScope async API,
+//     whose new-account free quotas are the only real free API seconds
+//     for video (one-time, ~90 days — provider research 2026-11-28).
+// The feature stays behind IFUND_VIDEO_AI_ENABLED (default off) because
+// every route to a video model is billed per generated second — none is
+// covered by the free daily Neuron allocation that covers the text/image
+// models — so enabling it is an explicit owner budget/quota decision,
+// exactly like the image studio's flag. While disabled or incompletely
+// configured every route reports an honest not-configured state instead
+// of faking a generation.
 //
 // Lifecycle (durable job row per request, table ifund_video_generations):
 //   POST /api/ai/videos/generate        reserve allowance + create job
@@ -39,6 +45,10 @@ import { storeMemberMediaBytes, memberMediaSignature } from './media/memberMedia
 export const VIDEO_MODEL = 'alibaba/wan-3.0';
 export const VIDEO_I2V_MODEL = 'alibaba/wan-2.7-i2v';
 export const VIDEO_PROVIDER_ID = 'cloudflare-workers-ai';
+export const MODEL_STUDIO_PROVIDER_ID = 'alibaba-model-studio';
+export const MODEL_STUDIO_T2V_MODEL = 'wan2.7-t2v';
+export const MODEL_STUDIO_I2V_MODEL = 'wan2.5-i2v-preview';
+export const MODEL_STUDIO_DEFAULT_BASE_URL = 'https://dashscope-intl.aliyuncs.com';
 export const VIDEO_RESOLUTIONS = Object.freeze(['480P', '720P', '1080P']);
 export const VIDEO_I2V_RESOLUTIONS = Object.freeze(['720P', '1080P']);
 export const VIDEO_RATIOS = Object.freeze(['adaptive', '16:9', '9:16', '1:1', '4:3', '3:4']);
@@ -64,9 +74,42 @@ export function videoI2vModel(env) {
     ? env.IFUND_VIDEO_I2V_MODEL.trim() : VIDEO_I2V_MODEL;
 }
 
+// The adapter is provider-swappable: IFUND_VIDEO_PROVIDER selects which
+// concrete adapter serves generation. Both adapters target the Alibaba
+// Wan family — via the Workers AI binding, or directly against Alibaba
+// Model Studio (DashScope), whose new-account free quotas are the only
+// real free API seconds found for video (one-time, ~90 days; see
+// docs/product/IFUND_VIDEO_GENERATION_PROVIDER_20261128.md). The standing
+// provider after those quotas is an owner decision, not a code default.
+export function videoProviderId(env) {
+  return env?.IFUND_VIDEO_PROVIDER === MODEL_STUDIO_PROVIDER_ID
+    ? MODEL_STUDIO_PROVIDER_ID : VIDEO_PROVIDER_ID;
+}
+
+export function providerModel(env, providerId, mode) {
+  // IFUND_VIDEO_MODEL / IFUND_VIDEO_I2V_MODEL override the model for
+  // whichever provider is active; defaults are per provider and mode.
+  const override = mode === 'image' ? env?.IFUND_VIDEO_I2V_MODEL : env?.IFUND_VIDEO_MODEL;
+  if (typeof override === 'string' && override.trim()) return override.trim();
+  if (providerId === MODEL_STUDIO_PROVIDER_ID)
+    return mode === 'image' ? MODEL_STUDIO_I2V_MODEL : MODEL_STUDIO_T2V_MODEL;
+  return mode === 'image' ? VIDEO_I2V_MODEL : VIDEO_MODEL;
+}
+
+function modelStudioKey(env) {
+  return typeof env?.ALIBABA_MODEL_STUDIO_API_KEY === 'string'
+    ? env.ALIBABA_MODEL_STUDIO_API_KEY.trim() : '';
+}
+
+function modelStudioBaseUrl(env) {
+  const base = typeof env?.ALIBABA_MODEL_STUDIO_BASE_URL === 'string' &&
+    env.ALIBABA_MODEL_STUDIO_BASE_URL.trim()
+    ? env.ALIBABA_MODEL_STUDIO_BASE_URL.trim() : MODEL_STUDIO_DEFAULT_BASE_URL;
+  return base.replace(/\/$/, '');
+}
+
 export function videoAIReady(env) {
-  return env?.IFUND_VIDEO_AI_ENABLED === 'enabled' &&
-    typeof env?.AI?.run === 'function' &&
+  const common = env?.IFUND_VIDEO_AI_ENABLED === 'enabled' &&
     env.SUPABASE_URL === CANONICAL_URL &&
     typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' &&
     env.SUPABASE_PUBLISHABLE_KEY.length >= 10 &&
@@ -77,6 +120,13 @@ export function videoAIReady(env) {
     typeof env.IFUND_CAMPAIGN_MEDIA?.get === 'function' &&
     typeof env.IFUND_CAMPAIGN_MEDIA?.head === 'function' &&
     typeof env.IFUND_CAMPAIGN_MEDIA?.delete === 'function';
+  if (!common) return false;
+  // Provider-specific credential: the Workers AI binding, or the Model
+  // Studio API key. Without the selected provider's credential the
+  // feature reports itself unconfigured rather than faking success.
+  return videoProviderId(env) === MODEL_STUDIO_PROVIDER_ID
+    ? modelStudioKey(env).length >= 10
+    : typeof env?.AI?.run === 'function';
 }
 
 /**
@@ -86,11 +136,69 @@ export function videoAIReady(env) {
  *   poll(providerJobId) -> the same shapes, or { status:'failed', error }
  * Provider failures throw VideoProviderError with member-safe copy; the
  * allowance is never completed for a failed provider call.
+ * createVideoProvider selects the concrete adapter: the job's own
+ * provider when one is recorded, otherwise the configured provider.
  */
-export function createVideoProvider(env) {
+export function createVideoProvider(env, fetcher = fetch, providerId = videoProviderId(env)) {
+  if (providerId === MODEL_STUDIO_PROVIDER_ID) {
+    const key = modelStudioKey(env);
+    if (!key) return null;
+    const base = modelStudioBaseUrl(env);
+    const headers = { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
+    return {
+      id: MODEL_STUDIO_PROVIDER_ID,
+      model: providerModel(env, MODEL_STUDIO_PROVIDER_ID, 'text'),
+      i2vModel: providerModel(env, MODEL_STUDIO_PROVIDER_ID, 'image'),
+      async submit(input) {
+        // Alibaba Model Studio (DashScope) async video synthesis:
+        // create a task, then poll it. Contract per Alibaba's Wan
+        // text-to-video API reference (verified 2026-11-28).
+        const imageMode = typeof input?.image === 'string' && input.image.length > 0;
+        const body = {
+          model: providerModel(env, MODEL_STUDIO_PROVIDER_ID, imageMode ? 'image' : 'text'),
+          input: {
+            prompt: input.prompt,
+            ...(imageMode ? { img_url: input.image } : {}),
+          },
+          parameters: {
+            resolution: input.resolution,
+            ...(input.ratio && input.ratio !== 'adaptive' ? { ratio: input.ratio } : {}),
+            duration: input.duration,
+            watermark: false,
+          },
+        };
+        let data;
+        try {
+          const res = await fetcher(base + '/api/v1/services/aigc/video-generation/video-synthesis', {
+            method: 'POST',
+            headers: { ...headers, 'X-DashScope-Async': 'enable' },
+            body: JSON.stringify(body),
+          });
+          data = await res.json().catch(() => null);
+          if (!res.ok) throw new Error('provider http ' + res.status);
+        } catch {
+          throw new VideoProviderError('The video provider could not be reached. No finished video was produced, so this attempt does not count as a completed creation.');
+        }
+        return normalizeModelStudioTask(data);
+      },
+      async poll(providerJobId) {
+        let data;
+        try {
+          const res = await fetcher(base + '/api/v1/tasks/' + encodeURIComponent(providerJobId), {
+            headers,
+          });
+          data = await res.json().catch(() => null);
+          if (!res.ok) throw new Error('provider http ' + res.status);
+        } catch {
+          throw new VideoProviderError('The video provider could not be reached to check this generation.');
+        }
+        return normalizeModelStudioTask(data);
+      },
+    };
+  }
   if (typeof env?.AI?.run !== 'function') return null;
-  const model = videoModel(env);
-  const i2vModel = videoI2vModel(env);
+  const model = providerModel(env, VIDEO_PROVIDER_ID, 'text');
+  const i2vModel = providerModel(env, VIDEO_PROVIDER_ID, 'image');
   return {
     id: VIDEO_PROVIDER_ID,
     model,
@@ -118,6 +226,19 @@ export function createVideoProvider(env) {
       throw new VideoProviderError('This video provider has no separate job to poll.');
     },
   };
+}
+
+export function normalizeModelStudioTask(data) {
+  const output = data?.output;
+  const status = typeof output?.task_status === 'string' ? output.task_status : '';
+  if (status === 'SUCCEEDED' &&
+      typeof output?.video_url === 'string' && /^https:\/\/[^\s]+$/i.test(output.video_url))
+    return { status: 'completed', videoUrl: output.video_url };
+  if (status === 'FAILED' || status === 'CANCELED' || status === 'UNKNOWN')
+    return { status: 'failed', error: 'The video provider could not finish this generation. This attempt does not count as a completed creation.' };
+  if ((status === 'PENDING' || status === 'RUNNING') && output?.task_id)
+    return { status: 'pending', providerJobId: String(output.task_id) };
+  throw new VideoProviderError('The video provider did not return a finished video. No finished video was produced, so this attempt does not count as a completed creation.');
 }
 
 export function normalizeWorkersAiResult(result) {
@@ -248,8 +369,8 @@ async function submitJob(request, env, fetcher) {
   const inserted = await supabase(env, fetcher, JOBS + '?select=' + JOB_SELECT, {
     method: 'POST', admin: true, prefer: 'return=representation',
     body: {
-      owner_id: actor.id, request_id: input.requestId, provider: VIDEO_PROVIDER_ID,
-      model: input.mode === 'image' ? videoI2vModel(env) : videoModel(env),
+      owner_id: actor.id, request_id: input.requestId, provider: videoProviderId(env),
+      model: providerModel(env, videoProviderId(env), input.mode),
       state: 'submitted', prompt: input.prompt,
       resolution: input.resolution, ratio: input.ratio,
       duration_seconds: input.duration, mode: input.mode,
@@ -334,7 +455,7 @@ async function advanceJob(request, env, fetcher, requestId) {
       return response(200, { job: publicJob(current ?? job) });
     }
     job = claimed;
-    const provider = createVideoProvider(env);
+    const provider = createVideoProvider(env, fetcher, job.provider);
     if (!provider) fail(503, 'AI video generation is not currently available.');
     let outcome;
     try {
@@ -364,7 +485,7 @@ async function advanceJob(request, env, fetcher, requestId) {
   }
 
   if (job.state === 'provider_pending') {
-    const provider = createVideoProvider(env);
+    const provider = createVideoProvider(env, fetcher, job.provider);
     if (!provider) fail(503, 'AI video generation is not currently available.');
     let outcome;
     try {
@@ -374,8 +495,12 @@ async function advanceJob(request, env, fetcher, requestId) {
       throw error;
     }
     if (outcome.status === 'pending') return response(200, { job: publicJob(job) });
-    if (outcome.status === 'failed')
-      fail(503, outcome.error || 'The video provider could not finish this generation.');
+    if (outcome.status === 'failed') {
+      const failure = outcome.error || 'The video provider could not finish this generation.';
+      const failed = await patchJob(env, fetcher, actor, requestId,
+        { state: 'failed', error: failure });
+      return response(200, { job: publicJob(failed ?? { ...job, state: 'failed', error: failure }) });
+    }
     job = await patchJob(env, fetcher, actor, requestId, {
       state: 'provider_completed', provider_video_url: outcome.videoUrl, error: null,
     }) ?? { ...job, state: 'provider_completed', provider_video_url: outcome.videoUrl };
@@ -405,7 +530,9 @@ export async function routeVideoGeneration(request, env, fetcher = fetch) {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, {
         videoGeneration: videoAIReady(env) ? 'enabled' : 'not_configured',
-        provider: VIDEO_PROVIDER_ID, model: videoModel(env), imageModel: videoI2vModel(env),
+        provider: videoProviderId(env),
+        model: providerModel(env, videoProviderId(env), 'text'),
+        imageModel: providerModel(env, videoProviderId(env), 'image'),
       });
     }
     if (path === '/api/ai/videos/generate') {

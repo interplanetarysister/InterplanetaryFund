@@ -16,9 +16,43 @@ That gap has closed upstream: the Workers AI catalog now carries a
 text-to-video model, **`alibaba/wan-3.0`** (Alibaba Wan 3.0), callable
 through the same binding with `{ prompt, resolution, ratio, duration }`,
 returning `{ state: "Completed", result: { video: "<url>" } }`
-(Cloudflare model page, checked 2026-11-28). So the provider wired here
-is Cloudflare Workers AI and the model is `alibaba/wan-3.0` — no new
-vendor account, no new API key, no second credential vault.
+(Cloudflare model page, checked 2026-11-28). So the model family wired
+here is **Alibaba Wan** — no new vendor relationship is required to
+reach it, and the adapter is provider-swappable (below).
+
+## Provider research verdict (2026-11-28) and the swappable adapter
+
+A dedicated provider survey (full report:
+`~/workspace/research_notes/free-video-generation-api-20261128-0904/report.md`)
+established that **no provider offers a public API with a non-expiring
+free allowance at 50-user volume**: every first-party video API is
+paid-only or web-only-free, Cloudflare's perpetual free Neurons do not
+cover video models, and Stability discontinued its video API. The best
+free buckets are one-time and expiring — **Alibaba Model Studio's Wan
+quotas (~600–700 seconds stacked across models, 90 days, Singapore
+region)** and the Google Cloud $300/90-day trial toward Vertex Veo. The
+cheapest paid floor afterwards is aggregator pricing around
+$0.03–$0.10/second (fal.ai ≈ $3–$6/month at pilot volume).
+
+Accordingly the wiring implements **two concrete adapters behind one
+interface**, both targeting the Wan family, selected by
+`IFUND_VIDEO_PROVIDER`:
+
+- `cloudflare-workers-ai` (default): Wan via the existing `AI` binding
+  (`alibaba/wan-3.0` / `alibaba/wan-2.7-i2v`), dollar-billed per second
+  through AI Gateway Unified Billing.
+- `alibaba-model-studio`: Wan direct via the DashScope async API
+  (create task → poll → result URL; contract verified against Alibaba's
+  Wan API reference, 2026-11-28), defaults `wan2.7-t2v` /
+  `wan2.5-i2v-preview` — the models carrying the free-quota seconds.
+  Requires the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`; optional
+  `ALIBABA_MODEL_STUDIO_BASE_URL` for a workspace/regional domain
+  (default `https://dashscope-intl.aliyuncs.com`).
+
+**The standing provider after the free quotas expire is the owner's
+decision** (paid aggregator floor vs leaving the feature off); the code
+does not choose it. Nothing was signed up for and no spend was committed
+by this wiring.
 
 ## Generative modes
 
@@ -93,18 +127,44 @@ generations a member can consume.
 1. Apply `20261128000000_ifund_video_generation_jobs.sql` to the
    production Supabase project (SQL editor), as with earlier source-only
    migrations.
-2. Confirm the Pages/Worker environment has the `AI` binding and the
-   `IFUND_CAMPAIGN_MEDIA` R2 binding with `IFUND_CAMPAIGN_MEDIA_ENABLED`
-   (already required by the live media library) plus `SUPABASE_SECRET_KEY`
-   available to the Worker (already used by the media modules).
-3. Decide the budget posture for per-second billing (above), then set
-   `IFUND_VIDEO_AI_ENABLED=enabled`. Optionally set `IFUND_VIDEO_MODEL`
-   to override `alibaba/wan-3.0` and `IFUND_VIDEO_I2V_MODEL` to override
-   `alibaba/wan-2.7-i2v`.
+2. Confirm the Pages/Worker environment has the R2 media binding with
+   `IFUND_CAMPAIGN_MEDIA_ENABLED` (already required by the live media
+   library) plus `SUPABASE_SECRET_KEY` available to the Worker (already
+   used by the media modules), and — for the default provider — the `AI`
+   binding.
+3. Choose the provider and budget posture:
+   - **Free-quota pilot (recommended first):** create the Alibaba Model
+     Studio account (Singapore region), note the workspace domain if
+     using one, set the Worker secret `ALIBABA_MODEL_STUDIO_API_KEY`,
+     optionally `ALIBABA_MODEL_STUDIO_BASE_URL`, and set
+     `IFUND_VIDEO_PROVIDER=alibaba-model-studio`. Verify the current
+     model names and the image-to-video input field in the Model Studio
+     console at activation (the survey found region wording conflicts
+     between sources). Quotas expire ~90 days after account creation.
+   - **Workers AI route:** leave `IFUND_VIDEO_PROVIDER` unset; Wan is
+     billed per second from the first generation ($0.05–$0.20/s).
+   Then set `IFUND_VIDEO_AI_ENABLED=enabled`. Optionally set
+   `IFUND_VIDEO_MODEL` / `IFUND_VIDEO_I2V_MODEL` to override the active
+   provider's models.
 4. Deploy through the normal authorized release, then run the frontend
    acceptance pass as a signed-in entitled member (generate, save,
    attach to a post, play) per the repo's acceptance rules — source tests
    with a mocked provider do not substitute for that live check.
+
+## Related: AI caption wording (same delivery)
+
+Per the owner's follow-up directive, generated media can now carry
+AI-drafted caption wording: `POST /api/ai/captions/generate` (member +
+AI-consent gated; llama text model on the free Neuron allocation, so no
+enable flag) drafts wording for the Media Studio artwork caption and the
+campaign cover caption. Every draft passes the deterministic coherence
+guard in `apps/web/src/lib/captionQuality.mjs` (real words only — no
+invented words, letter salad, or keyboard mash; names, hashtags and the
+member's own context words are never false-flagged) and the
+public-facing discretion scan. One corrective regeneration on failure,
+then the campaign title as a labeled fallback. The print contract is
+unchanged: models still draw no lettering, and only member-approved
+exact text is rendered onto artwork.
 
 ## Known limits
 
