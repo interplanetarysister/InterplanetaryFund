@@ -230,7 +230,7 @@ test("invalid AI output marks a failed attempt without saving a plan", async () 
   assert.equal(persisted.p_result, null);
   assert.equal((await result.json()).code, "new_request_required");
 });
-test("unauthenticated, disabled, unconfirmed and oversized requests fail closed", async () => {
+test("unauthenticated, disabled and oversized requests fail closed; unconfirmed members pass identity", async () => {
   assert.equal(
     (
       await strategyRoute(
@@ -249,13 +249,18 @@ test("unauthenticated, disabled, unconfirmed and oversized requests fail closed"
     ).status,
     503,
   );
+  // Owner directive 2026-11-27: a signed-in member whose email is not yet
+  // confirmed passes the identity check; the degenerate stub then fails
+  // the separate account-active recheck (403), proving the request got
+  // past identity. Full unconfirmed-member coverage lives in
+  // tests/agent-verification-gate.test.js.
   assert.equal(
     (
       await strategyRoute(http("workspace"), env, async () =>
         Response.json({ id: uid }),
       )
     ).status,
-    401,
+    403,
   );
   const big = http("brief", { request_id: uid, objective: "x".repeat(20000) });
   assert.equal(
