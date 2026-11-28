@@ -12,8 +12,8 @@ test("membership_required is a 403 with a membership explanation, not a verifica
   assert.match(preview, /membership_required:\[403,"AI writing help needs a trial or a subscription with AI included\./);
 });
 
-test("trial_limit keeps its 429 trial-exhaustion message", () => {
-  assert.match(preview, /trial_limit:\[429,"Your 15 trial AI creations are used\./);
+test("trial_limit keeps its 429 free-pool exhaustion message", () => {
+  assert.match(preview, /trial_limit:\[429,"Your 15 free AI creations for this week are used\./);
 });
 
 test("monthly_limit is a 429 with a plan-limit explanation", () => {

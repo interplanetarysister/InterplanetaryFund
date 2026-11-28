@@ -18,7 +18,7 @@ export default function TrialCreationBalance({ compact = false }) {
     }).catch(()=>{});
     return ()=>{live=false;};
   },[info]);
-  if(!info || (!info.trial && !info.paid))return null;
+  if(!info || (!info.trial && !info.paid && !info.free_pool))return null;
   const done=info.remaining<=0;
   const maximum=info.paid?50:15;
   return <section aria-label="Account AI generation allowance"
@@ -26,11 +26,11 @@ export default function TrialCreationBalance({ compact = false }) {
       ?"rounded-lg bg-cyan-500/[.055] px-2 py-2 text-xs"
       :"rounded-xl border "+(done?"border-amber-400/40":"border-cyan-400/30")+" bg-background/70 p-4"}>
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="text-sm font-semibold">{done?(info.paid?"Monthly AI creations used":"Your 15 free AI creations are used"):(info.paid?"Premium AI creations: ":"Trial AI creations: ")+info.remaining+" of "+maximum+" left"}</p>
+      <p className="text-sm font-semibold">{done?(info.paid?"Monthly AI creations used":"Your 15 free AI creations for this week are used"):(info.paid?"Premium AI creations: ":"Free AI creations: ")+info.remaining+" of "+maximum+" left"+(info.paid?"":" this week")}</p>
       {done&&<Link to="/subscriptions" className="inline-flex min-h-11 items-center rounded-lg bg-cyan-700 px-3 text-sm font-semibold text-white">Review plan & credits</Link>}
     </div>
     {!compact&&<p className="mt-1 text-xs text-muted-foreground">{done
       ?"You can still write, upload, edit, save and publish campaigns without AI."
-      :"AI writing, artwork and image improvements share your account allowance. Premium creations renew with a verified monthly payment; unused credits do not roll over. Manual campaign tools remain free."}</p>}
+      :"AI writing, artwork, videos and image improvements share one account allowance. Free accounts include 15 creations per week on a rolling 7-day cycle, spendable on any AI creation type. Premium creations renew with a verified monthly payment; unused credits do not roll over. Manual campaign tools remain free."}</p>}
   </section>;
 }

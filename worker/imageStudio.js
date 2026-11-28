@@ -97,15 +97,16 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     const aiConsent = await verifyOwnerAIConsent(env, account, fetcher);
     if (!aiConsent.allowed) return response(aiConsent.status, {error: aiConsent.status === 403 ? "Turn on AI Assistance in My Account to use AI artwork." : "AI permission could not be verified."});
 
-    // Atomic database check verifies the active 24-hour/referral trial or a real paid entitlement,
+    // Atomic database check verifies the caller's allowance — the shared
+    // weekly free pool for non-subscribers or a real paid entitlement —
     // and enforces fair-use pacing plus the shared Workers AI hard budget.
     // No browser role, referral credit or trial expiry is trusted.
     trialReceipt = await reserveTrialContent(env,account.jwt,"image",crypto.randomUUID(),fetcher);
     if (!trialReceipt.allowed) return response(
       trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
       {error:trialReceipt.code==="trial_limit"
-        ?"Your 15 trial AI creations are used. Subscribe to keep creating, or use manual campaign tools for free."
-        :"Your trial generation allowance is unavailable. Manual uploads and editing remain available."});
+        ?"Your 15 free AI creations for this week are used. They refresh on a rolling 7-day cycle. Subscribe to keep creating, or use manual campaign tools for free."
+        :"Your AI generation allowance is unavailable. Manual uploads and editing remain available."});
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 

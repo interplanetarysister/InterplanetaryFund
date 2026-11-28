@@ -236,7 +236,7 @@ test("allowance denial states map to honest D7 statuses and copy", () => {
   assert.equal(allowanceDenial({ code: "monthly_limit" })[0], 429);
   assert.deepEqual(allowanceDenial({ code: "unavailable" }),
     [503, "Your AI generation allowance could not be verified."]);
-  assert.match(allowanceDenial({ code: "trial_limit" })[1], /15 trial AI creations/);
+  assert.match(allowanceDenial({ code: "trial_limit" })[1], /15 free AI creations for this week/);
 });
 
 test("unauthenticated and consent-denied submits never reach the allowance or provider", async () => {
@@ -261,7 +261,7 @@ test("unauthenticated and consent-denied submits never reach the allowance or pr
 
 test("allowance denials return per-state responses and create no job", async () => {
   for (const [reserve, expectedStatus, copy] of [
-    [{ allowed: false, state: "trial_limit" }, 429, /15 trial AI creations/],
+    [{ allowed: false, state: "trial_limit" }, 429, /15 free AI creations for this week/],
     [{ allowed: false, state: "membership_required" }, 403, /needs a trial or a subscription/],
     [{ allowed: false, state: "monthly_limit" }, 429, /this month's AI creation limit/],
   ]) {

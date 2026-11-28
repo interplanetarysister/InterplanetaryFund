@@ -365,7 +365,7 @@ export function validateVideoRequest(input) {
 // "could not be verified"; that copy is reserved for a genuine check failure.
 export function allowanceDenial(receipt) {
   return {
-    trial_limit: [429, 'Your 15 trial AI creations are used. View subscription plans for more AI, or create and upload videos manually for free.'],
+    trial_limit: [429, 'Your 15 free AI creations for this week are used. They refresh on a rolling 7-day cycle. View subscription plans for more AI, or create and upload videos manually for free.'],
     membership_required: [403, 'AI video generation needs a trial or a subscription with AI included. View subscription plans for more AI, or create and upload videos manually for free.'],
     monthly_limit: [429, "You have reached this month's AI creation limit for your plan."],
   }[receipt?.code] || [503, 'Your AI generation allowance could not be verified.'];

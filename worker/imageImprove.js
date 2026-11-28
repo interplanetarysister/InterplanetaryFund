@@ -67,8 +67,8 @@ export async function routeImageImprove(request, env, fetcher = fetch) {
     if (!trialReceipt.allowed) return response(
       trialReceipt.code==="trial_limit"?429:trialReceipt.code==="membership_required"?403:503,
       {error:trialReceipt.code==="trial_limit"
-        ?"Your 15 trial AI creations are used. Subscribe to keep creating, or use manual campaign tools for free."
-        :"Your trial generation allowance is unavailable. Manual uploads and editing remain available."});
+        ?"Your 15 free AI creations for this week are used. They refresh on a rolling 7-day cycle. Subscribe to keep creating, or use manual campaign tools for free."
+        :"Your AI generation allowance is unavailable. Manual uploads and editing remain available."});
     const quotaError = await consumeImageQuota(env, account, fetcher);
     if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
